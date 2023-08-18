@@ -27,25 +27,33 @@ export interface Felmeres {
 
 export default async function Home() {
 	const data = await fetch("http://pen.dataupload.xyz/felmeresek", { next: { tags: ["felmeresek"] } });
-	const felmeresek: Felmeres[] = await data.json();
-	const formattedFelmeresek = Array.from(new Set(felmeresek.map((felmeresek) => felmeresek.adatlap_id))).map(
-		(adatlap_id) => {
-			let i: any = {};
-			felmeresek
-				.filter((felmeresek) => felmeresek.adatlap_id === adatlap_id)
-				.map((felmeresek) => {
-					i[felmeresek.field] = felmeresek.value;
-				});
-			return i;
-		}
-	);
+	console.log(data);
+	if (data.ok) {
+		const felmeresek: Felmeres[] = await data.json();
+		const formattedFelmeresek = Array.from(new Set(felmeresek.map((felmeresek) => felmeresek.adatlap_id))).map(
+			(adatlap_id) => {
+				let i: any = {};
+				felmeresek
+					.filter((felmeresek) => felmeresek.adatlap_id === adatlap_id)
+					.map((felmeresek) => {
+						i[felmeresek.field] = felmeresek.value;
+					});
+				return i;
+			}
+		);
 
-	// console.log(formattedFelmeresek);
-
-	return (
-		<main className='flex min-h-screen flex-col items-center justify-start p-2'>
-			<Heading title='Felmérések' />
-			<StackedList items={formattedFelmeresek} />
-		</main>
-	);
+		return (
+			<main className='flex min-h-screen flex-col items-center justify-start p-2'>
+				<Heading title='Felmérések' />
+				<StackedList items={formattedFelmeresek} />
+			</main>
+		);
+	} else {
+		return (
+			<main className='flex min-h-screen flex-col items-center justify-start p-2'>
+				<Heading title='Felmérések' />
+				<p className='text-center text-gray-500'>Hiba akadt a felmérések lekérdezése közben</p>
+			</main>
+		);
+	}
 }
