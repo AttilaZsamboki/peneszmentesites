@@ -2,7 +2,7 @@ import { Felmeres } from "../page";
 import ClientPage from "./_clientPage";
 
 export default async function Page({ params }: { params: { id: string } }) {
-	const data = await fetch("http://pen.dataupload.xyz/felmeresek/" + params.id);
+	const data = await fetch("http://pen.dataupload.xyz/felmeresek/" + params.id, { next: { tags: [params.id] } });
 	const felmeres: Felmeres[] = await data.json();
 	const formattedFelmeres = felmeres.map((field) =>
 		["GRID", "CHECKBOX_GRID", "FILE_UPLOAD"].includes(field.type)
