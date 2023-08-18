@@ -11,7 +11,11 @@ export default function StackedList({ items }: { items: any[] }) {
 							<img
 								className='h-12 w-12 flex-none rounded-full bg-gray-50'
 								src={`https://drive.google.com/uc?export=view&id=${
-									JSON.parse(item["Készítsd képeket és töltsd fel őket!"].replace(/'/g, '"'))[0]
+									JSON.parse(
+										item["Készítsd képeket és töltsd fel őket!"]
+											? item["Készítsd képeket és töltsd fel őket!"].replace(/'/g, '"')
+											: {}
+									)[0]
 								}`}
 								alt='felmereskep'
 							/>
