@@ -10,22 +10,15 @@ export default function Gallery({ images, isVideo }: { images: string[]; isVideo
 	return (
 		<>
 			<div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
-				{images.map((image) => (
-					<div onClick={() => setOpen(image)} key={image}>
+				{images.map((media) => (
+					<div onClick={() => setOpen(media)} key={media}>
 						{isVideo ? (
 							<div style={{ position: "relative" }}>
-								<video
-									className='h-auto max-w-full rounded-lg'
-									src={`https://drive.google.com/uc?export=view&id=${image}`}
-									controls
-								/>
+								<video className='h-auto max-w-full rounded-lg' src={media} controls />
 								<Square2StackIcon className='w-8 h-8 absolute top-0 right-0 text-white' />
 							</div>
 						) : (
-							<img
-								className='h-auto max-w-full rounded-lg'
-								src={`https://drive.google.com/uc?export=view&id=${image}`}
-							/>
+							<img className='h-auto max-w-full rounded-lg' src={media} />
 						)}
 					</div>
 				))}
@@ -34,16 +27,9 @@ export default function Gallery({ images, isVideo }: { images: string[]; isVideo
 				<DialogBody divider={true} className='p-0'>
 					<div>
 						{isVideo ? (
-							<video
-								className='h-auto max-w-full rounded-lg'
-								src={`https://drive.google.com/uc?export=view&id=${open}`}
-								controls
-							/>
+							<video className='h-auto max-w-full rounded-lg' src={open} controls />
 						) : (
-							<img
-								className='h-auto max-w-full rounded-lg'
-								src={`https://drive.google.com/uc?export=view&id=${open}`}
-							/>
+							<img className='h-auto max-w-full rounded-lg' src={open} />
 						)}
 						<div className='absolute top-3 right-3' onClick={handleOpen}>
 							<XMarkIcon className='w-8 h-8' />

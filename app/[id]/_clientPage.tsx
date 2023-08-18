@@ -1,10 +1,33 @@
 "use client";
 import { Felmeres, ListOption, GridOptions, ScaleOption } from "../page";
 import { Grid } from "../_components/Grid";
-import { Checkbox, Slider } from "@material-tailwind/react";
+import { Checkbox, Slider, Card, CardBody, CardHeader } from "@material-tailwind/react";
 import Gallery from "../_components/Gallery";
+import React from "react";
+import TextEditor from "../_components/Texteditor";
+import { FelmeresNotes } from "./page";
+import { XMarkIcon } from "@heroicons/react/20/solid";
+import autoAnimate from "@formkit/auto-animate";
 
-export default function ClientPage({ formattedFelmeres }: { formattedFelmeres: Felmeres[] }) {
+export default function ClientPage({
+	formattedFelmeres,
+	felmeresNotes,
+	felmeresId,
+}: {
+	formattedFelmeres: Felmeres[];
+	felmeresNotes: FelmeresNotes[];
+	felmeresId: string;
+}) {
+	const [notes, setNotes] = React.useState<FelmeresNotes[]>(felmeresNotes);
+	const notesParent = React.useRef(null);
+	React.useEffect(() => {
+		setNotes(felmeresNotes);
+	}, [felmeresNotes]);
+	React.useEffect(() => {
+		if (notesParent) {
+			notesParent.current && autoAnimate(notesParent.current);
+		}
+	}, []);
 	return (
 		<dl className='divide-y divide-gray-100'>
 			{formattedFelmeres
@@ -79,13 +102,79 @@ export default function ClientPage({ formattedFelmeres }: { formattedFelmeres: F
 							<div className='px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0' key={field.id}>
 								<div className='text-base mb-4 font-medium leading-6 text-gray-900'>{field.field}</div>
 								<Gallery
-									images={field.value as unknown as string[]}
+									images={(field.value as unknown as string[]).map(
+										(media) => `https://drive.google.com/uc?export=view&id=${media}`
+									)}
 									isVideo={field.field === "Készíts videót és töltsd fel!"}
 								/>
 							</div>
 						);
 					}
 				})}
+			<div className='px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0 relative' ref={notesParent}>
+				<div className='text-lg mb-6 font-bold leading-6 text-gray-900 text-center'>Jegyzetek</div>
+				{notes
+					.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+					.map((note) => (
+						<div className='flex flex-col mb-5 items-center justify-center' key={note.id}>
+							<Note note={note} setNotes={setNotes} />
+						</div>
+					))}
+				<TextEditor adatlapId={felmeresId} setNotes={setNotes} />
+			</div>
 		</dl>
+	);
+}
+
+function Note({
+	note,
+	setNotes,
+}: {
+	note: FelmeresNotes;
+	setNotes: React.Dispatch<React.SetStateAction<FelmeresNotes[]>>;
+}) {
+	const deleteNote = async () => {
+		const resp = await fetch("http://pen.dataupload.xyz/felmeresek_notes/" + note.id + "/", {
+			method: "DELETE",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		});
+		if (resp.ok) {
+			setNotes((prev) => prev.filter((n) => n.id !== note.id));
+		}
+	};
+	return (
+		<Card className='w-full mt-10'>
+			<CardHeader color='blue-gray' className='flex flex-row justify-between items-center font-semibold p-2'>
+				<div className='text-sm ml-2'>
+					{new Date(note.created_at).toLocaleString("hu-HU", {
+						year: "numeric",
+						month: "short",
+						day: "numeric",
+						hour: "numeric",
+						minute: "numeric",
+						hour12: false,
+					})}
+				</div>
+				<XMarkIcon className='w-6 h-6 mr-2' onClick={deleteNote} />
+			</CardHeader>
+			<CardBody>
+				{note.type === "text" ? (
+					<div className='text-sm mb-4 leading-6 text-gray-700' key={note.id}>
+						{note.value}
+					</div>
+				) : note.type === "image" ? (
+					<img className='mb-4' src={`/images/${note.value}`} alt='note' key={note.id} />
+				) : note.type === "images" ? (
+					<Gallery
+						images={JSON.parse(note.value).map((image: string) => `/images/${image}`)}
+						isVideo={false}
+					/>
+				) : (
+					<div></div>
+				)}
+			</CardBody>
+		</Card>
 	);
 }
