@@ -165,11 +165,10 @@ function Note({
 						{note.value}
 					</div>
 				) : note.type === "image" ? (
-					<img className='mb-4' src={`/images/${note.value}`} alt='note' key={note.id} />
-				) : note.type === "images" ? (
 					<Gallery
-						images={JSON.parse(note.value).map((image: string) => `/images/${image}`)}
+						images={[`https://felmeres-note-images.s3.eu-central-1.amazonaws.com/${note.value}`]}
 						isVideo={false}
+						single={true}
 					/>
 				) : (
 					<div></div>

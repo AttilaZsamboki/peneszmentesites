@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
-import { join } from "path";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 export async function POST(request: NextRequest) {
 	const data = await request.formData();
@@ -14,27 +13,44 @@ export async function POST(request: NextRequest) {
 	const bytes = await files[1].arrayBuffer();
 	const buffer = Buffer.from(bytes);
 
-	// With the file data in the buffer, you can do whatever you want with it.
-	// For this, we'll just write it to the filesystem in a new location
-	const path = join(process.env.NOW_PUBLIC_DIRECTORY ?? "", "images", files[1].name);
-	const id = request.headers
-		.get("referer")
-		?.substring((request.headers.get("referer")?.lastIndexOf("/") as unknown as number) + 1);
-	await fetch("http://pen.dataupload.xyz/felmeresek_notes", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
+	const fileName = files[1].name;
+	const s3Client = new S3Client({
+		region: process.env.AWS_REGION ?? "",
+		credentials: {
+			accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
+			secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
 		},
-		body: JSON.stringify({
-			type: "images",
-			created_at: new Date().toISOString(),
-			adatlap_id: id,
-			value: JSON.stringify(
-				files.filter((file) => (file as unknown as string) !== '{"color":null}').map((file) => file.name)
-			),
-		}),
 	});
-	await writeFile(path, buffer);
+	const uploadParams = {
+		Bucket: process.env.AWS_BUCKET_NAME,
+		Key: fileName,
+		Body: buffer,
+		ContentType: files[1].type,
+		ACL: "public-read",
+	};
+	const uploadCommand = new PutObjectCommand(uploadParams);
 
-	return NextResponse.json({ success: true, async_id_symbol: files[1].name }, { status: 200 });
+	try {
+		await s3Client.send(uploadCommand);
+		const id = request.headers
+			.get("referer")
+			?.substring((request.headers.get("referer")?.lastIndexOf("/") as unknown as number) + 1);
+		await fetch("http://pen.dataupload.xyz/felmeresek_notes", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				type: "image",
+				created_at: new Date().toISOString(),
+				adatlap_id: id,
+				value: files[1].name,
+			}),
+		});
+
+		return NextResponse.json({ success: true, async_id_symbol: fileName }, { status: 200 });
+	} catch (error) {
+		console.error(error);
+		return NextResponse.json({ success: false }, { status: 500 });
+	}
 }

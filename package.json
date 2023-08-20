@@ -9,6 +9,7 @@
 		"lint": "next lint"
 	},
 	"dependencies": {
+		"@aws-sdk/client-s3": "^3.395.0",
 		"@formkit/auto-animate": "^0.7.0",
 		"@heroicons/react": "^2.0.18",
 		"@material-tailwind/react": "^2.1.0",
