@@ -11,7 +11,7 @@ export interface FelmeresNotes {
 
 export default async function Page({ params }: { params: { id: string } }) {
 	const felmeresId = params.id;
-	const data = await fetch("https://pen.dataupload.xyz/felmeresek/" + felmeresId, { next: { tags: [felmeresId] } });
+	const data = await fetch("http://pen.dataupload.xyz/felmeresek/" + felmeresId, { next: { tags: [felmeresId] } });
 	const felmeres: Felmeres[] = data.ok ? await data.json() : [];
 	const formattedFelmeres = felmeres.map((field) =>
 		["GRID", "CHECKBOX_GRID", "FILE_UPLOAD"].includes(field.type)
@@ -21,7 +21,7 @@ export default async function Page({ params }: { params: { id: string } }) {
 			  }
 			: { ...field }
 	);
-	const notes = await fetch("https://pen.dataupload.xyz/felmeresek_notes?adatlap_id=" + felmeresId, {
+	const notes = await fetch("http://pen.dataupload.xyz/felmeresek_notes?adatlap_id=" + felmeresId, {
 		cache: "no-store",
 	});
 	const felmeresNotes: FelmeresNotes[] = notes.ok ? await notes.json() : [];

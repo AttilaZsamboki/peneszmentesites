@@ -26,7 +26,7 @@ export interface Felmeres {
 }
 
 export default async function Home() {
-	const data = await fetch("https://pen.dataupload.xyz/felmeresek", { next: { tags: ["felmeresek"] } });
+	const data = await fetch("http://pen.dataupload.xyz/felmeresek", { next: { tags: ["felmeresek"] } });
 	if (data.ok) {
 		const felmeresek: Felmeres[] = await data.json();
 		const formattedFelmeresek = Array.from(new Set(felmeresek.map((felmeresek) => felmeresek.adatlap_id))).map(
