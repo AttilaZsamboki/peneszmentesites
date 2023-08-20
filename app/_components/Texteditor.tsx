@@ -26,7 +26,6 @@ export default function TextEditor({
 	adatlapId: string;
 	setNotes: React.Dispatch<React.SetStateAction<FelmeresNotes[]>>;
 }) {
-	const [files, setFiles] = useState([]);
 	const [text, setText] = useState("");
 	const saveNote = async () => {
 		const resp = await fetch("http://pen.dataupload.xyz/felmeresek_notes", {
@@ -51,20 +50,6 @@ export default function TextEditor({
 		<div>
 			<div className='App'>
 				<FilePond
-					files={files}
-					onaddfile={(err, file) => {
-						if (err) return;
-						setNotes((prev) => [
-							...prev,
-							{
-								id: 0,
-								type: "image",
-								created_at: new Date(),
-								adatlap_id: adatlapId,
-								value: file.filename,
-							},
-						]);
-					}}
 					allowMultiple={true}
 					allowReplace={true}
 					server='/api/save-image'
