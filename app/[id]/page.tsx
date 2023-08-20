@@ -26,18 +26,5 @@ export default async function Page({ params }: { params: { id: string } }) {
 	});
 	const felmeresNotes: FelmeresNotes[] = notes.ok ? await notes.json() : [];
 
-	return (
-		<div className='bg-white'>
-			<div className='px-4 sm:px-0 pt-10'>
-				<h3 className='text-base font-semibold leading-7 text-gray-900'>Felmérés adatok</h3>
-			</div>
-			<div className='mt-6 border-t border-gray-100'>
-				<ClientPage
-					formattedFelmeres={formattedFelmeres}
-					felmeresNotes={felmeresNotes}
-					felmeresId={felmeresId}
-				/>
-			</div>
-		</div>
-	);
+	return <ClientPage formattedFelmeres={formattedFelmeres} felmeresNotes={felmeresNotes} felmeresId={felmeresId} />;
 }

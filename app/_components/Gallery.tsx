@@ -36,7 +36,7 @@ export default function Gallery({
 				</div>
 			)}
 			<Dialog size='xl' open={open ? true : false} handler={handleOpen}>
-				<DialogBody divider={true} className='p-0'>
+				<DialogBody divider={true} className='p-0 rounded-lg'>
 					<div>
 						{isVideo ? (
 							<video className='h-auto max-w-full rounded-lg' src={open} controls />

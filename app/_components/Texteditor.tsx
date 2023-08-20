@@ -47,7 +47,7 @@ export default function TextEditor({
 		}
 	};
 	return (
-		<div>
+		<div className='w-full lg:w-5/6'>
 			<div className='App'>
 				<FilePond
 					allowMultiple={true}
@@ -62,7 +62,7 @@ export default function TextEditor({
 					labelIdle='Tölts fel egy képet!'
 				/>
 			</div>
-			<div className='relative w-full'>
+			<div className='w-full'>
 				<Textarea
 					variant='static'
 					color='blue-gray'

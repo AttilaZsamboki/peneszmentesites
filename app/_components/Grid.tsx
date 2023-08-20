@@ -7,11 +7,13 @@ export const Grid = ({
 	rows,
 	value,
 	radio,
+	disabled,
 }: {
 	columns: string[];
 	rows: string[];
 	value: string[];
 	radio: boolean;
+	disabled: boolean;
 }) => {
 	return (
 		<div className='relative overflow-x-auto sm:rounded-lg'>
@@ -45,6 +47,7 @@ export const Grid = ({
 												color='blue-gray'
 												checked={value[index] ? value[index].includes(column) : false}
 												crossOrigin='anonymous'
+												disabled={disabled}
 											/>
 										) : (
 											<Radio
@@ -52,6 +55,7 @@ export const Grid = ({
 												color='blue-gray'
 												checked={value[index] ? value[index].includes(column) : false}
 												crossOrigin='anonymous'
+												disabled={disabled}
 											/>
 										)}
 									</div>
