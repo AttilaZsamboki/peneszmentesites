@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { writeFile } from "fs/promises";
-import { join } from "path";
 
 export async function POST(request: NextRequest) {
 	const data = await request.formData();
@@ -16,8 +15,7 @@ export async function POST(request: NextRequest) {
 
 	// With the file data in the buffer, you can do whatever you want with it.
 	// For this, we'll just write it to the filesystem in a new location
-
-	const path = join(process.cwd(), "images", files[1].name);
+	const path = `public/images/${files[1].name}`;
 	const id = request.headers
 		.get("referer")
 		?.substring((request.headers.get("referer")?.lastIndexOf("/") as unknown as number) + 1);
