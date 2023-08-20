@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 	const id = request.headers
 		.get("referer")
 		?.substring((request.headers.get("referer")?.lastIndexOf("/") as unknown as number) + 1);
-	await fetch("http://pen.dataupload.xyz/felmeresek_notes", {
+	await fetch("https://pen.dataupload.xyz/felmeresek_notes", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",

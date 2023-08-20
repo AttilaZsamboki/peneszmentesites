@@ -28,7 +28,7 @@ export default function TextEditor({
 }) {
 	const [text, setText] = useState("");
 	const saveNote = async () => {
-		const resp = await fetch("http://pen.dataupload.xyz/felmeresek_notes", {
+		const resp = await fetch("https://pen.dataupload.xyz/felmeresek_notes", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",

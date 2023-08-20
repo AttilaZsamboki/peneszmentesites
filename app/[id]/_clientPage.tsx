@@ -134,7 +134,7 @@ function Note({
 	setNotes: React.Dispatch<React.SetStateAction<FelmeresNotes[]>>;
 }) {
 	const deleteNote = async () => {
-		const resp = await fetch("http://pen.dataupload.xyz/felmeresek_notes/" + note.id + "/", {
+		const resp = await fetch("https://pen.dataupload.xyz/felmeresek_notes/" + note.id + "/", {
 			method: "DELETE",
 			headers: {
 				"Content-Type": "application/json",
