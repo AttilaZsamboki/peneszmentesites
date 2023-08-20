@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 	// With the file data in the buffer, you can do whatever you want with it.
 	// For this, we'll just write it to the filesystem in a new location
 
-	const path = join(process.cwd(), "public", "images", files[1].name);
+	const path = join(process.cwd(), "images", files[1].name);
 	const id = request.headers
 		.get("referer")
 		?.substring((request.headers.get("referer")?.lastIndexOf("/") as unknown as number) + 1);
