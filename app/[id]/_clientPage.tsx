@@ -186,7 +186,7 @@ function Note({
 						hour12: false,
 					})}
 				</div>
-				<XMarkIcon className='w-6 h-6 mr-2' onClick={deleteNote} />
+				<XMarkIcon className='w-6 h-6 mr-2 cursor-pointer' onClick={deleteNote} />
 			</CardHeader>
 			<CardBody>
 				{note.type === "text" ? (

@@ -76,7 +76,7 @@ export default function TextEditor({
 						<Button size='sm' color='red' variant='text' className='rounded-md'>
 							Mégsem
 						</Button>
-						<Button size='sm' className='rounded-md' onClick={saveNote}>
+						<Button size='sm' className='rounded-md' color='blue-gray' onClick={saveNote}>
 							Mentés
 						</Button>
 					</div>

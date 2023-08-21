@@ -1,5 +1,5 @@
-import StackedList from "./_components/StackedList";
 import Heading from "./_components/Heading";
+import ClientPage from "./_clientPage";
 
 export interface GridOptions {
 	rows: string[];
@@ -41,12 +41,7 @@ export default async function Home() {
 			}
 		);
 
-		return (
-			<main className='flex min-h-screen flex-col items-center justify-start p-2'>
-				<Heading title='Felmérések' />
-				<StackedList items={formattedFelmeresek} />
-			</main>
-		);
+		return <ClientPage felmeresek={formattedFelmeresek} />;
 	} else {
 		return (
 			<main className='flex min-h-screen flex-col items-center justify-start p-2'>
