@@ -3,7 +3,6 @@ import { Fragment, useState } from "react";
 import { Combobox, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 
-
 export default function AutoComplete({
 	options,
 	value,
@@ -26,8 +25,8 @@ export default function AutoComplete({
 
 	return (
 		<Combobox value={value} onChange={onChange}>
-			<div className='relative w-full'>
-				<div className='relative h-10 w-full cursor-default overflow-hidden rounded-lg bg-white text-left shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm'>
+			<div className='relative w-full '>
+				<div className='relative h-10 w-full cursor-default overflow-hidden rounded-lg bg-white text-left shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm'>
 					<Combobox.Input
 						className='w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none'
 						onChange={(event) => setQuery(event.target.value)}

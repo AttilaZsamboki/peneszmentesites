@@ -90,8 +90,10 @@ export default function ClientPage({ felmeresek }: { felmeresek: any[] }) {
 	}, [search]);
 	return (
 		<main className='flex min-h-screen flex-col items-center justify-start p-2'>
-			<div className='flex lg:flex-row flex-col justify-between items-center mt-10 w-11/12'>
-				<Heading title='Felmérések' />
+			<div className='flex lg:flex-row flex-col justify-between items-center mt-10 w-11/12 mb-10'>
+				<div className='lg:mb-0 mb-5'>
+					<Heading title='Felmérések' />
+				</div>
 				<React.Suspense fallback={<div></div>}>
 					<div className='flex flex-col items-end justify-end w-full' ref={parent}>
 						{search.map((i) => (
