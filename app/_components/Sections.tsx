@@ -22,7 +22,7 @@ export default function Sections({
 		<Tabs className='sticky top-5 w-full flex flex-col' orientation='vertical'>
 			<TabsHeader className='rounded-none lg:rounded-md'>
 				<div className='mx-3 my-1 mb-3'>
-					<Input onChange={(e) => setFilter(e.target.value)} />
+					<Input onChange={(e) => setFilter(e.target.value)} value={filter} />
 				</div>
 				{sectionNames
 					.filter((section) => (filter ? section.toLowerCase().includes(filter.toLowerCase()) : true))
