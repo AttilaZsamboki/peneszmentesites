@@ -1,5 +1,6 @@
 import Heading from "./_components/Heading";
 import ClientPage from "./_clientPage";
+import { Filter } from "./_clientPage";
 
 export interface GridOptions {
 	rows: string[];
@@ -25,12 +26,32 @@ export interface Felmeres {
 	type: "CHECKBOX" | "LIST" | "MULTIPLE_CHOICE" | "SCALE" | "TEXT" | "CHECKBOX_GRID" | "GRID" | "FILE_UPLOAD";
 }
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: any }) {
 	const data = await fetch("http://pen.dataupload.xyz/felmeresek", { next: { tags: ["felmeresek"] } });
+	function queryParamsToFilters(searchParams: any) {
+		const filters: Filter[] = [];
+		let index = 0;
+		while (true) {
+			const id = searchParams[`filters[${index}][id]`];
+			const search = searchParams[`filters[${index}][search]`];
+			const searchField = searchParams[`filters[${index}][searchField]`];
+			if (id === undefined || search === undefined || searchField === undefined) {
+				break;
+			}
+			filters.push({
+				id: Number(id),
+				search,
+				searchField,
+			});
+			index++;
+		}
+		return filters;
+	}
+	const filters = queryParamsToFilters(searchParams);
 	if (data.ok) {
 		const felmeresek: Felmeres[] = await data.json();
-		const formattedFelmeresek = Array.from(new Set(felmeresek.map((felmeresek) => felmeresek.adatlap_id))).map(
-			(adatlap_id) => {
+		const formattedFelmeresek = Array.from(new Set(felmeresek.map((felmeresek) => felmeresek.adatlap_id)))
+			.map((adatlap_id) => {
 				let i: any = {};
 				felmeresek
 					.filter((felmeresek) => felmeresek.adatlap_id === adatlap_id)
@@ -38,8 +59,18 @@ export default async function Home() {
 						i[felmeresek.field] = felmeresek.value;
 					});
 				return i;
-			}
-		);
+			})
+			.filter((item) =>
+				filters
+					? filters
+							.map((filter) =>
+								item[filter.searchField]
+									? item[filter.searchField].toLowerCase().includes(filter.search?.toLowerCase())
+									: false
+							)
+							.every((filter) => filter !== false)
+					: true
+			);
 
 		return <ClientPage felmeresek={formattedFelmeresek} />;
 	} else {
