@@ -52,7 +52,7 @@ export default function ClientPage({
 			originalData.filter((field) =>
 				filter
 					? field.field.toLowerCase().includes(filter.toLowerCase()) ||
-					  (field.type === "TEXT" ? field.value.toLowerCase().includes(filter.toLowerCase()) : false)
+					  JSON.stringify(field.value).toLowerCase().includes(filter.toLowerCase())
 					: field.section === selectedSection
 			)
 		);
