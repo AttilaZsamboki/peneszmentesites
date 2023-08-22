@@ -1,6 +1,7 @@
 import React from "react";
-import { Dialog, DialogBody } from "@material-tailwind/react";
-import { XMarkIcon, Square2StackIcon } from "@heroicons/react/20/solid";
+import { Dialog, DialogBody, Carousel } from "@material-tailwind/react";
+import { XMarkIcon } from "@heroicons/react/20/solid";
+import useBreakpointValue from "./useBreakpoint";
 
 export default function Gallery({
 	images,
@@ -11,23 +12,22 @@ export default function Gallery({
 	isVideo: boolean;
 	single?: boolean;
 }) {
-	const [open, setOpen] = React.useState("");
+	const [open, setOpen] = React.useState(0);
 
-	const handleOpen = () => setOpen((cur) => cur && "");
+	const handleOpen = () => setOpen((cur) => cur && 0);
+
+	const size = useBreakpointValue();
 
 	return (
 		<>
 			{single ? (
-				<img className='h-auto max-w-full rounded-lg' src={images[0]} onClick={() => setOpen(images[0])} />
+				<img className='h-auto max-w-full rounded-lg' src={images[0]} onClick={() => setOpen(0)} />
 			) : (
 				<div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
-					{images.map((media) => (
-						<div onClick={() => setOpen(media)} key={media}>
+					{images.map((media, index) => (
+						<div onClick={() => setOpen(index + 1)} key={index}>
 							{isVideo ? (
-								<div style={{ position: "relative" }}>
-									<video className='h-auto max-w-full rounded-lg' src={media} controls />
-									<Square2StackIcon className='w-8 h-8 absolute top-0 right-0 text-white' />
-								</div>
+								<video className='h-auto max-w-full rounded-lg' src={media} controls />
 							) : (
 								<img className='h-auto max-w-full rounded-lg' src={media} />
 							)}
@@ -35,17 +35,24 @@ export default function Gallery({
 					))}
 				</div>
 			)}
-			<Dialog size='xl' open={open ? true : false} handler={handleOpen}>
-				<DialogBody divider={true} className='p-0 rounded-lg'>
-					<div>
-						{isVideo ? (
-							<video className='h-auto max-w-full rounded-lg' src={open} controls />
-						) : (
-							<img className='h-auto max-w-full rounded-lg' src={open} />
-						)}
-						<div className='absolute top-3 right-3' onClick={handleOpen}>
-							<XMarkIcon className='w-8 h-8' />
-						</div>
+			<Dialog size={size === "sm" ? "xl" : "sm"} open={open ? true : false} handler={handleOpen}>
+				<DialogBody divider={false} className='p-0 rounded-lg'>
+					{!isVideo ? (
+						<Carousel className='rounded-md'>
+							<img className='h-auto max-w-full rounded-lg' src={images[open - 1]} />
+							{images
+								.filter((image, index) => index !== open - 1)
+								.map((media, index) => (
+									<div onClick={() => setOpen(index + 1)} key={index}>
+										<img className='h-auto max-w-full rounded-lg' src={media} />
+									</div>
+								))}
+						</Carousel>
+					) : (
+						<div></div>
+					)}
+					<div className='absolute top-3 right-3' onClick={handleOpen}>
+						<XMarkIcon className='w-7 h-7 text-white' />
 					</div>
 				</DialogBody>
 			</Dialog>

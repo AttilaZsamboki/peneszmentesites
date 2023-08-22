@@ -89,118 +89,105 @@ export default function ClientPage({ felmeresek }: { felmeresek: any[] }) {
 		router.push(`${pathname}?${filtersToQueryParams(search)}`);
 	}, [search]);
 	return (
-		<main className='flex min-h-screen flex-col items-center justify-start p-2'>
-			<div className='flex lg:flex-row flex-col justify-between items-center mt-10 w-11/12 mb-10'>
-				<div className='lg:mb-0 mb-5'>
-					<Heading title='Felmérések' />
-				</div>
-				<React.Suspense fallback={<div></div>}>
-					<div className='flex flex-col items-end justify-end w-full' ref={parent}>
-						{search.map((i) => (
-							<div
-								key={i.id}
-								className='lg:w-2/6 w-full mb-5 flex flex-row justify-between items-center gap-2'>
-								<AutoComplete
-									options={Array.from(
-										new Set(
-											felmeresek
-												.map((felmeres) => Object.keys(felmeres))
-												.flat()
-												.filter(
-													(field) =>
-														!search
-															.map((filter) =>
-																filter.searchField === "" ? null : filter.searchField
-															)
-															.includes(field)
-												)
+		<main className='flex min-h-screen flex-col items-center justify-start'>
+			<Heading title='Felmérések' variant='h2' />
+			<div className='flex flex-row justify-start w-11/12 flex-wrap ' ref={parent}>
+				{search.map((i, index) => (
+					<div
+						key={i.id}
+						className={`lg:w-3/12 w-full flex flex-row justify-between items-center gap-2 ${
+							index === 0 || index % 4 === 0 ? "" : "lg:px-4"
+						}`}>
+						<AutoComplete
+							options={Array.from(
+								new Set(
+									felmeresek
+										.map((felmeres) => Object.keys(felmeres))
+										.flat()
+										.filter(
+											(field) =>
+												!search
+													.map((filter) =>
+														filter.searchField === "" ? null : filter.searchField
+													)
+													.includes(field)
 										)
-									)}
-									onChange={(value) =>
-										setSearch((prev) => [
-											...prev.filter((s) => s.id !== i.id),
-											{ ...i, searchField: value },
-										])
-									}
-									value={
-										search.find((s) => s.id === i.id)
-											? search.find((s) => s.id === i.id)!.searchField
-											: ""
-									}
-								/>
-								<AutoComplete
-									options={Array.from(
-										new Set(
-											felmeresek
-												.filter((item) =>
-													search
-														.filter((filter) => filter.searchField !== i.searchField)
-														.map((filter) =>
-															item[filter.searchField]
-																? item[filter.searchField]
-																		.toLowerCase()
-																		.includes(filter.search?.toLowerCase())
-																: false
-														)
-														.every((filter) => filter !== false)
+								)
+							)}
+							onChange={(value) =>
+								setSearch((prev) => [
+									...prev.filter((s) => s.id !== i.id),
+									{ ...i, searchField: value },
+								])
+							}
+							value={
+								search.find((s) => s.id === i.id) ? search.find((s) => s.id === i.id)!.searchField : ""
+							}
+						/>
+						<AutoComplete
+							options={Array.from(
+								new Set(
+									felmeresek
+										.filter((item) =>
+											search
+												.filter((filter) => filter.searchField !== i.searchField)
+												.map((filter) =>
+													item[filter.searchField]
+														? item[filter.searchField]
+																.toLowerCase()
+																.includes(filter.search?.toLowerCase())
+														: false
 												)
-												.filter(
-													(felmeres) =>
-														felmeres[
-															search.find((s) => s.id === i.id)
-																? search.find((s) => s.id === i.id)!.searchField
-																: ""
-														]
-												)
-												.map((felmeres) =>
-													felmeres[
-														search.find((s) => s.id === i.id)
-															? search.find((s) => s.id === i.id)!.searchField
-															: ""
-													]
-														.replace("['", "")
-														.replace("']", "")
-												)
+												.every((filter) => filter !== false)
 										)
-									)}
-									onChange={(value) =>
-										setSearch((prev) => [
-											...prev.filter((s) => s.id !== i.id),
-											{ ...i, search: value },
-										])
-									}
-									value={
-										search.find((s) => s.id === i.id)
-											? search.find((s) => s.id === i.id)!.search
-											: ""
-									}
-								/>
-								{i.id === search[search.length - 1].id ? (
-									<PlusCircleIcon
-										className='w-16 h-16 cursor-pointer text-blue-gray-500'
-										onClick={() =>
-											setSearch((prev) => [
-												...prev,
-												{
-													id: search[search.length - 1].id + 1,
-													search: "",
-													searchField: "",
-													options: [],
-													searchBarOptions: [],
-												},
-											])
-										}
-									/>
-								) : (
-									<MinusCircleIcon
-										className='w-16 h-16 cursor-pointer text-red-500'
-										onClick={() => setSearch((prev) => prev.filter((s) => s.id !== i.id))}
-									/>
-								)}
-							</div>
-						))}
+										.filter(
+											(felmeres) =>
+												felmeres[
+													search.find((s) => s.id === i.id)
+														? search.find((s) => s.id === i.id)!.searchField
+														: ""
+												]
+										)
+										.map((felmeres) =>
+											felmeres[
+												search.find((s) => s.id === i.id)
+													? search.find((s) => s.id === i.id)!.searchField
+													: ""
+											]
+												.replace("['", "")
+												.replace("']", "")
+										)
+								)
+							)}
+							onChange={(value) =>
+								setSearch((prev) => [...prev.filter((s) => s.id !== i.id), { ...i, search: value }])
+							}
+							value={search.find((s) => s.id === i.id) ? search.find((s) => s.id === i.id)!.search : ""}
+						/>
+						{i.id === search[search.length - 1].id ? (
+							<PlusCircleIcon
+								className='w-16 h-16 cursor-pointer text-gradient-to-tr from-blue-gray-900 to-blue-gray-800'
+								onClick={() =>
+									setSearch((prev) => [
+										...prev,
+										{
+											id: search[search.length - 1].id + 1,
+											search: "",
+											searchField: "",
+											options: [],
+											searchBarOptions: [],
+										},
+									])
+								}
+							/>
+						) : (
+							<MinusCircleIcon
+								className='w-16 h-16 cursor-pointer text-red-500'
+								onClick={() => setSearch((prev) => prev.filter((s) => s.id !== i.id))}
+							/>
+						)}
 					</div>
-				</React.Suspense>
+				))}
 			</div>
 			<StackedList items={felmeresek} filters={search} />
 		</main>

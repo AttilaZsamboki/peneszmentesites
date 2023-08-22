@@ -8,6 +8,7 @@ import TextEditor from "../_components/Texteditor";
 import { FelmeresNotes } from "./page";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import autoAnimate from "@formkit/auto-animate";
+import Heading from "../_components/Heading";
 const Sections = React.lazy(() => import("../_components/Sections"));
 
 export default function ClientPage({
@@ -68,7 +69,7 @@ export default function ClientPage({
 				<div className='w-full'>
 					<Typography
 						variant='h4'
-						className='relative bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-gray-900 to-blue-gray-800 text-white shadow-gray-900/20 shadow-lg mb-8 py-2 grid place-items-center'
+						className='relative bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-gray-900 to-blue-gray-800 text-white shadow-gray-900/20 shadow-lg mb-8 py-2 text-center'
 						color='gray'>
 						{formattedFelmeres.filter((field) => field.field === "Adatlap").map((field) => field.value)}
 					</Typography>
@@ -104,13 +105,9 @@ export default function ClientPage({
 				</div>
 			</div>
 			<div className='lg:mt-6 lg:px-10 w-full '>
-				<Card className='shadow-none lg:shadow-md'>
-					<CardBody className='bg-white p-8 lg:rounded-lg bg-transparent bg-opacity-20 lg:border lg:border-gray-300 backdrop-blur-lg lg:shadow-2xl transform'>
-						<div className='px-4 sm:px-0 text-center py-5'>
-							<Typography variant='h2' color='gray'>
-								{selectedSection ? selectedSection : sections[0]}
-							</Typography>
-						</div>
+				<Card className='shadow-none'>
+					<CardBody className='bg-white p-8 lg:rounded-lg bg-transparent bg-opacity-20 lg:border transform'>
+						<Heading title={selectedSection ? selectedSection : sections[0]} variant='h3' />
 						<dl className='divide-y divide-gray-100 pt-10' ref={tabsParent}>
 							{filteredData
 								.filter((field) => field.value !== "")

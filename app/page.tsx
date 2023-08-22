@@ -79,7 +79,7 @@ export default async function Home({ searchParams }: { searchParams: any }) {
 	} else {
 		return (
 			<main className='flex min-h-screen flex-col items-center justify-start p-2'>
-				<Heading title='Felmérések' />
+				<Heading variant='h2' title='Felmérések' />
 				<p className='text-center text-gray-500'>Hiba akadt a felmérések lekérdezése közben</p>
 			</main>
 		);

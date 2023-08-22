@@ -13,10 +13,7 @@ export default function StackedList({ items, filters }: { items: any[]; filters?
 		}
 	}, [parent.current]);
 	return (
-		<ul
-			ref={parent}
-			role='list'
-			className='divide-y divide-gray-100 w-11/12 bg-white rounded-lg flex flex-col justify-between gap-3'>
+		<ul ref={parent} role='list' className='w-11/12 bg-white rounded-lg flex flex-col justify-between border'>
 			{items
 				.filter((item) =>
 					filters
@@ -29,10 +26,13 @@ export default function StackedList({ items, filters }: { items: any[]; filters?
 								.every((filter) => filter !== false)
 						: true
 				)
-				.map((item) => (
+				.map((item, index) => (
 					<Link href={"/" + item["Adatlap hash (ne módosítsd!!)"]} key={item["Adatlap"]}>
-						<Card>
-							<CardBody className='flex justify-between py-5 bg-white bg-opacity-20 rounded-lg border border-gray-300 backdrop-blur-lg shadow-xl transform'>
+						<Card
+							className={`rounded-none shadow-none border-b ${index === 0 ? "rounded-t-md" : ""} ${
+								index === items.length - 1 ? "rounded-b-md" : ""
+							}`}>
+							<CardBody className='flex justify-between py-5 bg-white bg-opacity-20 transform'>
 								<div className='flex flex-row min-w-0 gap-4'>
 									<img
 										className='h-12 w-12 flex-none rounded-full bg-gray-50'
