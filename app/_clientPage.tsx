@@ -60,6 +60,7 @@ export default function ClientPage({ felmeresek }: { felmeresek: any[] }) {
 	}
 	React.useEffect(() => {
 		const filters = queryParamsToFilters(searchParams);
+		if (filters.length === 0) return;
 		setSearch(filters);
 	}, [searchParams]);
 	const [search, setSearch] = React.useState<Filter[]>([
@@ -105,7 +106,11 @@ export default function ClientPage({ felmeresek }: { felmeresek: any[] }) {
 												.flat()
 												.filter(
 													(field) =>
-														!search.map((filter) => filter.searchField).includes(field)
+														!search
+															.map((filter) =>
+																filter.searchField === "" ? null : filter.searchField
+															)
+															.includes(field)
 												)
 										)
 									)}

@@ -64,7 +64,9 @@ export default async function Home({ searchParams }: { searchParams: any }) {
 				filters
 					? filters
 							.map((filter) =>
-								item[filter.searchField]
+								filter.searchField === ""
+									? true
+									: item[filter.searchField]
 									? item[filter.searchField].toLowerCase().includes(filter.search?.toLowerCase())
 									: false
 							)
