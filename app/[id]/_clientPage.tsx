@@ -1,14 +1,14 @@
 "use client";
 import { Felmeres, ListOption, GridOptions, ScaleOption } from "../page";
 import { Grid } from "../_components/Grid";
-import { Checkbox, Slider, Card, CardBody, CardHeader, Typography } from "@material-tailwind/react";
+import { Checkbox, Slider, Card, CardBody, CardHeader, Typography, Spinner } from "@material-tailwind/react";
 import Gallery from "../_components/Gallery";
 import React from "react";
 import TextEditor from "../_components/Texteditor";
 import { FelmeresNotes } from "./page";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import autoAnimate from "@formkit/auto-animate";
-import Sections from "../_components/Sections";
+const Sections = React.lazy(() => import("../_components/Sections"));
 
 export default function ClientPage({
 	formattedFelmeres,
@@ -30,7 +30,7 @@ export default function ClientPage({
 			notesParent.current && autoAnimate(notesParent.current);
 		}
 		if (tabsParent) {
-			tabsParent.current && autoAnimate(tabsParent.current);
+			setTimeout(() => tabsParent.current && autoAnimate(tabsParent.current), 2000);
 		}
 	}, []);
 	const sections = Array.from(
@@ -41,23 +41,79 @@ export default function ClientPage({
 	React.useEffect(() => {
 		setSelectedSection(sections[0]);
 	}, []);
+	const [originalData, setOriginalData] = React.useState(formattedFelmeres);
+	const [filteredData, setFilteredData] = React.useState(
+		formattedFelmeres.filter((field) => field.section === sections[0])
+	);
+
+	const [filter, setFilter] = React.useState("");
+	React.useEffect(() => {
+		setFilteredData(
+			originalData.filter((field) =>
+				filter
+					? field.field.toLowerCase().includes(filter.toLowerCase()) ||
+					  (field.type === "TEXT" ? field.value.toLowerCase().includes(filter.toLowerCase()) : false)
+					: field.section === selectedSection
+			)
+		);
+	}, [filter, selectedSection]);
+	const [isLoading, setIsLoading] = React.useState(true);
+	React.useEffect(() => {
+		setIsLoading(false);
+	}, []);
+
 	return (
-		<div className='flex flex-row w-ful flex-wrap lg:flex-nowrap justify-center'>
-			<div className='w-full lg:w-1/6 lg:ml-10 flex justify-center lg:justify-normal lg:items-start items-center mt-5'>
-				<Sections sectionNames={sections} selected={selectedSection} setSelected={setSelectedSection} />
+		<div className='flex flex-row w-ful flex-wrap lg:flex-nowrap justify-center mt-2'>
+			<div className='w-full lg:w-1/6 lg:ml-10 flex justify-center lg:justify-normal lg:items-start items-center mt-6'>
+				<div className='w-full'>
+					<Typography
+						variant='h4'
+						className='relative bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-gray-900 to-blue-gray-800 text-white shadow-gray-900/20 shadow-lg mb-8 py-2 grid place-items-center'
+						color='gray'>
+						{formattedFelmeres.filter((field) => field.field === "Adatlap").map((field) => field.value)}
+					</Typography>
+					<React.Suspense
+						fallback={
+							<Sections
+								sectionNames={sections}
+								selected={selectedSection}
+								setSelected={setSelectedSection}
+								filter={filter}
+								setFilter={setFilter}
+								disabled={true}
+							/>
+						}>
+						<div className='relative'>
+							<Sections
+								sectionNames={sections}
+								selected={selectedSection}
+								setSelected={setSelectedSection}
+								filter={filter}
+								setFilter={setFilter}
+								disabled={isLoading}
+							/>
+							{isLoading ? (
+								<div className='absolute top-1/3 left-1/2 h-10 w-10'>
+									<Spinner color='blue-gray' className='w-10 h-10 relative right-4' />
+								</div>
+							) : (
+								<div></div>
+							)}
+						</div>
+					</React.Suspense>
+				</div>
 			</div>
 			<div className='lg:mt-6 lg:px-10 w-full '>
-				<Card>
-					<CardBody className='bg-white p-8 lg:rounded-lg bg-transparent bg-opacity-20 lg:border border-gray-300 backdrop-blur-lg lg:shadow-2xl transform translate-y-2'>
+				<Card className='shadow-none lg:shadow-md'>
+					<CardBody className='bg-white p-8 lg:rounded-lg bg-transparent bg-opacity-20 lg:border lg:border-gray-300 backdrop-blur-lg lg:shadow-2xl transform'>
 						<div className='px-4 sm:px-0 text-center py-5'>
 							<Typography variant='h2' color='gray'>
-								Felmérés adatok
+								{selectedSection ? selectedSection : sections[0]}
 							</Typography>
 						</div>
 						<dl className='divide-y divide-gray-100 pt-10' ref={tabsParent}>
-							{formattedFelmeres
+							{filteredData
 								.filter((field) => field.value !== "")
-								.filter((field) => field.section === selectedSection)
 								.map((field) => {
 									if (["TEXT", "LIST", "MULTIPLE_CHOICE"].includes(field.type)) {
 										return (
@@ -157,12 +213,9 @@ export default function ClientPage({
 										);
 									}
 								})}
-							{selectedSection === "Jegyzetek" ? (
+							{selectedSection === "Jegyzetek" && filter === "" ? (
 								<div className='px-4 py-6 sm:px-0 relative w-full pt-10' ref={notesParent}>
 									<div className='flex-col items-center justify-items w-full'>
-										<Typography color='gray' variant='h3' className='mb-5 text-center'>
-											Jegyzetek
-										</Typography>
 										{notes
 											.sort(
 												(a, b) =>
