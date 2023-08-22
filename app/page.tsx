@@ -24,6 +24,7 @@ export interface Felmeres {
 	value: string;
 	options: {} | GridOptions | ListOption[] | ScaleOption;
 	type: "CHECKBOX" | "LIST" | "MULTIPLE_CHOICE" | "SCALE" | "TEXT" | "CHECKBOX_GRID" | "GRID" | "FILE_UPLOAD";
+	section: string;
 }
 
 export default async function Home({ searchParams }: { searchParams: any }) {
