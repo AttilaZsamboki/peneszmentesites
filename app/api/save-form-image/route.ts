@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { Felmeres } from "@/app/page";
+import { revalidateTag } from "next/cache";
 
 export const runtime = "edge";
 
@@ -34,21 +36,34 @@ export async function POST(request: NextRequest) {
 
 	try {
 		await s3Client.send(uploadCommand);
-		const id = request.headers
+		const adatlapId = request.headers
 			.get("referer")
 			?.substring((request.headers.get("referer")?.lastIndexOf("/") as unknown as number) + 1);
-		await fetch("http://pen.dataupload.xyz/felmeresek_notes", {
-			method: "POST",
+		const id = request.nextUrl.searchParams.get("id");
+		const dataResp = await fetch(`http://pen.dataupload.xyz/felmeresek/${adatlapId}`);
+		const dataJson: Felmeres[] = await dataResp.json();
+		const felmeres = dataJson.find((felmeres) => felmeres.id === parseInt(id ?? ""));
+		if (!felmeres) {
+			return NextResponse.json({ success: false }, { status: 400 });
+		}
+		const updateResp = await fetch(`http://pen.dataupload.xyz/felmeresek/${id}/`, {
+			method: "PUT",
 			headers: {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({
-				type: "image",
-				created_at: new Date().toISOString(),
-				adatlap_id: id,
-				value: files[1].name,
+				field: felmeres.field.toString(),
+				value: JSON.stringify([...JSON.parse(felmeres.value), "KÉZI" + fileName]),
+				adatlap_id: felmeres.adatlap_id.toString(),
+				options: JSON.stringify(felmeres.options),
+				type: "FILE_UPLOAD",
+				section: felmeres.section.toString(),
 			}),
 		});
+		if (!updateResp.ok) {
+			return NextResponse.json({ success: false }, { status: 400 });
+		}
+		revalidateTag(encodeURIComponent(adatlapId || "default"));
 
 		return NextResponse.json({ success: true, async_id_symbol: fileName }, { status: 200 });
 	} catch (error) {

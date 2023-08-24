@@ -166,7 +166,7 @@ export default function ClientPage({ felmeresek }: { felmeresek: any[] }) {
 						/>
 						{i.id === search[search.length - 1].id ? (
 							<PlusCircleIcon
-								className='w-16 h-16 cursor-pointer text-gradient-to-tr from-blue-gray-900 to-blue-gray-800'
+								className='w-16 h-16 cursor-pointer text-gradient-to-tr from-gray-900 to-gray-800'
 								onClick={() =>
 									setSearch((prev) => [
 										...prev,

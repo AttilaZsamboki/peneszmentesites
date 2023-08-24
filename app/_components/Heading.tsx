@@ -14,7 +14,7 @@ export default function Heading({
 				<div className='flex flex-col w-11/12 px-2 lg:items-start sm:items-center justify-center lg:justify-between lg:my-12 text-center'>
 					<Typography
 						variant={variant}
-						className='font-semibold text-gradient-to-tr from-blue-gray-900 to-blue-gray-800 lg:my-0 my-12 text-left'>
+						className='font-semibold text-gradient-to-tr from-gray-900 to-gray-800 lg:my-0 my-12 text-left'>
 						{title}
 					</Typography>
 				</div>

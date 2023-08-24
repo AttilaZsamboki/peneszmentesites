@@ -1,15 +1,20 @@
 "use client";
-import { Felmeres, ListOption, GridOptions, ScaleOption } from "../page";
-import { Grid } from "../_components/Grid";
-import { Checkbox, Slider, Card, CardBody, CardHeader, Typography, Spinner } from "@material-tailwind/react";
-import Gallery from "../_components/Gallery";
-import React from "react";
-import TextEditor from "../_components/Texteditor";
 import { FelmeresNotes } from "./page";
-import { XMarkIcon } from "@heroicons/react/20/solid";
-import autoAnimate from "@formkit/auto-animate";
+import { Felmeres } from "../page";
+
 import Heading from "../_components/Heading";
+import TextEditor from "../_components/Texteditor";
+import FormData from "../_components/FormData";
+import Gallery from "../_components/Gallery";
 const Sections = React.lazy(() => import("../_components/Sections"));
+
+import { useGlobalState } from "../_clientLayout";
+
+import React from "react";
+
+import { Typography, Spinner, Switch, CardBody, Card, CardHeader } from "@material-tailwind/react";
+import { XMarkIcon, CheckIcon } from "@heroicons/react/20/solid";
+import autoAnimate from "@formkit/auto-animate";
 
 export default function ClientPage({
 	formattedFelmeres,
@@ -20,34 +25,32 @@ export default function ClientPage({
 	felmeresNotes: FelmeresNotes[];
 	felmeresId: string;
 }) {
-	const [notes, setNotes] = React.useState<FelmeresNotes[]>(felmeresNotes);
-	const notesParent = React.useRef(null);
-	const tabsParent = React.useRef(null);
-	React.useEffect(() => {
-		setNotes(felmeresNotes);
-	}, [felmeresNotes]);
-	React.useEffect(() => {
-		if (notesParent) {
-			notesParent.current && autoAnimate(notesParent.current);
-		}
-		if (tabsParent) {
-			setTimeout(() => tabsParent.current && autoAnimate(tabsParent.current), 2000);
-		}
-	}, []);
+	const { setAlert, setConfirm } = useGlobalState();
+
 	const sections = Array.from(
 		new Set(formattedFelmeres.filter((field) => field.value !== "").map((field) => field.section))
 	);
 	sections.push("Jegyzetek");
-	const [selectedSection, setSelectedSection] = React.useState("");
-	React.useEffect(() => {
-		setSelectedSection(sections[0]);
-	}, []);
+
 	const [originalData, setOriginalData] = React.useState(formattedFelmeres);
 	const [filteredData, setFilteredData] = React.useState(
 		formattedFelmeres.filter((field) => field.section === sections[0])
 	);
-
 	const [filter, setFilter] = React.useState("");
+	const [selectedSection, setSelectedSection] = React.useState("");
+	const [isLoading, setIsLoading] = React.useState(true);
+	const [isEditing, setIsEditing] = React.useState(false);
+	const [notes, setNotes] = React.useState<FelmeresNotes[]>(felmeresNotes);
+	const [modifiedData, setModifiedData] = React.useState<Felmeres[]>([]);
+
+	const notesParent = React.useRef(null);
+
+	React.useEffect(() => {
+		setNotes(felmeresNotes);
+	}, [felmeresNotes]);
+	React.useEffect(() => {
+		setSelectedSection(sections[0]);
+	}, []);
 	React.useEffect(() => {
 		setFilteredData(
 			originalData.filter((field) =>
@@ -58,10 +61,14 @@ export default function ClientPage({
 			)
 		);
 	}, [filter, selectedSection]);
-	const [isLoading, setIsLoading] = React.useState(true);
 	React.useEffect(() => {
 		setIsLoading(false);
 	}, []);
+	React.useEffect(() => {
+		if (notesParent) {
+			notesParent.current && autoAnimate(notesParent.current);
+		}
+	}, [notesParent.current]);
 
 	return (
 		<div className='flex flex-row w-ful flex-wrap lg:flex-nowrap justify-center mt-2'>
@@ -69,7 +76,7 @@ export default function ClientPage({
 				<div className='w-full'>
 					<Typography
 						variant='h4'
-						className='relative bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-blue-gray-900 to-blue-gray-800 text-white shadow-gray-900/20 shadow-lg mb-8 py-2 text-center'
+						className='relative bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-gray-900 to-gray-800 text-white shadow-gray-900/20 shadow-lg mb-8 py-2 text-center'
 						color='gray'>
 						{formattedFelmeres.filter((field) => field.field === "Adatlap").map((field) => field.value)}
 					</Typography>
@@ -102,138 +109,112 @@ export default function ClientPage({
 							)}
 						</div>
 					</React.Suspense>
+					<div className='flex flex-row w-full justify-between my-5 p-2 px-4 border rounded-md'>
+						<Typography className={`${isLoading ? "text-gray-600" : ""}`} variant='h6'>
+							Módosítás
+						</Typography>
+						{modifiedData.length === 0 ? (
+							<Switch
+								crossOrigin=''
+								disabled={isLoading}
+								color='gray'
+								onChange={() => setIsEditing(!isEditing)}
+							/>
+						) : (
+							<div className='flex flex-row gap-2'>
+								<XMarkIcon
+									onClick={() => {
+										setConfirm({
+											message: "Biztosan elveted a módosításokat?",
+											onConfirm: () => {
+												setModifiedData([]);
+												setIsEditing(false);
+											},
+										});
+									}}
+									className='w-6 h-6 cursor-pointer rounded-md bg-red-500 text-white p-1'
+								/>
+								<CheckIcon
+									onClick={() => {
+										setConfirm({
+											message: modifiedData.filter((field) => !field.value.length).length
+												? "Biztosan elmented a módosításokat? (az üresen hagyott mezők törlésre kerülnek)"
+												: "Biztosan elmented a módosításokat?",
+											onConfirm: () => {
+												setIsEditing(false);
+												modifiedData.map(async (field) => {
+													const resp = await fetch(
+														"https://pen.dataupload.xyz/felmeresek/" + field.id + "/",
+														{
+															method: "PATCH",
+															headers: {
+																"Content-Type": "application/json",
+															},
+															body: JSON.stringify({
+																value: Array.isArray(field.value)
+																	? JSON.stringify(field.value)
+																	: field.value,
+															}),
+														}
+													);
+													if (resp.ok) {
+														setFilteredData((prev) =>
+															prev.map((f) => (f.id === field.id ? field : f))
+														);
+														await fetch(
+															"/api/revalidate?tag=" + encodeURIComponent(felmeresId)
+														);
+														setModifiedData([]);
+													} else {
+														setAlert({
+															message: "Hiba történt a mentés során!",
+															level: "error",
+														});
+													}
+												});
+											},
+										});
+									}}
+									className='w-6 h-6 rounded-md cursor-pointer bg-green-500 text-white p-1'
+								/>
+							</div>
+						)}
+					</div>
 				</div>
 			</div>
-			<div className='lg:mt-6 lg:px-10 w-full '>
+			<div className='lg:mt-6 lg:px-10 w-full'>
 				<Card className='shadow-none'>
 					<CardBody className='bg-white p-8 lg:rounded-lg bg-transparent bg-opacity-20 lg:border transform'>
 						<Heading title={selectedSection ? selectedSection : sections[0]} variant='h3' />
-						<dl className='divide-y divide-gray-100 pt-10' ref={tabsParent}>
-							{filteredData
-								.filter((field) => field.value !== "")
-								.map((field) => {
-									if (["TEXT", "LIST", "MULTIPLE_CHOICE"].includes(field.type)) {
-										return (
+						<FormData
+							modifiedData={modifiedData}
+							setModifiedData={setModifiedData}
+							data={filteredData}
+							isEditing={isEditing}
+						/>
+						{selectedSection === "Jegyzetek" && filter === "" ? (
+							<div className='px-4 py-6 sm:px-0 relative w-full pt-10'>
+								<div className='flex-col items-center justify-items w-full' ref={notesParent}>
+									{notes
+										.sort(
+											(a, b) =>
+												new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+										)
+										.map((note) => (
 											<div
-												className='px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0'
-												key={field.id}>
-												<dt className='text-base font-medium leading-6 text-gray-900'>
-													{field.field}
-												</dt>
-												<dd className='mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 lg:text-right'>
-													{field.value}
-												</dd>
+												className='flex flex-col mb-5 items-center justify-center'
+												key={note.id}>
+												<Note note={note} setNotes={setNotes} />
 											</div>
-										);
-									} else if (field.type === "CHECKBOX") {
-										return (
-											<div
-												className='px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0 lg:grid-cols-2'
-												key={field.id}>
-												<div className='text-base font-medium leading-6 text-gray-900'>
-													{field.field}
-												</div>
-												<div className='mt-4 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0'>
-													{(field.options as ListOption[]).map((option) => (
-														<Checkbox
-															key={option.label}
-															label={option.label}
-															checked={field.value.includes(option.value)}
-															color='blue-gray'
-															crossOrigin='anonymous'
-															disabled
-														/>
-													))}
-												</div>
-											</div>
-										);
-									} else if (field.type === "GRID" || field.type === "CHECKBOX_GRID") {
-										return (
-											<div
-												className='px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0 lg:grid-cols-4'
-												key={field.id}>
-												<div className='text-base mb-4 font-medium leading-6 text-gray-900'>
-													{field.field}
-												</div>
-												<div className='col-span-3'>
-													<Grid
-														columns={(field.options as GridOptions).columns}
-														rows={(field.options as GridOptions).rows}
-														value={field.value as unknown as string[]}
-														radio={field.type === "CHECKBOX_GRID" ? false : true}
-														disabled
-													/>
-												</div>
-											</div>
-										);
-									} else if (field.type === "SCALE") {
-										return (
-											<div
-												className='px-4 py-6 sm:grid sm:grid-cols-3 lg:grid-cols-2 sm:gap-4 sm:px-0'
-												key={field.id}>
-												<div className='text-base sm:mb-4 lg:mb-0 font-medium leading-6 text-gray-900'>
-													{field.field}
-												</div>
-												<div className='flex flex-col justify-center space-y-2 lg:w-full lg:col-span-2'>
-													<div className='mt-1 text-md leading-6 text-gray-700 sm:col-span-2 sm:mt-0 lg:text-right'>
-														{field.value}
-													</div>
-													<Slider
-														value={
-															(parseInt(field.value) /
-																(field.options as ScaleOption).max) *
-															100
-														}
-														style={{ color: "#ADBCC3" }}
-													/>
-												</div>
-											</div>
-										);
-									} else if (field.type === "FILE_UPLOAD") {
-										return (
-											<div
-												className='px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0'
-												key={field.id}>
-												<div className='text-base mb-4 font-medium leading-6 text-gray-900'>
-													{field.field}
-												</div>
-												<div className='lg:col-span-2'>
-													<Gallery
-														images={(field.value as unknown as string[]).map(
-															(media) =>
-																`https://drive.google.com/uc?export=view&id=${media}`
-														)}
-														isVideo={field.field === "Készíts videót és töltsd fel!"}
-													/>
-												</div>
-											</div>
-										);
-									}
-								})}
-							{selectedSection === "Jegyzetek" && filter === "" ? (
-								<div className='px-4 py-6 sm:px-0 relative w-full pt-10' ref={notesParent}>
-									<div className='flex-col items-center justify-items w-full'>
-										{notes
-											.sort(
-												(a, b) =>
-													new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-											)
-											.map((note) => (
-												<div
-													className='flex flex-col mb-5 items-center justify-center'
-													key={note.id}>
-													<Note note={note} setNotes={setNotes} />
-												</div>
-											))}
-										<div className='flex flex-col items-center justify-center w-full mt-16 lg:mt-32'>
-											<TextEditor adatlapId={felmeresId} setNotes={setNotes} />
-										</div>
+										))}
+									<div className='flex flex-col items-center justify-center w-full mt-16 lg:mt-32'>
+										<TextEditor adatlapId={felmeresId} setNotes={setNotes} />
 									</div>
 								</div>
-							) : (
-								<div></div>
-							)}
-						</dl>
+							</div>
+						) : (
+							<div></div>
+						)}
 					</CardBody>
 				</Card>
 			</div>
@@ -263,7 +244,7 @@ function Note({
 		<Card className='lg:w-4/6 w-full mt-10'>
 			<CardHeader
 				variant='gradient'
-				color='blue-gray'
+				color='gray'
 				className='flex flex-row justify-between items-center font-semibold p-2'>
 				<div className='text-sm ml-2'>
 					{new Date(note.created_at).toLocaleString("hu-HU", {

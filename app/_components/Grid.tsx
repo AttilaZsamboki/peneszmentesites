@@ -8,12 +8,14 @@ export const Grid = ({
 	value,
 	radio,
 	disabled,
+	onChange,
 }: {
 	columns: string[];
 	rows: string[];
 	value: string[];
 	radio: boolean;
 	disabled: boolean;
+	onChange?: (value: { column: string; row: number }) => void;
 }) => {
 	return (
 		<div className='relative overflow-x-auto sm:rounded-lg'>
@@ -41,21 +43,27 @@ export const Grid = ({
 							{columns.map((column) => (
 								<td className='w-4 p-4' key={column}>
 									<div className='flex items-center'>
-										{radio ? (
+										{!radio ? (
 											<Checkbox
 												name={`${row}-${column}`}
-												color='blue-gray'
+												color='gray'
 												checked={value[index] ? value[index].includes(column) : false}
 												crossOrigin='anonymous'
 												disabled={disabled}
+												onClick={() => {
+													onChange && onChange({ column: column, row: index });
+												}}
 											/>
 										) : (
 											<Radio
 												name={`${row}-${column}`}
-												color='blue-gray'
+												color='gray'
 												checked={value[index] ? value[index].includes(column) : false}
 												crossOrigin='anonymous'
 												disabled={disabled}
+												onClick={() => {
+													onChange && onChange({ column: column, row: index });
+												}}
 											/>
 										)}
 									</div>

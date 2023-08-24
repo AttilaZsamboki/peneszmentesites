@@ -16,7 +16,7 @@ export default function SearchBar({
 			<Input
 				label={title}
 				className='!border !border-gray-300 bg-white text-gray-900 shadow-lg shadow-gray-900/5 focus:outline-none  placeholder:text-gray-500 '
-				color='blue-gray'
+				color='gray'
 				labelProps={{
 					className: "hidden",
 				}}

@@ -1,6 +1,7 @@
 import "./globals.css";
+import RootLayoutClient from "./_clientLayout";
+
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 
 export const metadata: Metadata = {
 	title: "Penészmentesítés",
@@ -10,7 +11,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang='en'>
-			<body className='bg-white'>{children}</body>
+			<body className='bg-white'>
+				<RootLayoutClient>{children}</RootLayoutClient>
+			</body>
 		</html>
 	);
 }

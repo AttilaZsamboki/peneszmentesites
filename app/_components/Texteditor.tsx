@@ -2,23 +2,8 @@ import React, { useState } from "react";
 import { Textarea, Button } from "@material-tailwind/react";
 import { FelmeresNotes } from "../[id]/page";
 
-// Import React FilePond
-import { FilePond, registerPlugin } from "react-filepond";
+import FileUpload from "./FileUpload";
 
-// Import FilePond styles
-import "filepond/dist/filepond.min.css";
-
-// Import the Image EXIF Orientation and Image Preview plugins
-// Note: These need to be installed separately
-// `npm i filepond-plugin-image-preview filepond-plugin-image-exif-orientation --save`
-import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orientation";
-import FilePondPluginImagePreview from "filepond-plugin-image-preview";
-import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
-
-// Register the plugins
-registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
-
-// Our app
 export default function TextEditor({
 	adatlapId,
 	setNotes,
@@ -48,20 +33,7 @@ export default function TextEditor({
 	};
 	return (
 		<div className='w-full lg:w-5/6'>
-			<div className='App'>
-				<FilePond
-					allowMultiple={true}
-					allowReplace={true}
-					server='/api/save-image'
-					allowReorder={true}
-					allowProcess={true}
-					allowBrowse={true}
-					instantUpload={true}
-					allowRevert={true}
-					name='files'
-					labelIdle='Tölts fel egy képet!'
-				/>
-			</div>
+			<FileUpload route='/api/save-image' />
 			<div className='w-full'>
 				<Textarea
 					variant='static'
@@ -76,7 +48,7 @@ export default function TextEditor({
 						<Button size='sm' color='red' variant='text' className='rounded-md'>
 							Mégsem
 						</Button>
-						<Button size='sm' className='rounded-md' color='blue-gray' onClick={saveNote}>
+						<Button size='sm' className='rounded-md' color='gray' onClick={saveNote}>
 							Mentés
 						</Button>
 					</div>

@@ -53,7 +53,7 @@ export default function AutoComplete({
 									className={({ active }) =>
 										`relative cursor-default select-none py-2 pl-10 z-50 pr-4 ${
 											active
-												? "bg-gradient-to-tr from-blue-gray-900 to-blue-gray-800 text-white"
+												? "bg-gradient-to-tr from-gray-900 to-gray-800 text-white"
 												: "text-gray-900 bg-white"
 										}`
 									}
@@ -71,7 +71,7 @@ export default function AutoComplete({
 													className={`absolute inset-y-0 left-0 flex items-center pl-3 z-50 ${
 														active
 															? "text-white"
-															: "text-gradient-to-tr from-blue-gray-900 to-blue-gray-800"
+															: "text-gradient-to-tr from-gray-900 to-gray-800"
 													}`}>
 													<CheckIcon className='h-5 w-5' aria-hidden='true' />
 												</span>
