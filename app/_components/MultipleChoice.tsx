@@ -16,7 +16,7 @@ export default function MultipleChoice({
 	return (
 		<List>
 			{options.map((option) => (
-				<ListItem className='p-0'>
+				<ListItem key={option} className='p-0'>
 					<label htmlFor={option} className='flex w-full cursor-pointer items-center px-3 py-2'>
 						<ListItemPrefix className='mr-3'>
 							{radio ? (
