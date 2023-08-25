@@ -8,18 +8,18 @@ export default function AutoComplete({
 	value,
 	onChange,
 }: {
-	options: string[];
+	options: { label: string; value: string }[];
 	value: string;
 	onChange: (value: string) => void;
 }) {
 	const [query, setQuery] = useState("");
 
 	const filteredOptions = [
-		"",
+		{ label: "", value: "" },
 		...(query === ""
 			? options
 			: options.filter((option) =>
-					option.toLowerCase().replace(/\s+/g, "").includes(query.toLowerCase().replace(/\s+/g, ""))
+					option.label.toLowerCase().replace(/\s+/g, "").includes(query.toLowerCase().replace(/\s+/g, ""))
 			  )),
 	];
 
@@ -47,9 +47,9 @@ export default function AutoComplete({
 								Nothing found.
 							</div>
 						) : (
-							filteredOptions.map((option: string) => (
+							filteredOptions.map((option) => (
 								<Combobox.Option
-									key={option}
+									key={option.value}
 									className={({ active }) =>
 										`relative cursor-default select-none py-2 pl-10 z-50 pr-4 ${
 											active
@@ -57,14 +57,14 @@ export default function AutoComplete({
 												: "text-gray-900 bg-white"
 										}`
 									}
-									value={option}>
+									value={option.value}>
 									{({ selected, active }) => (
 										<>
 											<span
 												className={`block truncate z-50${
 													selected ? "font-medium" : "font-normal "
 												}`}>
-												{option}
+												{option.label}
 											</span>
 											{selected ? (
 												<span

@@ -39,3 +39,9 @@
 .modern-scrollbar *::-webkit-scrollbar-track {
 	background-color: #ddd; /* Set the color of the scrollbar track to a lighter gray */
 }
+
+.ag-theme-material {
+	--ag-font-size: 15px;
+	--ag-selected-row-background-color: rgba(65, 65, 65, 0.1);
+	--ag-row-border-width: 1px;
+}

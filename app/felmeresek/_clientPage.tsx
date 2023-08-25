@@ -1,7 +1,7 @@
 "use client";
-import StackedList from "./_components/StackedList";
-import Heading from "./_components/Heading";
-import AutoComplete from "./_components/AutoComplete";
+import StackedList from "../_components/StackedList";
+import Heading from "../_components/Heading";
+import AutoComplete from "../_components/AutoComplete";
 import { PlusCircleIcon, MinusCircleIcon } from "@heroicons/react/20/solid";
 import React from "react";
 import autoAnimate from "@formkit/auto-animate";
@@ -89,14 +89,14 @@ export default function ClientPage({ felmeresek }: { felmeresek: any[] }) {
 		router.push(`${pathname}?${filtersToQueryParams(search)}`);
 	}, [search]);
 	return (
-		<main className='flex min-h-screen flex-col items-center justify-start'>
-			<Heading title='Felmérések' variant='h2' />
-			<div className='flex flex-row justify-start w-11/12 flex-wrap ' ref={parent}>
+		<main className='flex min-h-screen flex-col items-center justify-start w-full'>
+			<Heading width='w-2/3' title='Felmérések' variant='h2' />
+			<div className='flex flex-row justify-start w-2/3 flex-wrap ' ref={parent}>
 				{search.map((i, index) => (
 					<div
 						key={i.id}
-						className={`lg:w-3/12 w-full flex flex-row justify-between items-center gap-2 ${
-							index === 0 || index % 4 === 0 ? "" : "lg:px-4"
+						className={`lg:w-6/12 w-full flex flex-row justify-between items-center gap-2 ${
+							index === 0 || index % 2 === 0 ? "" : "lg:px-4"
 						}`}>
 						<AutoComplete
 							options={Array.from(
@@ -189,7 +189,19 @@ export default function ClientPage({ felmeresek }: { felmeresek: any[] }) {
 					</div>
 				))}
 			</div>
-			<StackedList items={felmeresek} filters={search} />
+			<StackedList
+				items={felmeresek.filter((item) =>
+					search
+						? search
+								.map((filter) =>
+									item[filter.searchField]
+										? item[filter.searchField].toLowerCase().includes(filter.search?.toLowerCase())
+										: false
+								)
+								.every((filter) => filter !== false)
+						: true
+				)}
+			/>
 		</main>
 	);
 }

@@ -6,14 +6,18 @@ export default function Input({
 	onChange,
 	value,
 	variant = "default",
+	label,
 }: {
 	value: string;
 	onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 	variant?: "default" | "simple";
+	label?: string;
 }) {
 	const [style, setStyle] = React.useState("");
 	React.useEffect(() => {
-		if (variant === "simple") {
+		if (label) {
+			setStyle("");
+		} else if (variant === "simple") {
 			setStyle("border !border !border-gray-200");
 		} else if (variant === "default") {
 			setStyle(
@@ -25,12 +29,13 @@ export default function Input({
 		<MaterialInput
 			crossOrigin=''
 			labelProps={{
-				className: "hidden",
+				className: label ? "" : "hidden",
 			}}
+			label={label}
 			value={value}
 			onChange={onChange}
 			className={style}
-			containerProps={{ className: "min-w-[100px]" }}
+			containerProps={{ className: label ? "" : "min-w-[100px]" }}
 			color='gray'
 		/>
 	);

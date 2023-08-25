@@ -1,13 +1,12 @@
-import { ListOption, GridOptions, ScaleOption } from "../page";
-import { Felmeres } from "../page";
+import { GridOptions, ScaleOption } from "../felmeresek/page";
+import { Felmeres } from "../felmeresek/page";
 
 import { Grid } from "./Grid";
 import Gallery from "./Gallery";
 import Input from "./Input";
 
 import React from "react";
-import autoAnimate from "@formkit/auto-animate";
-import { Checkbox, Slider } from "@material-tailwind/react";
+import { Slider } from "@material-tailwind/react";
 import AutoComplete from "./AutoComplete";
 import MultipleChoice from "./MultipleChoice";
 import FileUpload from "./FileUpload";
@@ -23,19 +22,13 @@ export default function FormData({
 	modifiedData: Felmeres[];
 	setModifiedData: React.Dispatch<React.SetStateAction<Felmeres[]>>;
 }) {
-	const tabsParent = React.useRef(null);
-	React.useEffect(() => {
-		if (tabsParent) {
-			setTimeout(() => tabsParent.current && autoAnimate(tabsParent.current), 2000);
-		}
-	}, []);
 	return (
-		<div className='divide-y divide-gray-100 pt-10' ref={tabsParent}>
+		<div className='divide-y divide-gray-100 pt-10'>
 			{data
 				.filter((field) => field.value !== "")
 				.sort((a, b) => a.id - b.id)
 				.map((field) => (
-					<div className='px-4 py-6 flex flex-row sm:gap-4 sm:px-0' key={field.id}>
+					<div className='px-4 py-6 flex flex-row flex-wrap sm:gap-4 sm:px-0' key={field.id}>
 						<div className='text-base font-medium leading-6 text-gray-900 w-1/3'>{field.field}</div>
 						<div className='flex justify-end w-full'>
 							<div
@@ -67,7 +60,7 @@ function FieldViewing({ data }: { data: Felmeres }) {
 	} else if (data.type === "CHECKBOX") {
 		return (
 			<MultipleChoice
-				options={(data.options as ListOption[]).map((option) => option.label)}
+				options={(data.options as string[]).map((option) => option)}
 				value={data.value}
 				onChange={() => {}}
 				radio={false}
@@ -76,15 +69,13 @@ function FieldViewing({ data }: { data: Felmeres }) {
 		);
 	} else if (data.type === "GRID" || data.type === "CHECKBOX_GRID") {
 		return (
-			<div className='col-span-3'>
-				<Grid
-					columns={(data.options as GridOptions).columns}
-					rows={(data.options as GridOptions).rows}
-					value={data.value as unknown as string[]}
-					radio={data.type === "CHECKBOX_GRID" ? false : true}
-					disabled
-				/>
-			</div>
+			<Grid
+				columns={(data.options as GridOptions).columns}
+				rows={(data.options as GridOptions).rows}
+				value={data.value as unknown as string[]}
+				radio={data.type === "CHECKBOX_GRID" ? false : true}
+				disabled
+			/>
 		);
 	} else if (data.type === "SCALE") {
 		return (
@@ -188,7 +179,7 @@ function FieldEditing({
 	} else if (data.type === "LIST") {
 		return (
 			<AutoComplete
-				options={(data.options as ListOption[]).map((option) => option.label)}
+				options={(data.options as string[]).map((option) => ({ label: option, value: option }))}
 				onChange={setterSingle}
 				value={field.value}
 			/>
@@ -196,7 +187,7 @@ function FieldEditing({
 	} else if (["MULTIPLE_CHOICE", "CHECKBOX"].includes(data.type)) {
 		return (
 			<MultipleChoice
-				options={(data.options as ListOption[]).map((option) => option.label)}
+				options={(data.options as string[]).map((option) => option)}
 				value={field.value}
 				onChange={data.type === "CHECKBOX" ? setterMultipleUnordered : setterSingle}
 				radio={data.type === "MULTIPLE_CHOICE"}

@@ -2,10 +2,17 @@
 import Link from "next/link";
 import React from "react";
 import autoAnimate from "@formkit/auto-animate";
-import { Filter } from "../_clientPage";
 import { Card, CardBody } from "@material-tailwind/react";
 
-export default function StackedList({ items, filters }: { items: any[]; filters?: Filter[] }) {
+export default function StackedList({
+	items,
+	detailsHref = "felmeresek",
+	idField = "Adatlap hash (ne módosítsd!!)",
+}: {
+	items: any[];
+	detailsHref?: string;
+	idField?: string;
+}) {
 	const parent = React.useRef<HTMLUListElement | null>(null);
 	React.useEffect(() => {
 		if (parent.current) {
@@ -13,57 +20,41 @@ export default function StackedList({ items, filters }: { items: any[]; filters?
 		}
 	}, [parent.current]);
 	return (
-		<ul ref={parent} role='list' className='w-11/12 bg-white rounded-lg flex flex-col justify-between border'>
-			{items
-				.filter((item) =>
-					filters
-						? filters
-								.map((filter) =>
-									item[filter.searchField]
-										? item[filter.searchField].toLowerCase().includes(filter.search?.toLowerCase())
-										: false
-								)
-								.every((filter) => filter !== false)
-						: true
-				)
-				.map((item, index) => (
-					<Link href={"/" + item["Adatlap hash (ne módosítsd!!)"]} key={item["Adatlap"]}>
-						<Card
-							className={`rounded-none shadow-none border-b ${index === 0 ? "rounded-t-md" : ""} ${
-								index === items.length - 1 ? "rounded-b-md" : ""
-							}`}>
-							<CardBody className='flex justify-between py-5 bg-white bg-opacity-20 transform'>
-								<div className='flex flex-row min-w-0 gap-4'>
-									<img
-										className='h-12 w-12 flex-none rounded-full bg-gray-50'
-										src={`https://drive.google.com/uc?export=view&id=${
-											item["Készítsd képeket és töltsd fel őket!"]
-												? JSON.parse(
-														item["Készítsd képeket és töltsd fel őket!"].replace(/'/g, '"')
-												  )[0]
-												: ""
-										}`}
-										alt='felmereskep'
-									/>
-									<div className='min-w-0 flex-auto'>
-										<p className='text-sm font-semibold leading-6 text-gray-900'>
-											{item["Adatlap"]}
-										</p>
-										<p className='mt-1 truncate text-xs leading-5 text-gray-500'>
-											{item["Ingatlan címe"]}
-										</p>
-									</div>
-								</div>
-								<div className='hidden shrink-0 sm:flex sm:flex-col sm:items-end'>
-									<p className='text-sm leading-6 text-gray-900'>
-										{item["Milyen rendszert tervezel?"]}
+		<ul ref={parent} role='list' className='w-2/3 bg-white rounded-lg flex flex-col justify-between border'>
+			{items.map((item, index) => (
+				<Link href={`/${detailsHref}/` + item[idField]} key={item["Adatlap"]}>
+					<Card
+						className={`rounded-none shadow-none border-b ${index === 0 ? "rounded-t-md" : ""} ${
+							index === items.length - 1 ? "rounded-b-md" : ""
+						}`}>
+						<CardBody className='flex justify-between py-5 bg-white bg-opacity-20 transform'>
+							<div className='flex flex-row min-w-0 gap-4'>
+								<img
+									className='h-12 w-12 flex-none rounded-full bg-gray-50'
+									src={`https://drive.google.com/uc?export=view&id=${
+										item["Készítsd képeket és töltsd fel őket!"]
+											? JSON.parse(
+													item["Készítsd képeket és töltsd fel őket!"].replace(/'/g, '"')
+											  )[0]
+											: ""
+									}`}
+									alt='felmereskep'
+								/>
+								<div className='min-w-0 flex-auto'>
+									<p className='text-sm font-semibold leading-6 text-gray-900'>{item["Adatlap"]}</p>
+									<p className='mt-1 truncate text-xs leading-5 text-gray-500'>
+										{item["Ingatlan címe"]}
 									</p>
-									<p className='mt-1 text-xs leading-5 text-gray-500'>{item["Felmérő"]}</p>
 								</div>
-							</CardBody>
-						</Card>
-					</Link>
-				))}
+							</div>
+							<div className='hidden shrink-0 sm:flex sm:flex-col sm:items-end'>
+								<p className='text-sm leading-6 text-gray-900'>{item["Milyen rendszert tervezel?"]}</p>
+								<p className='mt-1 text-xs leading-5 text-gray-500'>{item["Felmérő"]}</p>
+							</div>
+						</CardBody>
+					</Card>
+				</Link>
+			))}
 		</ul>
 	);
 }

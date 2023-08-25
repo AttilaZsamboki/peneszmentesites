@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Textarea, Button } from "@material-tailwind/react";
-import { FelmeresNotes } from "../[id]/page";
+import { FelmeresNotes } from "../felmeresek/[id]/page";
 
 import FileUpload from "./FileUpload";
 
