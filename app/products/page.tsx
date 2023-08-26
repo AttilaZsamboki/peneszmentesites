@@ -16,12 +16,9 @@ export interface Filters {
 export default async function ProductsFetch() {
 	const response = await fetch("http://pen.dataupload.xyz/products");
 	const data: Product[] = await response.json();
-	const filterResponse = await fetch("http://pen.dataupload.xyz/filters?type=product", { cache: "no-store" });
-	const filterData: Filters[] = await filterResponse.json();
 	return (
 		<Products
 			data={data}
-			savedFilters={filterData}
 			title='Termékek'
 			columnDefs={[
 				{ field: "name", headerName: "Név" },

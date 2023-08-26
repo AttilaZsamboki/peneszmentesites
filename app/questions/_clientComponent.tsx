@@ -3,22 +3,14 @@ import { Option, Select } from "@material-tailwind/react";
 import AutoComplete from "../_components/AutoComplete";
 import Input from "../_components/Input";
 import BaseComponent from "../_components/BaseComponent";
-import { Filters, Product } from "../products/page";
+import { Product } from "../products/page";
 import { Question } from "./page";
 import React from "react";
 import MultipleChoiceCombobox from "../_components/MultipleChoiceList";
 import Counter from "../_components/Counter";
 import { ColDef, ValueGetterParams } from "ag-grid-community";
 
-export default function ClientComponent({
-	data,
-	filters,
-	products,
-}: {
-	data: Question[];
-	filters: Filters[];
-	products: Product[];
-}) {
+export default function ClientComponent({ data, products }: { data: Question[]; products: Product[] }) {
 	const [question, setQuestion] = React.useState<Question>({
 		question: "",
 		id: 0,
@@ -76,6 +68,7 @@ export default function ClientComponent({
 
 	return (
 		<BaseComponent
+			filterType='question'
 			data={upToDateData}
 			createForm={<CreateForm question={question} setQuestion={setQuestion} products={products} />}
 			selectedRow={selectedRow}
@@ -94,9 +87,16 @@ export default function ClientComponent({
 				}
 			}}
 			setSelectedRow={setSelectedRow}
-			savedFilters={filters}
 			title='Kérdések'
 			columnDefs={columnDefs}
+			onDelete={async () => {
+				const response = await fetch(`http://pen.dataupload.xyz/questions/${question.id}/`, {
+					method: "DELETE",
+				});
+				if (response.ok) {
+					setUpToDateData((prev) => prev.filter((q) => q.id !== question.id));
+				}
+			}}
 		/>
 	);
 }

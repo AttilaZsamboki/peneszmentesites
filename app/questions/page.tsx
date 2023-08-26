@@ -22,8 +22,6 @@ export function isJSONParsable(str: string) {
 export default async function QuestionsFetch() {
 	const response = await fetch("http://pen.dataupload.xyz/questions", { cache: "no-store" });
 	const data: Question[] = await response.json();
-	const filterResponse = await fetch("http://pen.dataupload.xyz/filters?type=question", { cache: "no-store" });
-	const filterData: Filters[] = await filterResponse.json();
 	const productData: Product[] = await fetch("http://pen.dataupload.xyz/products").then((res) => res.json());
 	return (
 		<Questions
@@ -31,7 +29,6 @@ export default async function QuestionsFetch() {
 				...question,
 				options: isJSONParsable(question.options) ? JSON.parse(question.options) : {},
 			}))}
-			filters={filterData}
 			products={productData}
 		/>
 	);

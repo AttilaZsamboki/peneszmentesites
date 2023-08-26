@@ -6,17 +6,7 @@ import { Filters } from "./page";
 import { Checkbox, Typography } from "@material-tailwind/react";
 import React from "react";
 
-export default function ClientPage({
-	data,
-	savedFilters,
-	title,
-	columnDefs,
-}: {
-	data: any[];
-	savedFilters: Filters[];
-	title: string;
-	columnDefs: any[];
-}) {
+export default function ClientPage({ data, title, columnDefs }: { data: any[]; title: string; columnDefs: any[] }) {
 	const [selectedRow, setSelectedRow] = React.useState<any>(null);
 	const [attributeData, setAttributeData] = React.useState<ProductAttributes>({
 		id: 0,
@@ -79,10 +69,10 @@ export default function ClientPage({
 		<div className='w-full flex flex-col justify-center items-center'>
 			<BaseComponent
 				data={data}
-				savedFilters={savedFilters}
 				title={title}
 				columnDefs={columnDefs}
 				selectedRow={selectedRow}
+				filterType='product'
 				updateForm={<UpdateForm attributeData={attributeData} setAttributeData={setAttributeData} />}
 				onUpdate={submitChanges}
 				setSelectedRow={setSelectedRow}

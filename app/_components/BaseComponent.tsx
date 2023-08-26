@@ -20,12 +20,12 @@ import {
 	Badge,
 } from "@material-tailwind/react";
 
-import { EllipsisVerticalIcon, PencilSquareIcon, PlusIcon } from "@heroicons/react/20/solid";
+import { EllipsisVerticalIcon, PencilSquareIcon, PlusIcon, TrashIcon } from "@heroicons/react/20/solid";
 import "../globals.css";
-import { ProductAttributes } from "../products/[id]/page";
 import { useGlobalState } from "../_clientLayout";
 import Input from "../_components/Input";
 import Menu from "../_components/Menu";
+import Link from "next/link";
 
 function deepEqual(a: any, b: any) {
 	if (a === b) {
@@ -54,7 +54,6 @@ function deepEqual(a: any, b: any) {
 
 export default function BaseComponent({
 	data,
-	savedFilters,
 	title,
 	createForm,
 	onCreate,
@@ -63,11 +62,14 @@ export default function BaseComponent({
 	onUpdate,
 	setSelectedRow,
 	selectedRow,
-	delete
-} :{
+	onDelete,
+	filterType,
+	redirectEdit,
+	onCancelCreate,
+}: {
 	data: any[];
-	savedFilters: Filters[];
 	title: string;
+	filterType: string;
 	createForm?: React.ReactNode;
 	onCreate?: () => void;
 	columnDefs: any[];
@@ -75,7 +77,9 @@ export default function BaseComponent({
 	onUpdate?: () => void;
 	setSelectedRow?: any;
 	selectedRow?: any;
-	delete?: boolean;
+	onDelete?: () => void;
+	redirectEdit?: string;
+	onCancelCreate?: () => void;
 }) {
 	const { setAlert } = useGlobalState();
 
@@ -84,13 +88,23 @@ export default function BaseComponent({
 	const [columnsDefs, setColumnDefs] = React.useState(columnDefs);
 	const [openSaveFilter, setOpenSaveFilter] = React.useState(false);
 	const [filters, setFilters] = React.useState<Filters>({ id: 0, name: "", value: {} });
-	const [savedFiltersUpdated, setSavedFilters] = React.useState<Filters[]>([]);
+	const [savedFilters, setSavedFilters] = React.useState<Filters[]>([]);
 	const [openCreate, setOpenCreate] = React.useState(false);
 	const [openUpdate, setOpenUpdate] = React.useState(false);
 
 	React.useEffect(() => {
 		setSavedFilters(savedFilters);
 	}, [savedFilters]);
+	React.useEffect(() => {
+		const fetchFilters = async () => {
+			const filterResponse = await fetch(`http://pen.dataupload.xyz/filters?type=${filterType}`, {
+				cache: "no-store",
+			});
+			const filterData: Filters[] = await filterResponse.json();
+			setSavedFilters(filterData);
+		};
+		fetchFilters();
+	}, []);
 
 	const gridOptions = {
 		defaultColDef: {
@@ -103,7 +117,7 @@ export default function BaseComponent({
 		},
 		columnsDefs: columnsDefs,
 		onGridReady: (params: any) => {
-			params.api.setFilterModel(savedFiltersUpdated);
+			params.api.setFilterModel(savedFilters);
 		},
 	};
 	const AG_GRID_LOCALE_HU = {
@@ -140,19 +154,25 @@ export default function BaseComponent({
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify({ ...filters, type: "product" }),
+			body: JSON.stringify({ ...filters, type: filterType }),
 		});
 		if (response.ok) {
 			handleOpenSaveFilter();
 			setSavedFilters((prev) => [...prev, filters]);
 		}
 	};
-
 	return (
 		<>
 			<div className='flex min-h-screen flex-col items-center justify-start w-full'>
 				<Heading title={title} variant='h2'>
 					<div className='flex flex-row justify-end w-full relative z-50 items-center pr-10 gap-3'>
+						{onDelete ? (
+							<Button color='red' onClick={onDelete} disabled={!selectedRow}>
+								<TrashIcon className='w-5 h-5' />
+							</Button>
+						) : (
+							<></>
+						)}
 						{createForm ? (
 							<Button color='gray' variant='outlined' onClick={handleOpenCreate}>
 								<PlusIcon className='w-5 h-5 text-gray-900' />
@@ -160,9 +180,22 @@ export default function BaseComponent({
 						) : (
 							<></>
 						)}
-						<Button color='blue-gray' onClick={handleOpenUpdate} disabled={!selectedRow}>
-							<PencilSquareIcon className='w-5 h-5' />
-						</Button>
+						{updateForm ? (
+							<Button color='blue-gray' onClick={handleOpenUpdate} disabled={!selectedRow}>
+								<PencilSquareIcon className='w-5 h-5' />
+							</Button>
+						) : (
+							<></>
+						)}
+						{redirectEdit ? (
+							<Link href={redirectEdit}>
+								<Button color='blue-gray'>
+									<PencilSquareIcon className='w-5 h-5' />
+								</Button>
+							</Link>
+						) : (
+							<></>
+						)}
 					</div>
 				</Heading>
 				<div className='h-full w-full flex flex-row'>
@@ -208,7 +241,7 @@ export default function BaseComponent({
 									</div>
 								</CardHeader>
 								<List>
-									{savedFiltersUpdated
+									{savedFilters
 										.sort((a, b) => a.id - b.id)
 										.map((filter) => {
 											const isNotEqual =
@@ -318,7 +351,8 @@ export default function BaseComponent({
 				open={openCreate}
 				handler={handleOpenCreate}
 				title={"Új " + title.slice(0, -2)}
-				onSave={onCreate}>
+				onSave={onCreate}
+				onCancel={onCancelCreate}>
 				{createForm}
 			</CustomDialog>
 			<CustomDialog
@@ -338,24 +372,26 @@ function CustomDialog({
 	children,
 	onSave,
 	title,
+	onCancel,
 }: {
 	open: boolean;
 	handler: () => void;
 	children: React.ReactNode;
 	onSave?: () => void;
 	title: string;
+	onCancel?: () => void;
 }) {
 	return (
 		<Dialog size='lg' open={open} handler={handler} className='bg-transparent shadow-none'>
-			<Card className='mx-auto w-full max-w-[32rem]'>
-				<CardHeader variant='gradient' color='gray' className='mb-4 pl-4 grid h-28 place-items-center'>
+			<Card className='mx-auto w-full max-w-full max-h-[70%]'>
+				<CardHeader variant='gradient' color='gray' className='mb-4 pl-4 grid h-28 place-items-center '>
 					<Typography variant='h4' color='white' className='text-left'>
 						{title}
 					</Typography>
 				</CardHeader>
-				<CardBody className='flex flex-col gap-4'>{children}</CardBody>
+				<CardBody className='flex flex-col gap-4 overflow-y-scroll h-[70%]'>{children}</CardBody>
 				<CardFooter>
-					<div className='flex flex-row justify-end w-full gap-5 itesmcenter'>
+					<div className='flex flex-row justify-end w-full gap-5'>
 						<Button
 							color='green'
 							onClick={() => {
@@ -364,7 +400,12 @@ function CustomDialog({
 							}}>
 							Mentés
 						</Button>
-						<Button variant='outlined' onClick={handler}>
+						<Button
+							variant='outlined'
+							onClick={() => {
+								handler();
+								onCancel ? onCancel() : {};
+							}}>
 							Mégsem
 						</Button>
 					</div>

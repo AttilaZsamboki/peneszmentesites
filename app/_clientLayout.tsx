@@ -127,6 +127,10 @@ function Navbar() {
 					name: "Kérdések",
 					href: "/questions",
 				},
+				{
+					name: "Árajánlat sablonok",
+					href: "/templates",
+				},
 			],
 		},
 		{
@@ -189,17 +193,24 @@ function Navbar() {
 								  )
 								: false
 						)!
-						.subRoutes.map((route) => (
-							<Link href={route.href}>
-								<button className='flex items-center w-full px-5 py-2 transition-colors duration-200 dark:hover:bg-gray-800 gap-x-2 hover:bg-gray-100 focus:outline-none'>
-									<div className='text-left rtl:text-right'>
-										<h1 className='text-sm font-medium text-gray-700 capitalize dark:text-white'>
-											{route.name}
-										</h1>
-									</div>
-								</button>
-							</Link>
-						))}
+						.subRoutes.map((route) => {
+							return (
+								<Link href={route.href}>
+									<button
+										className={`${
+											route.href === router
+												? "bg-gray-200"
+												: "text-gray-500 dark:text-gray-400 dark:hover:bg-gray-800 hover:bg-gray-100"
+										}  flex items-center w-full px-5 py-2 transition-colors duration-200 gap-x-2 focus:outline-none`}>
+										<div className='text-left rtl:text-right'>
+											<h1 className='text-sm font-medium text-gray-700 capitalize dark:text-white'>
+												{route.name}
+											</h1>
+										</div>
+									</button>
+								</Link>
+							);
+						})}
 				</div>
 			</div>
 		</aside>

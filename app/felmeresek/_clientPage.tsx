@@ -6,6 +6,8 @@ import { PlusCircleIcon, MinusCircleIcon } from "@heroicons/react/20/solid";
 import React from "react";
 import autoAnimate from "@formkit/auto-animate";
 import { useSearchParams, usePathname, useRouter, ReadonlyURLSearchParams } from "next/navigation";
+import Link from "next/link";
+import { Button } from "@material-tailwind/react";
 
 export interface Filter {
 	id: number;
@@ -90,7 +92,13 @@ export default function ClientPage({ felmeresek }: { felmeresek: any[] }) {
 	}, [search]);
 	return (
 		<main className='flex min-h-screen flex-col items-center justify-start w-full'>
-			<Heading width='w-2/3' title='Felmérések' variant='h2' />
+			<Heading width='w-2/3' title='Felmérések' variant='h2'>
+				<Link href={"/felmeresek/new"}>
+					<div className='flex flex-row justify-start w-full relative z-50 items-center pr-10 gap-3'>
+						<Button className='w-40'>Új felmérés</Button>
+					</div>
+				</Link>
+			</Heading>
 			<div className='flex flex-row justify-start w-2/3 flex-wrap ' ref={parent}>
 				{search.map((i, index) => (
 					<div
@@ -102,7 +110,9 @@ export default function ClientPage({ felmeresek }: { felmeresek: any[] }) {
 							options={Array.from(
 								new Set(
 									felmeresek
-										.map((felmeres) => Object.keys(felmeres))
+										.map((felmeres) =>
+											Object.keys(felmeres).map((field) => ({ label: field, value: field }))
+										)
 										.flat()
 										.filter(
 											(field) =>
@@ -110,7 +120,7 @@ export default function ClientPage({ felmeresek }: { felmeresek: any[] }) {
 													.map((filter) =>
 														filter.searchField === "" ? null : filter.searchField
 													)
-													.includes(field)
+													.includes(field.label)
 										)
 								)
 							)}
@@ -148,15 +158,22 @@ export default function ClientPage({ felmeresek }: { felmeresek: any[] }) {
 														: ""
 												]
 										)
-										.map((felmeres) =>
-											felmeres[
+										.map((felmeres) => ({
+											label: felmeres[
 												search.find((s) => s.id === i.id)
 													? search.find((s) => s.id === i.id)!.searchField
 													: ""
 											]
 												.replace("['", "")
-												.replace("']", "")
-										)
+												.replace("']", ""),
+											value: felmeres[
+												search.find((s) => s.id === i.id)
+													? search.find((s) => s.id === i.id)!.searchField
+													: ""
+											]
+												.replace("['", "")
+												.replace("']", ""),
+										}))
 								)
 							)}
 							onChange={(value) =>
