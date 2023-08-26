@@ -120,6 +120,10 @@ function Navbar() {
 			icon: <HomeIcon className='w-6 h-6' />,
 			subRoutes: [
 				{
+					name: "Főoldal",
+					href: "/",
+				},
+				{
 					name: "Felmérések",
 					href: "/felmeresek",
 				},

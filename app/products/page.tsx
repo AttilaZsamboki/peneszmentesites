@@ -5,6 +5,7 @@ export interface Product {
 	name: string;
 	sku: string;
 	type: string;
+	price_list_alapertelmezett_net_price_huf: number;
 }
 
 export interface Filters {

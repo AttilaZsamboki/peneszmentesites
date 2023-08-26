@@ -28,9 +28,9 @@ export default function FormData({
 				.filter((field) => field.value !== "")
 				.sort((a, b) => a.id - b.id)
 				.map((field) => (
-					<div className='px-4 py-6 flex flex-row flex-wrap sm:gap-4 sm:px-0' key={field.id}>
+					<div className='px-4 py-6 flex flex-row sm:gap-4 sm:px-0' key={field.id}>
 						<div className='text-base font-medium leading-6 text-gray-900 w-1/3'>{field.field}</div>
-						<div className='flex justify-end w-full'>
+						<div className='flex justify-end w-full items-center'>
 							<div
 								className={`${
 									["GRID", "CHECKBOX_GRID", "FILE_UPLOAD"].includes(field.type) ? "w-full" : "w-1/3"

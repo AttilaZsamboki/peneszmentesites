@@ -14,11 +14,11 @@ export default function Counter({
 	label?: string;
 }) {
 	return (
-		<div className='custom-number-input h-10 w-full flex flex-row justify-between items-center'>
+		<div className='custom-number-input h-10 w-full max-w-[10rem] flex flex-row justify-between items-center'>
 			<label htmlFor='custom-input-number' className='w-full text-gray-700 text-sm font-semibold'>
 				{label ? label : ""}
 			</label>
-			<div className='flex flex-row h-10 w-full rounded-lg relative bg-transparent mt-1'>
+			<div className='flex flex-row h-10 rounded-lg relative bg-transparent mt-1'>
 				<button
 					onClick={() => onChange(value === 0 ? 0 : value - (step ? step : 1))}
 					data-action='decrement'

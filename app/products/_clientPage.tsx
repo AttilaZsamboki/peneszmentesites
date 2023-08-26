@@ -2,8 +2,7 @@
 import BaseComponent from "../_components/BaseComponent";
 import MultipleChoiceCombobox from "../_components/MultipleChoiceList";
 import { ProductAttributes } from "./[id]/page";
-import { Filters } from "./page";
-import { Checkbox, Typography } from "@material-tailwind/react";
+import { Checkbox, Typography, select } from "@material-tailwind/react";
 import React from "react";
 
 export default function ClientPage({ data, title, columnDefs }: { data: any[]; title: string; columnDefs: any[] }) {
@@ -45,7 +44,7 @@ export default function ClientPage({ data, title, columnDefs }: { data: any[]; t
 		const payload = JSON.stringify({
 			...attributeData,
 			place_options: JSON.stringify(attributeData.place_options).replace("[", "{").replace("]", "}"),
-			product: attributeData.product_id,
+			product: selectedRow[0].id,
 		});
 		if (!attributeData.id) {
 			await fetch("http://pen.dataupload.xyz/product_attributes", {

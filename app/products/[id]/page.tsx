@@ -7,6 +7,7 @@ export interface ProductAttributes {
 	product_id: number;
 	place: boolean;
 	place_options: string[];
+	product?: string;
 }
 
 export default async function ProductDetails({ params }: { params: { id: string } }) {
