@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { Felmeres } from "@/app/felmeresek/page";
+import { FelmeresQuestions } from "@/app/felmeresek/page";
 import { revalidateTag } from "next/cache";
 
 export const runtime = "edge";
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
 			?.substring((request.headers.get("referer")?.lastIndexOf("/") as unknown as number) + 1);
 		const id = request.nextUrl.searchParams.get("id");
 		const dataResp = await fetch(`http://pen.dataupload.xyz/felmeres_questions/${adatlapId}`);
-		const dataJson: Felmeres[] = await dataResp.json();
+		const dataJson: FelmeresQuestions[] = await dataResp.json();
 		const felmeres = dataJson.find((felmeres) => felmeres.id === parseInt(id ?? ""));
 		if (!felmeres) {
 			return NextResponse.json({ success: false }, { status: 400 });

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { Felmeres } from "@/app/felmeresek/page";
+import { FelmeresQuestions } from "@/app/felmeresek/page";
 import { revalidateTag } from "next/cache";
 
 export const runtime = "edge";

@@ -1,4 +1,4 @@
-import { Felmeres } from "../page";
+import { FelmeresQuestions } from "../page";
 import ClientPage from "./_clientPage";
 
 export interface FelmeresNotes {
@@ -14,7 +14,7 @@ export default async function Page({ params }: { params: { id: string } }) {
 	const data = await fetch("http://pen.dataupload.xyz/felmeres_questions/" + felmeresId, {
 		next: { tags: [encodeURIComponent(felmeresId)] },
 	});
-	const felmeres: Felmeres[] = data.ok ? await data.json() : [];
+	const felmeres: FelmeresQuestions[] = data.ok ? await data.json() : [];
 	const formattedFelmeres = felmeres.map((field) =>
 		["GRID", "CHECKBOX_GRID", "FILE_UPLOAD", "CHECKBOX"].includes(field.type)
 			? {

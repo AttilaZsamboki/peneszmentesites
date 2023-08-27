@@ -1,6 +1,7 @@
 import Heading from "../_components/Heading";
 import ClientPage from "./_clientPage";
 import { Filter } from "./_clientPage";
+import { BaseFelmeresData } from "./new/_clientPage";
 
 export interface GridOptions {
 	rows: string[];
@@ -12,7 +13,7 @@ export interface ScaleOption {
 	max: number;
 }
 
-export interface Felmeres {
+export interface FelmeresQuestions {
 	id: number;
 	adatlap_id: number;
 	question: number;
@@ -20,55 +21,98 @@ export interface Felmeres {
 	section: string;
 }
 
-export default async function Home({ searchParams }: { searchParams: any }) {
-	const data = await fetch("http://pen.dataupload.xyz/felmeres_questions", { next: { tags: ["felmeresek"] } });
-	function queryParamsToFilters(searchParams: any) {
-		const filters: Filter[] = [];
-		let index = 0;
-		while (true) {
-			const id = searchParams[`filters[${index}][id]`];
-			const search = searchParams[`filters[${index}][search]`];
-			const searchField = searchParams[`filters[${index}][searchField]`];
-			if (id === undefined || search === undefined || searchField === undefined) {
-				break;
-			}
-			filters.push({
-				id: Number(id),
-				search,
-				searchField,
-			});
-			index++;
-		}
-		return filters;
-	}
-	const filters = queryParamsToFilters(searchParams);
-	if (data.ok) {
-		const felmeresek: Felmeres[] = await data.json();
-		const formattedFelmeresek = Array.from(new Set(felmeresek.map((felmeresek) => felmeresek.adatlap_id)))
-			.map((adatlap_id) => {
-				let i: any = {};
-				felmeresek
-					.filter((felmeresek) => felmeresek.adatlap_id === adatlap_id)
-					.map((felmeresek) => {
-						i[felmeresek.field] = felmeresek.value;
-					});
-				return i;
-			})
-			.filter((item) =>
-				filters
-					? filters
-							.map((filter) =>
-								filter.searchField === ""
-									? true
-									: item[filter.searchField]
-									? item[filter.searchField].toLowerCase().includes(filter.search?.toLowerCase())
-									: false
-							)
-							.every((filter) => filter !== false)
-					: true
-			);
+export interface AdatlapDetails {
+	Id: number;
+	CategoryId: number;
+	ContactId: number;
+	StatusId: string;
+	UserId: string;
+	Name: string;
+	StatusUpdatedAt: string;
+	IsPrivate: number;
+	Invited: string;
+	Deleted: number;
+	CreatedBy: string;
+	CreatedAt: string;
+	UpdatedBy: string;
+	UpdatedAt: string;
+	EmailOpen_Phone: string;
+	EmailOpen_Tablet: string;
+	EmailOpen_iPhone: string;
+	EmailOpen_iPad: string;
+	EmailOpen_Android: string;
+	Serial_Number: string;
+	Type: string;
+	Url: string;
+	MilyenProblemavalFordultHozzank: string;
+	Tavolsag: number;
+	FelmeresiDij: number;
+	FelmeresIdopontja2: string;
+	MiAzUgyfelFoSzempontja3: string;
+	EgyebSzempontok3: string;
+	Cim2: string;
+	UtazasiIdoKozponttol: string;
+	Alaprajz: string;
+	LezarasOka: string;
+	LezarasSzovegesen: string;
+	Telepules: string;
+	Iranyitoszam: string;
+	Forras: string;
+	Megye: string;
+	Orszag: string;
+	Felmero2: string;
+	DijbekeroPdf2: string;
+	DijbekeroSzama2: string;
+	DijbekeroMegjegyzes2: string;
+	DijbekeroUzenetek: string;
+	FizetesiMod2: string;
+	KiallitasDatuma: string;
+	FizetesiHatarido: string;
+	MennyireVoltMegelegedve2: string;
+	Pontszam3: number;
+	SzovegesErtekeles4: string;
+	IngatlanKepe: string;
+	Munkalap: string;
+	BruttoFelmeresiDij: number;
+	MunkalapMegjegyzes: string;
+	FelmeresVisszaigazolva: string;
+	SzamlaPdf: string;
+	SzamlaSorszama2: string;
+	KiallitasDatuma2: string;
+	SzamlaUzenetek: string;
+	SzamlaMegjegyzes: string;
+	FelmeresAdatok: string;
+	UtvonalAKozponttol: string;
+	StreetViewUrl: string;
+	BusinessId: number;
+	ProjectHash: string;
+	ProjectEmail: string;
+}
 
-		return <ClientPage felmeresek={formattedFelmeresek} />;
+export default async function Home({ searchParams }: { searchParams: any }) {
+	var myHeaders = new Headers();
+	myHeaders.append("Authorization", process.env.MINICRM_API_KEY!);
+	myHeaders.append("Content-Type", "application/json");
+
+	var requestOptions = {
+		method: "GET",
+		headers: myHeaders,
+	};
+	const data = await fetch("http://pen.dataupload.xyz/felmeresek", { next: { tags: ["felmeresek"] } });
+	if (data.ok) {
+		const felmeresek: BaseFelmeresData[] = await data.json();
+		const adatlapok: AdatlapDetails[] = await Promise.all(
+			felmeresek.map(async (felmeres) => {
+				const resp = await fetch("https://r3.minicrm.hu/Api/R3/Project/" + felmeres.adatlap_id, requestOptions);
+				if (resp.ok) {
+					const data: AdatlapDetails = await resp.json();
+					return data;
+				}
+				return {} as AdatlapDetails;
+			})
+		);
+
+		return <ClientPage felmeresek={felmeresek} adatlapok={adatlapok} />;
 	} else {
 		return (
 			<main className='flex min-h-screen flex-col items-center justify-start p-2'>

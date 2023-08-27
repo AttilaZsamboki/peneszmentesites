@@ -2,7 +2,7 @@
 import { Card, CardBody, Button, Typography } from "@material-tailwind/react";
 import Heading from "@/app/_components/Heading";
 import React from "react";
-import { Felmeres, ScaleOption } from "../page";
+import { FelmeresQuestions, ScaleOption } from "../page";
 import { AdatlapData } from "./page";
 import AutoComplete from "@/app/_components/AutoComplete";
 import { Template } from "@/app/templates/page";
@@ -15,13 +15,14 @@ import MultipleChoice from "@/app/_components/MultipleChoice";
 import { GridOptions } from "../page";
 import { Grid } from "@/app/_components/Grid";
 import FileUpload from "@/app/_components/FileUpload";
+import { useRouter } from "next/navigation";
 
 export interface ProductTemplate {
 	product: number;
 	template: number;
 }
 
-interface BaseFelmeresData {
+export interface BaseFelmeresData {
 	adatlap_id: number;
 	type: string;
 	template: number;
@@ -43,13 +44,13 @@ export const hufFormatter = new Intl.NumberFormat("hu-HU", {
 });
 
 export default function Page({ adatlapok, templates }: { adatlapok: AdatlapData[]; templates: Template[] }) {
-	const [data, setData] = React.useState<Felmeres[]>([]);
+	const [data, setData] = React.useState<FelmeresQuestions[]>([]);
 	const [page, setPage] = React.useState(0);
 	const [section, setSection] = React.useState("Alapadatok");
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>({ adatlap_id: 0, type: "", template: 0 });
 	const [items, setItems] = React.useState<FelmeresItems[]>([]);
 	const [numPages, setNumPages] = React.useState(0);
-	console.log(data);
+	const router = useRouter();
 
 	const CreateFelmeres = async () => {
 		const res = await fetch("http://pen.dataupload.xyz/felmeresek/", {
@@ -77,15 +78,16 @@ export default function Page({ adatlapok, templates }: { adatlapok: AdatlapData[
 					body: JSON.stringify({
 						...question,
 						adatlap: question.adatlap_id,
-						value: isJSONParsable(question.value) ? JSON.parse(question.value) : question.value,
+						value: Array.isArray(question.value) ? JSON.stringify(question.value) : question.value,
 					}),
 				});
 				if (!resQuestions.ok) {
 					status = 0;
 				}
 			});
-			if (status === 0) {
-				window.location.href = "/felmeresek";
+			if (status === 1) {
+				await fetch("/api/revalidate?tag=felmeresek");
+				router.push("/felmeresek");
 			}
 		}
 	};
@@ -149,7 +151,7 @@ function PageChooser({
 	setNumPages,
 }: {
 	page: number;
-	setData: React.Dispatch<React.SetStateAction<Felmeres[]>>;
+	setData: React.Dispatch<React.SetStateAction<FelmeresQuestions[]>>;
 	adatlapok: AdatlapData[];
 	setSection: React.Dispatch<React.SetStateAction<string>>;
 	templates: Template[];
@@ -580,7 +582,7 @@ function QuestionPage({
 }: {
 	product: string;
 	questions: Question[];
-	setData: React.Dispatch<React.SetStateAction<Felmeres[]>>;
+	setData: React.Dispatch<React.SetStateAction<FelmeresQuestions[]>>;
 	adatlap_id: number;
 }) {
 	return (
@@ -606,11 +608,11 @@ function FieldCreate({
 	product,
 }: {
 	question: Question;
-	setGlobalData: React.Dispatch<React.SetStateAction<Felmeres[]>>;
+	setGlobalData: React.Dispatch<React.SetStateAction<FelmeresQuestions[]>>;
 	adatlap_id: number;
 	product?: string;
 }) {
-	const [data, setData] = React.useState<Felmeres>({
+	const [data, setData] = React.useState<FelmeresQuestions>({
 		adatlap_id: 0,
 		id: 0,
 		value: "",
@@ -651,7 +653,7 @@ function FieldCreate({
 				({
 					...prev,
 					value: values,
-				} as unknown as Felmeres)
+				} as unknown as FelmeresQuestions)
 		);
 	};
 	const setterSingleOrdered = (value: { column: string; row: number }) => {
@@ -667,7 +669,7 @@ function FieldCreate({
 							: []),
 						value,
 					],
-				} as unknown as Felmeres)
+				} as unknown as FelmeresQuestions)
 		);
 	};
 	const setterMultipleOrdered = (value: { column: string; row: number }) => {
@@ -684,7 +686,7 @@ function FieldCreate({
 									(v) => !(v.column === value.column && v.row === value.row)
 							  )
 						: [value],
-				} as unknown as Felmeres)
+				} as unknown as FelmeresQuestions)
 		);
 	};
 	if (question.type === "TEXT") {

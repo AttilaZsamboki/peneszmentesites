@@ -1,5 +1,5 @@
 import { GridOptions, ScaleOption } from "../felmeresek/page";
-import { Felmeres } from "../felmeresek/page";
+import { FelmeresQuestions } from "../felmeresek/page";
 
 import { Grid } from "./Grid";
 import Gallery from "./Gallery";
@@ -17,10 +17,10 @@ export default function FormData({
 	modifiedData,
 	setModifiedData,
 }: {
-	data: Felmeres[];
+	data: FelmeresQuestions[];
 	isEditing: boolean;
-	modifiedData: Felmeres[];
-	setModifiedData: React.Dispatch<React.SetStateAction<Felmeres[]>>;
+	modifiedData: FelmeresQuestions[];
+	setModifiedData: React.Dispatch<React.SetStateAction<FelmeresQuestions[]>>;
 }) {
 	return (
 		<div className='divide-y divide-gray-100 pt-10'>
@@ -52,7 +52,7 @@ export default function FormData({
 	);
 }
 
-function FieldViewing({ data }: { data: Felmeres }) {
+function FieldViewing({ data }: { data: FelmeresQuestions }) {
 	if (["TEXT", "LIST", "MULTIPLE_CHOICE"].includes(data.type)) {
 		return (
 			<dd className='mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 lg:text-right'>{data.value}</dd>
@@ -112,9 +112,9 @@ function FieldEditing({
 	modifiedData,
 	setModifiedData,
 }: {
-	data: Felmeres;
-	modifiedData: Felmeres[];
-	setModifiedData: React.Dispatch<React.SetStateAction<Felmeres[]>>;
+	data: FelmeresQuestions;
+	modifiedData: FelmeresQuestions[];
+	setModifiedData: React.Dispatch<React.SetStateAction<FelmeresQuestions[]>>;
 }) {
 	const field = modifiedData.find((field) => field.id === data.id)
 		? modifiedData.find((field) => field.id === data.id)!
@@ -134,7 +134,7 @@ function FieldEditing({
 			{
 				...data,
 				value: values,
-			} as unknown as Felmeres,
+			} as unknown as FelmeresQuestions,
 		]);
 	};
 	const setterSingleOrdered = (value: { column: string; row: number }) => {
@@ -152,7 +152,7 @@ function FieldEditing({
 						return v;
 					}
 				}),
-			} as unknown as Felmeres,
+			} as unknown as FelmeresQuestions,
 		]);
 	};
 	const setterMultipleOrdered = (value: { column: string; row: number }) => {
@@ -170,7 +170,7 @@ function FieldEditing({
 						return v;
 					}
 				}),
-			} as unknown as Felmeres,
+			} as unknown as FelmeresQuestions,
 		]);
 	};
 	if (data.type === "TEXT") {

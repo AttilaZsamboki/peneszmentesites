@@ -1,6 +1,6 @@
 "use client";
 import { FelmeresNotes } from "./page";
-import { Felmeres } from "../page";
+import { FelmeresQuestions } from "../page";
 
 import Heading from "../../_components/Heading";
 import TextEditor from "../../_components/Texteditor";
@@ -21,7 +21,7 @@ export default function ClientPage({
 	felmeresNotes,
 	felmeresId,
 }: {
-	formattedFelmeres: Felmeres[];
+	formattedFelmeres: FelmeresQuestions[];
 	felmeresNotes: FelmeresNotes[];
 	felmeresId: string;
 }) {
@@ -41,7 +41,7 @@ export default function ClientPage({
 	const [isLoading, setIsLoading] = React.useState(true);
 	const [isEditing, setIsEditing] = React.useState(false);
 	const [notes, setNotes] = React.useState<FelmeresNotes[]>(felmeresNotes);
-	const [modifiedData, setModifiedData] = React.useState<Felmeres[]>([]);
+	const [modifiedData, setModifiedData] = React.useState<FelmeresQuestions[]>([]);
 
 	const notesParent = React.useRef(null);
 
