@@ -1,5 +1,6 @@
 import { Template } from "@/app/templates/page";
 import ClientPage from "./_clientPage";
+import { Question } from "@/app/questions/page";
 
 export interface Adatlap {
 	Count: number;
@@ -37,5 +38,5 @@ export default async function Page() {
 	const templates: Template[] = await fetch("http://pen.dataupload.xyz/templates").then((response) =>
 		response.json()
 	);
-	return <ClientPage adatlapok={adatlapok} templates={templates}/>;
+	return <ClientPage adatlapok={adatlapok} templates={templates} />;
 }

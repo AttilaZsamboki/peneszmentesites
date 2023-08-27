@@ -181,7 +181,9 @@ export default function ClientPage({
 													setIsEditing(false);
 													modifiedData.map(async (field) => {
 														const resp = await fetch(
-															"https://pen.dataupload.xyz/felmeresek/" + field.id + "/",
+															"https://pen.dataupload.xyz/felmeres_questions/" +
+																field.id +
+																"/",
 															{
 																method: "PATCH",
 																headers: {

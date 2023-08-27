@@ -12,7 +12,7 @@ export const Grid = ({
 }: {
 	columns: string[];
 	rows: string[];
-	value: string[];
+	value: { column: string; row: number }[] | "";
 	radio: boolean;
 	disabled: boolean;
 	onChange?: (value: { column: string; row: number }) => void;
@@ -56,7 +56,13 @@ export const Grid = ({
 												<Checkbox
 													name={`${row}-${column}`}
 													color='gray'
-													checked={value[index] ? value[index].includes(column) : false}
+													checked={
+														value
+															? value
+																	.map((v) => v.column === column && v.row === index)
+																	.includes(true)
+															: false
+													}
 													crossOrigin='anonymous'
 													disabled={disabled}
 													onClick={() => {
@@ -67,7 +73,13 @@ export const Grid = ({
 												<Radio
 													name={`${row}-${column}`}
 													color='gray'
-													checked={value[index] ? value[index].includes(column) : false}
+													checked={
+														value
+															? value
+																	.map((v) => v.column === column && v.row === index)
+																	.includes(true)
+															: false
+													}
 													crossOrigin='anonymous'
 													disabled={disabled}
 													onClick={() => {

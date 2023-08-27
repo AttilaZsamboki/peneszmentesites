@@ -2,19 +2,39 @@
 import { Card, CardBody, Button, Typography } from "@material-tailwind/react";
 import Heading from "@/app/_components/Heading";
 import React from "react";
-import { Felmeres } from "../page";
+import { Felmeres, ScaleOption } from "../page";
 import { AdatlapData } from "./page";
 import AutoComplete from "@/app/_components/AutoComplete";
 import { Template } from "@/app/templates/page";
 import { Product } from "@/app/products/page";
-import { ProductAttributes } from "@/app/products/[id]/page";
-import { isJSONParsable } from "@/app/questions/page";
+import { Question, isJSONParsable } from "@/app/questions/page";
 import { MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
 import Counter from "@/app/_components/Counter";
+import Input from "@/app/_components/Input";
+import MultipleChoice from "@/app/_components/MultipleChoice";
+import { GridOptions } from "../page";
+import { Grid } from "@/app/_components/Grid";
+import FileUpload from "@/app/_components/FileUpload";
 
 export interface ProductTemplate {
 	product: number;
 	template: number;
+}
+
+interface BaseFelmeresData {
+	adatlap_id: number;
+	type: string;
+	template: number;
+}
+
+export interface FelmeresItems {
+	name: string;
+	place: boolean;
+	placeOptions: string[];
+	productId: number;
+	inputValues: { value: string; id: number; ammount: number }[];
+	netPrice: number;
+	adatlap: number;
 }
 
 export const hufFormatter = new Intl.NumberFormat("hu-HU", {
@@ -24,9 +44,52 @@ export const hufFormatter = new Intl.NumberFormat("hu-HU", {
 
 export default function Page({ adatlapok, templates }: { adatlapok: AdatlapData[]; templates: Template[] }) {
 	const [data, setData] = React.useState<Felmeres[]>([]);
-	const [adatlap, setAdatlap] = React.useState<{ id: number; name: string }>({ id: 0, name: "" });
-	const [page, setPage] = React.useState(1);
+	const [page, setPage] = React.useState(0);
 	const [section, setSection] = React.useState("Alapadatok");
+	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>({ adatlap_id: 0, type: "", template: 0 });
+	const [items, setItems] = React.useState<FelmeresItems[]>([]);
+	const [numPages, setNumPages] = React.useState(0);
+	console.log(data);
+
+	const CreateFelmeres = async () => {
+		const res = await fetch("http://pen.dataupload.xyz/felmeresek/", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(felmeres),
+		});
+		if (res.ok) {
+			await fetch("http://pen.dataupload.xyz/felmeres_items/", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(items),
+			});
+			let status = 1;
+			data.map(async (question) => {
+				const resQuestions = await fetch("http://pen.dataupload.xyz/felmeres_questions/", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						...question,
+						adatlap: question.adatlap_id,
+						value: isJSONParsable(question.value) ? JSON.parse(question.value) : question.value,
+					}),
+				});
+				if (!resQuestions.ok) {
+					status = 0;
+				}
+			});
+			if (status === 0) {
+				window.location.href = "/felmeresek";
+			}
+		}
+	};
+
 	return (
 		<div className='w-full'>
 			<div className='flex flex-row w-ful flex-wrap lg:flex-nowrap justify-center mt-2'>
@@ -35,18 +98,31 @@ export default function Page({ adatlapok, templates }: { adatlapok: AdatlapData[
 						<CardBody className='bg-white p-8 lg:rounded-lg bg-transparent bg-opacity-20 lg:border transform'>
 							<Heading title={section} variant='h3' />
 							<PageChooser
-								page={page}
-								adatlap={adatlap}
-								adatlapok={adatlapok}
-								data={data}
-								setAdatlap={setAdatlap}
 								setData={setData}
+								page={page}
+								adatlapok={adatlapok}
 								setSection={setSection}
+								felmeres={felmeres}
+								items={items}
+								setItems={setItems}
+								setFelmeres={setFelmeres}
 								templates={templates}
+								setNumPages={setNumPages}
 							/>
 							<div className='flex flex-row justify-end gap-3 border-t py-4'>
-								<Button onClick={() => setPage(page + 1)}>Következő</Button>
-								{page === 1 ? null : (
+								{numPages === page + 1 ? (
+									<Button color='green' onClick={CreateFelmeres}>
+										Beküldés
+									</Button>
+								) : (
+									<Button
+										onClick={() => {
+											setPage(page + 1);
+										}}>
+										Következő
+									</Button>
+								)}
+								{page === 0 ? null : (
 									<Button variant='outlined' onClick={() => setPage(page - 1)}>
 										Előző
 									</Button>
@@ -63,57 +139,97 @@ export default function Page({ adatlapok, templates }: { adatlapok: AdatlapData[
 function PageChooser({
 	page,
 	adatlapok,
-	setAdatlap,
-	adatlap,
-	data,
-	setData,
 	setSection,
 	templates,
+	felmeres,
+	setFelmeres,
+	items,
+	setItems,
+	setData,
+	setNumPages,
 }: {
 	page: number;
-	adatlapok: AdatlapData[];
-	setAdatlap: React.Dispatch<React.SetStateAction<{ id: number; name: string }>>;
-	adatlap: { id: number; name: string };
-	data: Felmeres[];
 	setData: React.Dispatch<React.SetStateAction<Felmeres[]>>;
+	adatlapok: AdatlapData[];
 	setSection: React.Dispatch<React.SetStateAction<string>>;
 	templates: Template[];
+	felmeres: BaseFelmeresData;
+	setFelmeres: React.Dispatch<React.SetStateAction<BaseFelmeresData>>;
+	items: FelmeresItems[];
+	setItems: React.Dispatch<React.SetStateAction<FelmeresItems[]>>;
+	setNumPages: React.Dispatch<React.SetStateAction<number>>;
 }) {
 	interface PageMap {
-		[key: number]: {
-			component: JSX.Element;
-			title: string;
-		};
+		component: JSX.Element;
+		title: string;
 	}
-	const pageMap: PageMap = {
-		1: {
+
+	const [questions, setQuestions] = React.useState<Question[]>([]);
+
+	React.useEffect(() => {
+		const fetchQuestions = async () => {
+			items.map(async (item) => {
+				const res = await fetch("http://pen.dataupload.xyz/questions?product=" + item.productId);
+				if (res.ok) {
+					const data: Question[] = await res.json();
+					setQuestions((prev) => [
+						...prev.filter((question) => !data.map((q) => q.id).includes(question.id)),
+						...data,
+					]);
+				}
+			});
+			const res = await fetch("http://pen.dataupload.xyz/questions?connection=Fix");
+			if (res.ok) {
+				const data: Question[] = await res.json();
+				setQuestions((prev) => [
+					...prev.filter((question) => !data.map((q) => q.id).includes(question.id)),
+					...data,
+				]);
+			}
+		};
+		fetchQuestions();
+	}, [items]);
+
+	const pageMap: PageMap[] = [
+		{
 			component: (
-				<Page1
-					adatlap={adatlap}
-					adatlapok={adatlapok}
-					data={data}
-					setAdatlap={setAdatlap}
-					setData={setData}
-					templates={templates}
-				/>
+				<Page1 felmeres={felmeres} setFelmeres={setFelmeres} adatlapok={adatlapok} templates={templates} />
 			),
 			title: "Alapadatok",
 		},
-		2: {
-			component: <Page2 data={data} />,
+		{
+			component: <Page2 felmeres={felmeres} items={items} setItems={setItems} />,
 			title: "Tételek",
 		},
-	};
+		...Array.from(new Set(questions.map((question) => question.product))).map((product) => ({
+			component: (
+				<QuestionPage
+					product={items.find((item) => item.productId === product)?.name || ""}
+					adatlap_id={felmeres.adatlap_id}
+					questions={questions.filter((question) => question.product === product)}
+					setData={setData}
+				/>
+			),
+			title: items.find((item) => item.productId === product)?.name || "Fix kérdések",
+		})),
+	];
+	React.useEffect(() => {
+		setNumPages(pageMap.length);
+	}, [pageMap.length]);
+
 	setSection(pageMap[page].title);
 	return pageMap[page].component;
 }
 
-function QuestionTemplate({ children, title }: { children: React.ReactNode; title: string }) {
+function QuestionTemplate({ children, title, type }: { children: React.ReactNode; title: string; type?: string }) {
 	return (
 		<div className='px-4 py-6 flex flex-row sm:gap-4 sm:px-0'>
 			<div className='text-base font-medium leading-6 text-gray-900 w-1/3'>{title}</div>
 			<div className='flex justify-end w-full items-center'>
-				<div className={`w-1/3`}>{children}</div>
+				<div
+					className={`${["GRID", "CHECKBOX_GRID", "FILE_UPLOAD"].includes(type ?? "") ? "w-full" : "w-1/3"}`}>
+					{children}
+				</div>
 			</div>
 		</div>
 	);
@@ -121,18 +237,14 @@ function QuestionTemplate({ children, title }: { children: React.ReactNode; titl
 
 function Page1({
 	adatlapok,
-	setAdatlap,
-	adatlap,
-	data,
-	setData,
 	templates,
+	felmeres,
+	setFelmeres,
 }: {
 	adatlapok: AdatlapData[];
-	setAdatlap: React.Dispatch<React.SetStateAction<{ id: number; name: string }>>;
-	adatlap: { id: number; name: string };
-	data: Felmeres[];
-	setData: React.Dispatch<React.SetStateAction<Felmeres[]>>;
 	templates: Template[];
+	felmeres: BaseFelmeresData;
+	setFelmeres: React.Dispatch<React.SetStateAction<BaseFelmeresData>>;
 }) {
 	return (
 		<>
@@ -143,26 +255,21 @@ function Page1({
 						value: adatlap.Id.toString(),
 					}))}
 					onChange={(e) => {
-						setAdatlap({
-							id: parseInt(e),
-							name: adatlapok.find((adatlap) => adatlap.Id === parseInt(e))
-								? adatlapok.find((adatlap) => adatlap.Id === parseInt(e))!.Name
-								: "",
+						setFelmeres({
+							...felmeres,
+							adatlap_id: adatlapok.find((adatlap) => adatlap.Id === parseInt(e))
+								? adatlapok.find((adatlap) => adatlap.Id === parseInt(e))!.Id
+								: 0,
 						});
-						setData([
-							...data,
-							{
-								field: "Adatlap",
-								value: e,
-								adatlap_id: adatlap.id,
-								section: "Alapadatok",
-							} as unknown as Felmeres,
-						]);
 					}}
-					value={adatlap.name}
+					value={
+						adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)
+							? adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)!.Name
+							: ""
+					}
 				/>
 			</QuestionTemplate>
-			{data.filter((field) => field.field === "Adatlap").length > 0 ? (
+			{felmeres.adatlap_id ? (
 				<QuestionTemplate title='Milyen rendszert tervezel?'>
 					<AutoComplete
 						options={["Helyi elszívós rendszer", "Központi ventillátoros", "Passzív rendszer"].map(
@@ -171,60 +278,29 @@ function Page1({
 								value: option,
 							})
 						)}
-						onChange={(e) =>
-							setData([
-								...data.filter((field) => field.field !== "Milyen rendszert tervezel?"),
-								{
-									field: "Milyen rendszert tervezel?",
-									value: e,
-									adatlap_id: adatlap.id,
-									section: "Alapadatok",
-								} as unknown as Felmeres,
-							])
-						}
-						value={
-							data.find((felmeres) => felmeres.field === "Milyen rendszert tervezel?")
-								? data.find((felmeres) => felmeres.field === "Milyen rendszert tervezel?")!.value
-								: ""
-						}
+						onChange={(e) => setFelmeres({ ...felmeres, type: e })}
+						value={felmeres.type}
 					/>
 				</QuestionTemplate>
 			) : null}
-			{data.filter((field) => field.field === "Milyen rendszert tervezel?").length > 0 ? (
+			{felmeres.type ? (
 				<QuestionTemplate title='Sablon'>
 					<AutoComplete
 						options={templates
-							.filter(
-								(template) =>
-									template.type ===
-									data.find(
-										(data) =>
-											data.field === "Milyen rendszert tervezel?" &&
-											data.adatlap_id === adatlap.id
-									)?.value
-							)
+							.filter((template) => template.type === felmeres.type)
 							.map((template) => ({
 								label: template.name,
 								value: template.id.toString(),
 							}))}
 						onChange={(e) => {
-							setData([
-								...data.filter((field) => field.field !== "Sablon"),
-								{
-									field: "Sablon",
-									value: e,
-									adatlap_id: adatlap.id,
-									section: "Alapadatok",
-								} as unknown as Felmeres,
-							]);
+							setFelmeres({
+								...felmeres,
+								template: templates.find((template) => template.id === parseInt(e))!
+									? templates.find((template) => template.id === parseInt(e))!.id
+									: 0,
+							});
 						}}
-						value={
-							templates.find(
-								(template) =>
-									template.id ===
-									parseInt(data.find((felmeres) => felmeres.field === "Sablon")?.value || "")
-							)?.name || ""
-						}
+						value={templates.find((template) => template.id === felmeres.template)?.name || ""}
 					/>
 				</QuestionTemplate>
 			) : null}
@@ -232,21 +308,18 @@ function Page1({
 	);
 }
 
-function Page2({ data }: { data: Felmeres[] }) {
-	const [items, setItems] = React.useState<
-		{
-			name: string;
-			place: boolean;
-			place_options: string[];
-			id: number;
-			inputValues: { value: string; id: number; ammount: number }[];
-			netPrice: number;
-		}[]
-	>([]);
-
+function Page2({
+	felmeres,
+	items,
+	setItems,
+}: {
+	felmeres: BaseFelmeresData;
+	items: FelmeresItems[];
+	setItems: React.Dispatch<React.SetStateAction<FelmeresItems[]>>;
+}) {
 	React.useEffect(() => {
 		const fetchData = async () => {
-			const templateId = parseInt(data.find((felmeres) => felmeres.field === "Sablon")?.value || "");
+			const templateId = felmeres.template;
 			const productTemplateRes = await fetch("http://pen.dataupload.xyz/product_templates/" + templateId);
 			if (productTemplateRes.ok) {
 				const productTemplates: ProductTemplate[] = await productTemplateRes.json();
@@ -260,12 +333,12 @@ function Page2({ data }: { data: Felmeres[] }) {
 						if (productAttributeResp.ok) {
 							const productAttributeData = await productAttributeResp.json().then((data) => data[0]);
 							setItems((prevItems) => [
-								...prevItems.filter((item) => item.id !== productTemplate.product),
+								...prevItems.filter((item) => item.productId !== productTemplate.product),
 								{
-									id: productTemplate.product,
+									productId: productTemplate.product,
 									name: productData.name,
 									place: productAttributeData.place,
-									place_options: isJSONParsable(
+									placeOptions: isJSONParsable(
 										productAttributeData.place_options.replace(/'/g, '"') as unknown as string
 									)
 										? JSON.parse(
@@ -277,6 +350,7 @@ function Page2({ data }: { data: Felmeres[] }) {
 										: [],
 									inputValues: [{ value: "", id: 0, ammount: 0 }],
 									netPrice: productData.price_list_alapertelmezett_net_price_huf,
+									adatlap: felmeres.adatlap_id,
 								},
 							]);
 						}
@@ -291,7 +365,7 @@ function Page2({ data }: { data: Felmeres[] }) {
 
 	return (
 		<Card className='my-5'>
-			<div className='max-w-[20px]'>
+			<div className=''>
 				<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
 					<thead>
 						<tr>
@@ -309,8 +383,8 @@ function Page2({ data }: { data: Felmeres[] }) {
 					</thead>
 					<tbody>
 						{items
-							.sort((a, b) => a.id - b.id)
-							.map(({ name, place, place_options, inputValues, netPrice }, index) => {
+							.sort((a, b) => a.productId - b.productId)
+							.map(({ name, place, placeOptions: place_options, inputValues, netPrice }, index) => {
 								const isLast = index === items.length - 1;
 								const classes = isLast ? "p-4" : "p-4 border-b border-blue-gray-50";
 
@@ -330,10 +404,13 @@ function Page2({ data }: { data: Felmeres[] }) {
 												<div className='flex flex-row'>
 													<td className={classes}>
 														<Counter
+															maxWidth='max-w-[10rem]'
 															value={inputValue.ammount}
 															onChange={(value) =>
 																setItems([
-																	...items.filter((i) => i.id !== items[index].id),
+																	...items.filter(
+																		(i) => i.productId !== items[index].productId
+																	),
 																	{
 																		...items[index],
 																		inputValues: [
@@ -371,7 +448,8 @@ function Page2({ data }: { data: Felmeres[] }) {
 																			setItems([
 																				...items.filter(
 																					(item) =>
-																						item.id !== items[index].id
+																						item.productId !==
+																						items[index].productId
 																				),
 																				{
 																					...items[index],
@@ -397,7 +475,8 @@ function Page2({ data }: { data: Felmeres[] }) {
 																			setItems([
 																				...items.filter(
 																					(item) =>
-																						item.id !== items[index].id
+																						item.productId !==
+																						items[index].productId
 																				),
 																				{
 																					...items[index],
@@ -420,7 +499,8 @@ function Page2({ data }: { data: Felmeres[] }) {
 																				setItems([
 																					...items.filter(
 																						(item) =>
-																							item.id !== items[index].id
+																							item.productId !==
+																							items[index].productId
 																					),
 																					{
 																						...items[index],
@@ -490,4 +570,182 @@ function Page2({ data }: { data: Felmeres[] }) {
 			</div>
 		</Card>
 	);
+}
+
+function QuestionPage({
+	questions,
+	setData,
+	adatlap_id,
+	product,
+}: {
+	product: string;
+	questions: Question[];
+	setData: React.Dispatch<React.SetStateAction<Felmeres[]>>;
+	adatlap_id: number;
+}) {
+	return (
+		<>
+			{questions.map((question) => (
+				<QuestionTemplate title={question.question} type={question.type}>
+					<FieldCreate
+						product={product}
+						adatlap_id={adatlap_id}
+						question={question}
+						setGlobalData={setData}
+					/>
+				</QuestionTemplate>
+			))}
+		</>
+	);
+}
+
+function FieldCreate({
+	question,
+	setGlobalData,
+	adatlap_id,
+	product,
+}: {
+	question: Question;
+	setGlobalData: React.Dispatch<React.SetStateAction<Felmeres[]>>;
+	adatlap_id: number;
+	product?: string;
+}) {
+	const [data, setData] = React.useState<Felmeres>({
+		adatlap_id: 0,
+		id: 0,
+		value: "",
+		question: question.id,
+		section: product ? product : "Fix",
+	});
+	const [randomId, setRandomId] = React.useState("");
+	console.log(data);
+
+	React.useEffect(() => {
+		setGlobalData((prev) => [...prev.filter((felmeres) => felmeres.question !== question.id), data]);
+	}, [data]);
+	React.useEffect(() => {
+		setRandomId(Math.floor(Math.random() * Date.now()).toString());
+	}, []);
+	React.useEffect(() => {
+		setData({ ...data, section: product ? product : "Fix" });
+	}, [product]);
+	React.useEffect(() => {
+		setData({ ...data, question: question.id });
+	}, [question]);
+	React.useEffect(() => {
+		setData({ ...data, adatlap_id: adatlap_id });
+	}, [adatlap_id]);
+
+	const setterSingle = (value: string) => {
+		setData((prev) => ({ ...prev, value: value }));
+	};
+	const setterMultipleUnordered = (value: string) => {
+		let values = [""];
+		if (data.value.includes(value) && values.length) {
+			values = (data.value as unknown as string[]).filter((v) => v !== value);
+		} else {
+			values = [...(data.value as unknown as string[]), value];
+		}
+		setData(
+			(prev) =>
+				({
+					...prev,
+					value: values,
+				} as unknown as Felmeres)
+		);
+	};
+	const setterSingleOrdered = (value: { column: string; row: number }) => {
+		setData(
+			(prev) =>
+				({
+					...prev,
+					value: [
+						...((prev.value as unknown as Array<{ column: string; row: number }>)
+							? (prev.value as unknown as Array<{ column: string; row: number }>).filter(
+									(v) => v.row !== value.row
+							  )
+							: []),
+						value,
+					],
+				} as unknown as Felmeres)
+		);
+	};
+	const setterMultipleOrdered = (value: { column: string; row: number }) => {
+		setData(
+			(prev) =>
+				({
+					...data,
+					value: prev.value
+						? !(prev.value as unknown as Array<{ column: string; row: number }>).filter(
+								(v) => v.column === value.column && v.row === value.row
+						  ).length
+							? [...(prev.value as unknown as Array<{ column: string; row: number }>), value]
+							: (prev.value as unknown as Array<{ column: string; row: number }>).filter(
+									(v) => !(v.column === value.column && v.row === value.row)
+							  )
+						: [value],
+				} as unknown as Felmeres)
+		);
+	};
+	if (question.type === "TEXT") {
+		return <Input onChange={(e) => setterSingle(e.target.value)} value={data.value} variant='simple' />;
+	} else if (question.type === "LIST") {
+		return (
+			<AutoComplete
+				options={(question.options as string[]).map((option) => ({ label: option, value: option }))}
+				onChange={setterSingle}
+				value={data.value}
+			/>
+		);
+	} else if (["MULTIPLE_CHOICE", "CHECKBOX"].includes(question.type)) {
+		return (
+			<MultipleChoice
+				options={(question.options as string[]).map((option) => option)}
+				value={data.value}
+				onChange={question.type === "CHECKBOX" ? setterMultipleUnordered : setterSingle}
+				radio={question.type === "MULTIPLE_CHOICE"}
+			/>
+		);
+	} else if (question.type === "GRID" || question.type === "CHECKBOX_GRID") {
+		return (
+			<Grid
+				columns={(question.options as GridOptions).columns}
+				rows={(question.options as GridOptions).rows}
+				value={data.value as unknown as { column: string; row: number }[]}
+				onChange={(value) => {
+					if (question.type === "CHECKBOX_GRID") {
+						setterMultipleOrdered(value);
+					} else {
+						setterSingleOrdered(value);
+					}
+				}}
+				radio={question.type === "CHECKBOX_GRID" ? false : true}
+				disabled={false}
+			/>
+		);
+	} else if (question.type === "SCALE") {
+		return (
+			<MultipleChoice
+				options={Array.from({ length: (question.options as ScaleOption).max }, (_, i) => (i + 1).toString())}
+				value={data.value}
+				onChange={setterSingle}
+				radio={true}
+			/>
+		);
+	} else if (question.type === "FILE_UPLOAD") {
+		return (
+			<FileUpload
+				route={`/api/save-image?id=${randomId}`}
+				onUpload={() =>
+					setData({
+						adatlap_id: adatlap_id,
+						id: 0,
+						question: question.id,
+						section: "Fix",
+						value: "https://felmeres-note-images.s3.eu-central-1.amazonaws.com/" + randomId,
+					})
+				}
+			/>
+		);
+	}
 }

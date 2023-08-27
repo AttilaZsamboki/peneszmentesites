@@ -11,7 +11,7 @@ export interface FelmeresNotes {
 
 export default async function Page({ params }: { params: { id: string } }) {
 	const felmeresId = params.id;
-	const data = await fetch("http://pen.dataupload.xyz/felmeresek/" + felmeresId, {
+	const data = await fetch("http://pen.dataupload.xyz/felmeres_questions/" + felmeresId, {
 		next: { tags: [encodeURIComponent(felmeresId)] },
 	});
 	const felmeres: Felmeres[] = data.ok ? await data.json() : [];

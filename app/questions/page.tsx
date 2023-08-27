@@ -7,7 +7,7 @@ export interface Question {
 	type: string;
 	options: any;
 	connection: string;
-	product: number;
+	product?: number;
 }
 
 export function isJSONParsable(str: string) {

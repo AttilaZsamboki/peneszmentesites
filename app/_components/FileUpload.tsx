@@ -7,11 +7,14 @@ import "filepond/dist/filepond.min.css";
 
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 
-export default function FileUpload({ route }: { route: string }) {
+export default function FileUpload({ route, onUpload }: { route: string; onUpload?: (file: any) => void }) {
 	return (
 		<FilePond
 			allowMultiple={true}
 			allowReplace={true}
+			onaddfile={(err, file) => {
+				onUpload ? onUpload(file) : {};
+			}}
 			server={route}
 			allowReorder={true}
 			allowProcess={true}

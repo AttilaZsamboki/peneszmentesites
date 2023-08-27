@@ -15,15 +15,13 @@ export interface ScaleOption {
 export interface Felmeres {
 	id: number;
 	adatlap_id: number;
-	field: string;
+	question: number;
 	value: string;
-	options: {} | GridOptions | string[] | ScaleOption;
-	type: "CHECKBOX" | "LIST" | "MULTIPLE_CHOICE" | "SCALE" | "TEXT" | "CHECKBOX_GRID" | "GRID" | "FILE_UPLOAD";
 	section: string;
 }
 
 export default async function Home({ searchParams }: { searchParams: any }) {
-	const data = await fetch("http://pen.dataupload.xyz/felmeresek", { next: { tags: ["felmeresek"] } });
+	const data = await fetch("http://pen.dataupload.xyz/felmeres_questions", { next: { tags: ["felmeresek"] } });
 	function queryParamsToFilters(searchParams: any) {
 		const filters: Filter[] = [];
 		let index = 0;

@@ -165,7 +165,6 @@ function FieldEditing({
 						if (v ? v.includes(value.column) : false) {
 							return (v as unknown as string[]).filter((c) => c !== value.column);
 						}
-						console.log(v);
 						return [...((v as unknown as string[]) || [""]), value.column];
 					} else {
 						return v;
@@ -220,6 +219,6 @@ function FieldEditing({
 			/>
 		);
 	} else if (data.type === "FILE_UPLOAD") {
-		return <FileUpload route={`/api/save-form-image?id=${encodeURIComponent(data.id)}`} />;
+		return <FileUpload route={`/api/update-images?id=${encodeURIComponent(data.id)}`} />;
 	}
 }

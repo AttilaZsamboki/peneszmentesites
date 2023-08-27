@@ -1,20 +1,18 @@
 export default function Counter({
 	value,
 	onChange,
-	min,
-	max,
-	step,
 	label,
+	maxWidth,
+	step: step,
 }: {
 	value: number;
 	onChange: (value: number) => void;
-	min?: number;
-	max?: number;
-	step?: number;
 	label?: string;
+	maxWidth?: string;
+	step?: number;
 }) {
 	return (
-		<div className='custom-number-input h-10 w-full max-w-[10rem] flex flex-row justify-between items-center'>
+		<div className={"custom-number-input h-10 w-full flex flex-row justify-between items-center " + maxWidth}>
 			<label htmlFor='custom-input-number' className='w-full text-gray-700 text-sm font-semibold'>
 				{label ? label : ""}
 			</label>

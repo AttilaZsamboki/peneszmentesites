@@ -17,7 +17,6 @@ export default function ClientComponent({ data, products }: { data: Question[]; 
 		type: "",
 		options: "{}",
 		connection: "",
-		product: 0,
 	});
 	const [upToDateData, setUpToDateData] = React.useState<Question[]>(data);
 	const [selectedRow, setSelectedRow] = React.useState<any>(null);
@@ -191,7 +190,7 @@ function OptionChooser({
 		);
 	} else if (type === "SCALE") {
 		return (
-			<div className='flex flex-col gap-2'>
+			<div className='flex flex-col gap-2 '>
 				<Counter
 					onChange={(value) =>
 						setQuestion((prev) => ({
