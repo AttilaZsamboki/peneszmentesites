@@ -90,15 +90,24 @@ export interface AdatlapDetails {
 	ProjectEmail: string;
 }
 
-export default async function Home({ searchParams }: { searchParams: any }) {
+export default async function Home() {
 	const data = await fetch("http://pen.dataupload.xyz/felmeresek", { next: { tags: ["felmeresek"] } });
 	if (data.ok) {
 		const felmeresek: BaseFelmeresData[] = await data.json();
 		const adatlapok: AdatlapDetails[] = await Promise.all(
-			felmeresek.map(async (felmeres) => fetchAdatlapDetails(felmeres.adatlap_id))
+			felmeresek.map(async (felmeres) => fetchAdatlapDetails(felmeres.adatlap_id.toString()))
+		);
+		const templates = await Promise.all(
+			felmeresek.map(async (felmeres) =>
+				fetch("http://pen.dataupload.xyz/templates/" + felmeres.template, {
+					next: { tags: [encodeURIComponent(felmeres.adatlap_id)] },
+				})
+					.then((res) => res.json())
+					.catch((err) => console.log(err))
+			)
 		);
 
-		return <ClientPage felmeresek={felmeresek} adatlapok={adatlapok} />;
+		return <ClientPage felmeresek={felmeresek} adatlapok={adatlapok} templates={templates} />;
 	} else {
 		return (
 			<main className='flex min-h-screen flex-col items-center justify-start p-2'>

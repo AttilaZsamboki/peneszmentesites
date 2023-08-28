@@ -8,7 +8,7 @@ import { useGlobalState } from "../../_clientLayout";
 
 import React from "react";
 
-import { Typography, Spinner, Switch, CardBody, Card, CardHeader, Slider } from "@material-tailwind/react";
+import { Typography, Spinner, Switch, CardBody, Card, CardHeader, Slider, Checkbox } from "@material-tailwind/react";
 import { XMarkIcon, CheckIcon } from "@heroicons/react/20/solid";
 import { BaseFelmeresData, FelmeresItems } from "../new/_clientPage";
 import { Question, isJSONParsable } from "@/app/questions/page";
@@ -75,6 +75,7 @@ export default function ClientPage({
 	const [isLoading, setIsLoading] = React.useState(true);
 	const [isEditing, setIsEditing] = React.useState(false);
 	const [modifiedData, setModifiedData] = React.useState<FelmeresQuestions[]>([]);
+	const [isAll, setIsAll] = React.useState(false);
 
 	React.useEffect(() => {
 		setSelectedSection(sections[0].title);
@@ -109,8 +110,21 @@ export default function ClientPage({
 										: sections[0].title
 								}
 								variant='h3'
+								border={false}
 							/>
-							{sections.find((section) => section.title === selectedSection)?.component}
+							{isAll
+								? sections.map((section, index) => {
+										if (index === 0) {
+											return section.component;
+										}
+										return (
+											<div className='border-t'>
+												<Heading variant='h3' border={false} title={section.title} />
+												{section.component}
+											</div>
+										);
+								  })
+								: sections.find((section) => section.title === selectedSection)?.component}
 						</CardBody>
 					</Card>
 				</div>
@@ -223,6 +237,19 @@ export default function ClientPage({
 									/>
 								</div>
 							)}
+						</div>
+						<div className='flex flex-row w-full justify-between my-5 p-2 px-4 border rounded-md items-center'>
+							<Typography className={`${isLoading ? "text-gray-600" : ""}`} variant='h6'>
+								Minden
+							</Typography>
+							<Checkbox
+								crossOrigin=''
+								disabled={isLoading}
+								color='gray'
+								onChange={() => {
+									setIsAll(!isAll);
+								}}
+							/>
 						</div>
 					</div>
 				</div>

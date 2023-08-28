@@ -6,14 +6,19 @@ export default function Heading({
 	variant,
 	width = "w-11/12",
 	children,
+	border = true,
 }: {
 	title: string;
 	variant: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 	width?: string;
 	children?: React.ReactNode;
+	border?: boolean;
 }) {
 	return (
-		<div className='flex lg:flex-row flex-col justify-between items-center w-full mb-2 border-b'>
+		<div
+			className={`flex lg:flex-row flex-col justify-between items-center w-full mb-2 ${
+				border ? "border-b" : ""
+			}`}>
 			<div className='flex flex-col justify-items items-center w-full'>
 				<div
 					className={`flex flex-col ${width} px-2 lg:items-start sm:items-center justify-center lg:justify-between lg:my-12 text-center`}>

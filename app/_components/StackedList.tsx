@@ -3,18 +3,20 @@ import Link from "next/link";
 import React from "react";
 import autoAnimate from "@formkit/auto-animate";
 import { Card, CardBody } from "@material-tailwind/react";
-import { AdatlapDetails, FelmeresQuestions } from "../felmeresek/page";
+import { AdatlapDetails } from "../felmeresek/page";
 import { BaseFelmeresData } from "../felmeresek/new/_clientPage";
-import Input from "./Input";
+import { Template } from "../templates/page";
 
 export default function StackedList({
 	adatlapok,
 	felmeresek,
 	detailsHref = "felmeresek",
+	templates,
 }: {
 	adatlapok: AdatlapDetails[];
 	felmeresek: BaseFelmeresData[];
 	detailsHref?: string;
+	templates: Template[];
 }) {
 	const parent = React.useRef<HTMLUListElement | null>(null);
 	React.useEffect(() => {
@@ -78,7 +80,10 @@ export default function StackedList({
 											</div>
 										</div>
 										<div className='hidden shrink-0 sm:flex sm:flex-col sm:items-end'>
-											<p className='text-sm leading-6 text-gray-900'>{felmeres.type}</p>
+											<p className='text-sm leading-6 text-gray-900'>
+												{felmeres.type} -{" "}
+												{templates.find((template) => template.id === felmeres.template)?.name}
+											</p>
 											<p className='mt-1 text-xs leading-5 text-gray-500'>{adatlap.Felmero2}</p>
 										</div>
 									</CardBody>

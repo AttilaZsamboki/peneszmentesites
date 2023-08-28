@@ -1,15 +1,12 @@
 "use client";
 import StackedList from "../_components/StackedList";
 import Heading from "../_components/Heading";
-import AutoComplete from "../_components/AutoComplete";
-import { PlusCircleIcon, MinusCircleIcon } from "@heroicons/react/20/solid";
 import React from "react";
-import autoAnimate from "@formkit/auto-animate";
-import { useSearchParams, usePathname, useRouter, ReadonlyURLSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@material-tailwind/react";
-import { AdatlapDetails, Felmeres } from "./page";
+import { AdatlapDetails } from "./page";
 import { BaseFelmeresData } from "./new/_clientPage";
+import { Template } from "../templates/page";
 
 export interface Filter {
 	id: number;
@@ -20,9 +17,11 @@ export interface Filter {
 export default function ClientPage({
 	felmeresek,
 	adatlapok,
+	templates,
 }: {
 	felmeresek: BaseFelmeresData[];
 	adatlapok: AdatlapDetails[];
+	templates: Template[];
 }) {
 	return (
 		<main className='flex min-h-screen flex-col items-center justify-start w-full'>
@@ -33,7 +32,7 @@ export default function ClientPage({
 					</div>
 				</Link>
 			</Heading>
-			<StackedList adatlapok={adatlapok} felmeresek={felmeresek} />
+			<StackedList adatlapok={adatlapok} felmeresek={felmeresek} templates={templates} />
 		</main>
 	);
 }
