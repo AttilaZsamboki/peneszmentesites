@@ -1,4 +1,5 @@
 import Heading from "../_components/Heading";
+import { fetchAdatlapDetails } from "../_utils/_fetchMiniCRM";
 import ClientPage from "./_clientPage";
 import { Filter } from "./_clientPage";
 import { BaseFelmeresData } from "./new/_clientPage";
@@ -90,26 +91,11 @@ export interface AdatlapDetails {
 }
 
 export default async function Home({ searchParams }: { searchParams: any }) {
-	var myHeaders = new Headers();
-	myHeaders.append("Authorization", process.env.MINICRM_API_KEY!);
-	myHeaders.append("Content-Type", "application/json");
-
-	var requestOptions = {
-		method: "GET",
-		headers: myHeaders,
-	};
 	const data = await fetch("http://pen.dataupload.xyz/felmeresek", { next: { tags: ["felmeresek"] } });
 	if (data.ok) {
 		const felmeresek: BaseFelmeresData[] = await data.json();
 		const adatlapok: AdatlapDetails[] = await Promise.all(
-			felmeresek.map(async (felmeres) => {
-				const resp = await fetch("https://r3.minicrm.hu/Api/R3/Project/" + felmeres.adatlap_id, requestOptions);
-				if (resp.ok) {
-					const data: AdatlapDetails = await resp.json();
-					return data;
-				}
-				return {} as AdatlapDetails;
-			})
+			felmeresek.map(async (felmeres) => fetchAdatlapDetails(felmeres.adatlap_id))
 		);
 
 		return <ClientPage felmeresek={felmeresek} adatlapok={adatlapok} />;

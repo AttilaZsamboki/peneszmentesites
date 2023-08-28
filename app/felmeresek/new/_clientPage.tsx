@@ -51,6 +51,7 @@ export default function Page({ adatlapok, templates }: { adatlapok: AdatlapData[
 	const [items, setItems] = React.useState<FelmeresItems[]>([]);
 	const [numPages, setNumPages] = React.useState(0);
 	const router = useRouter();
+	console.log(data);
 
 	const CreateFelmeres = async () => {
 		const res = await fetch("http://pen.dataupload.xyz/felmeresek/", {
@@ -69,7 +70,7 @@ export default function Page({ adatlapok, templates }: { adatlapok: AdatlapData[
 				body: JSON.stringify(items),
 			});
 			let status = 1;
-			data.map(async (question) => {
+			data.filter((question) => question.value).map(async (question) => {
 				const resQuestions = await fetch("http://pen.dataupload.xyz/felmeres_questions/", {
 					method: "POST",
 					headers: {
@@ -617,10 +618,9 @@ function FieldCreate({
 		id: 0,
 		value: "",
 		question: question.id,
-		section: product ? product : "Fix",
+		section: "",
 	});
 	const [randomId, setRandomId] = React.useState("");
-	console.log(data);
 
 	React.useEffect(() => {
 		setGlobalData((prev) => [...prev.filter((felmeres) => felmeres.question !== question.id), data]);
@@ -629,13 +629,13 @@ function FieldCreate({
 		setRandomId(Math.floor(Math.random() * Date.now()).toString());
 	}, []);
 	React.useEffect(() => {
-		setData({ ...data, section: product ? product : "Fix" });
+		setData((prev) => ({ ...prev, section: product ? product : "Fix" }));
 	}, [product]);
 	React.useEffect(() => {
-		setData({ ...data, question: question.id });
+		setData((prev) => ({ ...prev, question: question.id }));
 	}, [question]);
 	React.useEffect(() => {
-		setData({ ...data, adatlap_id: adatlap_id });
+		setData((prev) => ({ ...prev, adatlap_id: adatlap_id }));
 	}, [adatlap_id]);
 
 	const setterSingle = (value: string) => {
@@ -743,7 +743,7 @@ function FieldCreate({
 						adatlap_id: adatlap_id,
 						id: 0,
 						question: question.id,
-						section: "Fix",
+						section: data.section,
 						value: "https://felmeres-note-images.s3.eu-central-1.amazonaws.com/" + randomId,
 					})
 				}

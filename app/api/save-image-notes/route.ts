@@ -37,18 +37,7 @@ export async function POST(request: NextRequest) {
 		const id = request.headers
 			.get("referer")
 			?.substring((request.headers.get("referer")?.lastIndexOf("/") as unknown as number) + 1);
-		await fetch("http://pen.dataupload.xyz/felmeresek_notes", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				type: "image",
-				created_at: new Date().toISOString(),
-				adatlap_id: id,
-				value: files[1].name,
-			}),
-		});
+	
 
 		return NextResponse.json({ success: true, async_id_symbol: fileName }, { status: 200 });
 	} catch (error) {

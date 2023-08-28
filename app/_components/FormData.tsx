@@ -1,224 +1,168 @@
-import { GridOptions, ScaleOption } from "../felmeresek/page";
-import { FelmeresQuestions } from "../felmeresek/page";
-
-import { Grid } from "./Grid";
-import Gallery from "./Gallery";
-import Input from "./Input";
-
+"use client";
+import { Card, Typography } from "@material-tailwind/react";
 import React from "react";
-import { Slider } from "@material-tailwind/react";
-import AutoComplete from "./AutoComplete";
-import MultipleChoice from "./MultipleChoice";
-import FileUpload from "./FileUpload";
+import { AdatlapData } from "../felmeresek/new/page";
+import AutoComplete from "@/app/_components/AutoComplete";
+import { Template } from "@/app/templates/page";
+import { Product } from "@/app/products/page";
+import { Question, isJSONParsable } from "@/app/questions/page";
+import { MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
+import Counter from "@/app/_components/Counter";
+import Input from "@/app/_components/Input";
+import MultipleChoice from "@/app/_components/MultipleChoice";
+import { AdatlapDetails, FelmeresQuestions, GridOptions, ScaleOption } from "../felmeresek/page";
+import { Grid } from "@/app/_components/Grid";
+import FileUpload from "@/app/_components/FileUpload";
+import { BaseFelmeresData, FelmeresItems, ProductTemplate } from "../felmeresek/new/_clientPage";
 
-export default function FormData({
-	data,
-	isEditing,
-	modifiedData,
-	setModifiedData,
+
+function FieldCreate({
+	question,
+	setGlobalData,
+	adatlap_id,
+	product,
 }: {
-	data: FelmeresQuestions[];
-	isEditing: boolean;
-	modifiedData: FelmeresQuestions[];
-	setModifiedData: React.Dispatch<React.SetStateAction<FelmeresQuestions[]>>;
+	question: Question;
+	setGlobalData: React.Dispatch<React.SetStateAction<FelmeresQuestions[]>>;
+	adatlap_id: number;
+	product?: string;
 }) {
-	return (
-		<div className='divide-y divide-gray-100 pt-10'>
-			{data
-				.filter((field) => field.value !== "")
-				.sort((a, b) => a.id - b.id)
-				.map((field) => (
-					<div className='px-4 py-6 flex flex-row sm:gap-4 sm:px-0' key={field.id}>
-						<div className='text-base font-medium leading-6 text-gray-900 w-1/3'>{field.field}</div>
-						<div className='flex justify-end w-full items-center'>
-							<div
-								className={`${
-									["GRID", "CHECKBOX_GRID", "FILE_UPLOAD"].includes(field.type) ? "w-full" : "w-1/3"
-								}`}>
-								{isEditing ? (
-									<FieldEditing
-										modifiedData={modifiedData}
-										setModifiedData={setModifiedData}
-										data={field}
-									/>
-								) : (
-									<FieldViewing data={field} />
-								)}
-							</div>
-						</div>
-					</div>
-				))}
-		</div>
-	);
-}
+	const [data, setData] = React.useState<FelmeresQuestions>({
+		adatlap_id: 0,
+		id: 0,
+		value: "",
+		question: question.id,
+		section: product ? product : "Fix",
+	});
+	const [randomId, setRandomId] = React.useState("");
+	console.log(data);
 
-function FieldViewing({ data }: { data: FelmeresQuestions }) {
-	if (["TEXT", "LIST", "MULTIPLE_CHOICE"].includes(data.type)) {
-		return (
-			<dd className='mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 lg:text-right'>{data.value}</dd>
-		);
-	} else if (data.type === "CHECKBOX") {
-		return (
-			<MultipleChoice
-				options={(data.options as string[]).map((option) => option)}
-				value={data.value}
-				onChange={() => {}}
-				radio={false}
-				disabled
-			/>
-		);
-	} else if (data.type === "GRID" || data.type === "CHECKBOX_GRID") {
-		return (
-			<Grid
-				columns={(data.options as GridOptions).columns}
-				rows={(data.options as GridOptions).rows}
-				value={data.value as unknown as string[]}
-				radio={data.type === "CHECKBOX_GRID" ? false : true}
-				disabled
-			/>
-		);
-	} else if (data.type === "SCALE") {
-		return (
-			<div className='flex flex-col justify-center space-y-2 lg:w-full lg:col-span-2 cursor-default'>
-				<div className='mt-1 text-md leading-6 text-gray-700 sm:col-span-2 sm:mt-0 lg:text-right'>
-					{data.value}
-				</div>
-				<Slider
-					value={(parseInt(data.value) / (data.options as ScaleOption).max) * 100}
-					style={{ color: "#ADBCC3" }}
-				/>
-			</div>
-		);
-	} else if (data.type === "FILE_UPLOAD") {
-		return (
-			<div className='lg:col-span-2'>
-				<Gallery
-					images={(data.value as unknown as string[]).map((media) => {
-						if (media.substring(0, 4) !== "KÉZI") {
-							return `https://drive.google.com/uc?export=view&id=${media}`;
-						} else {
-							return `https://felmeres-note-images.s3.eu-central-1.amazonaws.com/${media.substring(4)}`;
-						}
-					})}
-					isVideo={data.field === "Készíts videót és töltsd fel!"}
-				/>
-			</div>
-		);
-	}
-}
+	React.useEffect(() => {
+		setGlobalData((prev) => [...prev.filter((felmeres) => felmeres.question !== question.id), data]);
+	}, [data]);
+	React.useEffect(() => {
+		setRandomId(Math.floor(Math.random() * Date.now()).toString());
+	}, []);
+	React.useEffect(() => {
+		setData({ ...data, section: product ? product : "Fix" });
+	}, [product]);
+	React.useEffect(() => {
+		setData({ ...data, question: question.id });
+	}, [question]);
+	React.useEffect(() => {
+		setData({ ...data, adatlap_id: adatlap_id });
+	}, [adatlap_id]);
 
-function FieldEditing({
-	data,
-	modifiedData,
-	setModifiedData,
-}: {
-	data: FelmeresQuestions;
-	modifiedData: FelmeresQuestions[];
-	setModifiedData: React.Dispatch<React.SetStateAction<FelmeresQuestions[]>>;
-}) {
-	const field = modifiedData.find((field) => field.id === data.id)
-		? modifiedData.find((field) => field.id === data.id)!
-		: data;
 	const setterSingle = (value: string) => {
-		setModifiedData((prev) => [...prev.filter((field) => field.id !== data.id), { ...data, value: value }]);
+		setData((prev) => ({ ...prev, value: value }));
 	};
 	const setterMultipleUnordered = (value: string) => {
 		let values = [""];
-		if (field.value.includes(value) && values.length) {
-			values = (field.value as unknown as string[]).filter((v) => v !== value);
+		if (data.value.includes(value) && values.length) {
+			values = (data.value as unknown as string[]).filter((v) => v !== value);
 		} else {
-			values = [...(field.value as unknown as string[]), value];
+			values = [...(data.value as unknown as string[]), value];
 		}
-		setModifiedData((prev) => [
-			...prev.filter((field) => field.id !== data.id),
-			{
-				...data,
-				value: values,
-			} as unknown as FelmeresQuestions,
-		]);
+		setData(
+			(prev) =>
+				({
+					...prev,
+					value: values,
+				} as unknown as FelmeresQuestions)
+		);
 	};
 	const setterSingleOrdered = (value: { column: string; row: number }) => {
-		setModifiedData((prev) => [
-			...prev.filter((field) => field.id !== data.id),
-			{
-				...data,
-				value: (field.value as unknown as string[]).map((v, i) => {
-					if (i === value.row) {
-						if (v === value.column) {
-							return null;
-						}
-						return value.column;
-					} else {
-						return v;
-					}
-				}),
-			} as unknown as FelmeresQuestions,
-		]);
+		setData(
+			(prev) =>
+				({
+					...prev,
+					value: [
+						...((prev.value as unknown as Array<{ column: string; row: number }>)
+							? (prev.value as unknown as Array<{ column: string; row: number }>).filter(
+									(v) => v.row !== value.row
+							  )
+							: []),
+						value,
+					],
+				} as unknown as FelmeresQuestions)
+		);
 	};
 	const setterMultipleOrdered = (value: { column: string; row: number }) => {
-		setModifiedData((prev) => [
-			...prev.filter((field) => field.id !== data.id),
-			{
-				...data,
-				value: (field.value as unknown as string[]).map((v, i) => {
-					if (i === value.row) {
-						if (v ? v.includes(value.column) : false) {
-							return (v as unknown as string[]).filter((c) => c !== value.column);
-						}
-						return [...((v as unknown as string[]) || [""]), value.column];
-					} else {
-						return v;
-					}
-				}),
-			} as unknown as FelmeresQuestions,
-		]);
+		setData(
+			(prev) =>
+				({
+					...data,
+					value: prev.value
+						? !(prev.value as unknown as Array<{ column: string; row: number }>).filter(
+								(v) => v.column === value.column && v.row === value.row
+						  ).length
+							? [...(prev.value as unknown as Array<{ column: string; row: number }>), value]
+							: (prev.value as unknown as Array<{ column: string; row: number }>).filter(
+									(v) => !(v.column === value.column && v.row === value.row)
+							  )
+						: [value],
+				} as unknown as FelmeresQuestions)
+		);
 	};
-	if (data.type === "TEXT") {
-		return <Input onChange={(e) => setterSingle(e.target.value)} value={field.value} variant='simple' />;
-	} else if (data.type === "LIST") {
+	if (question.type === "TEXT") {
+		return <Input onChange={(e) => setterSingle(e.target.value)} value={data.value} variant='simple' />;
+	} else if (question.type === "LIST") {
 		return (
 			<AutoComplete
-				options={(data.options as string[]).map((option) => ({ label: option, value: option }))}
+				options={(question.options as string[]).map((option) => ({ label: option, value: option }))}
 				onChange={setterSingle}
-				value={field.value}
+				value={data.value}
 			/>
 		);
-	} else if (["MULTIPLE_CHOICE", "CHECKBOX"].includes(data.type)) {
+	} else if (["MULTIPLE_CHOICE", "CHECKBOX"].includes(question.type)) {
 		return (
 			<MultipleChoice
-				options={(data.options as string[]).map((option) => option)}
-				value={field.value}
-				onChange={data.type === "CHECKBOX" ? setterMultipleUnordered : setterSingle}
-				radio={data.type === "MULTIPLE_CHOICE"}
+				options={(question.options as string[]).map((option) => option)}
+				value={data.value}
+				onChange={question.type === "CHECKBOX" ? setterMultipleUnordered : setterSingle}
+				radio={question.type === "MULTIPLE_CHOICE"}
 			/>
 		);
-	} else if (data.type === "GRID" || data.type === "CHECKBOX_GRID") {
+	} else if (question.type === "GRID" || question.type === "CHECKBOX_GRID") {
 		return (
 			<Grid
-				columns={(data.options as GridOptions).columns}
-				rows={(data.options as GridOptions).rows}
-				value={field.value as unknown as string[]}
+				columns={(question.options as GridOptions).columns}
+				rows={(question.options as GridOptions).rows}
+				value={data.value as unknown as { column: string; row: number }[]}
 				onChange={(value) => {
-					if (data.type === "CHECKBOX_GRID") {
+					if (question.type === "CHECKBOX_GRID") {
 						setterMultipleOrdered(value);
 					} else {
 						setterSingleOrdered(value);
 					}
 				}}
-				radio={data.type === "CHECKBOX_GRID" ? false : true}
+				radio={question.type === "CHECKBOX_GRID" ? false : true}
 				disabled={false}
 			/>
 		);
-	} else if (data.type === "SCALE") {
+	} else if (question.type === "SCALE") {
 		return (
 			<MultipleChoice
-				options={Array.from({ length: (data.options as ScaleOption).max }, (_, i) => (i + 1).toString())}
-				value={field.value}
+				options={Array.from({ length: (question.options as ScaleOption).max }, (_, i) => (i + 1).toString())}
+				value={data.value}
 				onChange={setterSingle}
 				radio={true}
 			/>
 		);
-	} else if (data.type === "FILE_UPLOAD") {
-		return <FileUpload route={`/api/update-images?id=${encodeURIComponent(data.id)}`} />;
+	} else if (question.type === "FILE_UPLOAD") {
+		return (
+			<FileUpload
+				route={`/api/save-image?id=${randomId}`}
+				onUpload={() =>
+					setData({
+						adatlap_id: adatlap_id,
+						id: 0,
+						question: question.id,
+						section: "Fix",
+						value: "https://felmeres-note-images.s3.eu-central-1.amazonaws.com/" + randomId,
+					})
+				}
+			/>
+		);
 	}
 }

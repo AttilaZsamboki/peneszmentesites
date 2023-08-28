@@ -12,25 +12,7 @@ export default function TextEditor({
 	setNotes: React.Dispatch<React.SetStateAction<FelmeresNotes[]>>;
 }) {
 	const [text, setText] = useState("");
-	const saveNote = async () => {
-		const resp = await fetch("https://pen.dataupload.xyz/felmeresek_notes", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				type: "text",
-				created_at: new Date().toISOString(),
-				adatlap_id: adatlapId,
-				value: text,
-			}),
-		});
-		if (resp.ok) {
-			const data = await resp.json();
-			setText("");
-			setNotes((prev) => [...prev, data]);
-		}
-	};
+	
 	return (
 		<div className='w-full lg:w-5/6'>
 			<FileUpload route='/api/save-image' />
@@ -48,7 +30,7 @@ export default function TextEditor({
 						<Button size='sm' color='red' variant='text' className='rounded-md'>
 							Mégsem
 						</Button>
-						<Button size='sm' className='rounded-md' color='gray' onClick={saveNote}>
+						<Button size='sm' className='rounded-md' color='gray'>
 							Mentés
 						</Button>
 					</div>
