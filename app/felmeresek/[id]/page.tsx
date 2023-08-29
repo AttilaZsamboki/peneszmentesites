@@ -14,13 +14,13 @@ export interface FelmeresNotes {
 
 export default async function Page({ params }: { params: { id: string } }) {
 	const felmeresId = params.id;
-	const data = await fetch("http://pen.dataupload.xyz/felmeres_questions/" + felmeresId, {
+	const data = await fetch("httpss://pen.dataupload.xyz/felmeres_questions/" + felmeresId, {
 		next: { tags: [encodeURIComponent(felmeresId)] },
 	});
 	const felmeresQuestions: FelmeresQuestions[] = data.ok ? await data.json() : [];
 	const question: Question[] = await Promise.all(
 		felmeresQuestions.map(async (field) => {
-			const question = await fetch("http://pen.dataupload.xyz/questions/" + field.question, {
+			const question = await fetch("httpss://pen.dataupload.xyz/questions/" + field.question, {
 				next: { tags: [encodeURIComponent(felmeresId)] },
 			})
 				.then((res) => res.json())
@@ -39,13 +39,13 @@ export default async function Page({ params }: { params: { id: string } }) {
 			  }
 			: { ...field }
 	);
-	const felmeres: BaseFelmeresData = await fetch("http://pen.dataupload.xyz/felmeresek/" + felmeresId, {
+	const felmeres: BaseFelmeresData = await fetch("httpss://pen.dataupload.xyz/felmeresek/" + felmeresId, {
 		next: { tags: [encodeURIComponent(felmeresId)] },
 	})
 		.then((res) => res.json())
 		.catch((err) => console.log(err));
 	const felmeresItems: FelmeresItems[] = await fetch(
-		"http://pen.dataupload.xyz/felmeres_items?adatlap_id" + felmeresId,
+		"httpss://pen.dataupload.xyz/felmeres_items?adatlap_id" + felmeresId,
 		{
 			next: { tags: [encodeURIComponent(felmeresId)] },
 		}
@@ -53,7 +53,7 @@ export default async function Page({ params }: { params: { id: string } }) {
 		.then((res) => res.json())
 		.catch((err) => console.log(err));
 	const adatlap = await fetchAdatlapDetails(felmeresId);
-	const template = await fetch("http://pen.dataupload.xyz/templates/" + felmeres.template, {
+	const template = await fetch("https://pen.dataupload.xyz/templates/" + felmeres.template, {
 		next: { tags: [encodeURIComponent(felmeresId)] },
 	})
 		.then((res) => res.json())

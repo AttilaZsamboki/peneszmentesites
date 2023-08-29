@@ -29,7 +29,7 @@ export default function Page({ templates, products }: { templates: Template[]; p
 			setTemplate({ ...selectedRow[0], type: selectedRow[0].type as string });
 			const fetchItems = async () => {
 				const response: { product: number; template: number }[] = await fetch(
-					`http://pen.dataupload.xyz/product_templates/${selectedRow[0].id}`
+					`https://pen.dataupload.xyz/product_templates/${selectedRow[0].id}`
 				).then((res) => res.json());
 				setItems(response.map((item: { product: number }) => item.product.toString()));
 			};
@@ -38,7 +38,7 @@ export default function Page({ templates, products }: { templates: Template[]; p
 	}, [selectedRow]);
 
 	const createTemplate = async () => {
-		const templateResponse = await fetch("http://pen.dataupload.xyz/templates/", {
+		const templateResponse = await fetch("https://pen.dataupload.xyz/templates/", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -47,7 +47,7 @@ export default function Page({ templates, products }: { templates: Template[]; p
 		}).then((res) => res.json());
 		items.map(
 			async (item) =>
-				await fetch("http://pen.dataupload.xyz/product_templates/", {
+				await fetch("https://pen.dataupload.xyz/product_templates/", {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
@@ -58,7 +58,7 @@ export default function Page({ templates, products }: { templates: Template[]; p
 		setUpToDateTemplates([...upToDateTemplates, templateResponse]);
 	};
 	const deleteTemplate = async () => {
-		const response = await fetch(`http://pen.dataupload.xyz/templates/${selectedRow[0].id}/`, {
+		const response = await fetch(`https://pen.dataupload.xyz/templates/${selectedRow[0].id}/`, {
 			method: "DELETE",
 		});
 		if (response.ok) {

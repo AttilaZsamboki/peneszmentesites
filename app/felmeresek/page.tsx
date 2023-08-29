@@ -91,7 +91,7 @@ export interface AdatlapDetails {
 }
 
 export default async function Home() {
-	const data = await fetch("http://pen.dataupload.xyz/felmeresek", { next: { tags: ["felmeresek"] } });
+	const data = await fetch("https://pen.dataupload.xyz/felmeresek", { next: { tags: ["felmeresek"] } });
 	if (data.ok) {
 		const felmeresek: BaseFelmeresData[] = await data.json();
 		const adatlapok: AdatlapDetails[] = await Promise.all(
@@ -99,7 +99,7 @@ export default async function Home() {
 		);
 		const templates = await Promise.all(
 			felmeresek.map(async (felmeres) =>
-				fetch("http://pen.dataupload.xyz/templates/" + felmeres.template, {
+				fetch("https://pen.dataupload.xyz/templates/" + felmeres.template, {
 					next: { tags: [encodeURIComponent(felmeres.adatlap_id)] },
 				})
 					.then((res) => res.json())

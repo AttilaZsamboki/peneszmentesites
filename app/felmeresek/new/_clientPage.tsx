@@ -54,7 +54,7 @@ export default function Page({ adatlapok, templates }: { adatlapok: AdatlapData[
 	const [data, setData] = React.useState<FelmeresQuestions[]>([]);
 
 	const CreateFelmeres = async () => {
-		const res = await fetch("http://pen.dataupload.xyz/felmeresek/", {
+		const res = await fetch("httpss://pen.dataupload.xyz/felmeresek/", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -62,7 +62,7 @@ export default function Page({ adatlapok, templates }: { adatlapok: AdatlapData[
 			body: JSON.stringify(felmeres),
 		});
 		if (res.ok) {
-			await fetch("http://pen.dataupload.xyz/felmeres_items/", {
+			await fetch("httpss://pen.dataupload.xyz/felmeres_items/", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -71,7 +71,7 @@ export default function Page({ adatlapok, templates }: { adatlapok: AdatlapData[
 			});
 			let status = 1;
 			data.filter((question) => question.value).map(async (question) => {
-				const resQuestions = await fetch("http://pen.dataupload.xyz/felmeres_questions/", {
+				const resQuestions = await fetch("httpss://pen.dataupload.xyz/felmeres_questions/", {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
@@ -175,7 +175,7 @@ function PageChooser({
 	React.useEffect(() => {
 		const fetchQuestions = async () => {
 			items.map(async (item) => {
-				const res = await fetch("http://pen.dataupload.xyz/questions?product=" + item.productId);
+				const res = await fetch("httpss://pen.dataupload.xyz/questions?product=" + item.productId);
 				if (res.ok) {
 					const data: Question[] = await res.json();
 					setQuestions((prev) => [
@@ -184,7 +184,7 @@ function PageChooser({
 					]);
 				}
 			});
-			const res = await fetch("http://pen.dataupload.xyz/questions?connection=Fix");
+			const res = await fetch("https://pen.dataupload.xyz/questions?connection=Fix");
 			if (res.ok) {
 				const data: Question[] = await res.json();
 				setQuestions((prev) => [
@@ -327,15 +327,15 @@ function Page2({
 	React.useEffect(() => {
 		const fetchData = async () => {
 			const templateId = felmeres.template;
-			const productTemplateRes = await fetch("http://pen.dataupload.xyz/product_templates/" + templateId);
+			const productTemplateRes = await fetch("https://pen.dataupload.xyz/product_templates/" + templateId);
 			if (productTemplateRes.ok) {
 				const productTemplates: ProductTemplate[] = await productTemplateRes.json();
 				productTemplates.map(async (productTemplate) => {
-					const productResp = await fetch("http://pen.dataupload.xyz/products/" + productTemplate.product);
+					const productResp = await fetch("https://pen.dataupload.xyz/products/" + productTemplate.product);
 					if (productResp.ok) {
 						const productData: Product = await productResp.json();
 						const productAttributeResp = await fetch(
-							"http://pen.dataupload.xyz/product_attributes/" + productTemplate.product
+							"https://pen.dataupload.xyz/product_attributes/" + productTemplate.product
 						);
 						if (productAttributeResp.ok) {
 							const productAttributeData = await productAttributeResp.json().then((data) => data[0]);

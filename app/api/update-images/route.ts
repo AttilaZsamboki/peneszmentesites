@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 			.get("referer")
 			?.substring((request.headers.get("referer")?.lastIndexOf("/") as unknown as number) + 1);
 		const id = request.nextUrl.searchParams.get("id");
-		const dataResp = await fetch(`http://pen.dataupload.xyz/felmeres_questions/${adatlapId}`);
+		const dataResp = await fetch(`https://pen.dataupload.xyz/felmeres_questions/${adatlapId}`);
 		const dataJson: FelmeresQuestions[] = await dataResp.json();
 		const felmeres = dataJson.find((felmeres) => felmeres.id === parseInt(id ?? ""));
 		if (!felmeres) {

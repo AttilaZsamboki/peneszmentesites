@@ -28,7 +28,7 @@ export default function ClientComponent({ data, products }: { data: Question[]; 
 	}, [selectedRow]);
 
 	const createQuestion = async () => {
-		const response = await fetch("http://pen.dataupload.xyz/questions/", {
+		const response = await fetch("https://pen.dataupload.xyz/questions/", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -74,7 +74,7 @@ export default function ClientComponent({ data, products }: { data: Question[]; 
 			onCreate={createQuestion}
 			updateForm={<CreateForm question={question} setQuestion={setQuestion} products={products} />}
 			onUpdate={async () => {
-				const response = await fetch(`http://pen.dataupload.xyz/questions/${question.id}/`, {
+				const response = await fetch(`https://pen.dataupload.xyz/questions/${question.id}/`, {
 					method: "PUT",
 					headers: {
 						"Content-Type": "application/json",
@@ -89,7 +89,7 @@ export default function ClientComponent({ data, products }: { data: Question[]; 
 			title='Kérdések'
 			columnDefs={columnDefs}
 			onDelete={async () => {
-				const response = await fetch(`http://pen.dataupload.xyz/questions/${question.id}/`, {
+				const response = await fetch(`https://pen.dataupload.xyz/questions/${question.id}/`, {
 					method: "DELETE",
 				});
 				if (response.ok) {

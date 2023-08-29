@@ -10,11 +10,10 @@ export interface Question {
 	product?: number;
 }
 
-
 export default async function QuestionsFetch() {
-	const response = await fetch("http://pen.dataupload.xyz/questions", { cache: "no-store" });
+	const response = await fetch("https://pen.dataupload.xyz/questions", { cache: "no-store" });
 	const data: Question[] = (await response.json()) as Question[];
-	const productData: Product[] = (await fetch("http://pen.dataupload.xyz/products").then((res) =>
+	const productData: Product[] = (await fetch("https://pen.dataupload.xyz/products").then((res) =>
 		res.json()
 	)) as Product[];
 	return (

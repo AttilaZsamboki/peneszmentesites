@@ -11,9 +11,9 @@ export interface ProductAttributes {
 }
 
 export default async function ProductDetails({ params }: { params: { id: string } }) {
-	const response = await fetch(`http://pen.dataupload.xyz/products/${params.id}`);
+	const response = await fetch(`https://pen.dataupload.xyz/products/${params.id}`);
 	const product: Product = await response.json();
-	const responseAttributes = await fetch(`http://pen.dataupload.xyz/product_attributes/${params.id}`);
+	const responseAttributes = await fetch(`https://pen.dataupload.xyz/product_attributes/${params.id}`);
 	if (responseAttributes.status === 200) {
 		const attributes: ProductAttributes = await responseAttributes.json().then((data) => data[0]);
 		return (

@@ -97,7 +97,7 @@ export default function BaseComponent({
 	}, [savedFilters]);
 	React.useEffect(() => {
 		const fetchFilters = async () => {
-			const filterResponse = await fetch(`http://pen.dataupload.xyz/filters?type=${filterType}`, {
+			const filterResponse = await fetch(`https://pen.dataupload.xyz/filters?type=${filterType}`, {
 				cache: "no-store",
 			});
 			const filterData: Filters[] = await filterResponse.json();

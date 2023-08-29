@@ -17,7 +17,7 @@ export default function ClientPage({ data, title, columnDefs }: { data: any[]; t
 	React.useEffect(() => {
 		if (selectedRow) {
 			const fetchAttributes = async () => {
-				const resp = await fetch(`http://pen.dataupload.xyz/product_attributes/${selectedRow[0].id}`);
+				const resp = await fetch(`https://pen.dataupload.xyz/product_attributes/${selectedRow[0].id}`);
 				if (resp.ok) {
 					const data = await resp.json();
 					if (data.length) {
@@ -47,7 +47,7 @@ export default function ClientPage({ data, title, columnDefs }: { data: any[]; t
 			product: selectedRow[0].id,
 		});
 		if (!attributeData.id) {
-			await fetch("http://pen.dataupload.xyz/product_attributes", {
+			await fetch("https://pen.dataupload.xyz/product_attributes", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -55,7 +55,7 @@ export default function ClientPage({ data, title, columnDefs }: { data: any[]; t
 				body: payload,
 			});
 		} else {
-			await fetch(`http://pen.dataupload.xyz/product_attributes/${attributeData.id}/`, {
+			await fetch(`https://pen.dataupload.xyz/product_attributes/${attributeData.id}/`, {
 				method: "PUT",
 				headers: {
 					"Content-Type": "application/json",

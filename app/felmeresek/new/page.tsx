@@ -35,7 +35,7 @@ export default async function Page() {
 		.then((result: Adatlap) =>
 			Object.values(result.Results).filter((adatlap) => adatlap.Deleted === 0 && adatlap.StatusId === 3023)
 		);
-	const templates: Template[] = await fetch("http://pen.dataupload.xyz/templates").then((response) =>
+	const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates").then((response) =>
 		response.json()
 	);
 	return <ClientPage adatlapok={adatlapok} templates={templates} />;
