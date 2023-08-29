@@ -15,7 +15,7 @@ export interface Filters {
 }
 
 export default async function ProductsFetch() {
-	const response = await fetch("http://pen.dataupload.xyz/products");
+	const response = await fetch("https://pen.dataupload.xyz/products");
 	const data: Product[] = await response.json();
 	return (
 		<Products

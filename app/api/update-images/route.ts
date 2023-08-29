@@ -46,23 +46,6 @@ export async function POST(request: NextRequest) {
 		if (!felmeres) {
 			return NextResponse.json({ success: false }, { status: 400 });
 		}
-		const updateResp = await fetch(`http://pen.dataupload.xyz/felmeres_questions/${id}/`, {
-			method: "PUT",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				field: felmeres.field.toString(),
-				value: JSON.stringify([...JSON.parse(felmeres.value), "KÉZI" + fileName]),
-				adatlap_id: felmeres.adatlap_id.toString(),
-				options: JSON.stringify(felmeres.options),
-				type: "FILE_UPLOAD",
-				section: felmeres.section.toString(),
-			}),
-		});
-		if (!updateResp.ok) {
-			return NextResponse.json({ success: false }, { status: 400 });
-		}
 		revalidateTag(encodeURIComponent(adatlapId || "default"));
 
 		return NextResponse.json({ success: true, async_id_symbol: fileName }, { status: 200 });

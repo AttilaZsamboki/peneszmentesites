@@ -1,4 +1,4 @@
-import { Filters, Product } from "../products/page";
+import { Product } from "../products/page";
 import Questions from "./_clientComponent";
 
 export interface Question {
@@ -10,25 +10,25 @@ export interface Question {
 	product?: number;
 }
 
-export function isJSONParsable(str: string) {
-	try {
-		JSON.parse(str);
-		return true;
-	} catch (e) {
-		return false;
-	}
-}
 
 export default async function QuestionsFetch() {
 	const response = await fetch("http://pen.dataupload.xyz/questions", { cache: "no-store" });
-	const data: Question[] = await response.json();
-	const productData: Product[] = await fetch("http://pen.dataupload.xyz/products").then((res) => res.json());
+	const data: Question[] = (await response.json()) as Question[];
+	const productData: Product[] = (await fetch("http://pen.dataupload.xyz/products").then((res) =>
+		res.json()
+	)) as Product[];
 	return (
 		<Questions
-			data={data.map((question) => ({
-				...question,
-				options: isJSONParsable(question.options) ? JSON.parse(question.options) : {},
-			}))}
+			data={data.map((question) => {
+				try {
+					question.options = JSON.parse(question.options as string);
+				} catch (e) {
+					question.options = {};
+				}
+				return {
+					...question,
+				};
+			})}
 			products={productData}
 		/>
 	);

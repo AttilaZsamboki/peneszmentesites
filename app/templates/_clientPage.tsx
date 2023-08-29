@@ -150,7 +150,7 @@ function CreateForm({
 					</div>
 					<div className='flex flex-col gap-5'>
 						{items.map((item) => (
-							<div className='flex flex-row w-full items-center justify-between border-b pb-2'>
+							<div key={item} className='flex flex-row w-full items-center justify-between border-b pb-2'>
 								<div>{products.find((product) => product.id.toString() === item)?.name}</div>
 								<Button
 									size='sm'

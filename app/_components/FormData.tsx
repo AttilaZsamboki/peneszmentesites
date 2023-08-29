@@ -1,22 +1,14 @@
 "use client";
-import { Card, Typography } from "@material-tailwind/react";
 import React from "react";
-import { AdatlapData } from "../felmeresek/new/page";
 import AutoComplete from "@/app/_components/AutoComplete";
-import { Template } from "@/app/templates/page";
-import { Product } from "@/app/products/page";
-import { Question, isJSONParsable } from "@/app/questions/page";
-import { MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
-import Counter from "@/app/_components/Counter";
+import { Question } from "@/app/questions/page";
 import Input from "@/app/_components/Input";
 import MultipleChoice from "@/app/_components/MultipleChoice";
-import { AdatlapDetails, FelmeresQuestions, GridOptions, ScaleOption } from "../felmeresek/page";
+import { FelmeresQuestions, GridOptions, ScaleOption } from "../felmeresek/page";
 import { Grid } from "@/app/_components/Grid";
 import FileUpload from "@/app/_components/FileUpload";
-import { BaseFelmeresData, FelmeresItems, ProductTemplate } from "../felmeresek/new/_clientPage";
 
-
-function FieldCreate({
+export default function FieldCreate({
 	question,
 	setGlobalData,
 	adatlap_id,

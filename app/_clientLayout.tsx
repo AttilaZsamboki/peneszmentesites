@@ -160,6 +160,7 @@ function Navbar() {
 
 				{routes.map((route) => (
 					<Link
+						key={route.href}
 						href={route.href}
 						className={`p-1.5 ${
 							route.subRoutes
@@ -199,7 +200,7 @@ function Navbar() {
 						)!
 						.subRoutes.map((route) => {
 							return (
-								<Link href={route.href}>
+								<Link key={route.href} href={route.href}>
 									<button
 										className={`${
 											route.href === router

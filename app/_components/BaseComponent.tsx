@@ -247,7 +247,10 @@ export default function BaseComponent({
 											const isNotEqual =
 												filters.id === filter.id && !deepEqual(filters.value, filter.value);
 											return (
-												<Badge className={`${isNotEqual ? "" : "opacity-0"}`} color='red'>
+												<Badge
+													key={filter.id}
+													className={`${isNotEqual ? "" : "opacity-0"}`}
+													color='red'>
 													<ListItem
 														selected={filters.id === filter.id}
 														ripple={false}

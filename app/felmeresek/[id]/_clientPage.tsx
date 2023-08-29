@@ -11,11 +11,20 @@ import React from "react";
 import { Typography, Spinner, Switch, CardBody, Card, CardHeader, Slider, Checkbox } from "@material-tailwind/react";
 import { XMarkIcon, CheckIcon } from "@heroicons/react/20/solid";
 import { BaseFelmeresData, FelmeresItems } from "../new/_clientPage";
-import { Question, isJSONParsable } from "@/app/questions/page";
+import { Question } from "@/app/questions/page";
 import { Template } from "@/app/templates/page";
 import MultipleChoice from "@/app/_components/MultipleChoice";
 import { Grid } from "@/app/_components/Grid";
 import Gallery from "@/app/_components/Gallery";
+
+export function isJSONParsable(str: string) {
+	try {
+		JSON.parse(str);
+		return true;
+	} catch (e) {
+		return false;
+	}
+}
 
 export const hufFormatter = new Intl.NumberFormat("hu-HU", {
 	style: "currency",
@@ -118,7 +127,7 @@ export default function ClientPage({
 											return section.component;
 										}
 										return (
-											<div className='border-t'>
+											<div key={index} className='border-t'>
 												<Heading variant='h3' border={false} title={section.title} />
 												{section.component}
 											</div>
@@ -323,7 +332,7 @@ function Page2({ items }: { items: FelmeresItems[] }) {
 										{inputValues
 											.sort((a, b) => a.id - b.id)
 											.map((inputValue) => (
-												<div className='flex flex-row'>
+												<div key={inputValue.id} className='flex flex-row'>
 													<td className={classes}>
 														<div>{inputValue.ammount}</div>
 													</td>
@@ -419,7 +428,7 @@ function QuestionPage({
 		.map((d) => {
 			const question = questions.find((question) => question.id === d.question)!;
 			return (
-				<QuestionTemplate title={question.question} type={question.type}>
+				<QuestionTemplate key={d.id} title={question.question} type={question.type}>
 					<FieldViewing data={d} question={question} />
 				</QuestionTemplate>
 			);
