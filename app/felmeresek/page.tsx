@@ -91,7 +91,7 @@ export interface AdatlapDetails {
 }
 
 export default async function Home() {
-	const data = await fetch("https://pen.dataupload.xyz/felmeresek", { next: { tags: ["felmeresek"] } });
+	const data = await fetch("https://pen.dataupload.xyz/felmeresek", { cache: "no-cache" });
 	if (data.ok) {
 		const felmeresek: BaseFelmeresData[] = await data.json();
 		const adatlapok: AdatlapDetails[] = await Promise.all(

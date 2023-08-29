@@ -66,6 +66,31 @@ export default function Page({ templates, products }: { templates: Template[]; p
 			setSelectedRow(0);
 		}
 	};
+
+	const updateTemplate = async () => {
+		const response = await fetch(`https://pen.dataupload.xyz/templates/${template.id}/`, {
+			method: "PUT",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(template),
+		});
+
+		await fetch(`https://pen.dataupload.xyz/product_templates/?template_id=${template.id}`, {
+			method: "PUT",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(items),
+		});
+		if (response.ok) {
+			setUpToDateTemplates(
+				upToDateTemplates.map((template) => (template.id === selectedRow[0].id ? template : template))
+			);
+			setSelectedRow(0);
+		}
+	};
+
 	return (
 		<BaseComponent
 			title='Sablonok'
@@ -98,6 +123,7 @@ export default function Page({ templates, products }: { templates: Template[]; p
 					setItems={setItems}
 				/>
 			}
+			onUpdate={updateTemplate}
 		/>
 	);
 }
@@ -143,7 +169,9 @@ function CreateForm({
 					</div>
 					<div className='relative bottom-10'>
 						<AutoComplete
-							options={products.map((product) => ({ label: product.name, value: product.id.toString() }))}
+							options={products
+								.filter((product) => !items.map((item) => item).includes(product.id.toString()))
+								.map((product) => ({ label: product.name, value: product.id.toString() }))}
 							onChange={(e) => setItems([...items, e])}
 							value=''
 						/>

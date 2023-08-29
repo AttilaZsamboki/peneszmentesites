@@ -9,7 +9,7 @@ import { Template } from "@/app/templates/page";
 import { Product } from "@/app/products/page";
 import { Question } from "@/app/questions/page";
 import { isJSONParsable } from "../[id]/_clientPage";
-import { MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
+import { CheckCircleIcon, MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
 import Counter from "@/app/_components/Counter";
 import Input from "@/app/_components/Input";
 import MultipleChoice from "@/app/_components/MultipleChoice";
@@ -17,6 +17,7 @@ import { GridOptions } from "../page";
 import { Grid } from "@/app/_components/Grid";
 import FileUpload from "@/app/_components/FileUpload";
 import { useRouter } from "next/navigation";
+import { ProductAttributes } from "@/app/products/[id]/page";
 
 export interface ProductTemplate {
 	product: number;
@@ -44,7 +45,17 @@ export const hufFormatter = new Intl.NumberFormat("hu-HU", {
 	currency: "HUF",
 });
 
-export default function Page({ adatlapok, templates }: { adatlapok: AdatlapData[]; templates: Template[] }) {
+export default function Page({
+	adatlapok,
+	templates,
+	products,
+	productAttributes,
+}: {
+	adatlapok: AdatlapData[];
+	templates: Template[];
+	products: Product[];
+	productAttributes: ProductAttributes[];
+}) {
 	const [page, setPage] = React.useState(0);
 	const [section, setSection] = React.useState("Alapadatok");
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>({ adatlap_id: 0, type: "", template: 0 });
@@ -112,6 +123,8 @@ export default function Page({ adatlapok, templates }: { adatlapok: AdatlapData[
 								setFelmeres={setFelmeres}
 								templates={templates}
 								setNumPages={setNumPages}
+								products={products}
+								productAttributes={productAttributes}
 							/>
 							<div className='flex flex-row justify-end gap-3 border-t py-4'>
 								{numPages === page + 1 ? (
@@ -145,6 +158,7 @@ function PageChooser({
 	adatlapok,
 	setSection,
 	templates,
+	productAttributes,
 	felmeres,
 	setFelmeres,
 	items,
@@ -152,6 +166,7 @@ function PageChooser({
 	setData,
 	setNumPages,
 	globalData,
+	products,
 }: {
 	page: number;
 	setData: React.Dispatch<React.SetStateAction<FelmeresQuestions[]>>;
@@ -164,6 +179,8 @@ function PageChooser({
 	setItems: React.Dispatch<React.SetStateAction<FelmeresItems[]>>;
 	setNumPages: React.Dispatch<React.SetStateAction<number>>;
 	globalData: FelmeresQuestions[];
+	products: Product[];
+	productAttributes: ProductAttributes[];
 }) {
 	interface PageMap {
 		component: JSX.Element;
@@ -204,7 +221,15 @@ function PageChooser({
 			title: "Alapadatok",
 		},
 		{
-			component: <Page2 felmeres={felmeres} items={items} setItems={setItems} />,
+			component: (
+				<Page2
+					products={products}
+					felmeres={felmeres}
+					items={items}
+					setItems={setItems}
+					productAttributes={productAttributes}
+				/>
+			),
 			title: "Tételek",
 		},
 		...Array.from(new Set(questions.map((question) => question.product))).map((product) => ({
@@ -319,11 +344,17 @@ function Page2({
 	felmeres,
 	items,
 	setItems,
+	products,
+	productAttributes,
 }: {
 	felmeres: BaseFelmeresData;
 	items: FelmeresItems[];
 	setItems: React.Dispatch<React.SetStateAction<FelmeresItems[]>>;
+	products: Product[];
+	productAttributes: ProductAttributes[];
 }) {
+	const [isAddingNewItem, setIsAddingNewItem] = React.useState(false);
+
 	React.useEffect(() => {
 		const fetchData = async () => {
 			const templateId = felmeres.template;
@@ -344,16 +375,21 @@ function Page2({
 								{
 									productId: productTemplate.product,
 									name: productData.name,
-									place: productAttributeData.place,
-									placeOptions: isJSONParsable(
-										productAttributeData.place_options.replace(/'/g, '"') as unknown as string
-									)
-										? JSON.parse(
+									place: productAttributeData ? productAttributeData.place : false,
+									placeOptions: productAttributeData
+										? isJSONParsable(
 												productAttributeData.place_options.replace(
 													/'/g,
 													'"'
 												) as unknown as string
 										  )
+											? JSON.parse(
+													productAttributeData.place_options.replace(
+														/'/g,
+														'"'
+													) as unknown as string
+											  )
+											: []
 										: [],
 									inputValues: [{ value: "", id: 0, ammount: 0 }],
 									netPrice: productData.price_list_alapertelmezett_net_price_huf,
@@ -386,6 +422,7 @@ function Page2({
 									</Typography>
 								</th>
 							))}
+							<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -526,7 +563,9 @@ function Page2({
 																</div>
 															</div>
 														</td>
-													) : null}
+													) : (
+														<td className={classes + " w-full"}></td>
+													)}
 												</div>
 											))}
 										<td className={classes}>
@@ -547,9 +586,110 @@ function Page2({
 												)}
 											</Typography>
 										</td>
+										<td className={classes}>
+											<MinusCircleIcon
+												className='w-7 h-7 text-red-600 cursor-pointer'
+												onClick={() =>
+													setItems((prev) => prev.filter((item) => item.name !== name))
+												}
+											/>
+										</td>
 									</tr>
 								);
 							})}
+						<tr>
+							{!isAddingNewItem ? (
+								<>
+									<td></td>
+									<td></td>
+									<td></td>
+									<td></td>
+									<td className='p-4 border-b border-blue-gray-50'>
+										<PlusCircleIcon
+											className='w-7 h-7 text-green-600 cursor-pointer'
+											onClick={() => {
+												setIsAddingNewItem(true);
+											}}
+										/>
+									</td>
+								</>
+							) : (
+								<>
+									<td className='p-4 border-b border-blue-gray-50'>
+										<AutoComplete
+											options={products
+												.filter(
+													(product) =>
+														!items.map((item) => item.productId).includes(product.id)
+												)
+												.map((product) => ({
+													label: product.name,
+													value: product.id.toString(),
+												}))}
+											value={items.find((item) => item.productId === 0)?.name || ""}
+											onChange={(value) => {
+												console.log(
+													productAttributes.find(
+														(attribute) => attribute.product === parseInt(value)
+													)
+												);
+												console.log(productAttributes, value);
+												setItems((prev) =>
+													prev.length
+														? [
+																...prev.filter(
+																	(item) => item.productId.toString() !== value
+																),
+																{
+																	...prev[prev.length - 1],
+																	productId: parseInt(value),
+																	name: products.find(
+																		(product) => product.id === parseInt(value)
+																	)!.name,
+																	place: productAttributes.find(
+																		(attribute) =>
+																			attribute.product === parseInt(value)
+																	)
+																		? productAttributes.find(
+																				(attribute) =>
+																					attribute.product ===
+																					parseInt(value)
+																		  )!.place
+																		: false,
+																	placeOptions: productAttributes.find(
+																		(attribute) =>
+																			attribute.product === parseInt(value)
+																	)
+																		? JSON.parse(
+																				(
+																					productAttributes.find(
+																						(attribute) =>
+																							attribute.product ===
+																							parseInt(value)
+																					)!
+																						.place_options as unknown as string
+																				).replace(/'/g, '"')
+																		  )
+																		: [],
+																},
+														  ]
+														: [...prev]
+												);
+											}}
+										/>
+									</td>
+									<td className='p-4 border-b border-blue-gray-50'></td>
+									<td className='p-4 border-b border-blue-gray-50'></td>
+									<td className='p-4 border-b border-blue-gray-50'></td>
+									<td className='p-4 border-b border-blue-gray-50'>
+										<CheckCircleIcon
+											className='w-7 h-7 text-green-600 cursor-pointer'
+											onClick={() => setIsAddingNewItem(false)}
+										/>
+									</td>
+								</>
+							)}
+						</tr>
 					</tbody>
 					<tfoot className='bg-gray'>
 						<tr>
@@ -571,6 +711,7 @@ function Page2({
 									)}
 								</Typography>
 							</td>
+							<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
 						</tr>
 					</tfoot>
 				</table>

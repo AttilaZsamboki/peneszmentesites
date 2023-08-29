@@ -1,6 +1,8 @@
 import { Template } from "@/app/templates/page";
 import ClientPage from "./_clientPage";
 import { Question } from "@/app/questions/page";
+import { Product } from "@/app/products/page";
+import { ProductAttributes } from "@/app/products/[id]/page";
 
 export interface Adatlap {
 	Count: number;
@@ -38,5 +40,18 @@ export default async function Page() {
 	const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates").then((response) =>
 		response.json()
 	);
-	return <ClientPage adatlapok={adatlapok} templates={templates} />;
+	const products: Product[] = await fetch("https://pen.dataupload.xyz/products", {
+		next: { tags: ["products"] },
+	}).then((response) => response.json());
+	const productAttributes: ProductAttributes[] = await fetch("https://pen.dataupload.xyz/product_attributes", {
+		next: { tags: ["product-attributes"] },
+	}).then((response) => response.json());
+	return (
+		<ClientPage
+			adatlapok={adatlapok}
+			templates={templates}
+			products={products}
+			productAttributes={productAttributes}
+		/>
+	);
 }

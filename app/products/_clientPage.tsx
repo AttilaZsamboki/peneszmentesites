@@ -63,6 +63,7 @@ export default function ClientPage({ data, title, columnDefs }: { data: any[]; t
 				body: payload,
 			});
 		}
+		await fetch("/api/revalidate?tag=product-attributes");
 	};
 	return (
 		<div className='w-full flex flex-col justify-center items-center'>
