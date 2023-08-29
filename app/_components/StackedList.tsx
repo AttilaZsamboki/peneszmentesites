@@ -59,7 +59,13 @@ export default function StackedList({
 			<ul ref={parent} role='list' className='w-full bg-white rounded-lg flex flex-col justify-between border'>
 				{adatlapok.map((adatlap, index) => {
 					const felmeres = felmeresek.find((felmeres) => felmeres.adatlap_id === adatlap.Id)!;
-					if (JSON.stringify(felmeres).includes(search) || JSON.stringify(adatlap).includes(search)) {
+					if (
+						JSON.stringify(felmeres)
+							? JSON.stringify(felmeres).includes(search)
+							: false || JSON.stringify(adatlap)
+							? JSON.stringify(adatlap).includes(search)
+							: false
+					) {
 						return (
 							<Link href={`/${detailsHref}/` + adatlap.Id} key={adatlap.Id}>
 								<Card
