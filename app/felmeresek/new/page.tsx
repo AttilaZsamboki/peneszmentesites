@@ -27,7 +27,8 @@ export default async function Page() {
 	myHeaders.append("Authorization", "Basic MTE5OkQwNlBVTE9JM2VUUkJLY2xqQUdRWWJkNEZFcHVWeTFn");
 	myHeaders.append("Content-Type", "application/json");
 
-	var requestOptions = {
+	var requestOptions: RequestInit = {
+		cache: "no-store",
 		method: "GET",
 		headers: myHeaders,
 	};
