@@ -21,7 +21,6 @@ import {
 } from "@material-tailwind/react";
 
 import { EllipsisVerticalIcon, PencilSquareIcon, PlusIcon, TrashIcon } from "@heroicons/react/20/solid";
-import "../globals.css";
 import { useGlobalState } from "../_clientLayout";
 import Input from "../_components/Input";
 import Menu from "../_components/Menu";
