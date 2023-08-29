@@ -54,7 +54,7 @@ export default function Page({ adatlapok, templates }: { adatlapok: AdatlapData[
 	const [data, setData] = React.useState<FelmeresQuestions[]>([]);
 
 	const CreateFelmeres = async () => {
-		const res = await fetch("httpss://pen.dataupload.xyz/felmeresek/", {
+		const res = await fetch("https://pen.dataupload.xyz/felmeresek/", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -62,7 +62,7 @@ export default function Page({ adatlapok, templates }: { adatlapok: AdatlapData[
 			body: JSON.stringify(felmeres),
 		});
 		if (res.ok) {
-			await fetch("httpss://pen.dataupload.xyz/felmeres_items/", {
+			await fetch("https://pen.dataupload.xyz/felmeres_items/", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -71,7 +71,7 @@ export default function Page({ adatlapok, templates }: { adatlapok: AdatlapData[
 			});
 			let status = 1;
 			data.filter((question) => question.value).map(async (question) => {
-				const resQuestions = await fetch("httpss://pen.dataupload.xyz/felmeres_questions/", {
+				const resQuestions = await fetch("https://pen.dataupload.xyz/felmeres_questions/", {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
@@ -175,7 +175,7 @@ function PageChooser({
 	React.useEffect(() => {
 		const fetchQuestions = async () => {
 			items.map(async (item) => {
-				const res = await fetch("httpss://pen.dataupload.xyz/questions?product=" + item.productId);
+				const res = await fetch("https://pen.dataupload.xyz/questions?product=" + item.productId);
 				if (res.ok) {
 					const data: Question[] = await res.json();
 					setQuestions((prev) => [
@@ -592,7 +592,6 @@ function QuestionPage({
 	adatlap_id: number;
 	globalData: FelmeresQuestions[];
 }) {
-	console.log(globalData);
 	return (
 		<>
 			{questions.map((question) => (

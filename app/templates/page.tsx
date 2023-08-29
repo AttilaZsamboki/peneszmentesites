@@ -10,7 +10,6 @@ export interface Template {
 
 export default async function Page() {
 	const templates = await fetch("https://pen.dataupload.xyz/templates").then((resp) => resp.json());
-	console.log(templates);
 
 	const products: Product[] = await fetch("https://pen.dataupload.xyz/products").then((resp) => resp.json());
 	return <ClientPage templates={templates} products={products} />;

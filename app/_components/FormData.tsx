@@ -27,7 +27,6 @@ export default function FieldCreate({
 		section: product ? product : "Fix",
 	});
 	const [randomId, setRandomId] = React.useState("");
-	console.log(data);
 
 	React.useEffect(() => {
 		setGlobalData((prev) => [...prev.filter((felmeres) => felmeres.question !== question.id), data]);
