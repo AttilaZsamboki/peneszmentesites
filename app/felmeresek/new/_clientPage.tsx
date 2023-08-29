@@ -45,7 +45,7 @@ export const hufFormatter = new Intl.NumberFormat("hu-HU", {
 });
 
 export default function Page({ adatlapok, templates }: { adatlapok: AdatlapData[]; templates: Template[] }) {
-	const [page, setPage] = React.useState(1);
+	const [page, setPage] = React.useState(0);
 	const [section, setSection] = React.useState("Alapadatok");
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>({ adatlap_id: 0, type: "", template: 0 });
 	const [items, setItems] = React.useState<FelmeresItems[]>([]);
