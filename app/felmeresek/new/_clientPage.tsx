@@ -1,5 +1,5 @@
 "use client";
-import { Card, CardBody, Button, Typography, input } from "@material-tailwind/react";
+import { Card, CardBody, Button, Typography } from "@material-tailwind/react";
 import Heading from "@/app/_components/Heading";
 import React from "react";
 import { FelmeresQuestions, ScaleOption } from "../page";
@@ -18,6 +18,8 @@ import { Grid } from "@/app/_components/Grid";
 import FileUpload from "@/app/_components/FileUpload";
 import { useRouter } from "next/navigation";
 import { ProductAttributes } from "@/app/products/[id]/page";
+import { ToDo, assembleOfferXML, fetchMiniCRM, list_to_dos } from "@/app/_utils/MiniCRM";
+import { useSearchParams } from "next/navigation";
 
 export interface ProductTemplate {
 	product: number;
@@ -38,8 +40,8 @@ export interface FelmeresItems {
 	inputValues: { value: string; id: number; ammount: number }[];
 	netPrice: number;
 	adatlap: number;
+	sku: string;
 }
-
 export const hufFormatter = new Intl.NumberFormat("hu-HU", {
 	style: "currency",
 	currency: "HUF",
@@ -56,9 +58,15 @@ export default function Page({
 	products: Product[];
 	productAttributes: ProductAttributes[];
 }) {
+	const searchParams = useSearchParams();
+
 	const [page, setPage] = React.useState(0);
 	const [section, setSection] = React.useState("Alapadatok");
-	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>({ adatlap_id: 0, type: "", template: 0 });
+	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>({
+		adatlap_id: searchParams.get("adatlap_id") ? parseInt(searchParams.get("adatlap_id")!) : 0,
+		type: "",
+		template: 0,
+	});
 	const [items, setItems] = React.useState<FelmeresItems[]>([]);
 	const [numPages, setNumPages] = React.useState(0);
 	const router = useRouter();
@@ -98,6 +106,34 @@ export default function Page({
 				}
 			});
 			if (status === 1) {
+				await assembleOfferXML(
+					"Elfogadásra vár",
+					39636,
+					adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)
+						? adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)!.ContactId.toString()
+						: "",
+					items,
+					felmeres.adatlap_id.toString()
+				);
+				await fetch(`/api/minicrm-proxy/${felmeres.adatlap_id}?endpoint=Project`, {
+					method: "PUT",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						FelmeresAdatok: "https://app.peneszmentesites.hu/felmeresek/" + felmeres.adatlap_id,
+						StatusId: "Elszámolásra vár",
+					}),
+				});
+				const todo_criteria = (todo: ToDo) => {
+					return todo["Type"] === 225 && todo["Status"] === "Open";
+				};
+
+				const todo = await list_to_dos(felmeres.adatlap_id.toString(), todo_criteria);
+				if (todo.length) {
+					await fetchMiniCRM("ToDo", todo[0].Id.toString(), "PUT", { Status: "Closed" });
+				}
+
 				await fetch("/api/revalidate?tag=felmeresek");
 				router.push("/felmeresek");
 			}
@@ -394,6 +430,7 @@ function Page2({
 									inputValues: [{ value: "", id: 0, ammount: 0 }],
 									netPrice: productData.price_list_alapertelmezett_net_price_huf,
 									adatlap: felmeres.adatlap_id,
+									sku: productData.sku,
 								},
 							]);
 						}

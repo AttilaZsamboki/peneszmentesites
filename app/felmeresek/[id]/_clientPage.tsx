@@ -1,5 +1,6 @@
 "use client";
-import { AdatlapDetails, FelmeresQuestions, GridOptions, ScaleOption } from "../page";
+import { FelmeresQuestions, GridOptions, ScaleOption } from "../page";
+import { AdatlapDetails } from "@/app/_utils/MiniCRM";
 
 import Heading from "../../_components/Heading";
 const Sections = React.lazy(() => import("../../_components/Sections"));

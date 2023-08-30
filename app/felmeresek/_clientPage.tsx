@@ -4,7 +4,7 @@ import Heading from "../_components/Heading";
 import React from "react";
 import Link from "next/link";
 import { Button } from "@material-tailwind/react";
-import { AdatlapDetails } from "./page";
+import { AdatlapDetails } from "../_utils/MiniCRM";
 import { BaseFelmeresData } from "./new/_clientPage";
 import { Template } from "../templates/page";
 

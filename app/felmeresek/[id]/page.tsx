@@ -2,7 +2,7 @@ import { Question } from "@/app/questions/page";
 import { FelmeresQuestions } from "../page";
 import ClientPage from "./_clientPage";
 import { BaseFelmeresData, FelmeresItems } from "../new/_clientPage";
-import { fetchAdatlapDetails } from "@/app/_utils/_fetchMiniCRM";
+import { fetchAdatlapDetails } from "@/app/_utils/MiniCRM";
 
 export interface FelmeresNotes {
 	id: number;
