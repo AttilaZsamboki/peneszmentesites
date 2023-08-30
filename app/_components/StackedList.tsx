@@ -3,7 +3,7 @@ import Link from "next/link";
 import React from "react";
 import autoAnimate from "@formkit/auto-animate";
 import { Card, CardBody } from "@material-tailwind/react";
-import { AdatlapDetails } from "../felmeresek/page";
+import { AdatlapDetails } from "../_utils/MiniCRM";
 import { BaseFelmeresData } from "../felmeresek/new/_clientPage";
 import { Template } from "../templates/page";
 
