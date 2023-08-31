@@ -1,5 +1,5 @@
 "use client";
-import { Option, Select } from "@material-tailwind/react";
+import { Checkbox, Option, Select } from "@material-tailwind/react";
 import AutoComplete from "../_components/AutoComplete";
 import Input from "../_components/Input";
 import BaseComponent from "../_components/BaseComponent";
@@ -17,6 +17,7 @@ export default function ClientComponent({ data, products }: { data: Question[]; 
 		type: "",
 		options: "{}",
 		connection: "",
+		mandatory: false,
 	});
 	const [upToDateData, setUpToDateData] = React.useState<Question[]>(data);
 	const [selectedRow, setSelectedRow] = React.useState<any>(null);
@@ -37,7 +38,7 @@ export default function ClientComponent({ data, products }: { data: Question[]; 
 		});
 		if (response.ok) {
 			setUpToDateData((prev) => [...prev, question]);
-			setQuestion({ question: "", id: 0, type: "", options: "{}", connection: "", product: 0 });
+			setQuestion({ question: "", id: 0, type: "", options: "{}", connection: "", product: 0, mandatory: false });
 		}
 	};
 
@@ -62,6 +63,10 @@ export default function ClientComponent({ data, products }: { data: Question[]; 
 			headerName: "Termék",
 			valueGetter: (params: ValueGetterParams) =>
 				products.find((product) => product.id === params.data.product)?.name,
+		},
+		{
+			headerName: "Kötelező",
+			valueGetter: (params: ValueGetterParams) => (params.data.mandatory ? "Igen" : "Nem"),
 		},
 	];
 
@@ -144,6 +149,12 @@ function CreateForm({
 				<Option value='FILE_UPLOAD'>Fájlfeltöltés</Option>
 			</Select>
 			<OptionChooser options={question.options} setQuestion={setQuestion} type={question.type} />
+			<Checkbox
+				checked={question.mandatory}
+				onChange={() => setQuestion((prev) => ({ ...prev, mandatory: !prev.mandatory }))}
+				crossOrigin=''
+				label='Kötelező'
+			/>
 		</div>
 	);
 }

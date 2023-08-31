@@ -1,5 +1,5 @@
 "use client";
-import { Card, CardBody, Button, Typography } from "@material-tailwind/react";
+import { Card, CardBody, Button, Typography, Tooltip } from "@material-tailwind/react";
 import Heading from "@/app/_components/Heading";
 import React from "react";
 import { FelmeresQuestions, ScaleOption } from "../page";
@@ -9,7 +9,7 @@ import { Template } from "@/app/templates/page";
 import { Product } from "@/app/products/page";
 import { Question } from "@/app/questions/page";
 import { isJSONParsable } from "../[id]/_clientPage";
-import { CheckCircleIcon, MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
+import { CheckCircleIcon, InformationCircleIcon, MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
 import Counter from "@/app/_components/Counter";
 import Input from "@/app/_components/Input";
 import MultipleChoice from "@/app/_components/MultipleChoice";
@@ -71,6 +71,31 @@ export default function Page({
 	const [numPages, setNumPages] = React.useState(0);
 	const router = useRouter();
 	const [data, setData] = React.useState<FelmeresQuestions[]>([]);
+	const [questions, setQuestions] = React.useState<Question[]>([]);
+
+	React.useEffect(() => {
+		const fetchQuestions = async () => {
+			items.map(async (item) => {
+				const res = await fetch("https://pen.dataupload.xyz/questions?product=" + item.productId);
+				if (res.ok) {
+					const data: Question[] = await res.json();
+					setQuestions((prev) => [
+						...prev.filter((question) => !data.map((q) => q.id).includes(question.id)),
+						...data,
+					]);
+				}
+			});
+			const res = await fetch("https://pen.dataupload.xyz/questions?connection=Fix");
+			if (res.ok) {
+				const data: Question[] = await res.json();
+				setQuestions((prev) => [
+					...prev.filter((question) => !data.map((q) => q.id).includes(question.id)),
+					...data,
+				]);
+			}
+		};
+		fetchQuestions();
+	}, [items]);
 
 	const CreateFelmeres = async () => {
 		const res = await fetch("https://pen.dataupload.xyz/felmeresek/", {
@@ -140,6 +165,28 @@ export default function Page({
 		}
 	};
 
+	const isDisabled = [
+		!felmeres.adatlap_id || !felmeres.type || !felmeres.template,
+		!items
+			.map((item) => item.inputValues.map((value) => value.ammount).every((value) => value > 0))
+			.every((value) => value === true) ||
+			!items.length ||
+			!items
+				.map((item) =>
+					item.place ? item.inputValues.map((value) => value.value).every((value) => value !== "") : true
+				)
+				.every((value) => value === true),
+		!data
+			.filter((field) =>
+				questions
+					.filter((question) => question.mandatory)
+					.map((question) => question.id)
+					.includes(field.question)
+			)
+			.map((field) => field.value)
+			.every((value) => value !== "") || !data.length,
+	];
+
 	return (
 		<div className='w-full'>
 			<div className='flex flex-row w-ful flex-wrap lg:flex-nowrap justify-center mt-2'>
@@ -161,17 +208,20 @@ export default function Page({
 								setNumPages={setNumPages}
 								products={products}
 								productAttributes={productAttributes}
+								questions={questions}
+								setQuestions={setQuestions}
 							/>
 							<div className='flex flex-row justify-end gap-3 border-t py-4'>
 								{numPages === page + 1 ? (
-									<Button color='green' onClick={CreateFelmeres}>
+									<Button color='green' onClick={CreateFelmeres} disabled={isDisabled[numPages - 1]}>
 										Beküldés
 									</Button>
 								) : (
 									<Button
 										onClick={() => {
 											setPage(page + 1);
-										}}>
+										}}
+										disabled={isDisabled[page]}>
 										Következő
 									</Button>
 								)}
@@ -203,6 +253,8 @@ function PageChooser({
 	setNumPages,
 	globalData,
 	products,
+	questions,
+	setQuestions,
 }: {
 	page: number;
 	setData: React.Dispatch<React.SetStateAction<FelmeresQuestions[]>>;
@@ -217,37 +269,13 @@ function PageChooser({
 	globalData: FelmeresQuestions[];
 	products: Product[];
 	productAttributes: ProductAttributes[];
+	questions: Question[];
+	setQuestions: React.Dispatch<React.SetStateAction<Question[]>>;
 }) {
 	interface PageMap {
 		component: JSX.Element;
 		title: string;
 	}
-
-	const [questions, setQuestions] = React.useState<Question[]>([]);
-
-	React.useEffect(() => {
-		const fetchQuestions = async () => {
-			items.map(async (item) => {
-				const res = await fetch("https://pen.dataupload.xyz/questions?product=" + item.productId);
-				if (res.ok) {
-					const data: Question[] = await res.json();
-					setQuestions((prev) => [
-						...prev.filter((question) => !data.map((q) => q.id).includes(question.id)),
-						...data,
-					]);
-				}
-			});
-			const res = await fetch("https://pen.dataupload.xyz/questions?connection=Fix");
-			if (res.ok) {
-				const data: Question[] = await res.json();
-				setQuestions((prev) => [
-					...prev.filter((question) => !data.map((q) => q.id).includes(question.id)),
-					...data,
-				]);
-			}
-		};
-		fetchQuestions();
-	}, [items]);
 
 	const pageMap: PageMap[] = [
 		{
@@ -289,10 +317,29 @@ function PageChooser({
 	return pageMap[page].component;
 }
 
-function QuestionTemplate({ children, title, type }: { children: React.ReactNode; title: string; type?: string }) {
+function QuestionTemplate({
+	children,
+	title,
+	type,
+	mandatory,
+}: {
+	children: React.ReactNode;
+	title: string;
+	type?: string;
+	mandatory?: boolean;
+}) {
 	return (
 		<div className='px-4 py-6 flex flex-row sm:gap-4 sm:px-0'>
-			<div className='text-base font-medium leading-6 text-gray-900 w-1/3'>{title}</div>
+			<div className='text-base flex flex-row font-medium leading-6 text-gray-900 w-1/3'>
+				<div>{title}</div>
+				{mandatory ? (
+					<Tooltip content='Kötelező'>
+						<span className='font-bold text-lg ml-1'>
+							<InformationCircleIcon className='w-4 h-4' />
+						</span>
+					</Tooltip>
+				) : null}
+			</div>
 			<div className='flex justify-end w-full items-center'>
 				<div
 					className={`${["GRID", "CHECKBOX_GRID", "FILE_UPLOAD"].includes(type ?? "") ? "w-full" : "w-1/3"}`}>
@@ -773,7 +820,11 @@ function QuestionPage({
 	return (
 		<>
 			{questions.map((question) => (
-				<QuestionTemplate key={question.id} title={question.question} type={question.type}>
+				<QuestionTemplate
+					key={question.id}
+					title={question.question}
+					type={question.type}
+					mandatory={question.mandatory}>
 					<FieldCreate
 						globalData={globalData}
 						product={product}
@@ -867,7 +918,6 @@ function FieldCreate({
 	};
 
 	const setterMultipleOrdered = (value: { column: string; row: number }) => {
-		const felmeres = globalData.find((felmeres) => felmeres.question === question.id);
 		setGlobalData((prev) =>
 			prev.map((felmeres) =>
 				felmeres.question === question.id

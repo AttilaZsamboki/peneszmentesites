@@ -8,6 +8,7 @@ export interface Question {
 	options: any;
 	connection: string;
 	product?: number;
+	mandatory: boolean;
 }
 
 export default async function QuestionsFetch() {
