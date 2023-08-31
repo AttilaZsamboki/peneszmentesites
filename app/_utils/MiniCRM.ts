@@ -116,15 +116,16 @@ export interface ToDoList {
 	Count: number;
 	Results: ToDo[];
 }
-var myHeaders = new Headers();
-myHeaders.append("Authorization", process.env.MINICRM_AUTH!);
-myHeaders.append("Content-Type", "application/json");
 
-var requestOptions = {
-	method: "GET",
-	headers: myHeaders,
-};
 export async function fetchMiniCRM(endpoint: string, id?: string, method?: "POST" | "GET" | "PUT", body?: any) {
+	var myHeaders = new Headers();
+	myHeaders.append("Authorization", process.env.MINICRM_AUTH!);
+	myHeaders.append("Content-Type", "application/json");
+
+	var requestOptions = {
+		method: "GET",
+		headers: myHeaders,
+	};
 	if (method === "GET" || !method) {
 		// if called from client and needed as proxy
 		if (typeof window !== "undefined") {
@@ -187,11 +188,11 @@ export async function fetchMiniCRM(endpoint: string, id?: string, method?: "POST
 }
 
 export async function fetchAdatlapDetails(adatlap_id: string) {
-	return await fetchMiniCRM("Project", adatlap_id);
+	return await fetchMiniCRM("Project", adatlap_id, "GET");
 }
 
 export async function fetchContactDetails(contact_id: string) {
-	return await fetchMiniCRM("Contact", contact_id);
+	return await fetchMiniCRM("Contact", contact_id, "GET");
 }
 
 export async function fetchAllContactDetails(contact_ids: string[]) {
