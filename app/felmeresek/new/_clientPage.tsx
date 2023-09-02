@@ -947,7 +947,7 @@ function Page2({
 								{otherItems
 									.sort((a, b) => a.id - b.id)
 									.map((item) => (
-										<tr>
+										<tr key={item.id}>
 											<td className='p-4 border-b border-blue-gray-50'>
 												<Typography
 													variant='small'
