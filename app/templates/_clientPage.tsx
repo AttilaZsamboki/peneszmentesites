@@ -21,6 +21,8 @@ export default function Page({ templates, products }: { templates: Template[]; p
 	];
 	const [selectedRow, setSelectedRow] = React.useState<any>(0);
 	const [template, setTemplate] = React.useState<Template>({ description: "", name: "", type: "", id: 0 });
+	const [newTemplate, setNewTemplate] = React.useState<Template>({ description: "", name: "", type: "", id: 0 });
+	const [newItems, setNewItems] = React.useState<string[]>([]);
 	const [items, setItems] = React.useState<string[]>([]);
 	const [upToDateTemplates, setUpToDateTemplates] = React.useState<Template[]>(templates);
 
@@ -43,19 +45,23 @@ export default function Page({ templates, products }: { templates: Template[]; p
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify(template),
+			body: JSON.stringify(newTemplate),
 		}).then((res) => res.json());
-		items.map(
-			async (item) =>
-				await fetch("https://pen.dataupload.xyz/product_templates/", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({ template_id: templateResponse.id, product_id: parseInt(item) }),
-				})
+		await Promise.all(
+			newItems.map(
+				async (item) =>
+					await fetch("https://pen.dataupload.xyz/product_templates/", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({ template_id: templateResponse.id, product_id: parseInt(item) }),
+					})
+			)
 		);
 		setUpToDateTemplates([...upToDateTemplates, templateResponse]);
+		setNewItems([]);
+		setNewTemplate({ description: "", name: "", type: "", id: 0 });
 	};
 	const deleteTemplate = async () => {
 		const response = await fetch(`https://pen.dataupload.xyz/templates/${selectedRow[0].id}/`, {
@@ -107,11 +113,11 @@ export default function Page({ templates, products }: { templates: Template[]; p
 			}}
 			createForm={
 				<CreateForm
-					template={template}
-					setTemplate={setTemplate}
+					template={newTemplate}
+					setTemplate={setNewTemplate}
 					products={products}
-					items={items}
-					setItems={setItems}
+					items={newItems}
+					setItems={setNewItems}
 				/>
 			}
 			updateForm={

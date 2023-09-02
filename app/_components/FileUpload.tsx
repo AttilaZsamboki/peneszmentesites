@@ -14,7 +14,6 @@ export default function FileUpload({ route, onUpload }: { route: string; onUploa
 			allowMultiple={true}
 			allowReplace={true}
 			onaddfile={(err, file) => {
-				console.log(file);
 				onUpload ? onUpload(file) : {};
 			}}
 			server={route}

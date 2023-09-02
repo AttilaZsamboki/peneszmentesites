@@ -217,8 +217,8 @@ export async function assembleOfferXML(
 	if (!contactId || !adatlapId) {
 		return;
 	}
-	const adatlap = await fetchAdatlapDetails(adatlapId);
-	const contactData = await fetchContactDetails(contactId);
+	const adatlap: AdatlapDetails = await fetchAdatlapDetails(adatlapId);
+	const contactData: ContactDetails = await fetchContactDetails(contactId);
 
 	const xmlString = `<?xml version="1.0" encoding="UTF-8"?>
 <Projects>
@@ -283,6 +283,9 @@ export async function assembleOfferXML(
 						)
 						.join("\n")}
                 </Products>
+				<Project>
+					<Felmeresid>${adatlap.Id}</Felmeresid>
+				</Project>
             </Offer>
         </Offers>
     </Project>
