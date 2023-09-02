@@ -151,7 +151,9 @@ function CreateForm({
 				<div>
 					<div>Típus</div>
 					<Select
-						options={["Helyi elszívós rendszer", "Központi ventillátoros", "Passzív rendszer"]}
+						options={["Helyi elszívós rendszer", "Központi ventillátoros", "Passzív rendszer"].map(
+							(type) => ({ label: type, value: type })
+						)}
 						onChange={(e) => setTemplate({ ...template, type: e })}
 						value={template.type}
 					/>

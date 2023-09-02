@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import { ProductAttributes } from "@/app/products/[id]/page";
 import { ToDo, assembleOfferXML, fetchMiniCRM, list_to_dos } from "@/app/_utils/MiniCRM";
 import { useSearchParams } from "next/navigation";
+import Select from "@/app/_components/Select";
 
 export interface ProductTemplate {
 	product: number;
@@ -42,6 +43,7 @@ export interface FelmeresItems {
 	adatlap: number;
 	sku: string;
 }
+
 export const hufFormatter = new Intl.NumberFormat("hu-HU", {
 	style: "currency",
 	currency: "HUF",
@@ -50,6 +52,13 @@ export const hufFormatter = new Intl.NumberFormat("hu-HU", {
 export const numberFormatter = new Intl.NumberFormat("hu-HU", {
 	style: "decimal",
 });
+
+interface OtherFelmeresItems {
+	name: string;
+	value: number;
+	type: "percent" | "fixed";
+	id: number;
+}
 
 export default function Page({
 	adatlapok,
@@ -76,28 +85,21 @@ export default function Page({
 	const router = useRouter();
 	const [data, setData] = React.useState<FelmeresQuestions[]>([]);
 	const [questions, setQuestions] = React.useState<Question[]>([]);
-	const [otherItems, setOtherItems] = React.useState<FelmeresItems[]>([
+	const [otherItems, setOtherItems] = React.useState<OtherFelmeresItems[]>([
 		{
 			name: "Munkadíj",
-			place: false,
-			placeOptions: [],
-			productId: Math.floor(Math.random() * 10000),
-			adatlap: felmeres.adatlap_id,
-			inputValues: [{ ammount: 1, id: 1, value: "" }],
-			netPrice: 0,
-			sku: null as unknown as string,
+			value: 0,
+			type: "percent",
+			id: 0,
 		},
 		{
-			name: "Akció",
-			place: false,
-			placeOptions: [],
-			productId: Math.floor(Math.random() * 10000),
-			adatlap: felmeres.adatlap_id,
-			inputValues: [{ ammount: 1, id: 0, value: "" }],
-			netPrice: 0,
-			sku: null as unknown as string,
+			name: "Egyéb szerelési segédanyagok",
+			value: 0,
+			type: "fixed",
+			id: 1,
 		},
 	]);
+	const [discount, setDiscount] = React.useState(0);
 
 	React.useEffect(() => {
 		const fetchQuestions = async () => {
@@ -137,40 +139,7 @@ export default function Page({
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify([
-					...items,
-					{
-						...otherItems.find((item) => item.name === "Munkadíj"),
-						adatlap: felmeres.adatlap_id,
-						netPrice: Math.round(
-							(otherItems.find((item) => item.name === "Munkadíj")!.netPrice / 100) *
-								items
-									.map(
-										(item) =>
-											item.inputValues.map((value) => value.ammount).reduce((a, b) => a + b, 0) *
-											item.netPrice
-									)
-									.reduce((a, b) => a + b, 0)
-						),
-					},
-					{
-						...otherItems.find((item) => item.name === "Akció"),
-						netPrice: Math.round(
-							-(
-								(otherItems.find((item) => item.name === "Akció")!.netPrice / 100) *
-								(items
-									.map(
-										(item) =>
-											item.inputValues.map((value) => value.ammount).reduce((a, b) => a + b, 0) *
-											item.netPrice
-									)
-									.reduce((a, b) => a + b, 0) *
-									(1 + otherItems.find((item) => item.name === "Munkadíj")!.netPrice / 100))
-							)
-						),
-						adatlap: felmeres.adatlap_id,
-					},
-				]),
+				body: JSON.stringify(submitItems),
 			});
 			let status = 1;
 			data.filter((question) => question.value).map(async (question) => {
@@ -196,42 +165,7 @@ export default function Page({
 					adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)
 						? adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)!.ContactId.toString()
 						: "",
-					[
-						...items,
-						{
-							...otherItems.find((item) => item.name === "Munkadíj"),
-							adatlap: felmeres.adatlap_id,
-							netPrice: Math.round(
-								(otherItems.find((item) => item.name === "Munkadíj")!.netPrice / 100) *
-									items
-										.map(
-											(item) =>
-												item.inputValues
-													.map((value) => value.ammount)
-													.reduce((a, b) => a + b, 0) * item.netPrice
-										)
-										.reduce((a, b) => a + b, 0)
-							),
-						},
-						{
-							...otherItems.find((item) => item.name === "Akció"),
-							netPrice: Math.round(
-								-(
-									(otherItems.find((item) => item.name === "Akció")!.netPrice / 100) *
-									(items
-										.map(
-											(item) =>
-												item.inputValues
-													.map((value) => value.ammount)
-													.reduce((a, b) => a + b, 0) * item.netPrice
-										)
-										.reduce((a, b) => a + b, 0) *
-										(1 + otherItems.find((item) => item.name === "Munkadíj")!.netPrice / 100))
-								)
-							),
-							adatlap: felmeres.adatlap_id,
-						},
-					] as unknown as FelmeresItems[],
+					submitItems,
 					felmeres.adatlap_id.toString()
 				);
 				await fetch(`/api/minicrm-proxy/${felmeres.adatlap_id}?endpoint=Project`, {
@@ -281,6 +215,47 @@ export default function Page({
 			.every((value) => value !== "") || !data.length,
 	];
 
+	const netTotal = items
+		.map(({ inputValues, netPrice }) => netPrice * inputValues.reduce((a, b) => a + b.ammount, 0))
+		.reduce((a, b) => a + b, 0);
+	const otherItemsNetTotal = otherItems
+		.map((item) =>
+			item.type === "fixed"
+				? item.value
+				: (netTotal + otherItems.filter((item) => item.type !== "percent").reduce((a, b) => a + b.value, 0)) *
+				  (item.value / 100)
+		)
+		.reduce((a, b) => a + b, 0);
+	const submitItems = [
+		...items,
+		...otherItems.map((item) => ({
+			name: item.name,
+			place: false,
+			placeOptions: [],
+			productId: Math.floor(Math.random() * 10000),
+			adatlap: felmeres.adatlap_id,
+			inputValues: [{ ammount: 1, id: 0, value: "" }],
+			netPrice: Math.round(
+				item.type === "fixed"
+					? item.value
+					: (netTotal +
+							otherItems.filter((item) => item.type !== "percent").reduce((a, b) => a + b.value, 0)) *
+							(item.value / 100)
+			),
+			sku: null as unknown as string,
+		})),
+		{
+			name: "Kedvezmény",
+			place: false,
+			placeOptions: [],
+			productId: Math.floor(Math.random() * 10000),
+			adatlap: felmeres.adatlap_id,
+			inputValues: [{ ammount: 1, id: 0, value: "" }],
+			netPrice: Math.round(-((netTotal + otherItemsNetTotal) * (discount / 100)) / 1.27),
+			sku: null as unknown as string,
+		},
+	] as FelmeresItems[];
+
 	return (
 		<div className='w-full'>
 			<div className='flex flex-row w-ful flex-wrap lg:flex-nowrap justify-center mt-2'>
@@ -305,6 +280,8 @@ export default function Page({
 								productAttributes={productAttributes}
 								questions={questions}
 								otherItems={otherItems}
+								discount={discount}
+								setDiscount={setDiscount}
 							/>
 							<div className='flex flex-row justify-end gap-3 border-t py-4'>
 								{numPages === page + 1 ? (
@@ -351,6 +328,8 @@ function PageChooser({
 	questions,
 	otherItems,
 	setOtherItems,
+	discount,
+	setDiscount,
 }: {
 	page: number;
 	setData: React.Dispatch<React.SetStateAction<FelmeresQuestions[]>>;
@@ -366,8 +345,10 @@ function PageChooser({
 	products: Product[];
 	productAttributes: ProductAttributes[];
 	questions: Question[];
-	otherItems: FelmeresItems[];
-	setOtherItems: React.Dispatch<React.SetStateAction<FelmeresItems[]>>;
+	otherItems: OtherFelmeresItems[];
+	setOtherItems: React.Dispatch<React.SetStateAction<OtherFelmeresItems[]>>;
+	discount: number;
+	setDiscount: React.Dispatch<React.SetStateAction<number>>;
 }) {
 	interface PageMap {
 		component: JSX.Element;
@@ -391,6 +372,8 @@ function PageChooser({
 					productAttributes={productAttributes}
 					otherItems={otherItems}
 					setOtherItems={setOtherItems}
+					discount={discount}
+					setDiscount={setDiscount}
 				/>
 			),
 			title: "Tételek",
@@ -530,16 +513,22 @@ function Page2({
 	productAttributes,
 	otherItems,
 	setOtherItems,
+	discount,
+	setDiscount,
 }: {
 	felmeres: BaseFelmeresData;
 	items: FelmeresItems[];
 	setItems: React.Dispatch<React.SetStateAction<FelmeresItems[]>>;
 	products: Product[];
 	productAttributes: ProductAttributes[];
-	otherItems: FelmeresItems[];
-	setOtherItems: React.Dispatch<React.SetStateAction<FelmeresItems[]>>;
+	otherItems: OtherFelmeresItems[];
+	setOtherItems: React.Dispatch<React.SetStateAction<OtherFelmeresItems[]>>;
+	discount: number;
+	setDiscount: React.Dispatch<React.SetStateAction<number>>;
 }) {
 	const [isAddingNewItem, setIsAddingNewItem] = React.useState(false);
+	const [isAddingNewOtherItem, setIsAddingNewOtherItem] = React.useState(false);
+	const [newOtherItem, setNewOtherItem] = React.useState<OtherFelmeresItems>();
 
 	React.useEffect(() => {
 		if (items.length === 0) {
@@ -601,19 +590,15 @@ function Page2({
 	const netTotal = items
 		.map(({ inputValues, netPrice }) => netPrice * inputValues.reduce((a, b) => a + b.ammount, 0))
 		.reduce((a, b) => a + b, 0);
-	const wage =
-		(netTotal *
-			(otherItems.find((item) => item.name === "Munkadíj")
-				? otherItems.find((item) => item.name === "Munkadíj")!.netPrice
-					? otherItems.find((item) => item.name === "Munkadíj")!.netPrice
-					: 0
-				: 0)) /
-		100;
-	const discount =
-		(netTotal + wage) *
-		(otherItems.find((item) => item.name === "Akció")
-			? otherItems.find((item) => item.name === "Akció")!.netPrice / 100
-			: 0);
+	const otherItemsNetTotal = otherItems
+		.map((item) =>
+			item.type === "fixed"
+				? item.value
+				: (netTotal + otherItems.filter((item) => item.type !== "percent").reduce((a, b) => a + b.value, 0)) *
+				  (item.value / 100)
+		)
+		.reduce((a, b) => a + b, 0);
+
 	return (
 		<div>
 			<Card className='my-5'>
@@ -950,132 +935,143 @@ function Page2({
 											</Typography>
 										</th>
 									))}
+									<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal leading-none opacity-70 w-10'></Typography>
+									</th>
 								</tr>
 							</thead>
 							<tbody>
+								{otherItems
+									.sort((a, b) => a.id - b.id)
+									.map((item) => (
+										<tr>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													{item.name}
+												</Typography>
+											</td>
+											<td className='mr-5 p-4 pr-8 border-b border-blue-gray-50 w-40'>
+												<div className='relative'>
+													<Input
+														variant='simple'
+														value={
+															item.type === "percent"
+																? item.value
+																: numberFormatter.format(item.value)
+														}
+														onChange={(e) => {
+															setOtherItems((prev) => [
+																...prev.filter((prevItem) => item.id !== prevItem.id),
+																{
+																	...prev.find(
+																		(prevItem) => prevItem.id === item.id
+																	)!,
+																	value: parseInt(e.target.value.replace(/\D/g, "")),
+																},
+															]);
+														}}
+													/>
+													<Typography
+														variant='small'
+														className='font-extralight text-gray-500 absolute top-2 right-2 max-w-[30rem]'>
+														{item.type === "percent" ? "%" : "Ft"}
+													</Typography>
+												</div>
+											</td>
+											<td className='p-4 border-b border-blue-gray-50 w-40'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													{hufFormatter.format(
+														item.type === "fixed"
+															? item.value
+															: ((netTotal +
+																	otherItems
+																		.filter((item) => item.type !== "percent")
+																		.reduce((a, b) => a + b.value, 0)) *
+																	item.value) /
+																	100
+													)}
+												</Typography>
+											</td>
+											<td className='p-4 border-b border-blue-gray-50 w-10'></td>
+										</tr>
+									))}
 								<tr>
-									<td className='p-4 border-b border-blue-gray-50'>
-										<Typography
-											variant='small'
-											color='blue-gray'
-											className='font-normal max-w-[30rem]'>
-											Munkadíj
-										</Typography>
-									</td>
-									<td className='mr-5 p-4 pr-8 border-b border-blue-gray-50 w-40'>
-										<div className='relative'>
-											<Input
-												variant='simple'
-												value={
-													otherItems.find((item) => item.name === "Munkadíj")
-														? numberFormatter.format(
-																otherItems.find((item) => item.name === "Munkadíj")!
-																	.netPrice
-														  )
-														: ""
-												}
-												onChange={(e) => {
-													setOtherItems((prev) =>
-														prev.length
-															? [
-																	...prev.filter((item) => item.name !== "Munkadíj"),
-																	{
-																		...prev.find(
-																			(item) => item.name === "Munkadíj"
-																		)!,
-																		netPrice:
-																			parseInt(
-																				e.target.value.replace(/\D/g, "")
-																			) <= 100
-																				? parseInt(
-																						e.target.value.replace(
-																							/\D/g,
-																							""
-																						)
-																				  )
-																				: 0,
-																	},
-															  ]
-															: [...prev]
-													);
-												}}
-											/>
-											<Typography
-												variant='small'
-												className='font-extralight text-gray-500 absolute top-2 right-2 max-w-[30rem]'>
-												%
-											</Typography>
-										</div>
-									</td>
-									<td className='p-4 border-b border-blue-gray-50 w-40'>
-										<Typography
-											variant='small'
-											color='blue-gray'
-											className='font-normal max-w-[30rem]'>
-											{hufFormatter.format(wage)}
-										</Typography>
-									</td>
-								</tr>
-								<tr>
-									<td className='p-4 border-b border-blue-gray-50'>
-										<Typography
-											variant='small'
-											color='blue-gray'
-											className='font-normal max-w-[30rem]'>
-											Akció
-										</Typography>
-									</td>
-									<td className='p-4 border-b pr-8 border-blue-gray-50 w-40'>
-										<div className='relative'>
-											<Input
-												variant='simple'
-												value={
-													otherItems.find((item) => item.name === "Akció")
-														? numberFormatter.format(
-																otherItems.find((item) => item.name === "Akció")!
-																	.netPrice
-														  )
-														: ""
-												}
-												onChange={(e) => {
-													setOtherItems((prev) =>
-														prev.length
-															? [
-																	...prev.filter((item) => item.name !== "Akció"),
-																	{
-																		...prev.find((item) => item.name === "Akció")!,
-																		netPrice:
-																			parseInt(
-																				e.target.value.replace(/\D/g, "")
-																			) <= 100
-																				? parseInt(
-																						e.target.value.replace(
-																							/\D/g,
-																							""
-																						)
-																				  )
-																				: 0,
-																	},
-															  ]
-															: [...prev]
-													);
-												}}
-											/>
-											<Typography
-												variant='small'
-												className='font-extralight text-gray-500 absolute top-2 right-2 max-w-[30rem]'>
-												%
-											</Typography>
-										</div>
-									</td>
-									<td className='p-4 border-b border-blue-gray-50 w-40'>
-										<Typography
-											variant='small'
-											color='blue-gray'
-											className='font-normal max-w-[30rem]'>
-											- {hufFormatter.format(discount)}
-										</Typography>
-									</td>
+									{!isAddingNewOtherItem ? (
+										<>
+											<td></td>
+											<td></td>
+											<td></td>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<PlusCircleIcon
+													className='w-7 h-7 text-green-600 cursor-pointer'
+													onClick={() => {
+														setIsAddingNewOtherItem(true);
+													}}
+												/>
+											</td>
+										</>
+									) : (
+										<>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<div className='flex flex-row w-full gap-4'>
+													<Input
+														variant='simple'
+														label='Név'
+														value={newOtherItem?.name || ""}
+														onChange={(e) => {
+															setNewOtherItem((prev) => ({
+																...(prev as OtherFelmeresItems),
+																name: e.target.value,
+															}));
+														}}
+													/>
+													<Select
+														label='Típus'
+														variant='simple'
+														onChange={(value) =>
+															setNewOtherItem((prev) => ({
+																...(prev as OtherFelmeresItems),
+																type: value as "fixed" | "percent",
+															}))
+														}
+														options={[
+															{ value: "fixed", label: "Összeg" },
+															{ value: "percent", label: "Százalék" },
+														]}
+														value={newOtherItem?.type || ""}
+													/>
+												</div>
+											</td>
+											<td></td>
+											<td></td>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<CheckCircleIcon
+													className='w-7 h-7 text-green-600 cursor-pointer'
+													onClick={() => {
+														setIsAddingNewOtherItem(false);
+														setOtherItems((prev) => [
+															...prev,
+															{
+																...(newOtherItem as OtherFelmeresItems),
+																id: prev.length,
+																value: 0,
+															},
+														]);
+														setNewOtherItem(undefined);
+													}}
+												/>
+											</td>
+										</>
+									)}
 								</tr>
 							</tbody>
 							<tfoot className='bg-gray'>
@@ -1094,9 +1090,10 @@ function Page2({
 											variant='small'
 											color='blue-gray'
 											className='font-normal leading-none opacity-70'>
-											{hufFormatter.format(wage - discount)}
+											{hufFormatter.format(otherItemsNetTotal)}
 										</Typography>
 									</td>
+									<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
 								</tr>
 							</tfoot>
 						</table>
@@ -1193,7 +1190,7 @@ function Page2({
 											variant='small'
 											color='blue-gray'
 											className='font-normal max-w-[30rem]'>
-											{hufFormatter.format(wage - discount)}
+											{hufFormatter.format(otherItemsNetTotal)}
 										</Typography>
 									</td>
 									<td className='p-4 border-b border-blue-gray-50'>
@@ -1201,7 +1198,7 @@ function Page2({
 											variant='small'
 											color='blue-gray'
 											className='font-normal max-w-[30rem]'>
-											{hufFormatter.format((wage - discount) * 0.27)}
+											{hufFormatter.format(otherItemsNetTotal * 0.27)}
 										</Typography>
 									</td>
 									<td className='p-4 border-b border-blue-gray-50'>
@@ -1209,8 +1206,40 @@ function Page2({
 											variant='small'
 											color='blue-gray'
 											className='font-normal max-w-[30rem]'>
-											{hufFormatter.format((wage - discount) * 1.27)}
+											{hufFormatter.format(otherItemsNetTotal * 1.27)}
 										</Typography>
+									</td>
+								</tr>
+								<tr>
+									<td className='p-4 border-b border-blue-gray-50'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal max-w-[30rem]'>
+											Kedvezmény
+										</Typography>
+									</td>
+									<td></td>
+									<td></td>
+									<td className='p-4 border-b pr-8 border-blue-gray-50 w-40'>
+										<div className='relative'>
+											<Input
+												variant='simple'
+												value={discount}
+												onChange={(e) => {
+													setDiscount(
+														parseInt(e.target.value.replace(/\D/g, "")) <= 100
+															? parseInt(e.target.value.replace(/\D/g, ""))
+															: 0
+													);
+												}}
+											/>
+											<Typography
+												variant='small'
+												className='font-extralight text-gray-500 absolute top-2 right-2 max-w-[30rem]'>
+												%
+											</Typography>
+										</div>
 									</td>
 								</tr>
 							</tbody>
@@ -1229,7 +1258,7 @@ function Page2({
 											variant='small'
 											color='blue-gray'
 											className='font-normal leading-none opacity-70'>
-											{hufFormatter.format(wage - discount + netTotal)}
+											{hufFormatter.format(otherItemsNetTotal + netTotal)}
 										</Typography>
 									</td>
 									<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
@@ -1237,7 +1266,7 @@ function Page2({
 											variant='small'
 											color='blue-gray'
 											className='font-normal leading-none opacity-70'>
-											{hufFormatter.format((wage - discount) * 0.27 + netTotal * 0.27)}
+											{hufFormatter.format(otherItemsNetTotal * 0.27 + netTotal * 0.27)}
 										</Typography>
 									</td>
 									<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
@@ -1245,7 +1274,9 @@ function Page2({
 											variant='small'
 											color='blue-gray'
 											className='font-normal leading-none opacity-70'>
-											{hufFormatter.format((wage - discount) * 1.27 + netTotal * 1.27)}
+											{hufFormatter.format(
+												(otherItemsNetTotal * 1.27 + netTotal * 1.27) / (1 + discount / 100)
+											)}
 										</Typography>
 									</td>
 								</tr>
