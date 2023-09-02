@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 	const bytes = await files[1].arrayBuffer();
 	const buffer = Buffer.from(bytes);
 
-	const fileName = request.nextUrl.searchParams.get("id");
+	const fileName = files[1].name;
 	const s3Client = new S3Client({
 		region: process.env.AWS_REGION ?? "",
 		credentials: {

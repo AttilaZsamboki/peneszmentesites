@@ -1,9 +1,7 @@
 import { Template } from "@/app/templates/page";
 import ClientPage from "./_clientPage";
-import { Question } from "@/app/questions/page";
 import { Product } from "@/app/products/page";
 import { ProductAttributes } from "@/app/products/[id]/page";
-import { fetchAllContactDetails, fetchContactDetails } from "@/app/_utils/MiniCRM";
 
 export interface Adatlap {
 	Count: number;

@@ -1,5 +1,5 @@
 "use client";
-import { Card, CardBody, Button, Typography, Tooltip } from "@material-tailwind/react";
+import { Card, CardBody, Button, Typography, Tooltip, CardHeader } from "@material-tailwind/react";
 import Heading from "@/app/_components/Heading";
 import React from "react";
 import { FelmeresQuestions, ScaleOption } from "../page";
@@ -47,6 +47,10 @@ export const hufFormatter = new Intl.NumberFormat("hu-HU", {
 	currency: "HUF",
 });
 
+export const numberFormatter = new Intl.NumberFormat("hu-HU", {
+	style: "decimal",
+});
+
 export default function Page({
 	adatlapok,
 	templates,
@@ -72,6 +76,28 @@ export default function Page({
 	const router = useRouter();
 	const [data, setData] = React.useState<FelmeresQuestions[]>([]);
 	const [questions, setQuestions] = React.useState<Question[]>([]);
+	const [otherItems, setOtherItems] = React.useState<FelmeresItems[]>([
+		{
+			name: "Munkadíj",
+			place: false,
+			placeOptions: [],
+			productId: Math.floor(Math.random() * 10000),
+			adatlap: felmeres.adatlap_id,
+			inputValues: [{ ammount: 1, id: 1, value: "" }],
+			netPrice: 1,
+			sku: null as unknown as string,
+		},
+		{
+			name: "Akció",
+			place: false,
+			placeOptions: [],
+			productId: Math.floor(Math.random() * 10000),
+			adatlap: felmeres.adatlap_id,
+			inputValues: [{ ammount: 1, id: 0, value: "" }],
+			netPrice: 1,
+			sku: null as unknown as string,
+		},
+	]);
 
 	React.useEffect(() => {
 		const fetchQuestions = async () => {
@@ -111,7 +137,40 @@ export default function Page({
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify(items),
+				body: JSON.stringify([
+					...items,
+					{
+						...otherItems.find((item) => item.name === "Munkadíj"),
+						adatlap: felmeres.adatlap_id,
+						netPrice: Math.round(
+							(otherItems.find((item) => item.name === "Munkadíj")!.netPrice / 100) *
+								items
+									.map(
+										(item) =>
+											item.inputValues.map((value) => value.ammount).reduce((a, b) => a + b, 0) *
+											item.netPrice
+									)
+									.reduce((a, b) => a + b, 0)
+						),
+					},
+					{
+						...otherItems.find((item) => item.name === "Akció"),
+						netPrice: Math.round(
+							-(
+								(otherItems.find((item) => item.name === "Akció")!.netPrice / 100) *
+								(items
+									.map(
+										(item) =>
+											item.inputValues.map((value) => value.ammount).reduce((a, b) => a + b, 0) *
+											item.netPrice
+									)
+									.reduce((a, b) => a + b, 0) *
+									(1 + otherItems.find((item) => item.name === "Munkadíj")!.netPrice / 100))
+							)
+						),
+						adatlap: felmeres.adatlap_id,
+					},
+				]),
 			});
 			let status = 1;
 			data.filter((question) => question.value).map(async (question) => {
@@ -137,7 +196,42 @@ export default function Page({
 					adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)
 						? adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)!.ContactId.toString()
 						: "",
-					items,
+					[
+						...items,
+						{
+							...otherItems.find((item) => item.name === "Munkadíj"),
+							adatlap: felmeres.adatlap_id,
+							netPrice: Math.round(
+								(otherItems.find((item) => item.name === "Munkadíj")!.netPrice / 100) *
+									items
+										.map(
+											(item) =>
+												item.inputValues
+													.map((value) => value.ammount)
+													.reduce((a, b) => a + b, 0) * item.netPrice
+										)
+										.reduce((a, b) => a + b, 0)
+							),
+						},
+						{
+							...otherItems.find((item) => item.name === "Akció"),
+							netPrice: Math.round(
+								-(
+									(otherItems.find((item) => item.name === "Akció")!.netPrice / 100) *
+									(items
+										.map(
+											(item) =>
+												item.inputValues
+													.map((value) => value.ammount)
+													.reduce((a, b) => a + b, 0) * item.netPrice
+										)
+										.reduce((a, b) => a + b, 0) *
+										(1 + otherItems.find((item) => item.name === "Munkadíj")!.netPrice / 100))
+								)
+							),
+							adatlap: felmeres.adatlap_id,
+						},
+					] as unknown as FelmeresItems[],
 					felmeres.adatlap_id.toString()
 				);
 				await fetch(`/api/minicrm-proxy/${felmeres.adatlap_id}?endpoint=Project`, {
@@ -195,6 +289,7 @@ export default function Page({
 						<CardBody className='bg-white p-8 lg:rounded-lg bg-transparent bg-opacity-20 lg:border transform'>
 							<Heading title={section} variant='h3' />
 							<PageChooser
+								setOtherItems={setOtherItems}
 								globalData={data}
 								setData={setData}
 								page={page}
@@ -209,7 +304,7 @@ export default function Page({
 								products={products}
 								productAttributes={productAttributes}
 								questions={questions}
-								setQuestions={setQuestions}
+								otherItems={otherItems}
 							/>
 							<div className='flex flex-row justify-end gap-3 border-t py-4'>
 								{numPages === page + 1 ? (
@@ -254,7 +349,8 @@ function PageChooser({
 	globalData,
 	products,
 	questions,
-	setQuestions,
+	otherItems,
+	setOtherItems,
 }: {
 	page: number;
 	setData: React.Dispatch<React.SetStateAction<FelmeresQuestions[]>>;
@@ -270,7 +366,8 @@ function PageChooser({
 	products: Product[];
 	productAttributes: ProductAttributes[];
 	questions: Question[];
-	setQuestions: React.Dispatch<React.SetStateAction<Question[]>>;
+	otherItems: FelmeresItems[];
+	setOtherItems: React.Dispatch<React.SetStateAction<FelmeresItems[]>>;
 }) {
 	interface PageMap {
 		component: JSX.Element;
@@ -292,6 +389,8 @@ function PageChooser({
 					items={items}
 					setItems={setItems}
 					productAttributes={productAttributes}
+					otherItems={otherItems}
+					setOtherItems={setOtherItems}
 				/>
 			),
 			title: "Tételek",
@@ -429,12 +528,16 @@ function Page2({
 	setItems,
 	products,
 	productAttributes,
+	otherItems,
+	setOtherItems,
 }: {
 	felmeres: BaseFelmeresData;
 	items: FelmeresItems[];
 	setItems: React.Dispatch<React.SetStateAction<FelmeresItems[]>>;
 	products: Product[];
 	productAttributes: ProductAttributes[];
+	otherItems: FelmeresItems[];
+	setOtherItems: React.Dispatch<React.SetStateAction<FelmeresItems[]>>;
 }) {
 	const [isAddingNewItem, setIsAddingNewItem] = React.useState(false);
 
@@ -488,142 +591,111 @@ function Page2({
 		fetchData();
 	}, []);
 
-	const TABLE_HEAD = ["Név", "Darab + Hely", "Nettó egység", "Nettó összesen"];
+	const TABLE_HEAD_ITEMS = ["Név", "Darab + Hely", "Nettó egység", "Nettó összesen"];
+	const TABLE_HEAD_OTHER = ["Név", "Nettó egységár", "Nettó összesen"];
 
+	const netTotal = items
+		.map(({ inputValues, netPrice }) => netPrice * inputValues.reduce((a, b) => a + b.ammount, 0))
+		.reduce((a, b) => a + b, 0);
+	const wage =
+		(netTotal *
+			(otherItems.find((item) => item.name === "Munkadíj")
+				? otherItems.find((item) => item.name === "Munkadíj")!.netPrice
+					? otherItems.find((item) => item.name === "Munkadíj")!.netPrice
+					: 0
+				: 0)) /
+		100;
+	const discount =
+		(netTotal + wage) *
+		(otherItems.find((item) => item.name === "Akció")
+			? otherItems.find((item) => item.name === "Akció")!.netPrice / 100
+			: 0);
 	return (
-		<Card className='my-5'>
-			<div className=''>
-				<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
-					<thead>
-						<tr>
-							{TABLE_HEAD.map((head) => (
-								<th key={head} className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-									<Typography
-										variant='small'
-										color='blue-gray'
-										className='font-normal leading-none opacity-70'>
-										{head}
-									</Typography>
-								</th>
-							))}
-							<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></th>
-						</tr>
-					</thead>
-					<tbody>
-						{items
-							.sort((a, b) => a.productId - b.productId)
-							.map(({ name, place, placeOptions: place_options, inputValues, netPrice }, index) => {
-								const isLast = index === items.length - 1;
-								const classes = isLast ? "p-4" : "p-4 border-b border-blue-gray-50";
+		<div>
+			<Card className='my-5'>
+				<div className=''>
+					<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
+						<thead>
+							<tr>
+								{TABLE_HEAD_ITEMS.map((head) => (
+									<th key={head} className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal leading-none opacity-70'>
+											{head}
+										</Typography>
+									</th>
+								))}
+								<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></th>
+							</tr>
+						</thead>
+						<tbody>
+							{items
+								.sort((a, b) => a.productId - b.productId)
+								.map(({ name, place, placeOptions: place_options, inputValues, netPrice }, index) => {
+									const isLast = index === items.length - 1;
+									const classes = isLast ? "p-4" : "p-4 border-b border-blue-gray-50";
 
-								return (
-									<tr key={name}>
-										<td className={classes}>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{name}
-											</Typography>
-										</td>
-										{inputValues
-											.sort((a, b) => a.id - b.id)
-											.map((inputValue) => (
-												<div key={inputValue.id} className='flex flex-row'>
-													<td className={classes}>
-														<Counter
-															maxWidth='max-w-[10rem]'
-															value={inputValue.ammount}
-															onChange={(value) =>
-																setItems([
-																	...items.filter(
-																		(i) => i.productId !== items[index].productId
-																	),
-																	{
-																		...items[index],
-																		inputValues: [
-																			...inputValues.filter(
-																				(value) => value.id !== inputValue.id
-																			),
-																			{ ...inputValue, ammount: value },
-																		],
-																	},
-																])
-															}
-														/>
-													</td>
-													{place ? (
-														<td
-															className={
-																classes + " flex flex-row w-full items-center gap-2"
-															}>
-															<div className='font-normal flex flex-col gap-2 max-w-[17rem]'>
-																<div className='flex-row flex items-center gap-2'>
-																	<AutoComplete
-																		options={place_options
-																			.filter(
-																				(option) =>
-																					!inputValues
-																						.map((value) => value.value)
-																						.includes(option)
-																			)
-																			.map((option) => ({
-																				label: option,
-																				value: option,
-																			}))}
-																		value={inputValue.value}
-																		onChange={(e) => {
-																			setItems([
-																				...items.filter(
-																					(item) =>
-																						item.productId !==
-																						items[index].productId
+									return (
+										<tr key={name}>
+											<td className={classes}>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													{name}
+												</Typography>
+											</td>
+											{inputValues
+												.sort((a, b) => a.id - b.id)
+												.map((inputValue) => (
+													<div key={inputValue.id} className='flex flex-row'>
+														<td className={classes}>
+															<Counter
+																maxWidth='max-w-[10rem]'
+																value={inputValue.ammount}
+																onChange={(value) =>
+																	setItems([
+																		...items.filter(
+																			(i) =>
+																				i.productId !== items[index].productId
+																		),
+																		{
+																			...items[index],
+																			inputValues: [
+																				...inputValues.filter(
+																					(value) =>
+																						value.id !== inputValue.id
 																				),
-																				{
-																					...items[index],
-																					inputValues: [
-																						...inputValues.filter(
-																							(value) =>
-																								value.id !==
-																								inputValue.id
-																						),
-																						{
-																							value: e,
-																							id: inputValue.id,
-																							ammount: inputValue.ammount,
-																						},
-																					],
-																				},
-																			]);
-																		}}
-																	/>
-																	<PlusCircleIcon
-																		className='w-7 h-7 cursor-pointer'
-																		onClick={() =>
-																			setItems([
-																				...items.filter(
-																					(item) =>
-																						item.productId !==
-																						items[index].productId
-																				),
-																				{
-																					...items[index],
-																					inputValues: [
-																						...inputValues,
-																						{
-																							value: "",
-																							id: inputValues.length,
-																							ammount: 0,
-																						},
-																					],
-																				},
-																			])
-																		}
-																	/>
-																	{inputValues.length > 1 ? (
-																		<MinusCircleIcon
-																			className='w-7 h-7 cursor-pointer'
-																			onClick={() =>
+																				{ ...inputValue, ammount: value },
+																			],
+																		},
+																	])
+																}
+															/>
+														</td>
+														{place ? (
+															<td
+																className={
+																	classes + " flex flex-row w-full items-center gap-2"
+																}>
+																<div className='font-normal flex flex-col gap-2 max-w-[17rem]'>
+																	<div className='flex-row flex items-center gap-2'>
+																		<AutoComplete
+																			options={place_options
+																				.filter(
+																					(option) =>
+																						!inputValues
+																							.map((value) => value.value)
+																							.includes(option)
+																				)
+																				.map((option) => ({
+																					label: option,
+																					value: option,
+																				}))}
+																			value={inputValue.value}
+																			onChange={(e) => {
 																				setItems([
 																					...items.filter(
 																						(item) =>
@@ -638,169 +710,386 @@ function Page2({
 																									value.id !==
 																									inputValue.id
 																							),
+																							{
+																								value: e,
+																								id: inputValue.id,
+																								ammount:
+																									inputValue.ammount,
+																							},
+																						],
+																					},
+																				]);
+																			}}
+																		/>
+																		<PlusCircleIcon
+																			className='w-7 h-7 cursor-pointer'
+																			onClick={() =>
+																				setItems([
+																					...items.filter(
+																						(item) =>
+																							item.productId !==
+																							items[index].productId
+																					),
+																					{
+																						...items[index],
+																						inputValues: [
+																							...inputValues,
+																							{
+																								value: "",
+																								id: inputValues.length,
+																								ammount: 0,
+																							},
 																						],
 																					},
 																				])
 																			}
 																		/>
-																	) : null}
+																		{inputValues.length > 1 ? (
+																			<MinusCircleIcon
+																				className='w-7 h-7 cursor-pointer'
+																				onClick={() =>
+																					setItems([
+																						...items.filter(
+																							(item) =>
+																								item.productId !==
+																								items[index].productId
+																						),
+																						{
+																							...items[index],
+																							inputValues: [
+																								...inputValues.filter(
+																									(value) =>
+																										value.id !==
+																										inputValue.id
+																								),
+																							],
+																						},
+																					])
+																				}
+																			/>
+																		) : null}
+																	</div>
 																</div>
-															</div>
-														</td>
-													) : (
-														<td className={classes + " w-full"}></td>
+															</td>
+														) : (
+															<td className={classes + " w-full"}></td>
+														)}
+													</div>
+												))}
+											<td className={classes}>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													{hufFormatter.format(netPrice)}
+												</Typography>
+											</td>
+											<td className={classes}>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													{hufFormatter.format(
+														netPrice * inputValues.reduce((a, b) => a + b.ammount, 0)
 													)}
-												</div>
-											))}
-										<td className={classes}>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(netPrice)}
-											</Typography>
-										</td>
-										<td className={classes}>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(
-													netPrice * inputValues.reduce((a, b) => a + b.ammount, 0)
-												)}
-											</Typography>
-										</td>
-										<td className={classes}>
-											<MinusCircleIcon
-												className='w-7 h-7 text-red-600 cursor-pointer'
-												onClick={() =>
-													setItems((prev) => prev.filter((item) => item.name !== name))
-												}
+												</Typography>
+											</td>
+											<td className={classes}>
+												<MinusCircleIcon
+													className='w-7 h-7 text-red-600 cursor-pointer'
+													onClick={() =>
+														setItems((prev) => prev.filter((item) => item.name !== name))
+													}
+												/>
+											</td>
+										</tr>
+									);
+								})}
+							<tr>
+								{!isAddingNewItem ? (
+									<>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td></td>
+										<td className='p-4 border-b border-blue-gray-50'>
+											<PlusCircleIcon
+												className='w-7 h-7 text-green-600 cursor-pointer'
+												onClick={() => {
+													setIsAddingNewItem(true);
+												}}
 											/>
 										</td>
-									</tr>
-								);
-							})}
-						<tr>
-							{!isAddingNewItem ? (
-								<>
-									<td></td>
-									<td></td>
-									<td></td>
-									<td></td>
-									<td className='p-4 border-b border-blue-gray-50'>
-										<PlusCircleIcon
-											className='w-7 h-7 text-green-600 cursor-pointer'
-											onClick={() => {
-												setIsAddingNewItem(true);
-											}}
-										/>
-									</td>
-								</>
-							) : (
-								<>
-									<td className='p-4 border-b border-blue-gray-50'>
-										<AutoComplete
-											options={products
-												.filter(
-													(product) =>
-														!items.map((item) => item.productId).includes(product.id)
-												)
-												.map((product) => ({
-													label: product.name,
-													value: product.id.toString(),
-												}))}
-											value={items.find((item) => item.productId === 0)?.name || ""}
-											onChange={(value) => {
-												console.log(
-													productAttributes.find(
-														(attribute) => attribute.product === parseInt(value)
+									</>
+								) : (
+									<>
+										<td className='p-4 border-b border-blue-gray-50'>
+											<AutoComplete
+												options={products
+													.filter(
+														(product) =>
+															!items.map((item) => item.productId).includes(product.id)
 													)
-												);
-												console.log(productAttributes, value);
-												setItems((prev) =>
-													prev.length
-														? [
-																...prev.filter(
-																	(item) => item.productId.toString() !== value
-																),
-																{
-																	...prev[prev.length - 1],
-																	productId: parseInt(value),
-																	name: products.find(
-																		(product) => product.id === parseInt(value)
-																	)!.name,
-																	place: productAttributes.find(
-																		(attribute) =>
-																			attribute.product === parseInt(value)
-																	)
-																		? productAttributes.find(
-																				(attribute) =>
-																					attribute.product ===
-																					parseInt(value)
-																		  )!.place
-																		: false,
-																	placeOptions: productAttributes.find(
-																		(attribute) =>
-																			attribute.product === parseInt(value)
-																	)
-																		? JSON.parse(
-																				(
-																					productAttributes.find(
-																						(attribute) =>
-																							attribute.product ===
-																							parseInt(value)
-																					)!
-																						.place_options as unknown as string
-																				).replace(/'/g, '"')
-																		  )
-																		: [],
-																},
-														  ]
-														: [...prev]
-												);
-											}}
-										/>
-									</td>
-									<td className='p-4 border-b border-blue-gray-50'></td>
-									<td className='p-4 border-b border-blue-gray-50'></td>
-									<td className='p-4 border-b border-blue-gray-50'></td>
+													.map((product) => ({
+														label: product.name,
+														value: product.id.toString(),
+													}))}
+												value={items.find((item) => item.productId === 0)?.name || ""}
+												onChange={(value) => {
+													setItems((prev) =>
+														prev.length
+															? [
+																	...prev.filter(
+																		(item) => item.productId.toString() !== value
+																	),
+																	{
+																		...prev[prev.length - 1],
+																		productId: parseInt(value),
+																		name: products.find(
+																			(product) => product.id === parseInt(value)
+																		)!.name,
+																		place: productAttributes.find(
+																			(attribute) =>
+																				attribute.product === parseInt(value)
+																		)
+																			? productAttributes.find(
+																					(attribute) =>
+																						attribute.product ===
+																						parseInt(value)
+																			  )!.place
+																			: false,
+																		placeOptions: productAttributes.find(
+																			(attribute) =>
+																				attribute.product === parseInt(value)
+																		)
+																			? JSON.parse(
+																					(
+																						productAttributes.find(
+																							(attribute) =>
+																								attribute.product ===
+																								parseInt(value)
+																						)!
+																							.place_options as unknown as string
+																					).replace(/'/g, '"')
+																			  )
+																			: [],
+																	},
+															  ]
+															: [...prev]
+													);
+												}}
+											/>
+										</td>
+										<td className='p-4 border-b border-blue-gray-50'></td>
+										<td className='p-4 border-b border-blue-gray-50'></td>
+										<td className='p-4 border-b border-blue-gray-50'></td>
+										<td className='p-4 border-b border-blue-gray-50'>
+											<CheckCircleIcon
+												className='w-7 h-7 text-green-600 cursor-pointer'
+												onClick={() => setIsAddingNewItem(false)}
+											/>
+										</td>
+									</>
+								)}
+							</tr>
+						</tbody>
+						<tfoot className='bg-gray'>
+							<tr>
+								<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+									<Typography
+										variant='small'
+										color='blue-gray'
+										className='font-normal leading-none opacity-70'>
+										Össz:
+									</Typography>
+								</td>
+								<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
+								<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
+								<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+									<Typography
+										variant='small'
+										color='blue-gray'
+										className='font-normal leading-none opacity-70'>
+										{hufFormatter.format(netTotal)}
+									</Typography>
+								</td>
+								<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
+							</tr>
+						</tfoot>
+					</table>
+				</div>
+			</Card>
+			<div className='mt-8'>
+				<Heading title='Egyéb' variant='h5' marginY='lg:my-4' border={false} />
+				<Card>
+					<div className=''>
+						<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
+							<thead>
+								<tr>
+									{TABLE_HEAD_OTHER.map((head) => (
+										<th key={head} className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+											<Typography
+												variant='small'
+												color='blue-gray'
+												className='font-normal leading-none opacity-70'>
+												{head}
+											</Typography>
+										</th>
+									))}
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
 									<td className='p-4 border-b border-blue-gray-50'>
-										<CheckCircleIcon
-											className='w-7 h-7 text-green-600 cursor-pointer'
-											onClick={() => setIsAddingNewItem(false)}
-										/>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal max-w-[30rem]'>
+											Munkadíj
+										</Typography>
 									</td>
-								</>
-							)}
-						</tr>
-					</tbody>
-					<tfoot className='bg-gray'>
-						<tr>
-							<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>Össz:</td>
-							<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
-							<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
-							<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-								<Typography
-									variant='small'
-									color='blue-gray'
-									className='font-normal leading-none opacity-70'>
-									{hufFormatter.format(
-										items
-											.map(
-												({ inputValues, netPrice }) =>
-													netPrice * inputValues.reduce((a, b) => a + b.ammount, 0)
-											)
-											.reduce((a, b) => a + b, 0)
-									)}
-								</Typography>
-							</td>
-							<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
-						</tr>
-					</tfoot>
-				</table>
+									<td className='mr-5 p-4 pr-8 border-b border-blue-gray-50 w-40'>
+										<div className='relative'>
+											<Input
+												variant='simple'
+												value={
+													otherItems.find((item) => item.name === "Munkadíj")
+														? numberFormatter.format(
+																otherItems.find((item) => item.name === "Munkadíj")!
+																	.netPrice
+														  )
+														: ""
+												}
+												onChange={(e) => {
+													setOtherItems((prev) =>
+														prev.length
+															? [
+																	...prev.filter((item) => item.name !== "Munkadíj"),
+																	{
+																		...prev.find(
+																			(item) => item.name === "Munkadíj"
+																		)!,
+																		netPrice:
+																			parseInt(
+																				e.target.value.replace(/\D/g, "")
+																			) <= 100
+																				? parseInt(
+																						e.target.value.replace(
+																							/\D/g,
+																							""
+																						)
+																				  )
+																				: 0,
+																	},
+															  ]
+															: [...prev]
+													);
+												}}
+											/>
+											<Typography
+												variant='small'
+												className='font-extralight text-gray-500 absolute top-2 right-2 max-w-[30rem]'>
+												%
+											</Typography>
+										</div>
+									</td>
+									<td className='p-4 border-b border-blue-gray-50 w-40'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal max-w-[30rem]'>
+											{hufFormatter.format(wage)}
+										</Typography>
+									</td>
+								</tr>
+								<tr>
+									<td className='p-4 border-b border-blue-gray-50'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal max-w-[30rem]'>
+											Akció
+										</Typography>
+									</td>
+									<td className='p-4 border-b pr-8 border-blue-gray-50 w-40'>
+										<div className='relative'>
+											<Input
+												variant='simple'
+												value={
+													otherItems.find((item) => item.name === "Akció")
+														? numberFormatter.format(
+																otherItems.find((item) => item.name === "Akció")!
+																	.netPrice
+														  )
+														: ""
+												}
+												onChange={(e) => {
+													setOtherItems((prev) =>
+														prev.length
+															? [
+																	...prev.filter((item) => item.name !== "Akció"),
+																	{
+																		...prev.find((item) => item.name === "Akció")!,
+																		netPrice:
+																			parseInt(
+																				e.target.value.replace(/\D/g, "")
+																			) <= 100
+																				? parseInt(
+																						e.target.value.replace(
+																							/\D/g,
+																							""
+																						)
+																				  )
+																				: 0,
+																	},
+															  ]
+															: [...prev]
+													);
+												}}
+											/>
+											<Typography
+												variant='small'
+												className='font-extralight text-gray-500 absolute top-2 right-2 max-w-[30rem]'>
+												%
+											</Typography>
+										</div>
+									</td>
+									<td className='p-4 border-b border-blue-gray-50 w-40'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal max-w-[30rem]'>
+											- {hufFormatter.format(discount)}
+										</Typography>
+									</td>
+								</tr>
+							</tbody>
+							<tfoot className='bg-gray'>
+								<tr>
+									<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal leading-none opacity-70'>
+											Össz:
+										</Typography>
+									</td>
+									<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
+									<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal leading-none opacity-70'>
+											{hufFormatter.format(wage - discount)}
+										</Typography>
+									</td>
+								</tr>
+							</tfoot>
+						</table>
+					</div>
+				</Card>
 			</div>
-		</Card>
+		</div>
 	);
 }
 
@@ -851,8 +1140,6 @@ function FieldCreate({
 	adatlap_id: number;
 	product?: string;
 }) {
-	const [randomId, setRandomId] = React.useState("");
-
 	React.useEffect(() => {
 		setGlobalData((prev) => [
 			...prev.filter((felmeres) => felmeres.question !== question.id),
@@ -865,10 +1152,6 @@ function FieldCreate({
 			},
 		]);
 	}, [adatlap_id, product, question.id, setGlobalData]);
-
-	React.useEffect(() => {
-		setRandomId(Math.floor(Math.random() * Date.now()).toString());
-	}, []);
 
 	const setterSingle = (value: string) => {
 		setGlobalData((prev) =>
@@ -1008,8 +1291,8 @@ function FieldCreate({
 	} else if (question.type === "FILE_UPLOAD") {
 		return (
 			<FileUpload
-				route={`/api/save-image?id=${randomId}`}
-				onUpload={() =>
+				route={`/api/save-image`}
+				onUpload={(file) =>
 					setGlobalData((prev) =>
 						prev.map((felmeres) =>
 							felmeres.question === question.id
@@ -1018,7 +1301,11 @@ function FieldCreate({
 										id: 0,
 										question: question.id,
 										section: felmeres.section,
-										value: "https://felmeres-note-images.s3.eu-central-1.amazonaws.com/" + randomId,
+										value: [
+											...(felmeres.value as unknown as string[]),
+											"https://felmeres-note-images.s3.eu-central-1.amazonaws.com/" +
+												file.filename,
+										] as unknown as string,
 								  }
 								: felmeres
 						)

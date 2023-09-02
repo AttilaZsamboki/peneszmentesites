@@ -2,6 +2,7 @@ import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orien
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
 import { FilePond, registerPlugin } from "react-filepond";
+import React from "react";
 
 import "filepond/dist/filepond.min.css";
 
@@ -13,6 +14,7 @@ export default function FileUpload({ route, onUpload }: { route: string; onUploa
 			allowMultiple={true}
 			allowReplace={true}
 			onaddfile={(err, file) => {
+				console.log(file);
 				onUpload ? onUpload(file) : {};
 			}}
 			server={route}

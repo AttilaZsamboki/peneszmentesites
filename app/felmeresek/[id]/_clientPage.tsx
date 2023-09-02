@@ -9,7 +9,7 @@ import { useGlobalState } from "../../_clientLayout";
 
 import React from "react";
 
-import { Typography, Spinner, Switch, CardBody, Card, CardHeader, Slider, Checkbox } from "@material-tailwind/react";
+import { Typography, Spinner, Switch, CardBody, Card, Slider, Checkbox } from "@material-tailwind/react";
 import { XMarkIcon, CheckIcon } from "@heroicons/react/20/solid";
 import { BaseFelmeresData, FelmeresItems } from "../new/_clientPage";
 import { Question } from "@/app/questions/page";
@@ -258,6 +258,7 @@ export default function ClientPage({
 								color='gray'
 								onChange={() => {
 									setIsAll(!isAll);
+									setSelectedSection(isAll ? sections[0].title : "");
 								}}
 							/>
 						</div>
@@ -481,8 +482,7 @@ function FieldViewing({ data, question }: { data: FelmeresQuestions; question: Q
 		return (
 			<div className='lg:col-span-2'>
 				<Gallery
-					images={isJSONParsable(data.value) ? (JSON.parse(data.value) as unknown as string[]) : []}
-					isVideo={false}
+					media={isJSONParsable(data.value) ? (JSON.parse(data.value) as unknown as string[]) : [data.value]}
 				/>
 			</div>
 		);

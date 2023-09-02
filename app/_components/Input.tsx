@@ -8,7 +8,7 @@ export default function Input({
 	variant = "default",
 	label,
 }: {
-	value: string;
+	value: string | number;
 	onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 	variant?: "default" | "simple";
 	label?: string;

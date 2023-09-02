@@ -264,7 +264,7 @@ export async function assembleOfferXML(
 						.map(
 							(item) => `<Product Id="${item.productId}">
                         <!-- Name of product [required int] -->
-                        <Name>${item.sku}</Name>
+                        <Name>${item.name}</Name>
                         <!-- SKU code of product [optional string]-->
                         <SKU>${item.sku}</SKU>
                         <!-- Nett price of product [required int] -->
@@ -287,7 +287,6 @@ export async function assembleOfferXML(
         </Offers>
     </Project>
 </Projects>`;
-
 	return await fetch("/api/minicrm-proxy?endpoint=XML", {
 		method: "POST",
 		headers: {

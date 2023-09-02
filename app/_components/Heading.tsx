@@ -7,12 +7,14 @@ export default function Heading({
 	width = "w-11/12",
 	children,
 	border = true,
+	marginY,
 }: {
 	title: string;
 	variant: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 	width?: string;
 	children?: React.ReactNode;
 	border?: boolean;
+	marginY?: string;
 }) {
 	return (
 		<div
@@ -21,10 +23,12 @@ export default function Heading({
 			}`}>
 			<div className='flex flex-col justify-items items-center w-full'>
 				<div
-					className={`flex flex-col ${width} px-2 lg:items-start sm:items-center justify-center lg:justify-between lg:my-12 text-center`}>
+					className={`flex flex-col ${width} px-2 lg:items-start sm:items-center justify-center ${
+						marginY ? marginY : "lg:my-12"
+					} lg:justify-between text-center`}>
 					<Typography
 						variant={variant}
-						className='font-semibold text-gradient-to-tr from-gray-900 to-gray-800 lg:my-0 my-12 text-left'>
+						className={`font-semibold text-gradient-to-tr from-gray-900 to-gray-800 lg:my-0  text-left`}>
 						{title}
 					</Typography>
 				</div>
