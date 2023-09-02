@@ -84,7 +84,7 @@ export default function Page({
 			productId: Math.floor(Math.random() * 10000),
 			adatlap: felmeres.adatlap_id,
 			inputValues: [{ ammount: 1, id: 1, value: "" }],
-			netPrice: 1,
+			netPrice: 0,
 			sku: null as unknown as string,
 		},
 		{
@@ -94,7 +94,7 @@ export default function Page({
 			productId: Math.floor(Math.random() * 10000),
 			adatlap: felmeres.adatlap_id,
 			inputValues: [{ ammount: 1, id: 0, value: "" }],
-			netPrice: 1,
+			netPrice: 0,
 			sku: null as unknown as string,
 		},
 	]);
@@ -858,6 +858,16 @@ function Page2({
 																						parseInt(value)
 																			  )!.place
 																			: false,
+																		inputValues: [
+																			{
+																				value: "",
+																				id: 0,
+																				ammount: 0,
+																			},
+																		],
+																		netPrice: products.find(
+																			(product) => product.id === parseInt(value)
+																		)!.price_list_alapertelmezett_net_price_huf,
 																		placeOptions: productAttributes.find(
 																			(attribute) =>
 																				attribute.product === parseInt(value)
@@ -1081,6 +1091,157 @@ function Page2({
 											color='blue-gray'
 											className='font-normal leading-none opacity-70'>
 											{hufFormatter.format(wage - discount)}
+										</Typography>
+									</td>
+								</tr>
+							</tfoot>
+						</table>
+					</div>
+				</Card>
+			</div>
+			<div className='mt-8'>
+				<Heading title='Összesítés' variant='h5' marginY='lg:my-4' border={false} />
+				<Card>
+					<div className=''>
+						<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
+							<thead>
+								<tr>
+									<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal leading-none opacity-70'>
+											Név
+										</Typography>
+									</th>
+									<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal leading-none opacity-70'>
+											Nettó
+										</Typography>
+									</th>
+									<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal leading-none opacity-70'>
+											ÁFA
+										</Typography>
+									</th>
+									<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal leading-none opacity-70'>
+											Bruttó
+										</Typography>
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td className='p-4 border-b border-blue-gray-50'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal max-w-[30rem]'>
+											Tételek
+										</Typography>
+									</td>
+									<td className='p-4 border-b border-blue-gray-50'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal max-w-[30rem]'>
+											{hufFormatter.format(netTotal)}
+										</Typography>
+									</td>
+									<td className='p-4 border-b border-blue-gray-50'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal max-w-[30rem]'>
+											{hufFormatter.format(netTotal * 0.27)}
+										</Typography>
+									</td>
+									<td className='p-4 border-b border-blue-gray-50'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal max-w-[30rem]'>
+											{hufFormatter.format(netTotal * 1.27)}
+										</Typography>
+									</td>
+								</tr>
+								<tr>
+									<td className='p-4 border-b border-blue-gray-50'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal max-w-[30rem]'>
+											Egyéb
+										</Typography>
+									</td>
+									<td className='p-4 border-b border-blue-gray-50'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal max-w-[30rem]'>
+											{hufFormatter.format(wage - discount)}
+										</Typography>
+									</td>
+									<td className='p-4 border-b border-blue-gray-50'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal max-w-[30rem]'>
+											{hufFormatter.format((wage - discount) * 0.27)}
+										</Typography>
+									</td>
+									<td className='p-4 border-b border-blue-gray-50'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal max-w-[30rem]'>
+											{hufFormatter.format((wage - discount) * 1.27)}
+										</Typography>
+									</td>
+								</tr>
+							</tbody>
+							<tfoot className='bg-gray'>
+								<tr>
+									<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal leading-none opacity-70'>
+											Össz:
+										</Typography>
+									</td>
+									<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal leading-none opacity-70'>
+											{hufFormatter.format(wage - discount + netTotal)}
+										</Typography>
+									</td>
+									<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal leading-none opacity-70'>
+											{hufFormatter.format((wage - discount) * 0.27 + netTotal * 0.27)}
+										</Typography>
+									</td>
+									<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+										<Typography
+											variant='small'
+											color='blue-gray'
+											className='font-normal leading-none opacity-70'>
+											{hufFormatter.format((wage - discount) * 1.27 + netTotal * 1.27)}
 										</Typography>
 									</td>
 								</tr>
