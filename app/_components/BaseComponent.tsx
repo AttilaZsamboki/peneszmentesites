@@ -3,8 +3,6 @@ import { Filters } from "../products/page";
 import { AgGridReact } from "ag-grid-react";
 import React from "react";
 
-import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-material.css";
 import Heading from "./Heading";
 import {
 	Button,
@@ -14,7 +12,6 @@ import {
 	CardBody,
 	CardFooter,
 	Typography,
-	Checkbox,
 	List,
 	ListItem,
 	Badge,
