@@ -64,12 +64,12 @@ export default function Page({
 }) {
 	const searchParams = useSearchParams();
 
-	const [page, setPage] = React.useState(0);
+	const [page, setPage] = React.useState(1);
 	const [section, setSection] = React.useState("Alapadatok");
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>({
 		adatlap_id: searchParams.get("adatlap_id") ? parseInt(searchParams.get("adatlap_id")!) : 0,
 		type: "",
-		template: 0,
+		template: 15,
 	});
 	const [items, setItems] = React.useState<FelmeresItems[]>([]);
 	const [numPages, setNumPages] = React.useState(0);
@@ -542,53 +542,57 @@ function Page2({
 	const [isAddingNewItem, setIsAddingNewItem] = React.useState(false);
 
 	React.useEffect(() => {
-		const fetchData = async () => {
-			const templateId = felmeres.template;
-			const productTemplateRes = await fetch("https://pen.dataupload.xyz/product_templates/" + templateId);
-			if (productTemplateRes.ok) {
-				const productTemplates: ProductTemplate[] = await productTemplateRes.json();
-				productTemplates.map(async (productTemplate) => {
-					const productResp = await fetch("https://pen.dataupload.xyz/products/" + productTemplate.product);
-					if (productResp.ok) {
-						const productData: Product = await productResp.json();
-						const productAttributeResp = await fetch(
-							"https://pen.dataupload.xyz/product_attributes/" + productTemplate.product
+		if (items.length === 0) {
+			const fetchData = async () => {
+				const templateId = felmeres.template;
+				const productTemplateRes = await fetch("https://pen.dataupload.xyz/product_templates/" + templateId);
+				if (productTemplateRes.ok) {
+					const productTemplates: ProductTemplate[] = await productTemplateRes.json();
+					productTemplates.map(async (productTemplate) => {
+						const productResp = await fetch(
+							"https://pen.dataupload.xyz/products/" + productTemplate.product
 						);
-						if (productAttributeResp.ok) {
-							const productAttributeData = await productAttributeResp.json().then((data) => data[0]);
-							setItems((prevItems) => [
-								...prevItems.filter((item) => item.productId !== productTemplate.product),
-								{
-									productId: productTemplate.product,
-									name: productData.name,
-									place: productAttributeData ? productAttributeData.place : false,
-									placeOptions: productAttributeData
-										? isJSONParsable(
-												productAttributeData.place_options.replace(
-													/'/g,
-													'"'
-												) as unknown as string
-										  )
-											? JSON.parse(
+						if (productResp.ok) {
+							const productData: Product = await productResp.json();
+							const productAttributeResp = await fetch(
+								"https://pen.dataupload.xyz/product_attributes/" + productTemplate.product
+							);
+							if (productAttributeResp.ok) {
+								const productAttributeData = await productAttributeResp.json().then((data) => data[0]);
+								setItems((prevItems) => [
+									...prevItems.filter((item) => item.productId !== productTemplate.product),
+									{
+										productId: productTemplate.product,
+										name: productData.name,
+										place: productAttributeData ? productAttributeData.place : false,
+										placeOptions: productAttributeData
+											? isJSONParsable(
 													productAttributeData.place_options.replace(
 														/'/g,
 														'"'
 													) as unknown as string
 											  )
-											: []
-										: [],
-									inputValues: [{ value: "", id: 0, ammount: 0 }],
-									netPrice: productData.price_list_alapertelmezett_net_price_huf,
-									adatlap: felmeres.adatlap_id,
-									sku: productData.sku,
-								},
-							]);
+												? JSON.parse(
+														productAttributeData.place_options.replace(
+															/'/g,
+															'"'
+														) as unknown as string
+												  )
+												: []
+											: [],
+										inputValues: [{ value: "", id: 0, ammount: 0 }],
+										netPrice: productData.price_list_alapertelmezett_net_price_huf,
+										adatlap: felmeres.adatlap_id,
+										sku: productData.sku,
+									},
+								]);
+							}
 						}
-					}
-				});
-			}
-		};
-		fetchData();
+					});
+				}
+			};
+			fetchData();
+		}
 	}, []);
 
 	const TABLE_HEAD_ITEMS = ["Név", "Darab + Hely", "Nettó egység", "Nettó összesen"];
