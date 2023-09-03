@@ -1,7 +1,5 @@
 "use client";
 
-import { ColDef } from "ag-grid-community";
-import BaseComponent from "../_components/BaseComponent";
 import { Template } from "./page";
 import React from "react";
 import Input from "../_components/Input";
@@ -12,32 +10,27 @@ import { Product } from "../products/page";
 import Heading from "../_components/Heading";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { Button } from "@material-tailwind/react";
+import BaseComponentV2 from "../_components/BaseComponentV2";
+import { CustomDialog } from "../questions/_clientComponent";
 
 export default function Page({ templates, products }: { templates: Template[]; products: Product[] }) {
-	const columnDefs: ColDef[] = [
-		{ field: "name", headerName: "Név" },
-		{ field: "type", headerName: "Típus" },
-		{ field: "description", headerName: "Leírás" },
-	];
-	const [selectedRow, setSelectedRow] = React.useState<any>(0);
 	const [template, setTemplate] = React.useState<Template>({ description: "", name: "", type: "", id: 0 });
-	const [newTemplate, setNewTemplate] = React.useState<Template>({ description: "", name: "", type: "", id: 0 });
-	const [newItems, setNewItems] = React.useState<string[]>([]);
 	const [items, setItems] = React.useState<string[]>([]);
-	const [upToDateTemplates, setUpToDateTemplates] = React.useState<Template[]>(templates);
+	const [upToDateTemplates, setUpToDateTemplates] = React.useState<any[]>(templates);
+	const [isNew, setIsNew] = React.useState(false);
+	const [openDialog, setOpenDialog] = React.useState(false);
 
 	React.useEffect(() => {
-		if (selectedRow) {
-			setTemplate({ ...selectedRow[0], type: selectedRow[0].type as string });
+		if (!isNew) {
 			const fetchItems = async () => {
 				const response: { product: number; template: number }[] = await fetch(
-					`https://pen.dataupload.xyz/product_templates/${selectedRow[0].id}`
+					`https://pen.dataupload.xyz/product_templates/${template.id}/`
 				).then((res) => res.json());
 				setItems(response.map((item: { product: number }) => item.product.toString()));
 			};
 			fetchItems();
 		}
-	}, [selectedRow]);
+	}, [template]);
 
 	const createTemplate = async () => {
 		const templateResponse = await fetch("https://pen.dataupload.xyz/templates/", {
@@ -45,10 +38,10 @@ export default function Page({ templates, products }: { templates: Template[]; p
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify(newTemplate),
+			body: JSON.stringify(template),
 		}).then((res) => res.json());
 		await Promise.all(
-			newItems.map(
+			items.map(
 				async (item) =>
 					await fetch("https://pen.dataupload.xyz/product_templates/", {
 						method: "POST",
@@ -60,19 +53,20 @@ export default function Page({ templates, products }: { templates: Template[]; p
 			)
 		);
 		setUpToDateTemplates([...upToDateTemplates, templateResponse]);
-		setNewItems([]);
-		setNewTemplate({ description: "", name: "", type: "", id: 0 });
+		setItems([]);
+		setTemplate({ description: "", name: "", type: "", id: 0 });
+		await fetch("/api/revalidate?tag=templates");
 	};
 	const deleteTemplate = async () => {
-		const response = await fetch(`https://pen.dataupload.xyz/templates/${selectedRow[0].id}/`, {
+		const response = await fetch(`https://pen.dataupload.xyz/templates/${template.id}/`, {
 			method: "DELETE",
 		});
 		if (response.ok) {
-			setUpToDateTemplates(templates.filter((template) => template.id !== selectedRow[0].id));
-			setSelectedRow(0);
+			setUpToDateTemplates(templates.filter((oldTemplates) => oldTemplates.id !== template.id));
+			setOpenDialog(false);
+			await fetch("/api/revalidate?tag=templates");
 		}
 	};
-
 	const updateTemplate = async () => {
 		const response = await fetch(`https://pen.dataupload.xyz/templates/${template.id}/`, {
 			method: "PUT",
@@ -90,51 +84,58 @@ export default function Page({ templates, products }: { templates: Template[]; p
 			body: JSON.stringify(items),
 		});
 		if (response.ok) {
-			setUpToDateTemplates(
-				upToDateTemplates.map((template) => (template.id === selectedRow[0].id ? template : template))
-			);
-			setSelectedRow(0);
+			await fetch("/api/revalidate?tag=templates");
+			setUpToDateTemplates((prev) => {
+				const index = prev.findIndex((item) => item.id === template.id);
+				const newArr = [...prev];
+				newArr[index] = {
+					...template,
+					truncatedDescription:
+						template.description.substring(0, 35) + (template.description.length > 35 ? "..." : ""),
+				};
+				return newArr;
+			});
 		}
 	};
 
 	return (
-		<BaseComponent
-			title='Sablonok'
-			columnDefs={columnDefs}
-			onDelete={deleteTemplate}
-			selectedRow={selectedRow}
-			data={upToDateTemplates}
-			filterType='template'
-			setSelectedRow={setSelectedRow}
-			onCreate={createTemplate}
-			onCancelCreate={() => {
-				setTemplate({ description: "", name: "", type: "", id: 0 });
-				setItems([]);
-			}}
-			createForm={
-				<CreateForm
-					template={newTemplate}
-					setTemplate={setNewTemplate}
-					products={products}
-					items={newItems}
-					setItems={setNewItems}
-				/>
-			}
-			updateForm={
-				<CreateForm
-					template={template}
-					setTemplate={setTemplate}
-					products={products}
+		<>
+			<BaseComponentV2
+				createButtonTitle='Új sablon'
+				data={upToDateTemplates}
+				editType='dialog'
+				itemContent={{ title: "name", subtitle: "type", subtitle2: "truncatedDescription", id: "id" }}
+				title='Sablonok'
+				onCreateNew={() => {
+					setOpenDialog(true);
+					setIsNew(true);
+				}}
+				onEditItem={(item) => {
+					setTemplate(item);
+					setOpenDialog(true);
+					setIsNew(false);
+				}}
+			/>
+			<CustomDialog
+				open={openDialog}
+				handler={() => setOpenDialog(!openDialog)}
+				title={!isNew ? template.name : "Új sablon"}
+				onDelete={!isNew ? deleteTemplate : undefined}
+				onSave={!isNew ? updateTemplate : createTemplate}
+				onCancel={() => setTemplate({ description: "", name: "", type: "", id: 0 })}>
+				<Form
 					items={items}
+					products={products}
 					setItems={setItems}
+					setTemplate={setTemplate}
+					template={template}
 				/>
-			}
-			onUpdate={updateTemplate}
-		/>
+			</CustomDialog>
+		</>
 	);
 }
 
-function CreateForm({
+function Form({
 	template,
 	setTemplate,
 	products,

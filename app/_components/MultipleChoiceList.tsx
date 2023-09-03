@@ -6,9 +6,11 @@ import React from "react";
 export default function MultipleChoiceCombobox({
 	onChange,
 	options,
+	value,
 }: {
 	onChange: (value: string[]) => void;
 	options: { label: string; value: string }[];
+	value?: string[];
 }) {
 	return (
 		<CreatableSelect
@@ -18,6 +20,7 @@ export default function MultipleChoiceCombobox({
 			options={options}
 			placeholder='Válassz'
 			isMulti
+			value={Array.isArray(value) ? value.map((e) => ({ label: e, value: e })) : undefined}
 		/>
 	);
 }

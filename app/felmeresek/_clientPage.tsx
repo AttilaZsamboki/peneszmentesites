@@ -1,12 +1,6 @@
 "use client";
-import StackedList from "../_components/StackedList";
-import Heading from "../_components/Heading";
 import React from "react";
-import Link from "next/link";
-import { Button } from "@material-tailwind/react";
-import { AdatlapDetails } from "../_utils/MiniCRM";
-import { BaseFelmeresData } from "./new/_clientPage";
-import { Template } from "../templates/page";
+import BaseComponentV2 from "../_components/BaseComponentV2";
 
 export interface Filter {
 	id: number;
@@ -14,25 +8,23 @@ export interface Filter {
 	searchField: string;
 }
 
-export default function ClientPage({
-	felmeresek,
-	adatlapok,
-	templates,
-}: {
-	felmeresek: BaseFelmeresData[];
-	adatlapok: AdatlapDetails[];
-	templates: Template[];
-}) {
+export default function ClientPage({ allData }: { allData: any }) {
 	return (
-		<main className='flex min-h-screen flex-col items-center justify-start w-full'>
-			<Heading width='w-2/3' title='Felmérések' variant='h2'>
-				<Link href={"/felmeresek/new"}>
-					<div className='flex flex-row justify-start w-full relative z-50 items-center pr-10 gap-3'>
-						<Button className='w-40'>Új felmérés</Button>
-					</div>
-				</Link>
-			</Heading>
-			<StackedList adatlapok={adatlapok} felmeresek={felmeresek} templates={templates} />
-		</main>
+		<BaseComponentV2
+			title='Felmérések'
+			editHref='/felmeresek/'
+			editType='link'
+			createButtonTitle='Új felmérés'
+			createPath='/felmeresek/new'
+			data={allData}
+			itemContent={{
+				id: "Id",
+				title: "Name",
+				subtitle: "TeljesCim",
+				subtitle2: "FelmeresTipus",
+				subtitle3: "Felmero2",
+				imgSrc: "IngatlanKepe",
+			}}
+		/>
 	);
 }

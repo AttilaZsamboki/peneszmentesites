@@ -28,7 +28,7 @@ export default function Heading({
 					} lg:justify-between text-center`}>
 					<Typography
 						variant={variant}
-						className={`font-semibold text-gradient-to-tr from-gray-900 to-gray-800 lg:my-0  text-left`}>
+						className={`font-semibold text-gradient-to-tr from-gray-900 to-gray-800 lg:my-0 text-left`}>
 						{title}
 					</Typography>
 				</div>

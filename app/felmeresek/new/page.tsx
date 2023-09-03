@@ -1,7 +1,7 @@
 import { Template } from "@/app/templates/page";
 import ClientPage from "./_clientPage";
 import { Product } from "@/app/products/page";
-import { ProductAttributes } from "@/app/products/[id]/page";
+import { ProductAttributes } from "@/app/products/_clientPage";
 
 export interface Adatlap {
 	Count: number;

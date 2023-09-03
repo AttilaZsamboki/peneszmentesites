@@ -3,33 +3,62 @@ import Link from "next/link";
 import React from "react";
 import autoAnimate from "@formkit/auto-animate";
 import { Card, CardBody } from "@material-tailwind/react";
-import { AdatlapDetails } from "../_utils/MiniCRM";
-import { BaseFelmeresData } from "../felmeresek/new/_clientPage";
-import { Template } from "../templates/page";
+import { Filter } from "../products/page";
+import { DefaultPagination } from "./Pagination";
+import { useRouter, useSearchParams } from "next/navigation";
+
+export interface ItemContent {
+	title: string;
+	subtitle: string;
+	subtitle2: string;
+	subtitle3?: string;
+	imgSrc?: string;
+	id: string;
+}
 
 export default function StackedList({
-	adatlapok,
-	felmeresek,
-	detailsHref = "felmeresek",
-	templates,
+	data,
+	editType,
+	editHref,
+	itemContent,
+	search,
+	setSearch,
+	onEditItem,
+	pagination,
 }: {
-	adatlapok: AdatlapDetails[];
-	felmeresek: BaseFelmeresData[];
-	detailsHref?: string;
-	templates: Template[];
+	data: any[];
+	editType: "link" | "dialog";
+	editHref?: string;
+	itemContent: ItemContent;
+	search: Filter;
+	setSearch: React.Dispatch<React.SetStateAction<Filter>>;
+	onEditItem?: (item: any) => void;
+	pagination: { numPages: number };
 }) {
 	const parent = React.useRef<HTMLUListElement | null>(null);
+	const router = useRouter();
+	const searchParams = useSearchParams();
+
 	React.useEffect(() => {
 		if (parent.current) {
 			autoAnimate(parent.current);
 		}
 	}, [parent.current]);
-	const [search, setSearch] = React.useState("");
+	React.useEffect(() => {
+		if (pagination.numPages && search.value) {
+			router.push(`?filter=${search.value}`, { scroll: false });
+		} else if (searchParams.get("filter")) {
+			router.push(`?page=1&limit=10`, { scroll: false });
+		}
+	}, [search]);
+
+	const filteredData = data.filter((item) => JSON.stringify(item).toLowerCase().includes(search.value.toLowerCase()));
+
 	return (
 		<div className='w-2/3 flex flex-col'>
-			<div className='flex flex-row justify-between items-center mb-5'>
-				<div className='mx-auto flex w-full'>
-					<div className='relative flex items-center w-full h-12 rounded-lg focus-within:shadow-lg bg-white overflow-hidden'>
+			<div className='flex flex-row justify-between items-center mb-3 w-full gap-5 mt-5'>
+				<div className='mx-auto flex w-full rounded-md !border !border-gray-200'>
+					<div className='relative flex items-center w-full h-12 bg-white overflow-hidden'>
 						<div className='grid place-items-center h-full w-12 text-gray-300'>
 							<svg
 								xmlns='http://www.w3.org/2000/svg'
@@ -50,55 +79,126 @@ export default function StackedList({
 							className='peer h-full w-full outline-none text-sm text-gray-700 pr-2'
 							type='text'
 							id='search'
+							value={search.value}
 							placeholder='Keress valamit..'
-							onChange={(e) => setSearch(e.target.value)}
+							onChange={(e) => setSearch((prev) => ({ ...prev, value: e.target.value }))}
 						/>
 					</div>
 				</div>
 			</div>
 			<ul ref={parent} role='list' className='w-full bg-white rounded-lg flex flex-col justify-between border'>
-				{adatlapok.map((adatlap, index) => {
-					const felmeres = felmeresek.find((felmeres) => felmeres.adatlap_id === adatlap.Id)!;
-					if (
-						JSON.stringify(felmeres)
-							? JSON.stringify(felmeres).includes(search)
-							: false || JSON.stringify(adatlap)
-							? JSON.stringify(adatlap).includes(search)
-							: false
-					) {
-						return (
-							<Link href={`/${detailsHref}/` + adatlap.Id} key={adatlap.Id}>
-								<Card
-									className={`rounded-none shadow-none border-b ${
-										index === 0 ? "rounded-t-md" : ""
-									} ${index === adatlapok.length - 1 ? "rounded-b-md" : ""}`}>
-									<CardBody className='flex justify-between py-5 bg-white bg-opacity-20 transform'>
-										<div className='flex flex-row min-w-0 gap-4'>
-											<div className='min-w-0 flex-auto'>
-												<p className='text-sm font-semibold leading-6 text-gray-900'>
-													{adatlap.Name}
-												</p>
+				{filteredData
+					.sort((a, b) => a[itemContent.id] - b[itemContent.id])
+					.map((item, index) => {
+						if (editType === "link" && editHref) {
+							return (
+								<Link href={editHref + item[itemContent.id]} key={index}>
+									<Card
+										className={`rounded-none shadow-none border-b ${
+											index === 0 ? "rounded-t-md" : ""
+										} ${index === data.length - 1 ? "rounded-b-md" : ""}`}>
+										<CardBody className='flex justify-between py-5 bg-white bg-opacity-20 transform'>
+											<div className='flex flex-row min-w-0 gap-4'>
+												{itemContent.imgSrc ? (
+													<img
+														className='h-12 w-12 flex-none rounded-full bg-gray-50'
+														src={item[itemContent.imgSrc]}
+														alt='kep'
+													/>
+												) : null}
+												<div className='min-w-0 flex-auto'>
+													<p className='text-sm font-semibold leading-6 text-gray-900'>
+														{item[itemContent.title]}
+													</p>
 
-												<p className='mt-1 truncate text-xs leading-5 text-gray-500'>
-													{adatlap.Cim2} {adatlap.Telepules} {adatlap.Iranyitoszam}{" "}
-													{adatlap.Orszag}
-												</p>
+													<p className='mt-1 truncate text-xs leading-5 text-gray-500'>
+														{item[itemContent.subtitle]}
+													</p>
+												</div>
 											</div>
-										</div>
-										<div className='hidden shrink-0 sm:flex sm:flex-col sm:items-end'>
-											<p className='text-sm leading-6 text-gray-900'>
-												{felmeres.type} -{" "}
-												{templates.find((template) => template.id === felmeres.template)?.name}
-											</p>
-											<p className='mt-1 text-xs leading-5 text-gray-500'>{adatlap.Felmero2}</p>
-										</div>
-									</CardBody>
-								</Card>
-							</Link>
-						);
-					}
-				})}
+											<div className='hidden shrink-0 sm:flex sm:flex-col sm:items-end'>
+												<p className='text-sm leading-6 text-gray-900'>
+													{item[itemContent.subtitle2]}
+												</p>
+												{itemContent.subtitle3 ? (
+													<p className='mt-1 text-xs leading-5 text-gray-500'>
+														{item[itemContent.subtitle3]}
+													</p>
+												) : null}
+											</div>
+										</CardBody>
+									</Card>
+								</Link>
+							);
+						} else if (editType === "dialog") {
+							return (
+								<DialogItem
+									key={index}
+									data={data}
+									index={index}
+									item={item}
+									itemContent={itemContent}
+									onEditItem={onEditItem}
+								/>
+							);
+						}
+					})}
 			</ul>
+			{pagination.numPages ? (
+				<div className='flex flex-row w-full justify-center mt-5'>
+					<DefaultPagination
+						numPages={pagination.numPages}
+						onPageChange={(page) => {
+							router.push(`?page=${page}&limit=10`, { scroll: false });
+						}}
+					/>
+				</div>
+			) : null}
 		</div>
+	);
+}
+
+function DialogItem({
+	index,
+	data,
+	item,
+	itemContent,
+	onEditItem,
+}: {
+	index: number;
+	data: any[];
+	item: any;
+	itemContent: ItemContent;
+	onEditItem?: (item: any) => void;
+}) {
+	return (
+		<Card
+			className={`rounded-none shadow-none border-b cursor-pointer ${index === 0 ? "rounded-t-md" : ""} ${
+				index === data.length - 1 ? "rounded-b-md" : ""
+			}`}
+			onClick={() => (onEditItem ? onEditItem(item) : null)}>
+			<CardBody className='flex justify-between py-5 bg-white bg-opacity-20 transform'>
+				<div className='flex flex-row min-w-0 gap-4'>
+					{itemContent.imgSrc ? (
+						<img
+							className='h-12 w-12 flex-none rounded-full bg-gray-50'
+							src={item[itemContent.imgSrc]}
+							alt='kep'
+						/>
+					) : null}
+					<div className='min-w-0 flex-auto'>
+						<p className='text-sm font-semibold leading-6 text-gray-900'>{item[itemContent.title]}</p>
+
+						<p className='mt-1 truncate text-xs leading-5 text-gray-500'>{item[itemContent.subtitle]}</p>
+					</div>
+				</div>
+				<div className='hidden shrink-0 sm:flex sm:flex-col sm:items-end'>
+					<p className='text-sm leading-6 text-gray-900'>{item[itemContent.subtitle2]}</p>
+					{itemContent.subtitle3 ? (
+						<p className='mt-1 text-xs leading-5 text-gray-500'>{item[itemContent.subtitle3]}</p>
+					) : null}
+				</div>
+			</CardBody>
+		</Card>
 	);
 }

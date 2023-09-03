@@ -17,7 +17,7 @@ import { GridOptions } from "../page";
 import { Grid } from "@/app/_components/Grid";
 import FileUpload from "@/app/_components/FileUpload";
 import { useRouter } from "next/navigation";
-import { ProductAttributes } from "@/app/products/[id]/page";
+import { ProductAttributes } from "@/app/products/_clientPage";
 import { ToDo, assembleOfferXML, fetchMiniCRM, list_to_dos } from "@/app/_utils/MiniCRM";
 import { useSearchParams } from "next/navigation";
 import Select from "@/app/_components/Select";

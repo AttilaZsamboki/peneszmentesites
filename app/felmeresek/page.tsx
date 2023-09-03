@@ -23,7 +23,7 @@ export interface FelmeresQuestions {
 }
 
 export default async function Home() {
-	const data = await fetch("https://pen.dataupload.xyz/felmeresek", { cache: "no-cache" });
+	const data = await fetch("https://pen.dataupload.xyz/felmeresek", { next: { tags: ["felmeresek"] } });
 	if (data.ok) {
 		const felmeresek: BaseFelmeresData[] = await data.json();
 		const adatlapok: AdatlapDetails[] = await Promise.all(
@@ -38,8 +38,21 @@ export default async function Home() {
 					.catch((err) => console.log(err))
 			)
 		);
+		const allData = felmeresek.map((felmeres) => ({
+			...adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id),
+			...felmeres,
+			...templates.find((template) => template.id === felmeres.template),
+			TeljesCim: `${adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)?.Cim2} ${
+				adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)?.Telepules
+			} ${adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)?.Iranyitoszam} ${
+				adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)?.Orszag
+			}`,
+			FelmeresTipus: `${felmeres.type} - ${
+				templates.find((template) => template.id === felmeres.template)?.name
+			}`,
+		}));
 
-		return <ClientPage felmeresek={felmeresek} adatlapok={adatlapok} templates={templates} />;
+		return <ClientPage allData={allData} />;
 	} else {
 		return (
 			<main className='flex min-h-screen flex-col items-center justify-start p-2'>

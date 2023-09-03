@@ -1,16 +1,27 @@
 "use client";
-import { Checkbox, Option, Select } from "@material-tailwind/react";
+import {
+	Button,
+	Card,
+	CardBody,
+	CardFooter,
+	CardHeader,
+	Checkbox,
+	Dialog,
+	Option,
+	Select,
+	Typography,
+} from "@material-tailwind/react";
 import AutoComplete from "../_components/AutoComplete";
 import Input from "../_components/Input";
-import BaseComponent from "../_components/BaseComponent";
 import { Product } from "../products/page";
-import { Question } from "./page";
+import { Question, typeMap } from "./page";
 import React from "react";
+import BaseComponentV2 from "../_components/BaseComponentV2";
+
 import MultipleChoiceCombobox from "../_components/MultipleChoiceList";
 import Counter from "../_components/Counter";
-import { ColDef, ValueGetterParams } from "ag-grid-community";
-
-export default function ClientComponent({ data, products }: { data: Question[]; products: Product[] }) {
+import { TrashIcon } from "@heroicons/react/20/solid";
+export default function ClientComponent({ data, products }: { data: any; products: Product[] }) {
 	const [question, setQuestion] = React.useState<Question>({
 		question: "",
 		id: 0,
@@ -19,14 +30,9 @@ export default function ClientComponent({ data, products }: { data: Question[]; 
 		connection: "",
 		mandatory: false,
 	});
-	const [upToDateData, setUpToDateData] = React.useState<Question[]>(data);
-	const [selectedRow, setSelectedRow] = React.useState<any>(null);
-
-	React.useEffect(() => {
-		if (selectedRow) {
-			setQuestion(selectedRow[0]);
-		}
-	}, [selectedRow]);
+	const [openDialog, setOpenDialog] = React.useState(false);
+	const [allQuestions, setAllQuestions] = React.useState<any[]>(data);
+	const [isNew, setIsNew] = React.useState(false);
 
 	const createQuestion = async () => {
 		const response = await fetch("https://pen.dataupload.xyz/questions/", {
@@ -37,75 +43,129 @@ export default function ClientComponent({ data, products }: { data: Question[]; 
 			body: JSON.stringify(question),
 		});
 		if (response.ok) {
-			setUpToDateData((prev) => [...prev, question]);
 			setQuestion({ question: "", id: 0, type: "", options: "{}", connection: "", product: 0, mandatory: false });
+			setAllQuestions((prev) => [
+				...prev,
+				{
+					...question,
+					subtitle:
+						question.connection === "Fix"
+							? "Fix"
+							: products.find((product) => product.id === question.product)?.sku +
+									" - " +
+									(products
+										.find((product) => product.id === question.product)
+										?.name.substring(0, 25) +
+										((
+											products.find((product) => product.id === question.product)
+												? products.find((product) => product.id === question.product)!.name
+														.length > 25
+												: false
+										)
+											? "..."
+											: "")) ||
+							  "" ||
+							  "",
+					subtitle2: (typeMap as any)[question.type] || "Nincs típus",
+					isMandatory: question.mandatory ? "Kötelező" : "Nem kötelező",
+				},
+			]);
+			setOpenDialog(false);
+			await fetch("/api/revalidate?tag=questions");
 		}
 	};
 
-	const typeMap = {
-		TEXT: "Szöveg",
-		LIST: "Lista",
-		MULTIPLE_CHOICE: "Több választós",
-		GRID: "Rács",
-		CHECKBOX_GRID: "Jelölőnégyzetes rács",
-		SCALE: "Skála",
-		FILE_UPLOAD: "Fájlfeltöltés",
+	const updateQuestion = async () => {
+		const response = await fetch(`https://pen.dataupload.xyz/questions/${question.id}/`, {
+			method: "PUT",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(question),
+		});
+		if (response.ok) {
+			await fetch("/api/revalidate?tag=questions");
+			setAllQuestions((prev) => {
+				const index = prev.findIndex((item) => item.id === question.id);
+				const newArr = [...prev];
+				newArr[index] = {
+					...question,
+					subtitle:
+						question.connection === "Fix"
+							? "Fix"
+							: products.find((product) => product.id === question.product)?.sku +
+									" - " +
+									(products
+										.find((product) => product.id === question.product)
+										?.name.substring(0, 25) +
+										((
+											products.find((product) => product.id === question.product)
+												? products.find((product) => product.id === question.product)!.name
+														.length > 25
+												: false
+										)
+											? "..."
+											: "")) ||
+							  "" ||
+							  "",
+					subtitle2: (typeMap as any)[question.type] || "Nincs típus",
+					isMandatory: question.mandatory ? "Kötelező" : "Nem kötelező",
+				};
+				return newArr;
+			});
+		}
 	};
-	const columnDefs: ColDef[] = [
-		{ field: "question", headerName: "Kérdés" },
-		{
-			field: "type",
-			headerName: "Típus",
-			valueGetter: (params: ValueGetterParams) => typeMap[params.data.type as keyof typeof typeMap],
-		},
-		{ field: "connection", headerName: "Kapcsolat" },
-		{
-			headerName: "Termék",
-			valueGetter: (params: ValueGetterParams) =>
-				products.find((product) => product.id === params.data.product)?.name,
-		},
-		{
-			headerName: "Kötelező",
-			valueGetter: (params: ValueGetterParams) => (params.data.mandatory ? "Igen" : "Nem"),
-		},
-	];
+	const deleteQuestion = async () => {
+		const response = await fetch(`https://pen.dataupload.xyz/questions/${question.id}/`, {
+			method: "DELETE",
+		});
+		if (response.ok) {
+			await fetch("/api/revalidate?tag=questions");
+			setAllQuestions((prev) => prev.filter((item) => item.id !== question.id));
+			setOpenDialog(false);
+		}
+	};
 
 	return (
-		<BaseComponent
-			filterType='question'
-			data={upToDateData}
-			createForm={<CreateForm question={question} setQuestion={setQuestion} products={products} />}
-			selectedRow={selectedRow}
-			onCreate={createQuestion}
-			updateForm={<CreateForm question={question} setQuestion={setQuestion} products={products} />}
-			onUpdate={async () => {
-				const response = await fetch(`https://pen.dataupload.xyz/questions/${question.id}/`, {
-					method: "PUT",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify(question),
-				});
-				if (response.ok) {
-					setUpToDateData((prev) => prev.map((q) => (q.id === question.id ? question : q)));
-				}
-			}}
-			setSelectedRow={setSelectedRow}
-			title='Kérdések'
-			columnDefs={columnDefs}
-			onDelete={async () => {
-				const response = await fetch(`https://pen.dataupload.xyz/questions/${question.id}/`, {
-					method: "DELETE",
-				});
-				if (response.ok) {
-					setUpToDateData((prev) => prev.filter((q) => q.id !== question.id));
-				}
-			}}
-		/>
+		<>
+			<BaseComponentV2
+				title='Kérdések'
+				createButtonTitle='Új kérdés'
+				data={allQuestions}
+				editType='dialog'
+				itemContent={{
+					id: "id",
+					title: "question",
+					subtitle2: "subtitle",
+					subtitle: "subtitle2",
+					subtitle3: "isMandatory",
+				}}
+				onEditItem={(item) => {
+					setQuestion(item);
+					setOpenDialog(true);
+					setIsNew(false);
+				}}
+				onCreateNew={() => {
+					setOpenDialog(true);
+					setIsNew(true);
+				}}
+			/>
+			<CustomDialog
+				open={openDialog}
+				handler={() => setOpenDialog(!openDialog)}
+				title={!isNew ? question.question : "Új kérdés"}
+				onDelete={!isNew ? deleteQuestion : undefined}
+				onSave={!isNew ? updateQuestion : createQuestion}
+				onCancel={() =>
+					setQuestion({ question: "", id: 0, type: "", options: "{}", connection: "", mandatory: false })
+				}>
+				<QuestionForm question={question} setQuestion={setQuestion} products={products} />
+			</CustomDialog>
+		</>
 	);
 }
 
-function CreateForm({
+function QuestionForm({
 	question,
 	setQuestion,
 	products,
@@ -139,7 +199,11 @@ function CreateForm({
 					/>
 				</div>
 			) : null}
-			<Select color='gray' label='Típus' onChange={(e) => setQuestion((prev) => ({ ...prev, type: e || "" }))}>
+			<Select
+				color='gray'
+				label='Típus'
+				value={question.type}
+				onChange={(e) => setQuestion((prev) => ({ ...prev, type: e || "" }))}>
 				<Option value='TEXT'>Szöveg</Option>
 				<Option value='LIST'>Lista</Option>
 				<Option value='MULTIPLE_CHOICE'>Több választós</Option>
@@ -177,6 +241,7 @@ function OptionChooser({
 				<MultipleChoiceCombobox
 					options={[]}
 					onChange={(e) => setQuestion((prev) => ({ ...prev, options: e }))}
+					value={options}
 				/>
 			</div>
 		);
@@ -186,6 +251,7 @@ function OptionChooser({
 				<div className='text-sm'>Oszlopok</div>
 				<MultipleChoiceCombobox
 					options={[]}
+					value={options.columns}
 					onChange={(e) =>
 						setQuestion((prev) => ({ ...prev, options: { columns: e, rows: prev.options.rows } }))
 					}
@@ -193,6 +259,7 @@ function OptionChooser({
 				<div className='text-sm'>Sorok</div>
 				<MultipleChoiceCombobox
 					options={[]}
+					value={options.rows}
 					onChange={(e) =>
 						setQuestion((prev) => ({ ...prev, options: { rows: e, columns: prev.options.columns } }))
 					}
@@ -225,4 +292,62 @@ function OptionChooser({
 			</div>
 		);
 	}
+}
+
+export function CustomDialog({
+	open,
+	handler,
+	children,
+	onSave,
+	title,
+	onCancel,
+	onDelete,
+}: {
+	open: boolean;
+	handler: () => void;
+	children: React.ReactNode;
+	onSave?: () => void;
+	title: string;
+	onCancel?: () => void;
+	onDelete?: () => void;
+}) {
+	return (
+		<Dialog size='lg' open={open} handler={handler} className='bg-transparent shadow-none'>
+			<Card className='mx-auto w-full max-w-full max-h-[70%]'>
+				<CardHeader variant='gradient' color='gray' className='mb-4 pl-4 grid h-28 place-items-center '>
+					<div className='flex flex-row w-full items-center justify-between px-20'>
+						<Typography variant='h4' color='white' className='text-left'>
+							{title}
+						</Typography>
+						{onDelete ? (
+							<Button onClick={onDelete}>
+								<TrashIcon className='w-7 h-7 text-red-700' />
+							</Button>
+						) : null}
+					</div>
+				</CardHeader>
+				<CardBody className='flex flex-col gap-4 overflow-y-scroll h-[70%]'>{children}</CardBody>
+				<CardFooter>
+					<div className='flex flex-row justify-end w-full gap-5'>
+						<Button
+							color='green'
+							onClick={() => {
+								onSave ? onSave() : {};
+								handler();
+							}}>
+							Mentés
+						</Button>
+						<Button
+							variant='outlined'
+							onClick={() => {
+								handler();
+								onCancel ? onCancel() : {};
+							}}>
+							Mégsem
+						</Button>
+					</div>
+				</CardFooter>
+			</Card>
+		</Dialog>
+	);
 }

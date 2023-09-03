@@ -1,23 +1,40 @@
 "use client";
-import BaseComponent from "../_components/BaseComponent";
+import { hufFormatter } from "../felmeresek/[id]/_clientPage";
+import BaseComponentV2 from "../_components/BaseComponentV2";
 import MultipleChoiceCombobox from "../_components/MultipleChoiceList";
-import { ProductAttributes } from "./[id]/page";
-import { Checkbox, Typography, select } from "@material-tailwind/react";
+import { Checkbox, Typography } from "@material-tailwind/react";
 import React from "react";
+import { Product } from "./page";
+import { CustomDialog } from "../questions/_clientComponent";
 
-export default function ClientPage({ data, title, columnDefs }: { data: any[]; title: string; columnDefs: any[] }) {
-	const [selectedRow, setSelectedRow] = React.useState<any>(null);
+export interface ProductAttributes {
+	id?: number;
+	product_id?: number;
+	place: boolean;
+	place_options: string[];
+	product?: number;
+}
+
+export default function ClientPage({ data }: { data: { count: number; results: Product[] } }) {
 	const [attributeData, setAttributeData] = React.useState<ProductAttributes>({
 		id: 0,
 		place_options: [],
-		product_id: 0,
+		product: 0,
 		place: false,
 	});
+	const [productData, setProductData] = React.useState<Product>({
+		id: 0,
+		name: "",
+		sku: "",
+		type: "",
+		price_list_alapertelmezett_net_price_huf: 0,
+	});
+	const [open, setOpen] = React.useState(false);
 
 	React.useEffect(() => {
-		if (selectedRow) {
+		if (productData.id !== 0) {
 			const fetchAttributes = async () => {
-				const resp = await fetch(`https://pen.dataupload.xyz/product_attributes/${selectedRow[0].id}`);
+				const resp = await fetch(`https://pen.dataupload.xyz/product_attributes/${productData.id}`);
 				if (resp.ok) {
 					const data = await resp.json();
 					if (data.length) {
@@ -30,7 +47,7 @@ export default function ClientPage({ data, title, columnDefs }: { data: any[]; t
 					} else {
 						setAttributeData({
 							place_options: [],
-							product_id: 0,
+							product: productData.id,
 							place: false,
 						});
 					}
@@ -38,13 +55,12 @@ export default function ClientPage({ data, title, columnDefs }: { data: any[]; t
 			};
 			fetchAttributes();
 		}
-	}, [selectedRow]);
+	}, [productData]);
 
 	const submitChanges = async () => {
 		const payload = JSON.stringify({
 			...attributeData,
 			place_options: JSON.stringify(attributeData.place_options).replace("[", "{").replace("]", "}"),
-			product: selectedRow[0].id,
 		});
 		if (!attributeData.id) {
 			await fetch("https://pen.dataupload.xyz/product_attributes", {
@@ -65,22 +81,52 @@ export default function ClientPage({ data, title, columnDefs }: { data: any[]; t
 		}
 		await fetch("/api/revalidate?tag=product-attributes");
 	};
+
 	return (
-		<div className='w-full flex flex-col justify-center items-center'>
-			<BaseComponent
-				data={data}
-				title={title}
-				columnDefs={columnDefs}
-				selectedRow={selectedRow}
-				filterType='product'
-				updateForm={<UpdateForm attributeData={attributeData} setAttributeData={setAttributeData} />}
-				onUpdate={submitChanges}
-				setSelectedRow={setSelectedRow}
+		<>
+			<BaseComponentV2
+				data={data.results.map((data) => ({
+					...data,
+					priceStr: hufFormatter.format(data.price_list_alapertelmezett_net_price_huf),
+				}))}
+				editType='dialog'
+				itemContent={{
+					id: "id",
+					subtitle: "name",
+					title: "sku",
+					subtitle2: "priceStr",
+					subtitle3: "type",
+				}}
+				title='Termékek'
+				onEditItem={(item) => {
+					setOpen(true);
+					setProductData(item);
+					setAttributeData((prev) => ({ ...prev }));
+				}}
+				pagination={{
+					numPages: Math.ceil(data.count / 10),
+				}}
 			/>
-		</div>
+			<CustomDialog
+				handler={() => setOpen(!open)}
+				open={open}
+				title={productData.name}
+				onCancel={() => {
+					setOpen(false);
+					setProductData({
+						id: 0,
+						name: "",
+						sku: "",
+						type: "",
+						price_list_alapertelmezett_net_price_huf: 0,
+					});
+				}}
+				onSave={submitChanges}>
+				<UpdateForm attributeData={attributeData} setAttributeData={setAttributeData} />
+			</CustomDialog>
+		</>
 	);
 }
-
 function UpdateForm({
 	attributeData,
 	setAttributeData,

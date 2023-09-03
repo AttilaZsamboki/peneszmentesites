@@ -1,4 +1,3 @@
-import { ProductAttributes } from "../products/[id]/page";
 import { Product } from "../products/page";
 import ClientPage from "./_clientPage";
 
@@ -10,11 +9,20 @@ export interface Template {
 }
 
 export default async function Page() {
-	const templates = await fetch("https://pen.dataupload.xyz/templates", { cache: "no-cache" }).then((resp) =>
-		resp.json()
+	const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates", {
+		next: { tags: ["templates"] },
+	}).then((resp) => resp.json());
+	const products: Product[] = await fetch("https://pen.dataupload.xyz/products", {
+		next: { tags: ["products"] },
+	}).then((resp) => resp.json());
+	return (
+		<ClientPage
+			templates={templates.map((template) => ({
+				...template,
+				truncatedDescription:
+					template.description.substring(0, 35) + (template.description.length > 35 ? "..." : ""),
+			}))}
+			products={products}
+		/>
 	);
-	const products: Product[] = await fetch("https://pen.dataupload.xyz/products", { cache: "no-cache" }).then((resp) =>
-		resp.json()
-	);
-	return <ClientPage templates={templates} products={products} />;
 }
