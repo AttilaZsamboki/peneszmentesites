@@ -14,7 +14,8 @@ import {
 import AutoComplete from "../_components/AutoComplete";
 import Input from "../_components/Input";
 import { Product } from "../products/page";
-import { Question, typeMap } from "./page";
+import { Question } from "./page";
+import { typeMap } from "../_utils/utils";
 import React from "react";
 import BaseComponentV2 from "../_components/BaseComponentV2";
 

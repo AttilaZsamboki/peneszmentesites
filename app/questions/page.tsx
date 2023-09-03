@@ -1,5 +1,6 @@
 import { Product } from "../products/page";
 import Questions from "./_clientComponent";
+import { typeMap } from "../_utils/utils";
 
 export interface Question {
 	id: number;
@@ -10,15 +11,6 @@ export interface Question {
 	product?: number;
 	mandatory: boolean;
 }
-export const typeMap = {
-	TEXT: "Szöveg",
-	LIST: "Lista",
-	MULTIPLE_CHOICE: "Több választós",
-	GRID: "Rács",
-	CHECKBOX_GRID: "Jelölőnégyzetes rács",
-	SCALE: "Skála",
-	FILE_UPLOAD: "Fájlfeltöltés",
-};
 
 export default async function QuestionsFetch() {
 	const response = await fetch("https://pen.dataupload.xyz/questions", { next: { tags: ["questions"] } });
