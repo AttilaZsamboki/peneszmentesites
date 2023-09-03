@@ -825,57 +825,48 @@ function Page2({
 													}))}
 												value={items.find((item) => item.productId === 0)?.name || ""}
 												onChange={(value) => {
-													setItems((prev) =>
-														prev.length
-															? [
-																	...prev.filter(
-																		(item) => item.productId.toString() !== value
-																	),
-																	{
-																		...prev[prev.length - 1],
-																		productId: parseInt(value),
-																		name: products.find(
-																			(product) => product.id === parseInt(value)
-																		)!.name,
-																		place: productAttributes.find(
-																			(attribute) =>
-																				attribute.product === parseInt(value)
-																		)
-																			? productAttributes.find(
-																					(attribute) =>
-																						attribute.product ===
-																						parseInt(value)
-																			  )!.place
-																			: false,
-																		inputValues: [
-																			{
-																				value: "",
-																				id: 0,
-																				ammount: 0,
-																			},
-																		],
-																		netPrice: products.find(
-																			(product) => product.id === parseInt(value)
-																		)!.price_list_alapertelmezett_net_price_huf,
-																		placeOptions: productAttributes.find(
-																			(attribute) =>
-																				attribute.product === parseInt(value)
-																		)
-																			? JSON.parse(
-																					(
-																						productAttributes.find(
-																							(attribute) =>
-																								attribute.product ===
-																								parseInt(value)
-																						)!
-																							.place_options as unknown as string
-																					).replace(/'/g, '"')
-																			  )
-																			: [],
-																	},
-															  ]
-															: [...prev]
-													);
+													setItems((prev) => [
+														...prev.filter((item) => item.productId.toString() !== value),
+														{
+															...prev[prev.length - 1],
+															adatlap: felmeres.adatlap_id,
+															productId: parseInt(value),
+															name: products.find(
+																(product) => product.id === parseInt(value)
+															)!.name,
+															place: productAttributes.find(
+																(attribute) => attribute.product === parseInt(value)
+															)
+																? productAttributes.find(
+																		(attribute) =>
+																			attribute.product === parseInt(value)
+																  )!.place
+																: false,
+															inputValues: [
+																{
+																	value: "",
+																	id: 0,
+																	ammount: 0,
+																},
+															],
+															netPrice: products.find(
+																(product) => product.id === parseInt(value)
+															)!.price_list_alapertelmezett_net_price_huf,
+															placeOptions: productAttributes.find(
+																(attribute) => attribute.product === parseInt(value)
+															)
+																? JSON.parse(
+																		(
+																			productAttributes.find(
+																				(attribute) =>
+																					attribute.product ===
+																					parseInt(value)
+																			)!.place_options as unknown as string
+																		).replace(/'/g, '"')
+																  )
+																: [],
+														},
+													]);
 												}}
 											/>
 										</td>
