@@ -5,7 +5,7 @@ import MultipleChoiceCombobox from "../_components/MultipleChoiceList";
 import { Checkbox, Typography } from "@material-tailwind/react";
 import React from "react";
 import { Product } from "./page";
-import { CustomDialog } from "../questions/_clientComponent";
+import CustomDialog from "../_components/CustomDialog";
 
 export interface ProductAttributes {
 	id?: number;

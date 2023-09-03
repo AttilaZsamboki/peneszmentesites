@@ -1,16 +1,5 @@
 "use client";
-import {
-	Button,
-	Card,
-	CardBody,
-	CardFooter,
-	CardHeader,
-	Checkbox,
-	Dialog,
-	Option,
-	Select,
-	Typography,
-} from "@material-tailwind/react";
+import { Checkbox, Option, Select } from "@material-tailwind/react";
 import AutoComplete from "../_components/AutoComplete";
 import Input from "../_components/Input";
 import { Product } from "../products/page";
@@ -21,7 +10,8 @@ import BaseComponentV2 from "../_components/BaseComponentV2";
 
 import MultipleChoiceCombobox from "../_components/MultipleChoiceList";
 import Counter from "../_components/Counter";
-import { TrashIcon } from "@heroicons/react/20/solid";
+import CustomDialog from "../_components/CustomDialog";
+
 export default function ClientComponent({ data, products }: { data: any; products: Product[] }) {
 	const [question, setQuestion] = React.useState<Question>({
 		question: "",
@@ -153,6 +143,12 @@ export default function ClientComponent({ data, products }: { data: any; product
 			/>
 			<CustomDialog
 				open={openDialog}
+				disabledSubmit={
+					question.question === "" ||
+					question.type === "" ||
+					question.connection === "" ||
+					(!["TEXT", "FILE_UPLOAD"].includes(question.type) ? question.options === "{}" : false)
+				}
 				handler={() => setOpenDialog(!openDialog)}
 				title={!isNew ? question.question : "Új kérdés"}
 				onDelete={!isNew ? deleteQuestion : undefined}
@@ -204,7 +200,9 @@ function QuestionForm({
 				color='gray'
 				label='Típus'
 				value={question.type}
-				onChange={(e) => setQuestion((prev) => ({ ...prev, type: e || "" }))}>
+				onChange={(e) => {
+					setQuestion((prev) => ({ ...prev, type: e || "" }));
+				}}>
 				<Option value='TEXT'>Szöveg</Option>
 				<Option value='LIST'>Lista</Option>
 				<Option value='MULTIPLE_CHOICE'>Több választós</Option>
@@ -293,62 +291,4 @@ function OptionChooser({
 			</div>
 		);
 	}
-}
-
-export function CustomDialog({
-	open,
-	handler,
-	children,
-	onSave,
-	title,
-	onCancel,
-	onDelete,
-}: {
-	open: boolean;
-	handler: () => void;
-	children: React.ReactNode;
-	onSave?: () => void;
-	title: string;
-	onCancel?: () => void;
-	onDelete?: () => void;
-}) {
-	return (
-		<Dialog size='lg' open={open} handler={handler} className='bg-transparent shadow-none'>
-			<Card className='mx-auto w-full max-w-full max-h-[70%]'>
-				<CardHeader variant='gradient' color='gray' className='mb-4 pl-4 grid h-28 place-items-center '>
-					<div className='flex flex-row w-full items-center justify-between px-20'>
-						<Typography variant='h4' color='white' className='text-left'>
-							{title}
-						</Typography>
-						{onDelete ? (
-							<Button onClick={onDelete}>
-								<TrashIcon className='w-7 h-7 text-red-700' />
-							</Button>
-						) : null}
-					</div>
-				</CardHeader>
-				<CardBody className='flex flex-col gap-4 overflow-y-scroll h-[70%]'>{children}</CardBody>
-				<CardFooter>
-					<div className='flex flex-row justify-end w-full gap-5'>
-						<Button
-							color='green'
-							onClick={() => {
-								onSave ? onSave() : {};
-								handler();
-							}}>
-							Mentés
-						</Button>
-						<Button
-							variant='outlined'
-							onClick={() => {
-								handler();
-								onCancel ? onCancel() : {};
-							}}>
-							Mégsem
-						</Button>
-					</div>
-				</CardFooter>
-			</Card>
-		</Dialog>
-	);
 }

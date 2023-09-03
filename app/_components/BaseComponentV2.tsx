@@ -8,7 +8,7 @@ import { Filter } from "../products/page";
 import { useGlobalState } from "../_clientLayout";
 import { EllipsisVerticalIcon, PlusIcon } from "@heroicons/react/20/solid";
 import Menu from "../_components/Menu";
-import { CustomDialog } from "../questions/_clientComponent";
+import CustomDialog from "./CustomDialog";
 import Input from "./Input";
 import { useSearchParams } from "next/navigation";
 

@@ -11,7 +11,7 @@ import Heading from "../_components/Heading";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { Button } from "@material-tailwind/react";
 import BaseComponentV2 from "../_components/BaseComponentV2";
-import { CustomDialog } from "../questions/_clientComponent";
+import CustomDialog from "../_components/CustomDialog";
 
 export default function Page({ templates, products }: { templates: Template[]; products: Product[] }) {
 	const [template, setTemplate] = React.useState<Template>({ description: "", name: "", type: "", id: 0 });
@@ -121,6 +121,7 @@ export default function Page({ templates, products }: { templates: Template[]; p
 				handler={() => setOpenDialog(!openDialog)}
 				title={!isNew ? template.name : "Új sablon"}
 				onDelete={!isNew ? deleteTemplate : undefined}
+				disabledSubmit={!template.name || !template.type || !template.description || !items.length}
 				onSave={!isNew ? updateTemplate : createTemplate}
 				onCancel={() => setTemplate({ description: "", name: "", type: "", id: 0 })}>
 				<Form
