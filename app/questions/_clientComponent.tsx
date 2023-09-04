@@ -31,9 +31,10 @@ export default function ClientComponent({ data, products }: { data: any; product
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify(question),
+			body: JSON.stringify({ ...question, id: undefined, product: undefined }),
 		});
 		if (response.ok) {
+			const data = await response.json();
 			setQuestion({ question: "", id: 0, type: "", options: "{}", connection: "", product: 0, mandatory: false });
 			setAllQuestions((prev) => [
 				...prev,
@@ -59,6 +60,7 @@ export default function ClientComponent({ data, products }: { data: any; product
 							  "",
 					subtitle2: (typeMap as any)[question.type] || "Nincs típus",
 					isMandatory: question.mandatory ? "Kötelező" : "Nem kötelező",
+					id: data.id,
 				},
 			]);
 			setOpenDialog(false);
@@ -190,27 +192,26 @@ function QuestionForm({
 				<div>
 					<div>Termék</div>
 					<AutoComplete
-						value={products.find((product) => product.id === question.product)?.name || ""}
+						value={
+							(products.find((product) => product.id === question.product)?.sku || "") +
+							" - " +
+							(products.find((product) => product.id === question.product)?.name || "")
+						}
 						onChange={(e) => e && setQuestion((prev) => ({ ...prev, product: parseInt(e) }))}
-						options={products.map((product) => ({ value: product.id.toString(), label: product.name }))}
+						options={products.map((product) => ({
+							value: product.id.toString(),
+							label: product.sku + " - " + product.name,
+						}))}
 					/>
 				</div>
 			) : null}
-			<Select
-				color='gray'
-				label='Típus'
-				value={question.type}
+			<AutoComplete
 				onChange={(e) => {
 					setQuestion((prev) => ({ ...prev, type: e || "" }));
-				}}>
-				<Option value='TEXT'>Szöveg</Option>
-				<Option value='LIST'>Lista</Option>
-				<Option value='MULTIPLE_CHOICE'>Több választós</Option>
-				<Option value='GRID'>Rács</Option>
-				<Option value='CHECKBOX_GRID'>Jelölőnégyzetes rács</Option>
-				<Option value='SCALE'>Skála</Option>
-				<Option value='FILE_UPLOAD'>Fájlfeltöltés</Option>
-			</Select>
+				}}
+				options={Object.keys(typeMap).map((key) => ({ value: key, label: (typeMap as any)[key] }))}
+				value={(typeMap as any)[question.type]}
+			/>
 			<OptionChooser options={question.options} setQuestion={setQuestion} type={question.type} />
 			<Checkbox
 				checked={question.mandatory}

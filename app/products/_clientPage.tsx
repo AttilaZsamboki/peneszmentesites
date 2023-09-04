@@ -1,11 +1,13 @@
 "use client";
 import { hufFormatter } from "../felmeresek/[id]/_clientPage";
 import BaseComponentV2 from "../_components/BaseComponentV2";
-import MultipleChoiceCombobox from "../_components/MultipleChoiceList";
-import { Checkbox, Typography } from "@material-tailwind/react";
+import { Button, Checkbox } from "@material-tailwind/react";
 import React from "react";
 import { Product } from "./page";
 import CustomDialog from "../_components/CustomDialog";
+import AutoComplete from "../_components/AutoComplete";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import Heading from "../_components/Heading";
 
 export interface ProductAttributes {
 	id?: number;
@@ -110,7 +112,7 @@ export default function ClientPage({ data }: { data: { count: number; results: P
 			<CustomDialog
 				handler={() => setOpen(!open)}
 				open={open}
-				title={productData.name}
+				title={productData.sku + " - " + productData.name}
 				onCancel={() => {
 					setOpen(false);
 					setProductData({
@@ -149,19 +151,41 @@ function UpdateForm({
 			/>
 			{attributeData.place ? (
 				<div className='border-t pt-2 mt-1'>
-					<Typography className='mb-1'>Hely opciók</Typography>
-					<MultipleChoiceCombobox
-						onChange={(value) =>
-							setAttributeData((prev) => ({
-								...prev,
-								place_options: value,
-							}))
-						}
-						options={attributeData.place_options.map((option) => ({
-							value: option,
-							label: option,
-						}))}
-					/>
+					<div className='-mt-10'>
+						<Heading title='Opciók' variant='h4' />
+					</div>
+					<div className='relative bottom-10'>
+						<AutoComplete
+							onChange={(value) =>
+								setAttributeData((prev) => ({
+									...prev,
+									place_options: [...prev.place_options, value],
+								}))
+							}
+							create={true}
+							options={[]}
+						/>
+					</div>
+					<div className='flex flex-col gap-5'>
+						{attributeData.place_options.map((option, index) => (
+							<div
+								key={index}
+								className='flex flex-row w-full items-center justify-between border-b pb-2'>
+								<div>{option}</div>
+								<Button
+									size='sm'
+									color='red'
+									onClick={() =>
+										setAttributeData((prev) => ({
+											...prev,
+											place_options: prev.place_options.filter((o) => o !== option),
+										}))
+									}>
+									<XMarkIcon className='w-5 h-5 text-white' />
+								</Button>
+							</div>
+						))}
+					</div>
 				</div>
 			) : (
 				<div></div>

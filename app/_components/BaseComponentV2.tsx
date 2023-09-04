@@ -147,7 +147,8 @@ function FiltersComponent({
 		});
 		if (response.ok) {
 			handleOpenSaveFilter();
-			setSavedFilters((prev) => [...prev, filters]);
+			const data = await response.json();
+			setSavedFilters((prev) => [...prev, { ...filters, id: data.id }]);
 		}
 	};
 

@@ -179,9 +179,13 @@ function Form({
 					</div>
 					<div className='relative bottom-10'>
 						<AutoComplete
+							optionDisplayDirection='top'
 							options={products
 								.filter((product) => !items.map((item) => item).includes(product.id.toString()))
-								.map((product) => ({ label: product.name, value: product.id.toString() }))}
+								.map((product) => ({
+									label: product.sku + " - " + product.name,
+									value: product.id.toString(),
+								}))}
 							onChange={(e) => setItems([...items, e])}
 							value=''
 						/>
@@ -189,7 +193,10 @@ function Form({
 					<div className='flex flex-col gap-5'>
 						{items.map((item) => (
 							<div key={item} className='flex flex-row w-full items-center justify-between border-b pb-2'>
-								<div>{products.find((product) => product.id.toString() === item)?.name}</div>
+								<div>
+									{products.find((product) => product.id.toString() === item)?.sku} -{" "}
+									{products.find((product) => product.id.toString() === item)?.name}
+								</div>
 								<Button
 									size='sm'
 									color='red'

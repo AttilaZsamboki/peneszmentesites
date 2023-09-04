@@ -52,7 +52,12 @@ export default function StackedList({
 		}
 	}, [search]);
 
-	const filteredData = data.filter((item) => JSON.stringify(item).toLowerCase().includes(search.value.toLowerCase()));
+	const filteredData = data.filter((item) =>
+		search.value
+			.split(" ")
+			.map((searchWord: string) => JSON.stringify(item).toLowerCase().includes(searchWord.toLowerCase()))
+			.every((item: boolean) => item === true)
+	);
 
 	return (
 		<div className='w-2/3 flex flex-col'>

@@ -622,121 +622,78 @@ function Page2({
 						<tbody>
 							{items
 								.sort((a, b) => a.productId - b.productId)
-								.map(({ name, place, placeOptions: place_options, inputValues, netPrice }, index) => {
-									const isLast = index === items.length - 1;
-									const classes = isLast ? "p-4" : "p-4 border-b border-blue-gray-50";
+								.map(
+									(
+										{ name, place, placeOptions: place_options, inputValues, netPrice, sku },
+										index
+									) => {
+										const isLast = index === items.length - 1;
+										const classes = isLast ? "p-4" : "p-4 border-b border-blue-gray-50";
 
-									return (
-										<tr key={name}>
-											<td className={classes}>
-												<Typography
-													variant='small'
-													color='blue-gray'
-													className='font-normal max-w-[30rem]'>
-													{name}
-												</Typography>
-											</td>
-											{inputValues
-												.sort((a, b) => a.id - b.id)
-												.map((inputValue) => (
-													<div key={inputValue.id} className='flex flex-row'>
-														<td className={classes}>
-															<Counter
-																maxWidth='max-w-[10rem]'
-																value={inputValue.ammount}
-																onChange={(value) =>
-																	setItems([
-																		...items.filter(
-																			(i) =>
-																				i.productId !== items[index].productId
-																		),
-																		{
-																			...items[index],
-																			inputValues: [
-																				...inputValues.filter(
-																					(value) =>
-																						value.id !== inputValue.id
-																				),
-																				{ ...inputValue, ammount: value },
-																			],
-																		},
-																	])
-																}
-															/>
-														</td>
-														{place ? (
-															<td
-																className={
-																	classes + " flex flex-row w-full items-center gap-2"
-																}>
-																<div className='font-normal flex flex-col gap-2 max-w-[17rem]'>
-																	<div className='flex-row flex items-center gap-2'>
-																		<AutoComplete
-																			options={place_options
-																				.filter(
-																					(option) =>
-																						!inputValues
-																							.map((value) => value.value)
-																							.includes(option)
-																				)
-																				.map((option) => ({
-																					label: option,
-																					value: option,
-																				}))}
-																			value={inputValue.value}
-																			onChange={(e) => {
-																				setItems([
-																					...items.filter(
-																						(item) =>
-																							item.productId !==
-																							items[index].productId
+										return (
+											<tr key={name}>
+												<td className={classes}>
+													<Typography
+														variant='small'
+														color='blue-gray'
+														className='font-normal max-w-[30rem]'>
+														<span className='font-bold'>{sku}</span> - {name}
+													</Typography>
+												</td>
+												{inputValues
+													.sort((a, b) => a.id - b.id)
+													.map((inputValue) => (
+														<div key={inputValue.id} className='flex flex-row'>
+															<td className={classes}>
+																<Counter
+																	maxWidth='max-w-[10rem]'
+																	value={inputValue.ammount}
+																	onChange={(value) =>
+																		setItems([
+																			...items.filter(
+																				(i) =>
+																					i.productId !==
+																					items[index].productId
+																			),
+																			{
+																				...items[index],
+																				inputValues: [
+																					...inputValues.filter(
+																						(value) =>
+																							value.id !== inputValue.id
 																					),
-																					{
-																						...items[index],
-																						inputValues: [
-																							...inputValues.filter(
-																								(value) =>
-																									value.id !==
-																									inputValue.id
-																							),
-																							{
-																								value: e,
-																								id: inputValue.id,
-																								ammount:
-																									inputValue.ammount,
-																							},
-																						],
-																					},
-																				]);
-																			}}
-																		/>
-																		<PlusCircleIcon
-																			className='w-7 h-7 cursor-pointer'
-																			onClick={() =>
-																				setItems([
-																					...items.filter(
-																						(item) =>
-																							item.productId !==
-																							items[index].productId
-																					),
-																					{
-																						...items[index],
-																						inputValues: [
-																							...inputValues,
-																							{
-																								value: "",
-																								id: inputValues.length,
-																								ammount: 0,
-																							},
-																						],
-																					},
-																				])
-																			}
-																		/>
-																		{inputValues.length > 1 ? (
-																			<MinusCircleIcon
-																				className='w-7 h-7 cursor-pointer'
-																				onClick={() =>
+																					{ ...inputValue, ammount: value },
+																				],
+																			},
+																		])
+																	}
+																/>
+															</td>
+															{place ? (
+																<td
+																	className={
+																		classes +
+																		" flex flex-row w-full items-center gap-2"
+																	}>
+																	<div className='font-normal flex flex-col gap-2 max-w-[17rem]'>
+																		<div className='flex-row flex items-center gap-2'>
+																			<AutoComplete
+																				options={place_options
+																					.filter(
+																						(option) =>
+																							!inputValues
+																								.map(
+																									(value) =>
+																										value.value
+																								)
+																								.includes(option)
+																					)
+																					.map((option) => ({
+																						label: option,
+																						value: option,
+																					}))}
+																				value={inputValue.value}
+																				onChange={(e) => {
 																					setItems([
 																						...items.filter(
 																							(item) =>
@@ -751,49 +708,105 @@ function Page2({
 																										value.id !==
 																										inputValue.id
 																								),
+																								{
+																									value: e,
+																									id: inputValue.id,
+																									ammount:
+																										inputValue.ammount,
+																								},
+																							],
+																						},
+																					]);
+																				}}
+																			/>
+																			<PlusCircleIcon
+																				className='w-7 h-7 cursor-pointer'
+																				onClick={() =>
+																					setItems([
+																						...items.filter(
+																							(item) =>
+																								item.productId !==
+																								items[index].productId
+																						),
+																						{
+																							...items[index],
+																							inputValues: [
+																								...inputValues,
+																								{
+																									value: "",
+																									id: inputValues.length,
+																									ammount: 0,
+																								},
 																							],
 																						},
 																					])
 																				}
 																			/>
-																		) : null}
+																			{inputValues.length > 1 ? (
+																				<MinusCircleIcon
+																					className='w-7 h-7 cursor-pointer'
+																					onClick={() =>
+																						setItems([
+																							...items.filter(
+																								(item) =>
+																									item.productId !==
+																									items[index]
+																										.productId
+																							),
+																							{
+																								...items[index],
+																								inputValues: [
+																									...inputValues.filter(
+																										(value) =>
+																											value.id !==
+																											inputValue.id
+																									),
+																								],
+																							},
+																						])
+																					}
+																				/>
+																			) : null}
+																		</div>
 																	</div>
-																</div>
-															</td>
-														) : (
-															<td className={classes + " w-full"}></td>
+																</td>
+															) : (
+																<td className={classes + " w-full"}></td>
+															)}
+														</div>
+													))}
+												<td className={classes}>
+													<Typography
+														variant='small'
+														color='blue-gray'
+														className='font-normal max-w-[30rem]'>
+														{hufFormatter.format(netPrice)}
+													</Typography>
+												</td>
+												<td className={classes}>
+													<Typography
+														variant='small'
+														color='blue-gray'
+														className='font-normal max-w-[30rem]'>
+														{hufFormatter.format(
+															netPrice * inputValues.reduce((a, b) => a + b.ammount, 0)
 														)}
-													</div>
-												))}
-											<td className={classes}>
-												<Typography
-													variant='small'
-													color='blue-gray'
-													className='font-normal max-w-[30rem]'>
-													{hufFormatter.format(netPrice)}
-												</Typography>
-											</td>
-											<td className={classes}>
-												<Typography
-													variant='small'
-													color='blue-gray'
-													className='font-normal max-w-[30rem]'>
-													{hufFormatter.format(
-														netPrice * inputValues.reduce((a, b) => a + b.ammount, 0)
-													)}
-												</Typography>
-											</td>
-											<td className={classes}>
-												<MinusCircleIcon
-													className='w-7 h-7 text-red-600 cursor-pointer'
-													onClick={() =>
-														setItems((prev) => prev.filter((item) => item.name !== name))
-													}
-												/>
-											</td>
-										</tr>
-									);
-								})}
+													</Typography>
+												</td>
+												<td className={classes}>
+													<MinusCircleIcon
+														className='w-7 h-7 text-red-600 cursor-pointer'
+														onClick={() =>
+															setItems((prev) =>
+																prev.filter((item) => item.name !== name)
+															)
+														}
+													/>
+												</td>
+											</tr>
+										);
+									}
+								)}
 							<tr>
 								{!isAddingNewItem ? (
 									<>
@@ -820,7 +833,7 @@ function Page2({
 															!items.map((item) => item.productId).includes(product.id)
 													)
 													.map((product) => ({
-														label: product.name,
+														label: product.sku + " - " + product.name,
 														value: product.id.toString(),
 													}))}
 												value={items.find((item) => item.productId === 0)?.name || ""}
