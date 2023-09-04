@@ -847,6 +847,9 @@ function Page2({
 															name: products.find(
 																(product) => product.id === parseInt(value)
 															)!.name,
+															sku: products.find(
+																(product) => product.id === parseInt(value)
+															)!.sku,
 															place: productAttributes.find(
 																(attribute) => attribute.product === parseInt(value)
 															)

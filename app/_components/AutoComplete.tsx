@@ -76,7 +76,7 @@ export default function AutoComplete({
 											}`
 										}
 										value={query}>
-										Létrehozás "{query}"
+										Létrehozás &ldquo;{query}&rdquo;
 									</Combobox.Option>
 							  )
 							: null}
