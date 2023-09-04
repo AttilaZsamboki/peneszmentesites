@@ -12,6 +12,7 @@ import { XMarkIcon } from "@heroicons/react/20/solid";
 import { Button } from "@material-tailwind/react";
 import BaseComponentV2 from "../_components/BaseComponentV2";
 import CustomDialog from "../_components/CustomDialog";
+import { useGlobalState } from "../_clientLayout";
 
 export default function Page({ templates, products }: { templates: Template[]; products: Product[] }) {
 	const [template, setTemplate] = React.useState<Template>({ description: "", name: "", type: "", id: 0 });
@@ -19,6 +20,8 @@ export default function Page({ templates, products }: { templates: Template[]; p
 	const [upToDateTemplates, setUpToDateTemplates] = React.useState<any[]>(templates);
 	const [isNew, setIsNew] = React.useState(false);
 	const [openDialog, setOpenDialog] = React.useState(false);
+
+	const { setConfirm } = useGlobalState();
 
 	React.useEffect(() => {
 		if (!isNew) {
@@ -39,23 +42,26 @@ export default function Page({ templates, products }: { templates: Template[]; p
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify(template),
-		}).then((res) => res.json());
-		await Promise.all(
-			items.map(
-				async (item) =>
-					await fetch("https://pen.dataupload.xyz/product_templates/", {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-						},
-						body: JSON.stringify({ template_id: templateResponse.id, product_id: parseInt(item) }),
-					})
-			)
-		);
-		setUpToDateTemplates([...upToDateTemplates, templateResponse]);
-		setItems([]);
-		setTemplate({ description: "", name: "", type: "", id: 0 });
-		await fetch("/api/revalidate?tag=templates");
+		});
+		if (templateResponse.ok) {
+			const templateResponseData = await templateResponse.json();
+			await Promise.all(
+				items.map(
+					async (item) =>
+						await fetch("https://pen.dataupload.xyz/product_templates/", {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+							},
+							body: JSON.stringify({ template_id: templateResponseData.id, product_id: parseInt(item) }),
+						})
+				)
+			);
+			setUpToDateTemplates([...upToDateTemplates, templateResponseData]);
+			setItems([]);
+			setTemplate({ description: "", name: "", type: "", id: 0 });
+			await fetch("/api/revalidate?tag=templates");
+		}
 	};
 	const deleteTemplate = async () => {
 		const response = await fetch(`https://pen.dataupload.xyz/templates/${template.id}/`, {
@@ -63,7 +69,6 @@ export default function Page({ templates, products }: { templates: Template[]; p
 		});
 		if (response.ok) {
 			setUpToDateTemplates(templates.filter((oldTemplates) => oldTemplates.id !== template.id));
-			setOpenDialog(false);
 			await fetch("/api/revalidate?tag=templates");
 		}
 	};
@@ -120,7 +125,17 @@ export default function Page({ templates, products }: { templates: Template[]; p
 				open={openDialog}
 				handler={() => setOpenDialog(!openDialog)}
 				title={!isNew ? template.name : "Új sablon"}
-				onDelete={!isNew ? deleteTemplate : undefined}
+				onDelete={
+					!isNew
+						? () => {
+								setOpenDialog(false);
+								setConfirm({
+									message: "Biztos törölni akarod a sablont?",
+									onConfirm: () => deleteTemplate(),
+								});
+						  }
+						: undefined
+				}
 				disabledSubmit={!template.name || !template.type || !template.description || !items.length}
 				onSave={!isNew ? updateTemplate : createTemplate}
 				onCancel={() => setTemplate({ description: "", name: "", type: "", id: 0 })}>

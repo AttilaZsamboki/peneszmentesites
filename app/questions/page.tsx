@@ -10,6 +10,7 @@ export interface Question {
 	connection: string;
 	product?: number;
 	mandatory: boolean;
+	description: string;
 }
 
 export default async function QuestionsFetch() {

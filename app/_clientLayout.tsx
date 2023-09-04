@@ -71,12 +71,12 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 				<div className='flex justify-center items-center'>
 					<Alert
 						open={confirm.message ? true : false}
-						variant='ghost'
+						color='red'
 						className='z-50 top-10 w-2/3 h-20 lg:w-1/3 absolute flex flex-row justify-between items-center backdrop-filter backdrop-blur-sm'>
 						<Typography className='font-normal w-2/3 text-left'>{confirm.message}</Typography>
 						<div className='absolute right-5 bottom-5 items-center w-full flex flex-row justify-end gap-4'>
 							<Button
-								variant='gradient'
+								color='gray'
 								onClick={() => {
 									confirm.onConfirm();
 									setConfirm(null);

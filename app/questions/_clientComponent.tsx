@@ -11,6 +11,7 @@ import BaseComponentV2 from "../_components/BaseComponentV2";
 import MultipleChoiceCombobox from "../_components/MultipleChoiceList";
 import Counter from "../_components/Counter";
 import CustomDialog from "../_components/CustomDialog";
+import Textarea from "../_components/Textarea";
 
 export default function ClientComponent({ data, products }: { data: any; products: Product[] }) {
 	const [question, setQuestion] = React.useState<Question>({
@@ -20,6 +21,7 @@ export default function ClientComponent({ data, products }: { data: any; product
 		options: "{}",
 		connection: "",
 		mandatory: false,
+		description: "",
 	});
 	const [openDialog, setOpenDialog] = React.useState(false);
 	const [allQuestions, setAllQuestions] = React.useState<any[]>(data);
@@ -35,7 +37,16 @@ export default function ClientComponent({ data, products }: { data: any; product
 		});
 		if (response.ok) {
 			const data = await response.json();
-			setQuestion({ question: "", id: 0, type: "", options: "{}", connection: "", product: 0, mandatory: false });
+			setQuestion({
+				question: "",
+				id: 0,
+				type: "",
+				options: "{}",
+				connection: "",
+				product: 0,
+				mandatory: false,
+				description: "",
+			});
 			setAllQuestions((prev) => [
 				...prev,
 				{
@@ -149,14 +160,23 @@ export default function ClientComponent({ data, products }: { data: any; product
 					question.question === "" ||
 					question.type === "" ||
 					question.connection === "" ||
-					(!["TEXT", "FILE_UPLOAD"].includes(question.type) ? question.options === "{}" : false)
+					(!["TEXT", "FILE_UPLOAD"].includes(question.type) ? question.options === "{}" : false) ||
+					(question.connection === "Termék" ? question.product === 0 || !question.product : false)
 				}
 				handler={() => setOpenDialog(!openDialog)}
 				title={!isNew ? question.question : "Új kérdés"}
 				onDelete={!isNew ? deleteQuestion : undefined}
 				onSave={!isNew ? updateQuestion : createQuestion}
 				onCancel={() =>
-					setQuestion({ question: "", id: 0, type: "", options: "{}", connection: "", mandatory: false })
+					setQuestion({
+						question: "",
+						id: 0,
+						type: "",
+						options: "{}",
+						connection: "",
+						mandatory: false,
+						description: "",
+					})
 				}>
 				<QuestionForm question={question} setQuestion={setQuestion} products={products} />
 			</CustomDialog>
@@ -190,11 +210,11 @@ function QuestionForm({
 			</Select>
 			{question.connection === "Termék" ? (
 				<div>
-					<div>Termék</div>
+					<div className='text-sm'>Termék</div>
 					<AutoComplete
 						value={
 							(products.find((product) => product.id === question.product)?.sku || "") +
-							" - " +
+							(question.product ? " - " : "") +
 							(products.find((product) => product.id === question.product)?.name || "")
 						}
 						onChange={(e) => e && setQuestion((prev) => ({ ...prev, product: parseInt(e) }))}
@@ -205,13 +225,16 @@ function QuestionForm({
 					/>
 				</div>
 			) : null}
-			<AutoComplete
-				onChange={(e) => {
-					setQuestion((prev) => ({ ...prev, type: e || "" }));
-				}}
-				options={Object.keys(typeMap).map((key) => ({ value: key, label: (typeMap as any)[key] }))}
-				value={(typeMap as any)[question.type]}
-			/>
+			<div>
+				<div className='text-sm'>Típus</div>
+				<AutoComplete
+					onChange={(e) => {
+						setQuestion((prev) => ({ ...prev, type: e || "" }));
+					}}
+					options={Object.keys(typeMap).map((key) => ({ value: key, label: (typeMap as any)[key] }))}
+					value={(typeMap as any)[question.type]}
+				/>
+			</div>
 			<OptionChooser options={question.options} setQuestion={setQuestion} type={question.type} />
 			<Checkbox
 				checked={question.mandatory}
@@ -219,6 +242,13 @@ function QuestionForm({
 				crossOrigin=''
 				label='Kötelező'
 			/>
+			<div>
+				<div className='text-sm mb-1'>Leírás</div>
+				<Textarea
+					value={question.description}
+					onChange={(e) => setQuestion((prev) => ({ ...prev, description: e }))}
+				/>
+			</div>
 		</div>
 	);
 }
