@@ -73,12 +73,12 @@ export default function Page({
 }) {
 	const searchParams = useSearchParams();
 
-	const [page, setPage] = React.useState(1);
+	const [page, setPage] = React.useState(0);
 	const [section, setSection] = React.useState("Alapadatok");
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>({
 		adatlap_id: searchParams.get("adatlap_id") ? parseInt(searchParams.get("adatlap_id")!) : 0,
 		type: "",
-		template: 18,
+		template: 0,
 	});
 	const [items, setItems] = React.useState<FelmeresItems[]>([]);
 	const [numPages, setNumPages] = React.useState(0);
@@ -256,6 +256,12 @@ export default function Page({
 		},
 	] as FelmeresItems[];
 
+	const onPageChange = (page: number) => {
+		if (page === 0) {
+			setItems([]);
+		}
+	};
+
 	return (
 		<div className='w-full'>
 			<div className='flex flex-row w-ful flex-wrap lg:flex-nowrap justify-center mt-2'>
@@ -284,6 +290,16 @@ export default function Page({
 								setDiscount={setDiscount}
 							/>
 							<div className='flex flex-row justify-end gap-3 border-t py-4'>
+								{page === 0 ? null : (
+									<Button
+										variant='outlined'
+										onClick={() => {
+											setPage(page - 1);
+											onPageChange(page - 1);
+										}}>
+										Előző
+									</Button>
+								)}
 								{numPages === page + 1 ? (
 									<Button color='green' onClick={CreateFelmeres} disabled={isDisabled[numPages - 1]}>
 										Beküldés
@@ -295,11 +311,6 @@ export default function Page({
 										}}
 										disabled={isDisabled[page]}>
 										Következő
-									</Button>
-								)}
-								{page === 0 ? null : (
-									<Button variant='outlined' onClick={() => setPage(page - 1)}>
-										Előző
 									</Button>
 								)}
 							</div>
