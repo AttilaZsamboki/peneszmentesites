@@ -255,7 +255,6 @@ export default function Page({
 			sku: null as unknown as string,
 		},
 	] as FelmeresItems[];
-
 	const onPageChange = (page: number) => {
 		if (page === 0) {
 			setItems([]);
@@ -540,6 +539,7 @@ function Page2({
 	const [isAddingNewItem, setIsAddingNewItem] = React.useState(false);
 	const [isAddingNewOtherItem, setIsAddingNewOtherItem] = React.useState(false);
 	const [newOtherItem, setNewOtherItem] = React.useState<OtherFelmeresItems>();
+	console.log(otherItems);
 
 	React.useEffect(() => {
 		if (items.length === 0) {
@@ -944,6 +944,7 @@ function Page2({
 					</table>
 				</div>
 			</Card>
+			{/* other items */}
 			<div className='mt-8'>
 				<Heading title='Egyéb' variant='h5' marginY='lg:my-4' border={false} />
 				<Card>
@@ -1027,7 +1028,16 @@ function Page2({
 													)}
 												</Typography>
 											</td>
-											<td className='p-4 border-b border-blue-gray-50 w-10'></td>
+											<td className='p-4 border-b border-blue-gray-50 w-10'>
+												<MinusCircleIcon
+													className='w-7 h-7 text-red-600 cursor-pointer'
+													onClick={() =>
+														setOtherItems((prev) =>
+															prev.filter((prevItem) => prevItem.name !== item.name)
+														)
+													}
+												/>
+											</td>
 										</tr>
 									))}
 								<tr>
@@ -1088,7 +1098,7 @@ function Page2({
 															...prev,
 															{
 																...(newOtherItem as OtherFelmeresItems),
-																id: prev.length,
+																id: Math.max(...prev.map((item) => item.id)) + 1,
 																value: 0,
 															},
 														]);
