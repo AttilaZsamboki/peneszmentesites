@@ -1,6 +1,8 @@
 import { Product } from "../products/page";
 import Questions from "./_clientComponent";
+
 import { typeMap } from "../_utils/utils";
+import { getFirstProduct } from "../_utils/utils";
 
 export interface Question {
 	id: number;
@@ -60,7 +62,4 @@ export default async function QuestionsFetch() {
 	});
 
 	return <Questions data={allData} products={productData} />;
-}
-export function getFirstProduct(question: Question): (value: Product, index: number, obj: Product[]) => unknown {
-	return (product) => product.id === (question.products ? question.products[0] : 0);
 }

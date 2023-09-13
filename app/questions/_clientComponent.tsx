@@ -1,7 +1,6 @@
 "use client";
 import { Checkbox, Option, Select } from "@material-tailwind/react";
 import React from "react";
-import { useSearchParams } from "next/navigation";
 
 import AutoComplete from "../_components/AutoComplete";
 import Input from "../_components/Input";
@@ -14,9 +13,10 @@ import FormList from "../_components/FormList";
 
 import { Product } from "../products/page";
 
-import { Question, getFirstProduct } from "./page";
+import { Question } from "./page";
 
 import { typeMap } from "../_utils/utils";
+import { getFirstProduct } from "../_utils/utils";
 
 export default function ClientComponent({ data, products }: { data: any; products: Product[] }) {
 	const [question, setQuestion] = React.useState<Question>({
