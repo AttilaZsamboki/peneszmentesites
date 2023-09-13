@@ -197,6 +197,7 @@ export default function Page({
 				}
 
 				await fetch("/api/revalidate?tag=felmeresek");
+				await fetch("/api/revalidate?tag=" + encodeURIComponent(felmeres.adatlap_id.toString()));
 				router.push("/felmeresek");
 			}
 		}
