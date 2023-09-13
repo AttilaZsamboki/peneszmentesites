@@ -45,7 +45,7 @@ export default async function Page({ params }: { params: { id: string } }) {
 		.then((res) => res.json())
 		.catch((err) => console.log(err));
 	const felmeresItems: FelmeresItems[] = await fetch(
-		"https://pen.dataupload.xyz/felmeres_items?adatlap_id" + felmeresId,
+		"https://pen.dataupload.xyz/felmeres_items?adatlap_id=" + felmeresId,
 		{
 			next: { tags: [encodeURIComponent(felmeresId)] },
 		}
