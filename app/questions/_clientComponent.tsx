@@ -1,17 +1,22 @@
 "use client";
 import { Checkbox, Option, Select } from "@material-tailwind/react";
+import React from "react";
+import { useSearchParams } from "next/navigation";
+
 import AutoComplete from "../_components/AutoComplete";
 import Input from "../_components/Input";
-import { Product } from "../products/page";
-import { Question } from "./page";
-import { typeMap } from "../_utils/utils";
-import React from "react";
 import BaseComponentV2 from "../_components/BaseComponentV2";
-
 import MultipleChoiceCombobox from "../_components/MultipleChoiceList";
 import Counter from "../_components/Counter";
 import CustomDialog from "../_components/CustomDialog";
 import Textarea from "../_components/Textarea";
+import FormList from "../_components/FormList";
+
+import { Product } from "../products/page";
+
+import { Question, getFirstProduct } from "./page";
+
+import { typeMap } from "../_utils/utils";
 
 export default function ClientComponent({ data, products }: { data: any; products: Product[] }) {
 	const [question, setQuestion] = React.useState<Question>({
@@ -43,7 +48,7 @@ export default function ClientComponent({ data, products }: { data: any; product
 				type: "",
 				options: "{}",
 				connection: "",
-				product: 0,
+				products: [],
 				mandatory: false,
 				description: "",
 			});
@@ -54,15 +59,12 @@ export default function ClientComponent({ data, products }: { data: any; product
 					subtitle:
 						question.connection === "Fix"
 							? "Fix"
-							: products.find((product) => product.id === question.product)?.sku +
+							: products.find(getFirstProduct(question))?.sku +
 									" - " +
-									(products
-										.find((product) => product.id === question.product)
-										?.name.substring(0, 25) +
+									(products.find(getFirstProduct(question))?.name.substring(0, 25) +
 										((
-											products.find((product) => product.id === question.product)
-												? products.find((product) => product.id === question.product)!.name
-														.length > 25
+											products.find(getFirstProduct(question))
+												? products.find(getFirstProduct(question))!.name.length > 25
 												: false
 										)
 											? "..."
@@ -88,35 +90,44 @@ export default function ClientComponent({ data, products }: { data: any; product
 			body: JSON.stringify(question),
 		});
 		if (response.ok) {
-			await fetch("/api/revalidate?tag=questions");
-			setAllQuestions((prev) => {
-				const index = prev.findIndex((item) => item.id === question.id);
-				const newArr = [...prev];
-				newArr[index] = {
-					...question,
-					subtitle:
-						question.connection === "Fix"
-							? "Fix"
-							: products.find((product) => product.id === question.product)?.sku +
-									" - " +
-									(products
-										.find((product) => product.id === question.product)
-										?.name.substring(0, 25) +
-										((
-											products.find((product) => product.id === question.product)
-												? products.find((product) => product.id === question.product)!.name
-														.length > 25
-												: false
-										)
-											? "..."
-											: "")) ||
-							  "" ||
-							  "",
-					subtitle2: (typeMap as any)[question.type] || "Nincs típus",
-					isMandatory: question.mandatory ? "Kötelező" : "Nem kötelező",
-				};
-				return newArr;
-			});
+			const responseProduct = await fetch(
+				`https://pen.dataupload.xyz/question_products/?question_id=${question.id}`,
+				{
+					method: "PUT",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify(question.products),
+				}
+			);
+			if (responseProduct.ok) {
+				await fetch("/api/revalidate?tag=questions");
+				setAllQuestions((prev) => {
+					const index = prev.findIndex((item) => item.id === question.id);
+					const newArr = [...prev];
+					newArr[index] = {
+						...question,
+						subtitle:
+							question.connection === "Fix"
+								? "Fix"
+								: products.find(getFirstProduct(question))?.sku +
+										" - " +
+										(products.find(getFirstProduct(question))?.name.substring(0, 25) +
+											((
+												products.find(getFirstProduct(question))
+													? products.find(getFirstProduct(question))!.name.length > 25
+													: false
+											)
+												? "..."
+												: "")) ||
+								  "" ||
+								  "",
+						subtitle2: (typeMap as any)[question.type] || "Nincs típus",
+						isMandatory: question.mandatory ? "Kötelező" : "Nem kötelező",
+					};
+					return newArr;
+				});
+			}
 		}
 	};
 	const deleteQuestion = async () => {
@@ -161,7 +172,7 @@ export default function ClientComponent({ data, products }: { data: any; product
 					question.type === "" ||
 					question.connection === "" ||
 					(!["TEXT", "FILE_UPLOAD"].includes(question.type) ? question.options === "{}" : false) ||
-					(question.connection === "Termék" ? question.product === 0 || !question.product : false)
+					(question.connection === "Termék" ? question.products?.length === 0 || !question.products : false)
 				}
 				handler={() => setOpenDialog(!openDialog)}
 				title={!isNew ? question.question : "Új kérdés"}
@@ -193,6 +204,9 @@ function QuestionForm({
 	setQuestion: React.Dispatch<React.SetStateAction<Question>>;
 	products: Product[];
 }) {
+	const productItems = question.products ? question.products.map((id) => products.find((p) => p.id === id)) : [];
+	const items = productItems ? productItems.map((item) => (item ? item.sku + " - " + item.name : "")) : [];
+
 	return (
 		<div className='flex flex-col w-full gap-5'>
 			<Input
@@ -208,23 +222,6 @@ function QuestionForm({
 				<Option value='Termék'>Termék</Option>
 				<Option value='Fix'>Fix</Option>
 			</Select>
-			{question.connection === "Termék" ? (
-				<div>
-					<div className='text-sm'>Termék</div>
-					<AutoComplete
-						value={
-							(products.find((product) => product.id === question.product)?.sku || "") +
-							(question.product ? " - " : "") +
-							(products.find((product) => product.id === question.product)?.name || "")
-						}
-						onChange={(e) => e && setQuestion((prev) => ({ ...prev, product: parseInt(e) }))}
-						options={products.map((product) => ({
-							value: product.id.toString(),
-							label: product.sku + " - " + product.name,
-						}))}
-					/>
-				</div>
-			) : null}
 			<div>
 				<div className='text-sm'>Típus</div>
 				<AutoComplete
@@ -249,6 +246,46 @@ function QuestionForm({
 					onChange={(e) => setQuestion((prev) => ({ ...prev, description: e }))}
 				/>
 			</div>
+			{question.connection === "Termék" ? (
+				<FormList
+					title='Termékek'
+					items={items}
+					onAddNewItem={(value) => {
+						const product = products.find((product) => product.id.toString() === value);
+						if (product) {
+							setQuestion((prev) => ({
+								...prev,
+								products: [...(question.products ? question.products : []), product.id],
+							}));
+						}
+					}}
+					onDeleteItem={(item) => {
+						const product = products
+							.map((product) => ({
+								value: product.id.toString(),
+								label: product.sku + " - " + product.name,
+							}))
+							.find((product) => product.label === item)?.value;
+						setQuestion((prev) => ({
+							...prev,
+							products: [
+								...(product
+									? prev.products
+										? prev.products!.filter((prod) => prod !== parseInt(product))
+										: []
+									: []),
+							] as number[],
+						}));
+					}}
+					options={products
+						.filter((product) => !question.products?.includes(product.id))
+						.map((product) => ({
+							value: product.id.toString(),
+							label: product.sku + " - " + product.name,
+						}))}
+					value=''
+				/>
+			) : null}
 		</div>
 	);
 }

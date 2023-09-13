@@ -156,6 +156,28 @@ function FiltersComponent({
 		setFilters((prev) => ({ id: 0, name: "", value: prev.value }));
 		setOpenSaveFilter(!openSaveFilter);
 	};
+
+	React.useEffect(() => {
+		const handleKeyDown = async (event: KeyboardEvent) => {
+			if (event.ctrlKey && event.key === "s") {
+				event.preventDefault(); // Prevents the browser's default save action
+				if (savedFilters.length !== 0) {
+					const filter = savedFilters.find((item) => item.id === filters.id);
+					if (filter) {
+						await onSaveFilter(!deepEqual(filters.value, filter.value), filters);
+					}
+				}
+			}
+		};
+
+		window.addEventListener("keydown", handleKeyDown);
+
+		// Cleanup on unmount
+		return () => {
+			window.removeEventListener("keydown", handleKeyDown);
+		};
+	}, [filters, savedFilters]);
+
 	return (
 		<>
 			<div className='flex flex-row justify-center relative top-5'>
@@ -208,34 +230,7 @@ function FiltersComponent({
 															);
 														}
 													}}
-													onSave={async () => {
-														if (isNotEqual) {
-															const response = await fetch(
-																`https://pen.dataupload.xyz/filters/${filter.id}/`,
-																{
-																	method: "PUT",
-																	headers: {
-																		"Content-Type": "application/json",
-																	},
-																	body: JSON.stringify({
-																		...filters,
-																	}),
-																}
-															);
-															if (response.ok) {
-																setSavedFilters((prev) =>
-																	prev.map((item) =>
-																		item.id === filter.id ? filters : item
-																	)
-																);
-															}
-														} else {
-															setAlert({
-																level: "information",
-																message: "Nincs változás a filterben",
-															});
-														}
-													}}
+													onSave={async () => await onSaveFilter(isNotEqual, filter)}
 													onDuplicate={async () => {
 														const response = await fetch(
 															"https://pen.dataupload.xyz/filters",
@@ -290,4 +285,26 @@ function FiltersComponent({
 			</CustomDialog>
 		</>
 	);
+
+	async function onSaveFilter(isNotEqual: boolean, filter: Filter) {
+		if (isNotEqual) {
+			const response = await fetch(`https://pen.dataupload.xyz/filters/${filter.id}/`, {
+				method: "PUT",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					...filters,
+				}),
+			});
+			if (response.ok) {
+				setSavedFilters((prev) => prev.map((item) => (item.id === filter.id ? filters : item)));
+			}
+		} else {
+			setAlert({
+				level: "information",
+				message: "Nincs változás a filterben",
+			});
+		}
+	}
 }

@@ -1,13 +1,13 @@
 "use client";
 import { hufFormatter } from "../felmeresek/[id]/_clientPage";
 import BaseComponentV2 from "../_components/BaseComponentV2";
-import { Button, Checkbox } from "@material-tailwind/react";
+import { Checkbox } from "@material-tailwind/react";
 import React from "react";
 import { Product } from "./page";
 import CustomDialog from "../_components/CustomDialog";
-import AutoComplete from "../_components/AutoComplete";
-import { XMarkIcon } from "@heroicons/react/24/outline";
-import Heading from "../_components/Heading";
+import FormList from "../_components/FormList";
+import { Question } from "../questions/page";
+import { typeMap } from "../_utils/utils";
 
 export interface ProductAttributes {
 	id?: number;
@@ -17,7 +17,13 @@ export interface ProductAttributes {
 	product?: number;
 }
 
-export default function ClientPage({ data }: { data: { count: number; results: Product[] } }) {
+export default function ClientPage({
+	data,
+	questions,
+}: {
+	data: { count: number; results: Product[] };
+	questions: Question[];
+}) {
 	const [attributeData, setAttributeData] = React.useState<ProductAttributes>({
 		id: 0,
 		place_options: [],
@@ -32,6 +38,7 @@ export default function ClientPage({ data }: { data: { count: number; results: P
 		price_list_alapertelmezett_net_price_huf: 0,
 	});
 	const [open, setOpen] = React.useState(false);
+	const [newQuestions, setNewQuestions] = React.useState<Question[]>([]);
 
 	React.useEffect(() => {
 		if (productData.id !== 0) {
@@ -81,6 +88,13 @@ export default function ClientPage({ data }: { data: { count: number; results: P
 				body: payload,
 			});
 		}
+		await fetch(`https://pen.dataupload.xyz/question_products/?product=${attributeData.product}`, {
+			method: "PUT",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(newQuestions.map((question) => question.id)),
+		});
 		await fetch("/api/revalidate?tag=product-attributes");
 	};
 
@@ -124,7 +138,13 @@ export default function ClientPage({ data }: { data: { count: number; results: P
 					});
 				}}
 				onSave={submitChanges}>
-				<UpdateForm attributeData={attributeData} setAttributeData={setAttributeData} />
+				<UpdateForm
+					attributeData={attributeData}
+					setAttributeData={setAttributeData}
+					allQuestions={questions}
+					questions={newQuestions}
+					setQuestions={setNewQuestions}
+				/>
 			</CustomDialog>
 		</>
 	);
@@ -132,10 +152,37 @@ export default function ClientPage({ data }: { data: { count: number; results: P
 function UpdateForm({
 	attributeData,
 	setAttributeData,
+	allQuestions,
+	questions,
+	setQuestions,
 }: {
 	attributeData: ProductAttributes;
 	setAttributeData: React.Dispatch<React.SetStateAction<ProductAttributes>>;
+	allQuestions: Question[];
+	questions: Question[];
+	setQuestions: React.Dispatch<React.SetStateAction<Question[]>>;
 }) {
+	React.useEffect(() => {
+		const fetchQuestions = async () => {
+			const resp = await fetch(`https://pen.dataupload.xyz/question_products?product=${attributeData.product}`);
+			if (resp.ok) {
+				const data: { question: string; product: string }[] = await resp.json();
+				data.map(async (question) => {
+					const resp2 = await fetch(`https://pen.dataupload.xyz/questions/${question.question}`);
+					if (resp2.ok) {
+						const data2 = await resp2.json();
+						setQuestions((prev) => [...prev.filter((question) => question.id !== data2.id), data2]);
+					}
+				});
+			}
+		};
+		fetchQuestions();
+
+		return () => {
+			setQuestions([]);
+		};
+	}, [attributeData]);
+
 	return (
 		<div className='-ml-2.5 flex flex-col'>
 			<Checkbox
@@ -150,46 +197,68 @@ function UpdateForm({
 				crossOrigin=''
 			/>
 			{attributeData.place ? (
-				<div className='border-t pt-2 mt-1'>
-					<div className='-mt-10'>
-						<Heading title='Opciók' variant='h4' />
-					</div>
-					<div className='relative bottom-10'>
-						<AutoComplete
-							onChange={(value) =>
-								setAttributeData((prev) => ({
-									...prev,
-									place_options: [...prev.place_options, value],
-								}))
-							}
-							create={true}
-							options={[]}
-						/>
-					</div>
-					<div className='flex flex-col gap-5'>
-						{attributeData.place_options.map((option, index) => (
-							<div
-								key={index}
-								className='flex flex-row w-full items-center justify-between border-b pb-2'>
-								<div>{option}</div>
-								<Button
-									size='sm'
-									color='red'
-									onClick={() =>
-										setAttributeData((prev) => ({
-											...prev,
-											place_options: prev.place_options.filter((o) => o !== option),
-										}))
-									}>
-									<XMarkIcon className='w-5 h-5 text-white' />
-								</Button>
-							</div>
-						))}
-					</div>
-				</div>
+				<FormList
+					title='Opciók'
+					onAddNewItem={(value) =>
+						setAttributeData((prev) => ({
+							...prev,
+							place_options: [...prev.place_options, value],
+						}))
+					}
+					items={attributeData.place_options}
+					onDeleteItem={(item) =>
+						setAttributeData((prev) => ({
+							...prev,
+							place_options: prev.place_options.filter((o) => o !== item),
+						}))
+					}
+					create={true}
+				/>
 			) : (
 				<div></div>
 			)}
+			<FormList
+				title='Kérdések'
+				accordion={(item) => <Accordion item={item} questions={questions} />}
+				itemHref={(item) =>
+					`/questions?filter=${encodeURIComponent(item)}%20${
+						questions.filter((question) => question.question === item)[0].id
+					}`
+				}
+				onDeleteItem={(item) =>
+					setQuestions((prev) => [...prev.filter((question) => question.question !== item)])
+				}
+				items={questions.map((question) => question.question)}
+				options={allQuestions
+					.filter((question) => !questions.map((question) => question.id).includes(question.id))
+					.map((question) => ({ value: question.question, label: question.question }))}
+				border={false}
+				onAddNewItem={(value) => {
+					const question = allQuestions.filter((question) => question.question === value)[0];
+					setQuestions((prev) => [...prev, question]);
+				}}
+			/>
+		</div>
+	);
+}
+
+function Accordion({ item, questions }: { item: string; questions: Question[] }) {
+	const question = questions.filter((question) => question.question === item)[0];
+	return (
+		<div className='flex flex-col'>
+			{question.description ? (
+				<div>
+					<span className='font-bold'>Leírás</span>: {question.description}
+				</div>
+			) : (
+				<></>
+			)}
+			<div>
+				<span className='font-bold'>Típus</span>: {typeMap[question.type as keyof typeof typeMap]}
+			</div>
+			<div>
+				<span className='font-bold'>Kötelező</span>: {question.mandatory ? "Igen" : "Nem"}
+			</div>
 		</div>
 	);
 }

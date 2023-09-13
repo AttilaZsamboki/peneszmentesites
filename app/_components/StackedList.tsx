@@ -45,10 +45,14 @@ export default function StackedList({
 		}
 	}, [parent.current]);
 	React.useEffect(() => {
-		if (pagination.numPages && search.value) {
+		if (pagination.numPages) {
+			if (pagination.numPages && search.value) {
+				router.push(`?filter=${search.value}`, { scroll: false });
+			} else if (searchParams.get("filter")) {
+				router.push(`?page=1&limit=10`, { scroll: false });
+			}
+		} else {
 			router.push(`?filter=${search.value}`, { scroll: false });
-		} else if (searchParams.get("filter")) {
-			router.push(`?page=1&limit=10`, { scroll: false });
 		}
 	}, [search]);
 

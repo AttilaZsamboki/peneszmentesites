@@ -1,5 +1,5 @@
 "use client";
-import { Card, CardBody, Button, Typography, Tooltip, CardHeader } from "@material-tailwind/react";
+import { Card, CardBody, Button, Typography, Tooltip } from "@material-tailwind/react";
 import Heading from "@/app/_components/Heading";
 import React from "react";
 import { FelmeresQuestions, ScaleOption } from "../page";
@@ -104,13 +104,22 @@ export default function Page({
 	React.useEffect(() => {
 		const fetchQuestions = async () => {
 			items.map(async (item) => {
-				const res = await fetch("https://pen.dataupload.xyz/questions?product=" + item.productId);
+				const res = await fetch("https://pen.dataupload.xyz/question_products?product=" + item.productId);
 				if (res.ok) {
-					const data: Question[] = await res.json();
-					setQuestions((prev) => [
-						...prev.filter((question) => !data.map((q) => q.id).includes(question.id)),
-						...data,
-					]);
+					const questionProducts: { question: number; product: number }[] = await res.json();
+					questionProducts.map(async (questionProduct) => {
+						const data = await fetch("https://pen.dataupload.xyz/questions/" + questionProduct.question);
+						if (data.ok) {
+							const question: Question = await data.json();
+							setQuestions((prev) => [
+								...prev.filter(
+									(question) =>
+										question.id !== questionProduct.question || question.product !== item.productId
+								),
+								{ ...question, product: item.productId },
+							]);
+						}
+					});
 				}
 			});
 			const res = await fetch("https://pen.dataupload.xyz/questions?connection=Fix");
@@ -539,7 +548,6 @@ function Page2({
 	const [isAddingNewItem, setIsAddingNewItem] = React.useState(false);
 	const [isAddingNewOtherItem, setIsAddingNewOtherItem] = React.useState(false);
 	const [newOtherItem, setNewOtherItem] = React.useState<OtherFelmeresItems>();
-	console.log(otherItems);
 
 	React.useEffect(() => {
 		if (items.length === 0) {
@@ -1374,7 +1382,7 @@ function FieldCreate({
 }) {
 	React.useEffect(() => {
 		setGlobalData((prev) => [
-			...prev.filter((felmeres) => felmeres.question !== question.id),
+			...prev.filter((felmeres) => felmeres.question !== question.id || felmeres.section !== product),
 			{
 				adatlap_id: adatlap_id,
 				id: 0,
@@ -1390,10 +1398,11 @@ function FieldCreate({
 			prev.map((felmeres) => (felmeres.question === question.id ? { ...felmeres, value: value } : felmeres))
 		);
 	};
+	const felmeres = globalData.find((felmeres) => felmeres.question === question.id && felmeres.section === product);
 
 	const setterMultipleUnordered = (value: string) => {
 		let values = [""];
-		const felmeres = globalData.find((felmeres) => felmeres.question === question.id);
+
 		if (felmeres?.value.includes(value) && values.length) {
 			values = (felmeres.value as unknown as string[]).filter((v) => v !== value);
 		} else {
@@ -1401,7 +1410,9 @@ function FieldCreate({
 		}
 		setGlobalData((prev) =>
 			prev.map((felmeres) =>
-				felmeres.question === question.id ? { ...felmeres, value: values as unknown as string } : felmeres
+				felmeres.question === question.id && felmeres.section === product
+					? { ...felmeres, value: values as unknown as string }
+					: felmeres
 			)
 		);
 	};
@@ -1409,7 +1420,7 @@ function FieldCreate({
 	const setterSingleOrdered = (value: { column: string; row: number }) => {
 		setGlobalData((prev) =>
 			prev.map((felmeres) =>
-				felmeres.question === question.id
+				felmeres.question === question.id && felmeres.section === product
 					? {
 							...felmeres,
 							value: [
@@ -1435,7 +1446,7 @@ function FieldCreate({
 	const setterMultipleOrdered = (value: { column: string; row: number }) => {
 		setGlobalData((prev) =>
 			prev.map((felmeres) =>
-				felmeres.question === question.id
+				felmeres.question === question.id && felmeres.section === product
 					? {
 							...felmeres,
 							value: (felmeres.value
@@ -1466,12 +1477,10 @@ function FieldCreate({
 	};
 
 	if (question.type === "TEXT") {
-		const felmeres = globalData.find((felmeres) => felmeres.question === question.id);
 		return (
 			<Input onChange={(e) => setterSingle(e.target.value)} value={felmeres?.value as string} variant='simple' />
 		);
 	} else if (question.type === "LIST") {
-		const felmeres = globalData.find((felmeres) => felmeres.question === question.id);
 		return (
 			<AutoComplete
 				options={(question.options as string[]).map((option) => ({
@@ -1483,7 +1492,6 @@ function FieldCreate({
 			/>
 		);
 	} else if (["MULTIPLE_CHOICE", "CHECKBOX"].includes(question.type)) {
-		const felmeres = globalData.find((felmeres) => felmeres.question === question.id);
 		return (
 			<MultipleChoice
 				options={(question.options as string[]).map((option) => option)}
@@ -1493,7 +1501,6 @@ function FieldCreate({
 			/>
 		);
 	} else if (question.type === "GRID" || question.type === "CHECKBOX_GRID") {
-		const felmeres = globalData.find((felmeres) => felmeres.question === question.id);
 		return (
 			<Grid
 				columns={(question.options as GridOptions).columns}

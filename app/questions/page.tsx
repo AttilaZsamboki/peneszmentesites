@@ -8,9 +8,15 @@ export interface Question {
 	type: string;
 	options: any;
 	connection: string;
-	product?: number;
+	products?: number[];
 	mandatory: boolean;
 	description: string;
+	product?: number;
+}
+
+export interface QuestionProducts {
+	question: number;
+	product: number;
 }
 
 export default async function QuestionsFetch() {
@@ -19,19 +25,29 @@ export default async function QuestionsFetch() {
 	const productData: Product[] = (await fetch("https://pen.dataupload.xyz/products").then((res) =>
 		res.json()
 	)) as Product[];
+	await Promise.all(
+		data.map(async (question) => {
+			if (question.connection === "Fix") return;
+			const response = await fetch(`https://pen.dataupload.xyz/question_products/${question.id}`, {
+				next: { tags: ["questionproducts", "questions", "product-attributes"] },
+			});
+			const dataLocal: QuestionProducts[] = (await response.json()) as QuestionProducts[];
+			const products = dataLocal.map((product) => product.product);
+			question.products = products;
+		})
+	);
 	const allData = data.map((question) => {
 		return {
 			...question,
 			subtitle:
 				question.connection === "Fix"
 					? "Fix"
-					: productData.find((product) => product.id === question.product)?.sku +
+					: productData.find(getFirstProduct(question))?.sku +
 							" - " +
-							(productData.find((product) => product.id === question.product)?.name.substring(0, 25) +
+							(productData.find(getFirstProduct(question))?.name.substring(0, 25) +
 								((
-									productData.find((product) => product.id === question.product)
-										? productData.find((product) => product.id === question.product)!.name.length >
-										  25
+									productData.find(getFirstProduct(question))
+										? productData.find(getFirstProduct(question))!.name.length > 25
 										: false
 								)
 									? "..."
@@ -44,4 +60,7 @@ export default async function QuestionsFetch() {
 	});
 
 	return <Questions data={allData} products={productData} />;
+}
+export function getFirstProduct(question: Question): (value: Product, index: number, obj: Product[]) => unknown {
+	return (product) => product.id === (question.products ? question.products[0] : 0);
 }
