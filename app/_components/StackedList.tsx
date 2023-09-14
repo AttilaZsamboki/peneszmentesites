@@ -131,8 +131,14 @@ export default function StackedList({
 														{itemContent.status ? (
 															<Chip
 																variant='ghost'
-																value={item[itemContent.status].name}
-																color={item[itemContent.status].color}
+																value={
+																	item[itemContent.status ? itemContent.status : ""]
+																		.name
+																}
+																color={
+																	item[itemContent.status ? itemContent.status : ""]
+																		.color
+																}
 																size='sm'
 																icon={
 																	<span

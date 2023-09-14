@@ -31,7 +31,7 @@ export interface BaseFelmeresData {
 	adatlap_id: number;
 	type: string;
 	template: number;
-	status: "DRAFT" | "IN_PROGRESS" | "COMPLETED";
+	status: "DRAFT" | "IN_PROGRESS" | "COMPLETED" | undefined;
 }
 
 export interface FelmeresItems {

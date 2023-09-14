@@ -123,8 +123,10 @@ export default function ClientPage({
 		setIsLoading(false);
 	}, []);
 
-	const prevStatus = Object.keys(statusMap)[Object.keys(statusMap).indexOf(felmeres.status) - 1];
-	const nextStatus = Object.keys(statusMap)[Object.keys(statusMap).indexOf(felmeres.status) + 1];
+	const felmeresStatus = felmeres.status ? felmeres.status : "DRAFT";
+
+	const prevStatus = Object.keys(statusMap)[Object.keys(statusMap).indexOf(felmeresStatus) - 1];
+	const nextStatus = Object.keys(statusMap)[Object.keys(statusMap).indexOf(felmeresStatus) + 1];
 
 	const changeStatus = async (type: "prev" | "next") => {
 		const response = await fetch(`https://pen.dataupload.xyz/felmeresek/${felmeresId}/`, {
@@ -157,7 +159,7 @@ export default function ClientPage({
 										{prevStatus ? (
 											<Button
 												onClick={() => changeStatus("prev")}
-												color={statusMap[felmeres.status].color as color}
+												color={statusMap[felmeresStatus].color as color}
 												className='items-center font-sans font-bold uppercase whitespace-nowrap select-none px-3 text-xs relative bg-clip-border rounded-l-md rounded-r-none overflow-hidden bg-gradient-to-tr text-white shadow-none py-1 text-center'>
 												<ChevronLeftIcon className='w-6 h-6' />
 											</Button>
@@ -165,24 +167,24 @@ export default function ClientPage({
 										<MaterialChip
 											className={`relative bg-clip-border rounded-l-none rounded-r-none overflow-hidden bg-gradient-to-tr text-white shadow-none py-2 text-center ${
 												Object.values(statusMap)[
-													Object.keys(statusMap).indexOf(felmeres.status) + 1
+													Object.keys(statusMap).indexOf(felmeresStatus) + 1
 												]
 													? "rounded-r-none"
 													: "rounded-r-md"
 											} ${
 												Object.values(statusMap)[
-													Object.keys(statusMap).indexOf(felmeres.status) - 1
+													Object.keys(statusMap).indexOf(felmeresStatus) - 1
 												]
 													? "rounded-l-none"
 													: "rounded-l-md"
 											}`}
-											value={statusMap[felmeres.status].name}
-											color={statusMap[felmeres.status].color as color}
+											value={statusMap[felmeresStatus].name}
+											color={statusMap[felmeresStatus].color as color}
 										/>
 										{nextStatus ? (
 											<Button
 												onClick={() => changeStatus("next")}
-												color={statusMap[felmeres.status].color as color}
+												color={statusMap[felmeresStatus].color as color}
 												className='items-center font-sans font-bold uppercase rounded-l-none whitespace-nowrap select-none px-3 text-xs relative bg-clip-border rounded-r-md overflow-hidden bg-gradient-to-tr text-white shadow-none py-1 text-center'>
 												<ChevronRightIcon className='w-6 h-6' />
 											</Button>
