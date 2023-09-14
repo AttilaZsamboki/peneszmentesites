@@ -42,6 +42,7 @@ export interface FelmeresItems {
 	netPrice: number;
 	adatlap: number;
 	sku: string;
+	attributeId: number;
 }
 
 export const hufFormatter = new Intl.NumberFormat("hu-HU", {
@@ -73,12 +74,12 @@ export default function Page({
 }) {
 	const searchParams = useSearchParams();
 
-	const [page, setPage] = React.useState(0);
+	const [page, setPage] = React.useState(1);
 	const [section, setSection] = React.useState("Alapadatok");
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>({
 		adatlap_id: searchParams.get("adatlap_id") ? parseInt(searchParams.get("adatlap_id")!) : 0,
 		type: "",
-		template: 0,
+		template: 18,
 	});
 	const [items, setItems] = React.useState<FelmeresItems[]>([]);
 	const [numPages, setNumPages] = React.useState(0);
@@ -593,6 +594,7 @@ function Page2({
 										netPrice: productData.price_list_alapertelmezett_net_price_huf,
 										adatlap: felmeres.adatlap_id,
 										sku: productData.sku,
+										attributeId: productAttributeData ? productAttributeData.id : 0,
 									},
 								]);
 							}
@@ -618,6 +620,29 @@ function Page2({
 				  (item.value / 100)
 		)
 		.reduce((a, b) => a + b, 0);
+	const createNewPlaceOption = async (option: string, id: number) => {
+		const resp = await fetch("https://pen.dataupload.xyz/product_attributes/" + id + "/", {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				place_options: JSON.stringify([...items.find((item) => item.attributeId === id)!.placeOptions, option])
+					.replace("[", "{")
+					.replace("]", "}"),
+			}),
+		});
+		if (resp.ok) {
+			setItems([
+				...items.filter((item) => item.attributeId !== id),
+				{
+					...items.find((item) => item.attributeId === id),
+					placeOptions: [...items.find((item) => item.attributeId === id)!.placeOptions, option],
+				} as FelmeresItems,
+			]);
+			await fetch("/api/revalidate?tag=product-attributes");
+		}
+	};
 
 	return (
 		<div>
@@ -644,7 +669,15 @@ function Page2({
 								.sort((a, b) => a.productId - b.productId)
 								.map(
 									(
-										{ name, place, placeOptions: place_options, inputValues, netPrice, sku },
+										{
+											name,
+											place,
+											placeOptions: place_options,
+											inputValues,
+											netPrice,
+											sku,
+											attributeId,
+										},
 										index
 									) => {
 										const isLast = index === items.length - 1;
@@ -713,7 +746,15 @@ function Page2({
 																						value: option,
 																					}))}
 																				value={inputValue.value}
+																				create={true}
+																				resetOnCreate={false}
 																				onChange={(e) => {
+																					if (!place_options.includes(e)) {
+																						createNewPlaceOption(
+																							e,
+																							attributeId
+																						);
+																					}
 																					setItems([
 																						...items.filter(
 																							(item) =>

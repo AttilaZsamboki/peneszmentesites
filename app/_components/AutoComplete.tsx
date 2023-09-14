@@ -10,14 +10,17 @@ export default function AutoComplete({
 	onChange,
 	optionDisplayDirection = "bottom",
 	create = false,
+	resetOnCreate = true,
 }: {
 	options: { label: string; value: string }[];
 	value?: string;
 	onChange: (value: string) => void;
 	optionDisplayDirection?: "top" | "bottom";
 	create?: boolean;
+	resetOnCreate?: boolean;
 }) {
 	const [query, setQuery] = useState("");
+	const [selected, setSelected] = useState(value);
 
 	const filteredOptions = [
 		{ label: "", value: "" },
@@ -31,9 +34,10 @@ export default function AutoComplete({
 	return (
 		<Combobox
 			value={value}
-			onChange={(value) => {
-				onChange(value);
-				if (create) {
+			onChange={(localValue) => {
+				onChange(localValue);
+				setSelected(localValue);
+				if (resetOnCreate) {
 					setQuery("");
 				}
 			}}>
@@ -42,8 +46,11 @@ export default function AutoComplete({
 					{create ? (
 						<Combobox.Input
 							className='w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none !border !border-gray-300 bg-white shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500'
-							value={query}
-							onChange={(event) => setQuery(event.target.value)}
+							value={resetOnCreate ? query : selected}
+							onChange={(event) => {
+								setQuery(event.target.value);
+								setSelected(event.target.value);
+							}}
 						/>
 					) : (
 						<Combobox.Input
