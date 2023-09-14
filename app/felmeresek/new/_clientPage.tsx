@@ -180,7 +180,8 @@ export default function Page({
 						? adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)!.ContactId.toString()
 						: "",
 					submitItems,
-					felmeres.adatlap_id.toString()
+					felmeres.adatlap_id.toString(),
+					templates.find((template) => template.id === felmeres.template)?.description
 				);
 				await fetch(`/api/minicrm-proxy/${felmeres.adatlap_id}?endpoint=Project`, {
 					method: "PUT",
