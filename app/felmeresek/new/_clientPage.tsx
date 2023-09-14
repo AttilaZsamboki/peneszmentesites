@@ -73,7 +73,6 @@ export default function Page({
 	productAttributes: ProductAttributes[];
 }) {
 	const searchParams = useSearchParams();
-
 	const [page, setPage] = React.useState(0);
 	const [section, setSection] = React.useState("Alapadatok");
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>({
@@ -633,11 +632,11 @@ function Page2({
 			}),
 		});
 		if (resp.ok) {
-			setItems([
-				...items.filter((item) => item.attributeId !== id),
+			setItems((prev) => [
+				...prev.filter((item) => item.attributeId !== id),
 				{
-					...items.find((item) => item.attributeId === id),
-					placeOptions: [...items.find((item) => item.attributeId === id)!.placeOptions, option],
+					...prev.find((item) => item.attributeId === id),
+					placeOptions: [...prev.find((item) => item.attributeId === id)!.placeOptions, option],
 				} as FelmeresItems,
 			]);
 			await fetch("/api/revalidate?tag=product-attributes");
