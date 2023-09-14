@@ -17,6 +17,7 @@ import { Question } from "./page";
 
 import { typeMap } from "../_utils/utils";
 import { getFirstProduct } from "../_utils/utils";
+import { useGlobalState } from "../_clientLayout";
 
 export default function ClientComponent({ data, products }: { data: any; products: Product[] }) {
 	const [question, setQuestion] = React.useState<Question>({
@@ -31,6 +32,7 @@ export default function ClientComponent({ data, products }: { data: any; product
 	const [openDialog, setOpenDialog] = React.useState(false);
 	const [allQuestions, setAllQuestions] = React.useState<any[]>(data);
 	const [isNew, setIsNew] = React.useState(false);
+	const { setAlert } = useGlobalState();
 
 	const createQuestion = async () => {
 		const response = await fetch("https://pen.dataupload.xyz/questions/", {
@@ -38,10 +40,27 @@ export default function ClientComponent({ data, products }: { data: any; product
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify({ ...question, id: undefined, product: undefined }),
+			body: JSON.stringify({ ...question, id: undefined, products: undefined }),
 		});
 		if (response.ok) {
 			const data = await response.json();
+			question.products
+				? await Promise.all(
+						question.products.map(
+							async (product) =>
+								await fetch("https://pen.dataupload.xyz/question_products/", {
+									method: "POST",
+									headers: {
+										"Content-Type": "application/json",
+									},
+									body: JSON.stringify({
+										question_id: data.id,
+										product_id: product,
+									}),
+								})
+						)
+				  )
+				: null;
 			setQuestion({
 				question: "",
 				id: 0,
@@ -137,8 +156,28 @@ export default function ClientComponent({ data, products }: { data: any; product
 		if (response.ok) {
 			await fetch("/api/revalidate?tag=questions");
 			setAllQuestions((prev) => prev.filter((item) => item.id !== question.id));
-			setOpenDialog(false);
+		} else {
+			const body = await response.text();
+			const bodyAsString = JSON.stringify(body); // Parse the JSON response into a string
+
+			if (bodyAsString.includes("pen_felmeres_questions_pen_questions_id_fk")) {
+				setAlert({
+					level: "error",
+					message: "Ez a kérdés már szerepel egy felmérésben, ezért nem törölhető!",
+				});
+				setTimeout(() => setAlert(null), 5000);
+			}
 		}
+		setOpenDialog(false);
+		setQuestion({
+			question: "",
+			id: 0,
+			type: "",
+			options: "{}",
+			connection: "",
+			mandatory: false,
+			description: "",
+		});
 	};
 
 	return (
