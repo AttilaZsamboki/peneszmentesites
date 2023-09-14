@@ -219,6 +219,8 @@ export async function assembleOfferXML(
 	}
 	const adatlap: AdatlapDetails = await fetchAdatlapDetails(adatlapId);
 	const contactData: ContactDetails = await fetchContactDetails(contactId);
+	const date = new Date(new Date().setDate(new Date().getDate() + 30));
+	console.log();
 
 	const xmlString = `<?xml version="1.0" encoding="UTF-8"?>
 <Projects>
@@ -241,8 +243,8 @@ export async function assembleOfferXML(
             <Offer Id="${randomId}">
                 <Number>${adatlap.Name}</Number>
                 <CurrencyCode>HUF</CurrencyCode>
-                <!-- Performace date of order [required date] -->
-                <Performance>2015-09-22 12:15:13</Performance>
+                <Performance>${date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()}</Performance>
+				<Prompt>${date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()}</Prompt>
                 <Status>${statusMap[status]}</Status>
                 <!-- Data of Customer -->
                 <Customer>
@@ -290,6 +292,7 @@ export async function assembleOfferXML(
         </Offers>
     </Project>
 </Projects>`;
+	console.log(xmlString);
 	return await fetch("/api/minicrm-proxy?endpoint=XML", {
 		method: "POST",
 		headers: {
