@@ -9,14 +9,27 @@ import { useGlobalState } from "../../_clientLayout";
 
 import React from "react";
 
-import { Typography, Spinner, Switch, CardBody, Card, Slider, Checkbox } from "@material-tailwind/react";
-import { XMarkIcon, CheckIcon } from "@heroicons/react/20/solid";
+import {
+	Typography,
+	Spinner,
+	Switch,
+	CardBody,
+	Card,
+	Slider,
+	Checkbox,
+	Button,
+	Chip,
+	CardHeader,
+} from "@material-tailwind/react";
+import { XMarkIcon, CheckIcon, ChevronRightIcon, ChevronLeftIcon } from "@heroicons/react/20/solid";
 import { BaseFelmeresData, FelmeresItems } from "../new/_clientPage";
 import { Question } from "@/app/questions/page";
 import { Template } from "@/app/templates/page";
 import MultipleChoice from "@/app/_components/MultipleChoice";
 import { Grid } from "@/app/_components/Grid";
 import Gallery from "@/app/_components/Gallery";
+import { statusMap } from "@/app/_utils/utils";
+import { color } from "@material-tailwind/react/types/components/alert";
 
 export function isJSONParsable(str: string) {
 	try {
@@ -35,7 +48,7 @@ export const hufFormatter = new Intl.NumberFormat("hu-HU", {
 export default function ClientPage({
 	felmeresQuestions,
 	felmeresId,
-	felmeres,
+	felmeresNonState,
 	felmeresItems,
 	adatlap,
 	questions,
@@ -43,7 +56,7 @@ export default function ClientPage({
 }: {
 	felmeresQuestions: FelmeresQuestions[];
 	felmeresId: string;
-	felmeres: BaseFelmeresData;
+	felmeresNonState: BaseFelmeresData;
 	felmeresItems: FelmeresItems[];
 	questions: Question[];
 	adatlap: AdatlapDetails;
@@ -54,6 +67,11 @@ export default function ClientPage({
 		component: JSX.Element;
 		title: string;
 	}
+	const [felmeres, setFelmeres] = React.useState(
+		felmeresNonState
+			? felmeresNonState
+			: ({ adatlap_id: 0, status: "DRAFT", template: 0, type: "Helyi elszívós rendszer" } as BaseFelmeresData)
+	);
 
 	const sections: PageMap[] = [
 		{
@@ -107,45 +125,104 @@ export default function ClientPage({
 		setIsLoading(false);
 	}, []);
 
+	const prevStatus = Object.keys(statusMap)[Object.keys(statusMap).indexOf(felmeres.status) - 1];
+	const nextStatus = Object.keys(statusMap)[Object.keys(statusMap).indexOf(felmeres.status) + 1];
+
+	const changeStatus = async (type: "prev" | "next") => {
+		const response = await fetch(`https://pen.dataupload.xyz/felmeresek/${felmeresId}/`, {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				status: type === "prev" ? prevStatus : nextStatus,
+			}),
+		});
+		if (response.ok) {
+			setFelmeres((prev) => ({ ...prev, status: type === "prev" ? prevStatus : nextStatus } as BaseFelmeresData));
+			await fetch("/api/revalidate?tag=" + encodeURIComponent(felmeresId));
+			await fetch("/api/revalidate?tag=felmeresek");
+		}
+	};
+
 	return (
 		<div className='w-full'>
 			<div className='flex flex-row w-ful flex-wrap lg:flex-nowrap justify-center mt-2'>
-				<div className='lg:mt-6 lg:px-10 w-full'>
-					<Card className='shadow-none'>
-						<CardBody className='bg-white p-8 lg:rounded-lg bg-transparent bg-opacity-20 lg:border transform'>
-							<Heading
-								title={
-									selectedSection
-										? sections.find((section) => section.title === selectedSection)!.title
-										: sections[0].title
-								}
-								variant='h3'
-								border={false}
-							/>
-							{isAll
-								? sections.map((section, index) => {
-										if (index === 0) {
-											return section.component;
-										}
-										return (
-											<div key={index} className='border-t'>
-												<Heading variant='h3' border={false} title={section.title} />
-												{section.component}
-											</div>
-										);
-								  })
-								: sections.find((section) => section.title === selectedSection)?.component}
-						</CardBody>
-					</Card>
+				<div className='w-full'>
+					<div className='lg:mt-6 lg:px-10 w-full'>
+						<Card className='shadow-none'>
+							<CardBody className='bg-white p-8 lg:rounded-lg bg-transparent bg-opacity-20 lg:border transform'>
+								<div className='flex gap-5 flex-row items-center justify-start'>
+									<Chip
+										className='relative bg-clip-border rounded-md overflow-hidden bg-gradient-to-tr from-gray-900 to-gray-800 text-white shadow-gray-900/20 shadow-none py-2 text-center'
+										value={adatlap.Name}
+										size='lg'
+										color='gray'
+									/>
+									<div className='flex flex-row items-center'>
+										{prevStatus ? (
+											<Button
+												onClick={() => changeStatus("prev")}
+												color={statusMap[felmeres.status].color as color}
+												className='items-center font-sans font-bold uppercase whitespace-nowrap select-none px-3 text-xs relative bg-clip-border rounded-l-md rounded-r-none overflow-hidden bg-gradient-to-tr text-white shadow-none py-1 text-center'>
+												<ChevronLeftIcon className='w-6 h-6' />
+											</Button>
+										) : null}
+										<Chip
+											className={`relative bg-clip-border rounded-l-none rounded-r-none overflow-hidden bg-gradient-to-tr text-white shadow-none py-2 text-center ${
+												Object.values(statusMap)[
+													Object.keys(statusMap).indexOf(felmeres.status) + 1
+												]
+													? "rounded-r-none"
+													: "rounded-r-md"
+											} ${
+												Object.values(statusMap)[
+													Object.keys(statusMap).indexOf(felmeres.status) - 1
+												]
+													? "rounded-l-none"
+													: "rounded-l-md"
+											}`}
+											value={statusMap[felmeres.status].name}
+											color={statusMap[felmeres.status].color as color}
+										/>
+										{nextStatus ? (
+											<Button
+												onClick={() => changeStatus("next")}
+												color={statusMap[felmeres.status].color as color}
+												className='items-center font-sans font-bold uppercase rounded-l-none whitespace-nowrap select-none px-3 text-xs relative bg-clip-border rounded-r-md overflow-hidden bg-gradient-to-tr text-white shadow-none py-1 text-center'>
+												<ChevronRightIcon className='w-6 h-6' />
+											</Button>
+										) : null}
+									</div>
+								</div>
+								<Heading
+									title={
+										selectedSection
+											? sections.find((section) => section.title === selectedSection)!.title
+											: sections[0].title
+									}
+									variant='h3'
+									border={false}
+								/>
+								{isAll
+									? sections.map((section, index) => {
+											if (index === 0) {
+												return section.component;
+											}
+											return (
+												<div key={index} className='border-t'>
+													<Heading variant='h3' border={false} title={section.title} />
+													{section.component}
+												</div>
+											);
+									  })
+									: sections.find((section) => section.title === selectedSection)?.component}
+							</CardBody>
+						</Card>
+					</div>
 				</div>
 				<div className='w-full lg:w-3/12 lg:mr-10 flex justify-center lg:justify-normal lg:items-start items-center mt-6'>
-					<div className='w-full sticky top-8'>
-						<Typography
-							variant='h4'
-							className='relative bg-clip-border mx-4 rounded-xl overflow-hidden bg-gradient-to-tr from-gray-900 to-gray-800 text-white shadow-gray-900/20 shadow-lg mb-8 py-2 text-center'
-							color='gray'>
-							{adatlap.Name}
-						</Typography>
+					<div className='w-full sticky top-8 '>
 						<React.Suspense
 							fallback={
 								<Sections
@@ -288,6 +365,9 @@ function Page1({
 			</QuestionTemplate>
 			<QuestionTemplate title='Sablon'>
 				<div>{template.name}</div>
+			</QuestionTemplate>
+			<QuestionTemplate title='Státusz'>
+				<div>{statusMap[felmeres.status] ? statusMap[felmeres.status].name : ""}</div>
 			</QuestionTemplate>
 		</>
 	);

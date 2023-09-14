@@ -31,6 +31,7 @@ export interface BaseFelmeresData {
 	adatlap_id: number;
 	type: string;
 	template: number;
+	status: "DRAFT" | "IN_PROGRESS" | "COMPLETED";
 }
 
 export interface FelmeresItems {
@@ -79,6 +80,7 @@ export default function Page({
 		adatlap_id: searchParams.get("adatlap_id") ? parseInt(searchParams.get("adatlap_id")!) : 0,
 		type: "",
 		template: 0,
+		status: "DRAFT",
 	});
 	const [items, setItems] = React.useState<FelmeresItems[]>([]);
 	const [numPages, setNumPages] = React.useState(0);

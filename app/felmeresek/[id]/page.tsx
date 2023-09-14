@@ -65,7 +65,7 @@ export default async function Page({ params }: { params: { id: string } }) {
 			felmeresItems={felmeresItems}
 			questions={question}
 			felmeresId={felmeresId}
-			felmeres={felmeres}
+			felmeresNonState={felmeres}
 			adatlap={adatlap}
 			template={template}
 		/>

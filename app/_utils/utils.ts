@@ -11,6 +11,12 @@ export const typeMap = {
 	FILE_UPLOAD: "Fájlfeltöltés",
 };
 
+export const statusMap = {
+	DRAFT: { name: "Vázlat", color: "gray" },
+	IN_PROGRESS: { name: "Folyamatban", color: "blue" },
+	COMPLETED: { name: "Kész", color: "green" },
+};
+
 export function getFirstProduct(question: Question): (value: Product, index: number, obj: Product[]) => unknown {
 	return (product) => product.id === (question.products ? question.products[0] : 0);
 }

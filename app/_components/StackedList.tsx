@@ -2,7 +2,7 @@
 import Link from "next/link";
 import React from "react";
 import autoAnimate from "@formkit/auto-animate";
-import { Card, CardBody } from "@material-tailwind/react";
+import { Card, CardBody, Chip } from "@material-tailwind/react";
 import { Filter } from "../products/page";
 import { DefaultPagination } from "./Pagination";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -14,6 +14,7 @@ export interface ItemContent {
 	subtitle3?: string;
 	imgSrc?: string;
 	id: string;
+	status?: string;
 }
 
 export default function StackedList({
@@ -62,6 +63,13 @@ export default function StackedList({
 			.map((searchWord: string) => JSON.stringify(item).toLowerCase().includes(searchWord.toLowerCase()))
 			.every((item: boolean) => item === true)
 	);
+	const tailwindColorMap = {
+		yellow: "bg-yellow-900",
+		red: "bg-red-900",
+		green: "bg-green-900",
+		blue: "bg-blue-900",
+		gray: "bg-gray-900",
+	};
 
 	return (
 		<div className='w-2/3 flex flex-col'>
@@ -116,9 +124,30 @@ export default function StackedList({
 													/>
 												) : null}
 												<div className='min-w-0 flex-auto'>
-													<p className='text-sm font-semibold leading-6 text-gray-900'>
-														{item[itemContent.title]}
-													</p>
+													<div className='flex flex-row items-center gap-2'>
+														<p className='text-sm font-semibold leading-6 text-gray-900'>
+															{item[itemContent.title]}
+														</p>
+														{itemContent.status ? (
+															<Chip
+																variant='ghost'
+																value={item[itemContent.status].name}
+																color={item[itemContent.status].color}
+																size='sm'
+																icon={
+																	<span
+																		className={
+																			`mx-auto mt-1 block h-2 w-2 rounded-full content-[''] ` +
+																			tailwindColorMap[
+																				item[itemContent.status]
+																					.color as keyof typeof tailwindColorMap
+																			]
+																		}
+																	/>
+																}
+															/>
+														) : null}
+													</div>
 
 													<p className='mt-1 truncate text-xs leading-5 text-gray-500'>
 														{item[itemContent.subtitle]}

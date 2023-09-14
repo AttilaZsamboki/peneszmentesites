@@ -1,8 +1,11 @@
 import Heading from "../_components/Heading";
-import { fetchAdatlapDetails } from "../_utils/MiniCRM";
 import ClientPage from "./_clientPage";
 import { BaseFelmeresData } from "./new/_clientPage";
+
 import { AdatlapDetails } from "../_utils/MiniCRM";
+import { fetchAdatlapDetails } from "../_utils/MiniCRM";
+
+import { statusMap } from "../_utils/utils";
 
 export interface GridOptions {
 	rows: string[];
@@ -50,6 +53,7 @@ export default async function Home() {
 			FelmeresTipus: `${felmeres.type} - ${
 				templates.find((template) => template.id === felmeres.template)?.name
 			}`,
+			status: statusMap[felmeres.status],
 		}));
 
 		return <ClientPage allData={allData} />;

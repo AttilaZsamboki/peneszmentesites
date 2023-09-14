@@ -24,6 +24,7 @@ export default function ClientPage({ allData }: { allData: any }) {
 				subtitle2: "FelmeresTipus",
 				subtitle3: "Felmero2",
 				imgSrc: "IngatlanKepe",
+				status: "status",
 			}}
 		/>
 	);
