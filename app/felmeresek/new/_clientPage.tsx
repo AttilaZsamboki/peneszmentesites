@@ -28,6 +28,7 @@ export interface ProductTemplate {
 }
 
 export interface BaseFelmeresData {
+	id: number;
 	adatlap_id: number;
 	type: string;
 	template: number;
@@ -77,6 +78,7 @@ export default function Page({
 	const [page, setPage] = React.useState(0);
 	const [section, setSection] = React.useState("Alapadatok");
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>({
+		id: 0,
 		adatlap_id: searchParams.get("adatlap_id") ? parseInt(searchParams.get("adatlap_id")!) : 0,
 		type: "",
 		template: 0,
@@ -145,12 +147,13 @@ export default function Page({
 			body: JSON.stringify(felmeres),
 		});
 		if (res.ok) {
+			const felmeresResponseData: BaseFelmeresData = await res.json();
 			await fetch("https://pen.dataupload.xyz/felmeres_items/", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify(submitItems),
+				body: JSON.stringify(submitItems.map((item) => ({ ...item, adatlap: felmeresResponseData.id }))),
 			});
 			let status = 1;
 			data.filter((question) => question.value).map(async (question) => {
@@ -161,7 +164,7 @@ export default function Page({
 					},
 					body: JSON.stringify({
 						...question,
-						adatlap: question.adatlap_id,
+						adatlap: felmeresResponseData.id,
 						value: Array.isArray(question.value) ? JSON.stringify(question.value) : question.value,
 					}),
 				});

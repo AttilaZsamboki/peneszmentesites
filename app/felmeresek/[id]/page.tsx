@@ -14,10 +14,14 @@ export interface FelmeresNotes {
 
 export default async function Page({ params }: { params: { id: string } }) {
 	const felmeresId = params.id;
-	const data = await fetch("https://pen.dataupload.xyz/felmeres_questions/" + felmeresId, {
-		next: { tags: [encodeURIComponent(felmeresId)] },
-	});
-	const felmeresQuestions: FelmeresQuestions[] = data.ok ? await data.json() : [];
+	const felmeresQuestions: FelmeresQuestions[] = await fetch(
+		"https://pen.dataupload.xyz/felmeres_questions/" + felmeresId,
+		{
+			next: { tags: [encodeURIComponent(felmeresId)] },
+		}
+	)
+		.then((res) => res.json())
+		.catch((err) => console.log(err));
 	const question: Question[] = await Promise.all(
 		felmeresQuestions.map(async (field) => {
 			const question = await fetch("https://pen.dataupload.xyz/questions/" + field.question, {
@@ -52,7 +56,7 @@ export default async function Page({ params }: { params: { id: string } }) {
 	)
 		.then((res) => res.json())
 		.catch((err) => console.log(err));
-	const adatlap = await fetchAdatlapDetails(felmeresId);
+	const adatlap = await fetchAdatlapDetails(felmeres.adatlap_id.toString());
 	const template = await fetch("https://pen.dataupload.xyz/templates/" + felmeres.template, {
 		next: { tags: [encodeURIComponent(felmeresId)] },
 	})

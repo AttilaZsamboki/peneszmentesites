@@ -34,9 +34,7 @@ export default async function Page() {
 
 	const adatlapok: AdatlapData[] = await fetch("https://r3.minicrm.hu/Api/R3/Project?CategoryId=23", requestOptions)
 		.then((response) => response.json())
-		.then((result: Adatlap) =>
-			Object.values(result.Results).filter((adatlap) => adatlap.Deleted === 0 && adatlap.StatusId === 3023)
-		);
+		.then((result: Adatlap) => Object.values(result.Results).filter((adatlap) => adatlap.Deleted === 0));
 	const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates").then((response) =>
 		response.json()
 	);

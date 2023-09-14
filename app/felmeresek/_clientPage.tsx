@@ -18,10 +18,10 @@ export default function ClientPage({ allData }: { allData: any }) {
 			createPath='/felmeresek/new'
 			data={allData}
 			itemContent={{
-				id: "Id",
-				title: "Name",
+				id: "id",
+				title: "title",
 				subtitle: "TeljesCim",
-				subtitle2: "FelmeresTipus",
+				subtitle2: "type",
 				subtitle3: "Felmero2",
 				imgSrc: "IngatlanKepe",
 				status: "status",

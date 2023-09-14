@@ -6,6 +6,7 @@ import { AdatlapDetails } from "../_utils/MiniCRM";
 import { fetchAdatlapDetails } from "../_utils/MiniCRM";
 
 import { statusMap } from "../_utils/utils";
+import { Template } from "../templates/page";
 
 export interface GridOptions {
 	rows: string[];
@@ -32,7 +33,7 @@ export default async function Home() {
 		const adatlapok: AdatlapDetails[] = await Promise.all(
 			felmeresek.map(async (felmeres) => fetchAdatlapDetails(felmeres.adatlap_id.toString()))
 		);
-		const templates = await Promise.all(
+		const templates: Template[] = await Promise.all(
 			felmeresek.map(async (felmeres) =>
 				fetch("https://pen.dataupload.xyz/templates/" + felmeres.template, {
 					next: { tags: [encodeURIComponent(felmeres.adatlap_id)] },
@@ -45,15 +46,18 @@ export default async function Home() {
 			...adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id),
 			...felmeres,
 			...templates.find((template) => template.id === felmeres.template),
+			id: felmeres.id,
 			TeljesCim: `${adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)?.Cim2} ${
 				adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)?.Telepules
 			} ${adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)?.Iranyitoszam} ${
 				adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)?.Orszag
 			}`,
-			FelmeresTipus: `${felmeres.type} - ${
-				templates.find((template) => template.id === felmeres.template)?.name
-			}`,
+			FelmeresTipus: felmeres.type,
 			status: statusMap[felmeres.status ? felmeres.status : "DRAFT"],
+			title:
+				adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)?.Name +
+				" - " +
+				templates.find((template) => template.id === felmeres.template)?.name,
 		}));
 
 		return <ClientPage allData={allData} />;
