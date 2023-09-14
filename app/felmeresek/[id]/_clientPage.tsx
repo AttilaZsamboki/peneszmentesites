@@ -18,16 +18,18 @@ import {
 	Slider,
 	Checkbox,
 	Button,
-	Chip,
-	CardHeader,
+	Chip as MaterialChip,
 } from "@material-tailwind/react";
 import { XMarkIcon, CheckIcon, ChevronRightIcon, ChevronLeftIcon } from "@heroicons/react/20/solid";
 import { BaseFelmeresData, FelmeresItems } from "../new/_clientPage";
+
 import { Question } from "@/app/questions/page";
 import { Template } from "@/app/templates/page";
 import MultipleChoice from "@/app/_components/MultipleChoice";
 import { Grid } from "@/app/_components/Grid";
 import Gallery from "@/app/_components/Gallery";
+import Chip from "@/app/_components/Chip";
+
 import { statusMap } from "@/app/_utils/utils";
 import { color } from "@material-tailwind/react/types/components/alert";
 
@@ -74,10 +76,6 @@ export default function ClientPage({
 	);
 
 	const sections: PageMap[] = [
-		{
-			component: <Page1 felmeres={felmeres} adatlap={adatlap} template={template} />,
-			title: "Alapadatok",
-		},
 		{
 			component: <Page2 items={felmeresItems} />,
 			title: "Tételek",
@@ -153,12 +151,8 @@ export default function ClientPage({
 						<Card className='shadow-none'>
 							<CardBody className='bg-white p-8 lg:rounded-lg bg-transparent bg-opacity-20 lg:border transform'>
 								<div className='flex gap-5 flex-row items-center justify-start'>
-									<Chip
-										className='relative bg-clip-border rounded-md overflow-hidden bg-gradient-to-tr from-gray-900 to-gray-800 text-white shadow-gray-900/20 shadow-none py-2 text-center'
-										value={adatlap.Name}
-										size='lg'
-										color='gray'
-									/>
+									<Chip color='gray' value={adatlap.Name} />
+									<Chip value={template.name + " - " + felmeres.type} color='amber' />
 									<div className='flex flex-row items-center'>
 										{prevStatus ? (
 											<Button
@@ -168,7 +162,7 @@ export default function ClientPage({
 												<ChevronLeftIcon className='w-6 h-6' />
 											</Button>
 										) : null}
-										<Chip
+										<MaterialChip
 											className={`relative bg-clip-border rounded-l-none rounded-r-none overflow-hidden bg-gradient-to-tr text-white shadow-none py-2 text-center ${
 												Object.values(statusMap)[
 													Object.keys(statusMap).indexOf(felmeres.status) + 1
@@ -343,33 +337,6 @@ export default function ClientPage({
 				</div>
 			</div>
 		</div>
-	);
-}
-
-function Page1({
-	adatlap,
-	template,
-	felmeres,
-}: {
-	adatlap: AdatlapDetails;
-	template: Template;
-	felmeres: BaseFelmeresData;
-}) {
-	return (
-		<>
-			<QuestionTemplate title='Adatlap'>
-				<div>{adatlap.Name}</div>
-			</QuestionTemplate>
-			<QuestionTemplate title='Milyen rendszert tervezel?'>
-				<div>{felmeres.type}</div>
-			</QuestionTemplate>
-			<QuestionTemplate title='Sablon'>
-				<div>{template.name}</div>
-			</QuestionTemplate>
-			<QuestionTemplate title='Státusz'>
-				<div>{statusMap[felmeres.status] ? statusMap[felmeres.status].name : ""}</div>
-			</QuestionTemplate>
-		</>
 	);
 }
 
