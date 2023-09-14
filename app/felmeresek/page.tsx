@@ -53,7 +53,7 @@ export default async function Home() {
 			FelmeresTipus: `${felmeres.type} - ${
 				templates.find((template) => template.id === felmeres.template)?.name
 			}`,
-			status: statusMap[felmeres.status],
+			status: statusMap[felmeres.status ? felmeres.status : "DRAFT"],
 		}));
 
 		return <ClientPage allData={allData} />;
