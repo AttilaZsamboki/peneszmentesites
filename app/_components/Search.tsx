@@ -1,4 +1,5 @@
 import { Filter } from "../products/page";
+import React from "react";
 
 export default function Search({
 	data,
@@ -11,6 +12,18 @@ export default function Search({
 	setSearch: React.Dispatch<React.SetStateAction<Filter>>;
 	setFilteredData: React.Dispatch<React.SetStateAction<any[]>>;
 }) {
+
+	React.useEffect(() => {
+		setFilteredData(
+			data.filter((item: any) =>
+				search.value
+					.split(" ")
+					.map((searchWord: string) => JSON.stringify(item).toLowerCase().includes(searchWord.toLowerCase()))
+					.every((item: boolean) => item === true)
+			)
+		);
+	}, [search.value]);
+
 	return (
 		<div className='flex flex-row justify-between items-center mb-3 w-full gap-5 mt-5'>
 			<div className='mx-auto flex w-full rounded-md !border !border-gray-200'>

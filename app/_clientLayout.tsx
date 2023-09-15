@@ -4,6 +4,11 @@ import { Alert, Button, Typography } from "@material-tailwind/react";
 import { HomeIcon, ArchiveBoxIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import CircularProgressBar from "./_components/CircularProgressBar";
+
+interface Progress {
+	percent: number;
+}
 
 export const GlobalContext = React.createContext<{
 	setAlert: React.Dispatch<
@@ -19,9 +24,11 @@ export const GlobalContext = React.createContext<{
 			onCancel?: (() => void) | undefined;
 		} | null>
 	>;
+	setProgress: React.Dispatch<React.SetStateAction<Progress>>;
 }>({
 	setAlert: () => {},
 	setConfirm: () => {},
+	setProgress: () => {},
 });
 
 export default function RootLayoutClient({ children }: { children: React.ReactNode }) {
@@ -34,6 +41,15 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 		onConfirm: () => void;
 		onCancel?: () => void;
 	} | null>(null);
+	const [progress, setProgress] = React.useState<Progress>({ percent: 0 });
+
+	React.useEffect(() => {
+		if (progress.percent === 100) {
+			setTimeout(() => {
+				setProgress({ percent: 0 });
+			}, 2500);
+		}
+	}, [progress.percent]);
 
 	return (
 		<div>
@@ -96,9 +112,12 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 					</Alert>
 				</div>
 			)}
+			<CircularProgressBar percent={progress.percent} />
 			<div className='flex w-full'>
 				<Navbar />
-				<GlobalContext.Provider value={{ setAlert, setConfirm }}>{children}</GlobalContext.Provider>
+				<GlobalContext.Provider value={{ setAlert, setConfirm, setProgress }}>
+					{children}
+				</GlobalContext.Provider>
 			</div>
 		</div>
 	);

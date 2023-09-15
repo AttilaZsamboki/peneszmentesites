@@ -21,6 +21,7 @@ import { ProductAttributes } from "@/app/products/_clientPage";
 import { ToDo, assembleOfferXML, fetchMiniCRM, list_to_dos } from "@/app/_utils/MiniCRM";
 import { useSearchParams } from "next/navigation";
 import Select from "@/app/_components/Select";
+import { useGlobalState } from "@/app/_clientLayout";
 
 export interface ProductTemplate {
 	product: number;
@@ -74,14 +75,15 @@ export default function Page({
 	products: Product[];
 	productAttributes: ProductAttributes[];
 }) {
+	const { setProgress } = useGlobalState();
 	const searchParams = useSearchParams();
-	const [page, setPage] = React.useState(1);
+	const [page, setPage] = React.useState(0);
 	const [section, setSection] = React.useState("Alapadatok");
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>({
 		id: 0,
 		adatlap_id: searchParams.get("adatlap_id") ? parseInt(searchParams.get("adatlap_id")!) : 0,
 		type: "",
-		template: 56,
+		template: 0,
 		status: "DRAFT",
 	});
 	const [items, setItems] = React.useState<FelmeresItems[]>([]);
@@ -139,6 +141,9 @@ export default function Page({
 	}, [items]);
 
 	const CreateFelmeres = async () => {
+		const startDate = new Date();
+		const percent = (num: number) => Math.floor((num / 3157) * 100);
+		setProgress({ percent: 1 });
 		const res = await fetch("https://pen.dataupload.xyz/felmeresek/", {
 			method: "POST",
 			headers: {
@@ -146,6 +151,7 @@ export default function Page({
 			},
 			body: JSON.stringify(felmeres),
 		});
+		setProgress({ percent: percent(120) });
 		if (res.ok) {
 			const felmeresResponseData: BaseFelmeresData = await res.json();
 			await fetch("https://pen.dataupload.xyz/felmeres_items/", {
@@ -155,6 +161,7 @@ export default function Page({
 				},
 				body: JSON.stringify(submitItems.map((item) => ({ ...item, adatlap: felmeresResponseData.id }))),
 			});
+			setProgress({ percent: percent(214) });
 			let status = 1;
 			data.filter((question) => question.value).map(async (question) => {
 				const resQuestions = await fetch("https://pen.dataupload.xyz/felmeres_questions/", {
@@ -185,6 +192,7 @@ export default function Page({
 					template?.description,
 					template?.name
 				);
+				setProgress({ percent: percent(1762) });
 				await fetch(`/api/minicrm-proxy/${felmeres.adatlap_id}?endpoint=Project`, {
 					method: "PUT",
 					headers: {
@@ -195,6 +203,7 @@ export default function Page({
 						StatusId: "Elszámolásra vár",
 					}),
 				});
+				setProgress({ percent: percent(2271) });
 				const todo_criteria = (todo: ToDo) => {
 					return todo["Type"] === 225 && todo["Status"] === "Open";
 				};
@@ -203,9 +212,14 @@ export default function Page({
 				if (todo.length) {
 					await fetchMiniCRM("ToDo", todo[0].Id.toString(), "PUT", { Status: "Closed" });
 				}
+				console.log(new Date().getTime() - startDate.getTime());
+				setProgress({ percent: percent(2591) });
 
 				await fetch("/api/revalidate?tag=felmeresek");
+				setProgress({ percent: percent(2992) });
 				await fetch("/api/revalidate?tag=" + encodeURIComponent(felmeres.adatlap_id.toString()));
+
+				setProgress({ percent: percent(3157) });
 				router.push("/felmeresek");
 			}
 		}

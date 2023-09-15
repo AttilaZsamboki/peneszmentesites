@@ -93,6 +93,7 @@ export default function ClientComponent({ data, products }: { data: any; product
 					subtitle2: (typeMap as any)[question.type] || "Nincs típus",
 					isMandatory: question.mandatory ? "Kötelező" : "Nem kötelező",
 					id: data.id,
+					product: null,
 				},
 			]);
 			await fetch("/api/revalidate?tag=questions");
