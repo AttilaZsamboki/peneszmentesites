@@ -75,13 +75,13 @@ export default function Page({
 	productAttributes: ProductAttributes[];
 }) {
 	const searchParams = useSearchParams();
-	const [page, setPage] = React.useState(0);
+	const [page, setPage] = React.useState(1);
 	const [section, setSection] = React.useState("Alapadatok");
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>({
 		id: 0,
 		adatlap_id: searchParams.get("adatlap_id") ? parseInt(searchParams.get("adatlap_id")!) : 0,
 		type: "",
-		template: 0,
+		template: 56,
 		status: "DRAFT",
 	});
 	const [items, setItems] = React.useState<FelmeresItems[]>([]);
@@ -620,10 +620,14 @@ function Page2({
 		.map(({ inputValues, netPrice }) => netPrice * inputValues.reduce((a, b) => a + b.ammount, 0))
 		.reduce((a, b) => a + b, 0);
 	const otherItemsNetTotal = otherItems
+		.filter((item) => !isNaN(item.value))
 		.map((item) =>
 			item.type === "fixed"
 				? item.value
-				: (netTotal + otherItems.filter((item) => item.type !== "percent").reduce((a, b) => a + b.value, 0)) *
+				: (netTotal +
+						otherItems
+							.filter((item) => item.type !== "percent" && !isNaN(item.value))
+							.reduce((a, b) => a + b.value, 0)) *
 				  (item.value / 100)
 		)
 		.reduce((a, b) => a + b, 0);
@@ -1078,7 +1082,11 @@ function Page2({
 															? item.value
 															: ((netTotal +
 																	otherItems
-																		.filter((item) => item.type !== "percent")
+																		.filter(
+																			(item) =>
+																				item.type !== "percent" &&
+																				!isNaN(item.value)
+																		)
 																		.reduce((a, b) => a + b.value, 0)) *
 																	item.value) /
 																	100
