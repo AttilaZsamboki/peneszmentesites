@@ -1,0 +1,7 @@
+import { revalidatePath } from "next/cache";
+import { NextResponse } from "next/server";
+
+export function GET() {
+	revalidatePath("/");
+	return new NextResponse("OK");
+}

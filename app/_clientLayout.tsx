@@ -5,6 +5,7 @@ import { HomeIcon, ArchiveBoxIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import CircularProgressBar from "./_components/CircularProgressBar";
+import { ArrowPathIcon } from "@heroicons/react/20/solid";
 
 interface Progress {
 	percent: number;
@@ -169,30 +170,45 @@ function Navbar() {
 		},
 	];
 	const router = usePathname();
+	const [isLoading, setIsLoading] = React.useState(false);
+
+	const resetAllCache = async () => {
+		setIsLoading(true);
+		await fetch("/api/resetAllCache");
+		setIsLoading(false);
+		location.reload();
+	};
 
 	return (
 		<aside className='flex'>
 			<div className='flex flex-col items-center w-16 h-screen py-8 space-y-8 bg-white dark:bg-gray-900 dark:border-gray-700 sticky top-0'>
-				<a href='/'>
-					<img src='/logo.jpg' className='w-15 h-5' />
-				</a>
+				<div className='flex flex-col items-center w-16 h-screen py-8 space-y-8 bg-white dark:bg-gray-900 dark:border-gray-700 sticky top-0'>
+					<a href='/'>
+						<img src='/logo.jpg' className='w-15 h-5' />
+					</a>
 
-				{routes.map((route) => (
-					<Link
-						key={route.href}
-						href={route.href}
-						className={`p-1.5 ${
-							route.subRoutes
-								? [...route.subRoutes.map((route) => route.href), route.href].includes(
-										"/" + router.split("/")[1]
-								  )
-									? "bg-gray-200"
-									: "text-gray-500 dark:text-gray-400 dark:hover:bg-gray-800 hover:bg-gray-100"
-								: ""
-						} focus:outline-nones transition-colors duration-200 rounded-lg`}>
-						{route.icon}
-					</Link>
-				))}
+					{routes.map((route) => (
+						<Link
+							key={route.href}
+							href={route.href}
+							className={`p-1.5 ${
+								route.subRoutes
+									? [...route.subRoutes.map((route) => route.href), route.href].includes(
+											"/" + router.split("/")[1]
+									  )
+										? "bg-gray-200"
+										: "text-gray-500 dark:text-gray-400 dark:hover:bg-gray-800 hover:bg-gray-100"
+									: ""
+							} focus:outline-nones transition-colors duration-200 rounded-lg`}>
+							{route.icon}
+						</Link>
+					))}
+				</div>
+				<div
+					onClick={resetAllCache}
+					className='text-gray-500 cursor-pointer active:text-black dark:text-gray-400 dark:hover:bg-gray-800 focus:outline-nones transition-colors duration-200 rounded-lg'>
+					<ArrowPathIcon className={`w-6 h-6 ${isLoading ? "animate-spin text-black font-bold" : ""}`} />
+				</div>
 			</div>
 
 			<div className='h-screen py-8 overflow-y-auto bg-white border-l border-r sm:w-64 w-60 dark:bg-gray-900 dark:border-gray-700 sticky top-0'>
