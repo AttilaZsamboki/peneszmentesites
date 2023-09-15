@@ -12,7 +12,6 @@ export default function Search({
 	setSearch: React.Dispatch<React.SetStateAction<Filter>>;
 	setFilteredData: React.Dispatch<React.SetStateAction<any[]>>;
 }) {
-
 	React.useEffect(() => {
 		setFilteredData(
 			data.filter((item: any) =>
@@ -22,7 +21,7 @@ export default function Search({
 					.every((item: boolean) => item === true)
 			)
 		);
-	}, [search.value]);
+	}, [search.value, data]);
 
 	return (
 		<div className='flex flex-row justify-between items-center mb-3 w-full gap-5 mt-5'>

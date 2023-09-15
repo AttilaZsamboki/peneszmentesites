@@ -170,14 +170,6 @@ function Navbar() {
 		},
 	];
 	const router = usePathname();
-	const [isLoading, setIsLoading] = React.useState(false);
-
-	const resetAllCache = async () => {
-		setIsLoading(true);
-		await fetch("/api/resetAllCache");
-		setIsLoading(false);
-		location.reload();
-	};
 
 	return (
 		<aside className='flex'>
@@ -203,11 +195,6 @@ function Navbar() {
 							{route.icon}
 						</Link>
 					))}
-				</div>
-				<div
-					onClick={resetAllCache}
-					className='text-gray-500 cursor-pointer active:text-black dark:text-gray-400 dark:hover:bg-gray-800 focus:outline-nones transition-colors duration-200 rounded-lg'>
-					<ArrowPathIcon className={`w-6 h-6 ${isLoading ? "animate-spin text-black font-bold" : ""}`} />
 				</div>
 			</div>
 

@@ -212,7 +212,6 @@ export default function Page({
 				if (todo.length) {
 					await fetchMiniCRM("ToDo", todo[0].Id.toString(), "PUT", { Status: "Closed" });
 				}
-				console.log(new Date().getTime() - startDate.getTime());
 				setProgress({ percent: percent(2591) });
 
 				await fetch("/api/revalidate?tag=felmeresek");
