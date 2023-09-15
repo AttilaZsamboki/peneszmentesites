@@ -95,8 +95,8 @@ export default function ClientComponent({ data, products }: { data: any; product
 					id: data.id,
 				},
 			]);
-			setOpenDialog(false);
 			await fetch("/api/revalidate?tag=questions");
+			setOpenDialog(false);
 		}
 	};
 

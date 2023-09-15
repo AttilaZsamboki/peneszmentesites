@@ -48,6 +48,7 @@ export default function BaseComponentV2({
 	onCreateNew,
 	onEditItem,
 	pagination = { numPages: 0 },
+	sort,
 }: {
 	data: any;
 	title: string;
@@ -59,6 +60,7 @@ export default function BaseComponentV2({
 	onCreateNew?: () => void;
 	onEditItem?: (item: any) => void;
 	pagination?: { numPages: number };
+	sort?: { by: string; order: "asc" | "desc" };
 }) {
 	const searchParams = useSearchParams();
 	const [search, setSearch] = React.useState<Filter>({ id: 0, name: "", value: searchParams.get("filter") || "" });
@@ -108,6 +110,7 @@ export default function BaseComponentV2({
 					editType={editType}
 					itemContent={itemContent}
 					pagination={pagination}
+					sort={sort}
 				/>
 				<FiltersComponent
 					filterType={title}

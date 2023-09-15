@@ -26,6 +26,7 @@ export default function StackedList({
 	setSearch,
 	onEditItem,
 	pagination,
+	sort = { by: "id", order: "asc" },
 }: {
 	data: any[];
 	editType: "link" | "dialog";
@@ -35,6 +36,7 @@ export default function StackedList({
 	setSearch: React.Dispatch<React.SetStateAction<Filter>>;
 	onEditItem?: (item: any) => void;
 	pagination: { numPages: number };
+	sort?: { by: string; order: "asc" | "desc" };
 }) {
 	const parent = React.useRef<HTMLUListElement | null>(null);
 	const router = useRouter();
@@ -105,7 +107,15 @@ export default function StackedList({
 			</div>
 			<ul ref={parent} role='list' className='w-full bg-white rounded-lg flex flex-col justify-between border'>
 				{filteredData
-					.sort((a, b) => a[itemContent.id] - b[itemContent.id])
+					.sort((a, b) =>
+						sort
+							? sort.order === "desc"
+								? b[itemContent[sort.by as keyof ItemContent] as string] -
+								  a[itemContent[sort.by as keyof ItemContent] as string]
+								: a[itemContent[sort.by as keyof ItemContent] as string] -
+								  b[itemContent[sort.by as keyof ItemContent] as string]
+							: 0
+					)
 					.map((item, index) => {
 						if (editType === "link" && editHref) {
 							return (

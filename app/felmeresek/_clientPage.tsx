@@ -26,6 +26,7 @@ export default function ClientPage({ allData }: { allData: any }) {
 				imgSrc: "IngatlanKepe",
 				status: "status",
 			}}
+			sort={{ by: "id", order: "desc" }}
 		/>
 	);
 }

@@ -205,7 +205,8 @@ export async function assembleOfferXML(
 	contactId: string,
 	items: FelmeresItems[],
 	adatlapId: string,
-	subject?: string
+	subject?: string,
+	templateName?: string
 ) {
 	const randomId = Math.floor(Math.random() * 1000000);
 	const statusMap = {
@@ -227,7 +228,7 @@ export async function assembleOfferXML(
 <Projects>
     <Project Id="${randomId}">
         <StatusId>3099</StatusId>
-        <Name>${adatlap.Name}</Name>
+        <Name>${adatlap.Name} - ${templateName}</Name>
         <ContactId>${contactData.Id}</ContactId>
         <UserId>${userId}</UserId>
         <CategoryId>32</CategoryId>
@@ -242,7 +243,7 @@ export async function assembleOfferXML(
         </Contacts>
         <Offers>
             <Offer Id="${randomId}">
-                <Number>${adatlap.Name}</Number>
+                <Number>${adatlap.Name} - ${templateName}</Number>
                 <CurrencyCode>HUF</CurrencyCode>
 				<Subject>${subject}</Subject>
                 <Performance>${date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()}</Performance>

@@ -173,6 +173,7 @@ export default function Page({
 				}
 			});
 			if (status === 1) {
+				const template = templates.find((template) => template.id === felmeres.template);
 				await assembleOfferXML(
 					"Elfogadásra vár",
 					39636,
@@ -181,7 +182,8 @@ export default function Page({
 						: "",
 					submitItems,
 					felmeres.adatlap_id.toString(),
-					templates.find((template) => template.id === felmeres.template)?.description
+					template?.description,
+					template?.name
 				);
 				await fetch(`/api/minicrm-proxy/${felmeres.adatlap_id}?endpoint=Project`, {
 					method: "PUT",
