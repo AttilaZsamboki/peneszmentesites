@@ -214,25 +214,30 @@ export default function ClientComponent({ data, products }: { data: any; product
 					(!["TEXT", "FILE_UPLOAD"].includes(question.type) ? question.options === "{}" : false) ||
 					(question.connection === "Termék" ? question.products?.length === 0 || !question.products : false)
 				}
-				handler={() => setOpenDialog(!openDialog)}
+				handler={() => {
+					setOpenDialog(!openDialog);
+					resetQuestion();
+				}}
 				title={!isNew ? question.question : "Új kérdés"}
 				onDelete={!isNew ? deleteQuestion : undefined}
 				onSave={!isNew ? updateQuestion : createQuestion}
-				onCancel={() =>
-					setQuestion({
-						question: "",
-						id: 0,
-						type: "",
-						options: "{}",
-						connection: "",
-						mandatory: false,
-						description: "",
-					})
-				}>
+				onCancel={resetQuestion}>
 				<QuestionForm question={question} setQuestion={setQuestion} products={products} />
 			</CustomDialog>
 		</>
 	);
+
+	function resetQuestion(): void {
+		return setQuestion({
+			question: "",
+			id: 0,
+			type: "",
+			options: "{}",
+			connection: "",
+			mandatory: false,
+			description: "",
+		});
+	}
 }
 
 function QuestionForm({

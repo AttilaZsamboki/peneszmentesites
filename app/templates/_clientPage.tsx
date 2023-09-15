@@ -57,9 +57,17 @@ export default function Page({ templates, products }: { templates: Template[]; p
 						})
 				)
 			);
-			setUpToDateTemplates([...upToDateTemplates, templateResponseData]);
+			setUpToDateTemplates([
+				...upToDateTemplates,
+				{
+					...templateResponseData,
+					truncatedDescription:
+						templateResponseData.description.substring(0, 35) +
+						(templateResponseData.description.length > 35 ? "..." : ""),
+				},
+			]);
 			setItems([]);
-			setTemplate({ description: "", name: "", type: "", id: 0 });
+			resetTemplate();
 			await fetch("/api/revalidate?tag=templates");
 		}
 	};
@@ -68,7 +76,8 @@ export default function Page({ templates, products }: { templates: Template[]; p
 			method: "DELETE",
 		});
 		if (response.ok) {
-			setUpToDateTemplates(templates.filter((oldTemplates) => oldTemplates.id !== template.id));
+			setUpToDateTemplates((prev) => prev.filter((oldTemplates) => oldTemplates.id !== template.id));
+			resetTemplate();
 			await fetch("/api/revalidate?tag=templates");
 		}
 	};
@@ -123,7 +132,10 @@ export default function Page({ templates, products }: { templates: Template[]; p
 			/>
 			<CustomDialog
 				open={openDialog}
-				handler={() => setOpenDialog(!openDialog)}
+				handler={() => {
+					setOpenDialog(!openDialog);
+					resetTemplate();
+				}}
 				title={!isNew ? template.name : "Új sablon"}
 				onDelete={
 					!isNew
@@ -138,7 +150,7 @@ export default function Page({ templates, products }: { templates: Template[]; p
 				}
 				disabledSubmit={!template.name || !template.type || !template.description || !items.length}
 				onSave={!isNew ? updateTemplate : createTemplate}
-				onCancel={() => setTemplate({ description: "", name: "", type: "", id: 0 })}>
+				onCancel={resetTemplate}>
 				<Form
 					items={items}
 					products={products}
@@ -149,6 +161,10 @@ export default function Page({ templates, products }: { templates: Template[]; p
 			</CustomDialog>
 		</>
 	);
+
+	function resetTemplate(): void {
+		return setTemplate({ description: "", name: "", type: "", id: 0 });
+	}
 }
 
 function Form({
@@ -165,62 +181,58 @@ function Form({
 	setItems: React.Dispatch<React.SetStateAction<string[]>>;
 }) {
 	return (
-		<div className='max-h-[500px]'>
-			<div className='flex flex-col w-full gap-5 overflow-y-scroll px-3'>
-				<div>
-					<div>Név</div>
-					<Input value={template.name} onChange={(e) => setTemplate({ ...template, name: e.target.value })} />
+		<div className='flex flex-col w-full gap-5 overflow-y-scroll px-3'>
+			<div>
+				<div>Név</div>
+				<Input value={template.name} onChange={(e) => setTemplate({ ...template, name: e.target.value })} />
+			</div>
+			<div>
+				<div>Típus</div>
+				<Select
+					options={["Helyi elszívós rendszer", "Központi ventillátoros", "Passzív rendszer"].map((type) => ({
+						label: type,
+						value: type,
+					}))}
+					onChange={(e) => setTemplate({ ...template, type: e })}
+					value={template.type}
+				/>
+			</div>
+			<div>
+				<div>Leírás</div>
+				<Textarea value={template.description} onChange={(e) => setTemplate({ ...template, description: e })} />
+			</div>
+			<div>
+				<div className='-mt-10'>
+					<Heading title='Tételek' variant='h4' />
 				</div>
-				<div>
-					<div>Típus</div>
-					<Select
-						options={["Helyi elszívós rendszer", "Központi ventillátoros", "Passzív rendszer"].map(
-							(type) => ({ label: type, value: type })
-						)}
-						onChange={(e) => setTemplate({ ...template, type: e })}
-						value={template.type}
+				<div className='relative bottom-10'>
+					<AutoComplete
+						optionDisplayDirection='top'
+						options={products
+							.filter((product) => !items.map((item) => item).includes(product.id.toString()))
+							.map((product) => ({
+								label: product.sku + " - " + product.name,
+								value: product.id.toString(),
+							}))}
+						onChange={(e) => setItems([...items, e])}
+						value=''
 					/>
 				</div>
-				<div>
-					<div>Leírás</div>
-					<Textarea
-						value={template.description}
-						onChange={(e) => setTemplate({ ...template, description: e })}
-					/>
-				</div>
-				<div>
-					<div className='-mt-10'>
-						<Heading title='Tételek' variant='h4' />
-					</div>
-					<div className='relative bottom-10'>
-						<AutoComplete
-							optionDisplayDirection='top'
-							options={products
-								.filter((product) => !items.map((item) => item).includes(product.id.toString()))
-								.map((product) => ({
-									label: product.sku + " - " + product.name,
-									value: product.id.toString(),
-								}))}
-							onChange={(e) => setItems([...items, e])}
-							value=''
-						/>
-					</div>
-					<div className='flex flex-col gap-5'>
-						{items.map((item) => (
-							<div key={item} className='flex flex-row w-full items-center justify-between border-b pb-2'>
-								<div>
-									{products.find((product) => product.id.toString() === item)?.sku} -{" "}
-									{products.find((product) => product.id.toString() === item)?.name}
-								</div>
-								<Button
-									size='sm'
-									color='red'
-									onClick={() => setItems([...items.filter((i) => i !== item)])}>
-									<XMarkIcon className='w-5 h-5 text-white' />
-								</Button>
+				<div className='flex flex-col gap-5'>
+					{items.map((item) => (
+						<div key={item} className='flex flex-row w-full items-center justify-between border-b pb-2'>
+							<div>
+								{products.find((product) => product.id.toString() === item)?.sku} -{" "}
+								{products.find((product) => product.id.toString() === item)?.name}
 							</div>
-						))}
-					</div>
+							<Button
+								size='sm'
+								color='red'
+								onClick={() => setItems([...items.filter((i) => i !== item)])}>
+								<XMarkIcon className='w-5 h-5 text-white' />
+							</Button>
+						</div>
+					))}
 				</div>
 			</div>
 		</div>

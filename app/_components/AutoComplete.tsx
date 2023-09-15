@@ -45,16 +45,16 @@ export default function AutoComplete({
 				}
 			}}>
 			<div className='relative w-full'>
-				<div className='relative h-10 w-full cursor-default overflow-hidden rounded-lg bg-white text-left border focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm'>
+				<div className='relative h-10 w-full cursor-default overflow-hidden rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm !border !border-gray-300 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500'>
 					{create ? (
 						<Combobox.Input
-							className='w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none !border !border-gray-300 bg-white shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500'
+							className='w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none'
 							value={resetOnCreate ? query : undefined}
 							onChange={(event) => setQuery(event.target.value)}
 						/>
 					) : (
 						<Combobox.Input
-							className='w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none !border !border-gray-300 bg-white shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500'
+							className='w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none'
 							onChange={(event) => setQuery(event.target.value)}
 						/>
 					)}
@@ -78,7 +78,7 @@ export default function AutoComplete({
 										className={({ active }) =>
 											`relative cursor-default select-none py-2 pl-10 z-50 pr-4 ${
 												active
-													? "bg-gradient-to-tr from-gray-900 to-gray-800 text-white"
+													? "bg-gradient-to-tr from-gray-700 to-gray-500 text-white"
 													: "text-gray-900 bg-white"
 											}`
 										}
@@ -97,9 +97,7 @@ export default function AutoComplete({
 									key={option.value}
 									className={({ active }) =>
 										`relative cursor-default select-none py-2 pl-10 z-50 pr-4 ${
-											active
-												? "bg-gradient-to-tr from-gray-900 to-gray-800 text-white"
-												: "text-gray-900 bg-white"
+											active ? "bg-gray-500 text-white" : "text-gray-900 bg-white"
 										}`
 									}
 									value={option.value}>

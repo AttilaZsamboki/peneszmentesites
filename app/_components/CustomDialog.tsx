@@ -24,11 +24,7 @@ export default function CustomDialog({
 	disabledSubmit?: boolean;
 }) {
 	return (
-		<Dialog
-			size='lg'
-			open={open}
-			handler={handler}
-			className='bg-transparent shadow-none max-h-[90%] overflow-y-scroll pt-10 pb-3'>
+		<Dialog size='lg' open={open} handler={handler} className='bg-transparent shadow-none max-h-[90%] pt-10 pb-3'>
 			<Card className='mx-auto w-full max-w-full max-h-[70%]'>
 				<CardHeader variant='gradient' color='gray' className='mb-4 pl-4 grid h-28 place-items-center '>
 					<div className='flex flex-row w-full items-center justify-between px-20'>
@@ -42,7 +38,9 @@ export default function CustomDialog({
 						) : null}
 					</div>
 				</CardHeader>
-				<CardBody className='flex flex-col gap-4 overflow-y-scroll h-[70%]'>{children}</CardBody>
+				<CardBody className='flex flex-col gap-4 overflow-y-scroll h-[70%]'>
+					<div className='max-h-[500px]'>{children}</div>
+				</CardBody>
 				<CardFooter className='-bottom-5 sticky bg-white z-50 rounded-b-md'>
 					<div className='flex flex-row justify-end w-full gap-5'>
 						<Button
