@@ -20,7 +20,7 @@ export default async function Page() {
 			templates={templates.map((template) => ({
 				...template,
 				truncatedDescription:
-					template.description.substring(0, 35) + (template.description.length > 35 ? "..." : ""),
+					template.description.substring(0, 40) + (template.description.length > 40 ? "..." : ""),
 			}))}
 			products={products}
 		/>

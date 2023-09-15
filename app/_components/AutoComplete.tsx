@@ -26,7 +26,12 @@ export default function AutoComplete({
 		...(query === ""
 			? options
 			: options.filter((option) =>
-					option.label.toLowerCase().replace(/\s+/g, "").includes(query.toLowerCase().replace(/\s+/g, ""))
+					query
+						.split(" ")
+						.map((searchWord: string) =>
+							JSON.stringify(option).toLowerCase().includes(searchWord.toLowerCase())
+						)
+						.every((item: boolean) => item === true)
 			  )),
 	];
 
