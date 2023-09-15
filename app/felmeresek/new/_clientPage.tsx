@@ -1079,7 +1079,9 @@ function Page2({
 													className='font-normal max-w-[30rem]'>
 													{hufFormatter.format(
 														item.type === "fixed"
-															? item.value
+															? isNaN(item.value)
+																? 0
+																: item.value
 															: ((netTotal +
 																	otherItems
 																		.filter(
