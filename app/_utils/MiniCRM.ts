@@ -289,6 +289,7 @@ export async function assembleOfferXML(
                 </Products>
 				<Project>
 					<Felmeresid>${adatlap.Id}</Felmeresid>
+					<UserId>${adatlap.Felmero2}</UserId>
 				</Project>
             </Offer>
         </Offers>
