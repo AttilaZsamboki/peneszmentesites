@@ -6,7 +6,7 @@ export default function Textarea({ onChange, value }: { onChange: (e: string) =>
 			labelProps={{
 				className: "hidden",
 			}}
-			className='!border !border-gray-300 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500'
+			className='input-field'
 			value={value}
 			onChange={(e) => onChange(e.target.value)}
 		/>

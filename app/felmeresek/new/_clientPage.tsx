@@ -9,7 +9,10 @@ import { Template } from "@/app/templates/page";
 import { Product } from "@/app/products/page";
 import { Question } from "@/app/questions/page";
 import { isJSONParsable } from "../[id]/_clientPage";
-import { CheckCircleIcon, InformationCircleIcon, MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
+
+import { CheckCircleIcon, ExclamationCircleIcon, MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
+import { PencilSquareIcon } from "@heroicons/react/24/outline";
+
 import Counter from "@/app/_components/Counter";
 import Input from "@/app/_components/Input";
 import MultipleChoice from "@/app/_components/MultipleChoice";
@@ -22,6 +25,8 @@ import { ToDo, assembleOfferXML, fetchMiniCRM, list_to_dos } from "@/app/_utils/
 import { useSearchParams } from "next/navigation";
 import Select from "@/app/_components/Select";
 import { useGlobalState } from "@/app/_clientLayout";
+
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 export interface ProductTemplate {
 	product: number;
@@ -141,7 +146,6 @@ export default function Page({
 	}, [items]);
 
 	const CreateFelmeres = async () => {
-		const startDate = new Date();
 		const percent = (num: number) => Math.floor((num / 3157) * 100);
 		setProgress({ percent: 1 });
 		const res = await fetch("https://pen.dataupload.xyz/felmeresek/", {
@@ -294,11 +298,13 @@ export default function Page({
 
 	return (
 		<div className='w-full'>
-			<div className='flex flex-row w-ful flex-wrap lg:flex-nowrap justify-center mt-2'>
-				<div className='lg:mt-6 lg:px-10 w-full'>
+			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-2'>
+				<div className='lg:mt-6 lg:px-10 lg:w-3/4'>
 					<Card className='shadow-none'>
-						<CardBody className='bg-white p-8 lg:rounded-lg bg-transparent bg-opacity-20 lg:border transform'>
-							<Heading title={section} variant='h3' />
+						<CardBody className='bg-white lg:p-8 p-0 lg:rounded-md bg-transparent bg-opacity-20 lg:border transform'>
+							<div className='mt-5 lg:mt-0'>
+								<Heading title={section} marginY='mb-2' variant='h3' />
+							</div>
 							<PageChooser
 								setOtherItems={setOtherItems}
 								globalData={data}
@@ -458,7 +464,7 @@ function QuestionTemplate({
 				{mandatory ? (
 					<Tooltip content='Kötelező'>
 						<span className='font-bold text-lg ml-1'>
-							<InformationCircleIcon className='w-4 h-4' />
+							<ExclamationCircleIcon className='w-4 h-4' />
 						</span>
 					</Tooltip>
 				) : null}
@@ -570,6 +576,15 @@ function Page2({
 	const [isAddingNewItem, setIsAddingNewItem] = React.useState(false);
 	const [isAddingNewOtherItem, setIsAddingNewOtherItem] = React.useState(false);
 	const [newOtherItem, setNewOtherItem] = React.useState<OtherFelmeresItems>();
+	const [isEditingItems, setIsEditingItems] = React.useState(false);
+	const [isEditingOtherItems, setIsEditingOtherItems] = React.useState(false);
+
+	const [itemsTableRef] = useAutoAnimate({
+		easing: "ease-in-out",
+		disrespectUserMotionPreference: false,
+		duration: 300,
+	});
+	const [otherItemsTableRef] = useAutoAnimate();
 
 	React.useEffect(() => {
 		if (items.length === 0) {
@@ -685,10 +700,15 @@ function Page2({
 										</Typography>
 									</th>
 								))}
-								<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></th>
+								<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+									<PencilSquareIcon
+										className='w-5 h-5 cursor-pointer'
+										onClick={() => setIsEditingItems(!isEditingItems)}
+									/>
+								</th>
 							</tr>
 						</thead>
-						<tbody>
+						<tbody ref={itemsTableRef}>
 							{items
 								.sort((a, b) => a.productId - b.productId)
 								.map(
@@ -887,21 +907,23 @@ function Page2({
 													</Typography>
 												</td>
 												<td className={classes}>
-													<MinusCircleIcon
-														className='w-7 h-7 text-red-600 cursor-pointer'
-														onClick={() =>
-															setItems((prev) =>
-																prev.filter((item) => item.name !== name)
-															)
-														}
-													/>
+													{isEditingItems ? (
+														<MinusCircleIcon
+															className='w-7 h-7 text-red-600 cursor-pointer'
+															onClick={() =>
+																setItems((prev) =>
+																	prev.filter((item) => item.name !== name)
+																)
+															}
+														/>
+													) : null}
 												</td>
 											</tr>
 										);
 									}
 								)}
 							<tr>
-								{!isAddingNewItem ? (
+								{!isEditingItems ? null : !isAddingNewItem ? (
 									<>
 										<td></td>
 										<td></td>
@@ -1037,14 +1059,14 @@ function Page2({
 										</th>
 									))}
 									<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-										<Typography
-											variant='small'
-											color='blue-gray'
-											className='font-normal leading-none opacity-70 w-10'></Typography>
+										<PencilSquareIcon
+											className='w-5 h-5 cursor-pointer'
+											onClick={() => setIsEditingOtherItems(!isEditingOtherItems)}
+										/>
 									</th>
 								</tr>
 							</thead>
-							<tbody>
+							<tbody ref={otherItemsTableRef}>
 								{otherItems
 									.sort((a, b) => a.id - b.id)
 									.map((item) => (
@@ -1109,19 +1131,21 @@ function Page2({
 												</Typography>
 											</td>
 											<td className='p-4 border-b border-blue-gray-50 w-10'>
-												<MinusCircleIcon
-													className='w-7 h-7 text-red-600 cursor-pointer'
-													onClick={() =>
-														setOtherItems((prev) =>
-															prev.filter((prevItem) => prevItem.name !== item.name)
-														)
-													}
-												/>
+												{isEditingOtherItems ? (
+													<MinusCircleIcon
+														className='w-7 h-7 text-red-600 cursor-pointer'
+														onClick={() =>
+															setOtherItems((prev) =>
+																prev.filter((prevItem) => prevItem.name !== item.name)
+															)
+														}
+													/>
+												) : null}
 											</td>
 										</tr>
 									))}
 								<tr>
-									{!isAddingNewOtherItem ? (
+									{!isEditingOtherItems ? null : !isAddingNewOtherItem ? (
 										<>
 											<td></td>
 											<td></td>
@@ -1465,12 +1489,16 @@ function FieldCreate({
 		]);
 	}, [adatlap_id, product, question.id, setGlobalData]);
 
-	const setterSingle = (value: string) => {
-		setGlobalData((prev) =>
-			prev.map((felmeres) => (felmeres.question === question.id ? { ...felmeres, value: value } : felmeres))
+	const isTrue = (felmeres: FelmeresQuestions) => {
+		return (
+			felmeres.question === question.id && (question.connection === "Fix" ? true : felmeres.section === product)
 		);
 	};
-	const felmeres = globalData.find((felmeres) => felmeres.question === question.id && felmeres.section === product);
+
+	const setterSingle = (value: string) => {
+		setGlobalData((prev) => prev.map((felmeres) => (isTrue(felmeres) ? { ...felmeres, value: value } : felmeres)));
+	};
+	const felmeres = globalData.find((felmeres) => isTrue(felmeres));
 
 	const setterMultipleUnordered = (value: string) => {
 		let values = [""];
@@ -1481,44 +1509,42 @@ function FieldCreate({
 			values = [...(felmeres?.value as unknown as string[]), value];
 		}
 		setGlobalData((prev) =>
-			prev.map((felmeres) =>
-				felmeres.question === question.id && felmeres.section === product
-					? { ...felmeres, value: values as unknown as string }
-					: felmeres
-			)
+			prev.map((felmeres) => (isTrue(felmeres) ? { ...felmeres, value: values as unknown as string } : felmeres))
 		);
 	};
 
 	const setterSingleOrdered = (value: { column: string; row: number }) => {
 		setGlobalData((prev) =>
-			prev.map((felmeres) =>
-				felmeres.question === question.id && felmeres.section === product
-					? {
-							...felmeres,
-							value: [
-								...((felmeres.value as unknown as Array<{
-									column: string;
-									row: number;
-								}>)
-									? (
-											felmeres.value as unknown as Array<{
-												column: string;
-												row: number;
-											}>
-									  ).filter((v) => v.row !== value.row)
-									: []),
-								value,
-							] as unknown as string,
-					  }
-					: felmeres
-			)
+			prev.map((felmeres) => {
+				if (isTrue(felmeres)) {
+					return {
+						...felmeres,
+						value: [
+							...((felmeres.value as unknown as Array<{
+								column: string;
+								row: number;
+							}>)
+								? (
+										felmeres.value as unknown as Array<{
+											column: string;
+											row: number;
+										}>
+								  ).filter((v) => v.row !== value.row)
+								: []),
+							value,
+						] as unknown as string,
+					};
+				} else {
+					return felmeres;
+				}
+			})
 		);
 	};
 
 	const setterMultipleOrdered = (value: { column: string; row: number }) => {
 		setGlobalData((prev) =>
 			prev.map((felmeres) =>
-				felmeres.question === question.id && felmeres.section === product
+				isTrue(felmeres)
 					? {
 							...felmeres,
 							value: (felmeres.value
@@ -1590,7 +1616,6 @@ function FieldCreate({
 			/>
 		);
 	} else if (question.type === "SCALE") {
-		const felmeres = globalData.find((felmeres) => felmeres.question === question.id);
 		return (
 			<MultipleChoice
 				options={Array.from({ length: (question.options as ScaleOption).max }, (_, i) => (i + 1).toString())}
@@ -1606,7 +1631,7 @@ function FieldCreate({
 				onUpload={(file) =>
 					setGlobalData((prev) =>
 						prev.map((felmeres) =>
-							felmeres.question === question.id
+							isTrue(felmeres)
 								? {
 										adatlap_id: adatlap_id,
 										id: 0,

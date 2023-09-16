@@ -18,6 +18,7 @@ import { Question } from "./page";
 import { typeMap } from "../_utils/utils";
 import { getFirstProduct } from "../_utils/utils";
 import { useGlobalState } from "../_clientLayout";
+import FormField from "../_components/FormField";
 
 export default function ClientComponent({ data, products }: { data: any; products: Product[] }) {
 	const [question, setQuestion] = React.useState<Question>({
@@ -254,43 +255,45 @@ function QuestionForm({
 
 	return (
 		<div className='flex flex-col w-full gap-5'>
-			<Input
-				value={question.question}
-				label='Kérdés'
-				onChange={(e) => setQuestion((prev) => ({ ...prev, question: e.target.value }))}
-			/>
-			<Select
-				color='gray'
-				label='Kapcsolat'
-				onChange={(e) => setQuestion((prev) => ({ ...prev, connection: e ?? "" }))}
-				value={question.connection}>
-				<Option value='Termék'>Termék</Option>
-				<Option value='Fix'>Fix</Option>
-			</Select>
-			<div>
-				<div className='text-sm'>Típus</div>
+			<FormField title='Kérdés'>
+				<Input
+					value={question.question}
+					onChange={(e) => setQuestion((prev) => ({ ...prev, question: e.target.value }))}
+				/>
+			</FormField>
+			<FormField title='Kapcsolat'>
+				<AutoComplete
+					onChange={(e) => setQuestion((prev) => ({ ...prev, connection: e ?? "" }))}
+					options={["Termék", "Fix"].map((option) => ({ label: option, value: option }))}
+					value={question.connection}
+				/>
+			</FormField>
+			<FormField title='Típus'>
 				<AutoComplete
 					onChange={(e) => {
-						setQuestion((prev) => ({ ...prev, type: e || "" }));
+						setQuestion((prev) => ({ ...prev, type: e }));
 					}}
-					options={Object.keys(typeMap).map((key) => ({ value: key, label: (typeMap as any)[key] }))}
-					value={(typeMap as any)[question.type]}
+					options={Object.keys(typeMap).map((key) => ({
+						value: key,
+						label: typeMap[key as keyof typeof typeMap] ? typeMap[key as keyof typeof typeMap] : "",
+					}))}
+					value={(typeMap as any)[question.type] ? (typeMap as any)[question.type] : ""}
 				/>
-			</div>
+			</FormField>
 			<OptionChooser options={question.options} setQuestion={setQuestion} type={question.type} />
-			<Checkbox
-				checked={question.mandatory}
-				onChange={() => setQuestion((prev) => ({ ...prev, mandatory: !prev.mandatory }))}
-				crossOrigin=''
-				label='Kötelező'
-			/>
-			<div>
-				<div className='text-sm mb-1'>Leírás</div>
+			<FormField title='Kötelező'>
+				<Checkbox
+					checked={question.mandatory}
+					onChange={() => setQuestion((prev) => ({ ...prev, mandatory: !prev.mandatory }))}
+					crossOrigin=''
+				/>
+			</FormField>
+			<FormField title='Leírás'>
 				<Textarea
 					value={question.description}
 					onChange={(e) => setQuestion((prev) => ({ ...prev, description: e }))}
 				/>
-			</div>
+			</FormField>
 			{question.connection === "Termék" ? (
 				<FormList
 					title='Termékek'
@@ -329,6 +332,7 @@ function QuestionForm({
 							label: product.sku + " - " + product.name,
 						}))}
 					value=''
+					optionDisplayDirection="top"
 				/>
 			) : null}
 		</div>
@@ -348,14 +352,13 @@ function OptionChooser({
 		return;
 	} else if (type === "LIST" || type === "MULTIPLE_CHOICE") {
 		return (
-			<div className='flex flex-col gap-2'>
-				<div className='text-sm'>Opciók</div>
+			<FormField title='Opciók'>
 				<MultipleChoiceCombobox
 					options={[]}
 					onChange={(e) => setQuestion((prev) => ({ ...prev, options: e }))}
 					value={options}
 				/>
-			</div>
+			</FormField>
 		);
 	} else if (type === "GRID" || type === "CHECKBOX_GRID") {
 		return (

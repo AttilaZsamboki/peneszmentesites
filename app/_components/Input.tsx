@@ -21,7 +21,7 @@ export default function Input({
 			setStyle("border !border !border-gray-200");
 		} else if (variant === "default") {
 			setStyle(
-				"!border !border-gray-300 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500"
+				"input-field"
 			);
 		}
 	}, [variant]);

@@ -1,11 +1,13 @@
 import Heading from "../_components/Heading";
+
 import ClientPage from "./_clientPage";
+
 import { BaseFelmeresData } from "./new/_clientPage";
 
 import { AdatlapDetails } from "../_utils/MiniCRM";
 import { fetchAdatlapDetails } from "../_utils/MiniCRM";
-
 import { statusMap } from "../_utils/utils";
+
 import { Template } from "../templates/page";
 
 export interface GridOptions {

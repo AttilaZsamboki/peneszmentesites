@@ -19,6 +19,7 @@ export default function FormList({
 	border = true,
 	accordion,
 	itemHref,
+	optionDisplayDirection = "bottom",
 }: {
 	title: string;
 	onAddNewItem?: (value: string) => void;
@@ -30,6 +31,7 @@ export default function FormList({
 	border?: boolean;
 	accordion?: (item: string) => React.ReactNode;
 	itemHref?: (item: string) => any;
+	optionDisplayDirection?: "top" | "bottom";
 }) {
 	return (
 		<div className={`${border ? "border-t" : ""} pt-2 mt-1`}>
@@ -40,6 +42,7 @@ export default function FormList({
 				<AutoComplete
 					onChange={(value) => (onAddNewItem ? onAddNewItem(value) : {})}
 					value={value}
+					optionDisplayDirection={optionDisplayDirection}
 					create={create}
 					options={options}
 				/>

@@ -19,6 +19,8 @@ export default function MultipleChoiceCombobox({
 			onChange={(e) => onChange(e.map((e) => e.value))}
 			options={options}
 			placeholder='Válassz'
+			noOptionsMessage={() => "Nincs találat"}
+			formatCreateLabel={(inputValue) => `Hozzáad: ${inputValue}`}
 			isMulti
 			value={Array.isArray(value) ? value.map((e) => ({ label: e, value: e })) : undefined}
 		/>
