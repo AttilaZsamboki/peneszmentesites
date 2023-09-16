@@ -303,7 +303,7 @@ export default function Page({
 					<Card className='shadow-none'>
 						<CardBody className='bg-white lg:p-8 p-0 lg:rounded-md bg-transparent bg-opacity-20 lg:border transform'>
 							<div className='mt-5 lg:mt-0'>
-								<Heading title={section} marginY='mb-2' variant='h3' />
+								<Heading title={section} marginY='sm:mb-2 lg:mb-12 lg:mt-8' variant='h3' />
 							</div>
 							<PageChooser
 								setOtherItems={setOtherItems}
@@ -1095,7 +1095,9 @@ function Page2({
 																	...prev.find(
 																		(prevItem) => prevItem.id === item.id
 																	)!,
-																	value: parseInt(e.target.value.replace(/\D/g, "")),
+																	value: e.target.value
+																		? parseInt(e.target.value.replace(/\D/g, ""))
+																		: 0,
 																},
 															]);
 														}}
