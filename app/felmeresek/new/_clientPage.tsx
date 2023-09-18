@@ -153,7 +153,7 @@ export default function Page({
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify(felmeres),
+			body: JSON.stringify({ ...felmeres, created_at: new Date().toISOString().split("T")[0] }),
 		});
 		setProgress({ percent: percent(120) });
 		if (res.ok) {

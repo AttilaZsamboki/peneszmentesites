@@ -145,7 +145,7 @@ export async function fetchMiniCRM(endpoint: string, id?: string, method?: "POST
 			const data = await resp.json();
 			return data;
 		} else {
-			throw new Error(`Request failed with status ${resp.status}`);
+			console.log(resp.status);
 		}
 	} else if (method === "POST") {
 		const resp = await fetch("/api/minicrm-proxy?endpoint=" + endpoint, {

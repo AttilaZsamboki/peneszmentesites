@@ -34,7 +34,7 @@ export default async function Home() {
 		const felmeresek: BaseFelmeresData[] = await data.json();
 		const adatlapok: AdatlapDetails[] = await Promise.all(
 			felmeresek.map(async (felmeres) => fetchAdatlapDetails(felmeres.adatlap_id.toString()))
-		);
+		).then((adatlapok) => adatlapok.filter((adatlap) => adatlap !== undefined));
 		const templates: Template[] = await Promise.all(
 			felmeresek.map(async (felmeres) =>
 				fetch("https://pen.dataupload.xyz/templates/" + felmeres.template, {

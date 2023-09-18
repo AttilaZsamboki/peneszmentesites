@@ -3,7 +3,7 @@ import StackedList, { ItemContent } from "../_components/StackedList";
 import Heading from "../_components/Heading";
 import React from "react";
 import Link from "next/link";
-import { Badge, Button, Card, CardHeader, List, ListItem, Typography } from "@material-tailwind/react";
+import { Badge, Button, Card, List, ListItem, Typography } from "@material-tailwind/react";
 import { Filter } from "../products/page";
 import { useGlobalState } from "../_clientLayout";
 import { EllipsisVerticalIcon, PlusIcon } from "@heroicons/react/20/solid";
@@ -63,12 +63,21 @@ export default function BaseComponentV2({
 	sort?: { by: string; order: "asc" | "desc" };
 }) {
 	const searchParams = useSearchParams();
+	const { setAlert } = useGlobalState();
 	const [search, setSearch] = React.useState<Filter>({ id: 0, name: "", value: searchParams.get("filter") || "" });
 	const [savedFilters, setSavedFilters] = React.useState<Filter[]>([]);
 
 	React.useEffect(() => {
 		const fetchSavedFilters = async () => {
-			setSavedFilters(await fetch("https://pen.dataupload.xyz/filters?type=" + title).then((res) => res.json()));
+			const response = await fetch("https://pen.dataupload.xyz/filters?type=" + title);
+			if (response.ok) {
+				setSavedFilters(await response.json());
+				return;
+			}
+			setAlert({
+				level: "error",
+				message: "Hiba történt a szűrők betöltése közben",
+			});
 		};
 		fetchSavedFilters();
 	}, []);
@@ -188,6 +197,7 @@ function FiltersComponent({
 					<Card className='w-full rounded-md shadow-none border'>
 						<List>
 							<ListItem
+								ripple={true}
 								onClick={() => setFilters({ id: 0, name: "", value: "" })}
 								className='active:bg-white hover:bg-white after:bg-white before:bg-white bg-white'>
 								<div className='flex flex-row justify-center items-center w-full'>
@@ -196,11 +206,13 @@ function FiltersComponent({
 									</Typography>
 								</div>
 							</ListItem>
+
 							{savedFilters
 								.sort((a, b) => a.id - b.id)
 								.map((filter) => {
 									const isNotEqual =
 										filters.id === filter.id && !deepEqual(filters.value, filter.value);
+
 									return (
 										<Badge
 											key={filter.id}
