@@ -516,12 +516,15 @@ function Page1({
 			{felmeres.adatlap_id ? (
 				<QuestionTemplate title='Milyen rendszert tervezel?'>
 					<AutoComplete
-						options={["Helyi elszívós rendszer", "Központi ventillátoros", "Passzív rendszer"].map(
-							(option) => ({
-								label: option,
-								value: option,
-							})
-						)}
+						options={[
+							"Helyi elszívós rendszer",
+							"Központi ventillátoros",
+							"Passzív rendszer",
+							"Hővisszanyerős",
+						].map((option) => ({
+							label: option,
+							value: option,
+						}))}
 						onChange={(e) => setFelmeres({ ...felmeres, type: e })}
 						value={felmeres.type}
 					/>
