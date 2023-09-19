@@ -189,7 +189,12 @@ function Form({
 			<div>
 				<div>Típus</div>
 				<Select
-					options={["Helyi elszívós rendszer", "Központi ventillátoros", "Passzív rendszer"].map((type) => ({
+					options={[
+						"Helyi elszívós rendszer",
+						"Központi ventillátoros",
+						"Passzív rendszer",
+						"Hővisszanyerős",
+					].map((type) => ({
 						label: type,
 						value: type,
 					}))}
