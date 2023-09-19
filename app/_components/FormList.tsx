@@ -20,6 +20,7 @@ export default function FormList({
 	accordion,
 	itemHref,
 	optionDisplayDirection = "bottom",
+	emptyOption,
 }: {
 	title: string;
 	onAddNewItem?: (value: string) => void;
@@ -32,6 +33,8 @@ export default function FormList({
 	accordion?: (item: string) => React.ReactNode;
 	itemHref?: (item: string) => any;
 	optionDisplayDirection?: "top" | "bottom";
+	emptyOption?: boolean;
+	showOptions?: boolean;
 }) {
 	return (
 		<div className={`${border ? "border-t" : ""} pt-2 mt-1`}>
@@ -45,6 +48,8 @@ export default function FormList({
 					optionDisplayDirection={optionDisplayDirection}
 					create={create}
 					options={options}
+					emptyOption={emptyOption}
+					showOptions={false}
 				/>
 			</div>
 			<div className='flex flex-col gap-5'>

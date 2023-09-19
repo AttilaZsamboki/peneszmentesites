@@ -12,6 +12,7 @@ export default function AutoComplete({
 	create = false,
 	resetOnCreate = true,
 	emptyOption = true,
+	showOptions,
 }: {
 	options: { label: string; value: string }[];
 	value?: string;
@@ -20,6 +21,7 @@ export default function AutoComplete({
 	create?: boolean;
 	resetOnCreate?: boolean;
 	emptyOption?: boolean;
+	showOptions?: boolean;
 }) {
 	const [query, setQuery] = useState("");
 
@@ -98,7 +100,7 @@ export default function AutoComplete({
 									</Combobox.Option>
 							  )
 							: null}
-						{filteredOptions.length === 0 && query !== "" ? (
+						{!showOptions ? null : filteredOptions.length === 0 && query !== "" ? (
 							<div className='relative cursor-default select-none py-2 px-4 text-gray-700 z-50'>
 								Nincs ilyen
 							</div>

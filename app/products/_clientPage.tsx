@@ -213,6 +213,8 @@ function UpdateForm({
 						}))
 					}
 					create={true}
+					emptyOption={false}
+					showOptions={false}
 				/>
 			) : (
 				<div></div>
