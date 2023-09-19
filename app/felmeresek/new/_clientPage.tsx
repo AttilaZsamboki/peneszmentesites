@@ -78,13 +78,13 @@ export default function Page({
 }) {
 	const { setProgress } = useGlobalState();
 	const searchParams = useSearchParams();
-	const [page, setPage] = React.useState(1);
+	const [page, setPage] = React.useState(0);
 	const [section, setSection] = React.useState("Alapadatok");
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>({
 		id: 0,
 		adatlap_id: searchParams.get("adatlap_id") ? parseInt(searchParams.get("adatlap_id")!) : 0,
 		type: "",
-		template: 73,
+		template: 0,
 		status: "DRAFT",
 	});
 	const [items, setItems] = React.useState<FelmeresItems[]>([]);
