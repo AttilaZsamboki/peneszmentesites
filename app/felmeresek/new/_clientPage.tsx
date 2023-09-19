@@ -78,13 +78,13 @@ export default function Page({
 }) {
 	const { setProgress } = useGlobalState();
 	const searchParams = useSearchParams();
-	const [page, setPage] = React.useState(0);
+	const [page, setPage] = React.useState(1);
 	const [section, setSection] = React.useState("Alapadatok");
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>({
 		id: 0,
 		adatlap_id: searchParams.get("adatlap_id") ? parseInt(searchParams.get("adatlap_id")!) : 0,
 		type: "",
-		template: 0,
+		template: 73,
 		status: "DRAFT",
 	});
 	const [items, setItems] = React.useState<FelmeresItems[]>([]);
@@ -235,15 +235,18 @@ export default function Page({
 					item.place ? item.inputValues.map((value) => value.value).every((value) => value !== "") : true
 				)
 				.every((value) => value === true),
-		!data
-			.filter((field) =>
-				questions
-					.filter((question) => question.mandatory)
-					.map((question) => question.id)
-					.includes(field.question)
-			)
-			.map((field) => field.value)
-			.every((value) => value !== "") || !data.length,
+		...Array.from(new Set(data.map((field) => field.section))).map(
+			(section) =>
+				!data
+					.filter((field) =>
+						questions
+							.filter((question) => question.mandatory)
+							.map((question) => question.id)
+							.includes(field.question)
+					)
+					.every((field) => field.value !== "" && field.section === section && field.value.length) ||
+				!data.length
+		),
 	];
 
 	const netTotal = items
@@ -431,7 +434,10 @@ function PageChooser({
 					setData={setData}
 				/>
 			),
-			title: items.find((item) => item.productId === product)?.name || "Fix kérdések",
+			title:
+				(items.find((item) => item.productId === product)
+					? items.find((item) => item.productId === product)!.name
+					: "") || "Fix kérdések",
 		})),
 	];
 	React.useEffect(() => {
@@ -695,6 +701,7 @@ function FieldCreate({
 			)
 		);
 	};
+	console.log(globalData);
 
 	if (question.type === "TEXT") {
 		return (

@@ -11,6 +11,7 @@ export default function AutoComplete({
 	optionDisplayDirection = "bottom",
 	create = false,
 	resetOnCreate = true,
+	emptyOption = true,
 }: {
 	options: { label: string; value: string }[];
 	value?: string;
@@ -18,22 +19,34 @@ export default function AutoComplete({
 	optionDisplayDirection?: "top" | "bottom";
 	create?: boolean;
 	resetOnCreate?: boolean;
+	emptyOption?: boolean;
 }) {
 	const [query, setQuery] = useState("");
 
-	const filteredOptions = [
-		{ label: "", value: "" },
-		...(query === ""
-			? options
-			: options.filter((option) =>
-					query
-						.split(" ")
-						.map((searchWord: string) =>
-							JSON.stringify(option).toLowerCase().includes(searchWord.toLowerCase())
-						)
-						.every((item: boolean) => item === true)
-			  )),
-	];
+	const filteredOptions = emptyOption
+		? [
+				{ label: "", value: "" },
+				...(query === ""
+					? options
+					: options.filter((option) =>
+							query
+								.split(" ")
+								.map((searchWord: string) =>
+									JSON.stringify(option).toLowerCase().includes(searchWord.toLowerCase())
+								)
+								.every((item: boolean) => item === true)
+					  )),
+		  ]
+		: query === ""
+		? options
+		: options.filter((option) =>
+				query
+					.split(" ")
+					.map((searchWord: string) =>
+						JSON.stringify(option).toLowerCase().includes(searchWord.toLowerCase())
+					)
+					.every((item: boolean) => item === true)
+		  );
 
 	return (
 		<Combobox
@@ -77,9 +90,7 @@ export default function AutoComplete({
 									<Combobox.Option
 										className={({ active }) =>
 											`relative cursor-default select-none py-2 pl-10 z-50 pr-4 ${
-												active
-													? "bg-gradient-to-tr from-gray-700 to-gray-500 text-white"
-													: "text-gray-900 bg-white"
+												active ? "bg-gray-500 text-white" : "text-gray-900 bg-white"
 											}`
 										}
 										value={query}>
@@ -89,7 +100,7 @@ export default function AutoComplete({
 							: null}
 						{filteredOptions.length === 0 && query !== "" ? (
 							<div className='relative cursor-default select-none py-2 px-4 text-gray-700 z-50'>
-								Nothing found.
+								Nincs ilyen
 							</div>
 						) : (
 							filteredOptions.map((option) => (

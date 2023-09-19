@@ -62,8 +62,8 @@ export default function Page({ templates, products }: { templates: Template[]; p
 				{
 					...templateResponseData,
 					truncatedDescription:
-						templateResponseData.description.substring(0, 35) +
-						(templateResponseData.description.length > 35 ? "..." : ""),
+						templateResponseData.description.substring(0, 40) +
+						(templateResponseData.description.length > 40 ? "..." : ""),
 				},
 			]);
 			setItems([]);

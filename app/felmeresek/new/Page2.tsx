@@ -245,6 +245,7 @@ export function Page2({
 																	<div className='font-normal flex flex-col gap-2 max-w-[17rem]'>
 																		<div className='flex-row flex items-center gap-2'>
 																			<AutoComplete
+																				emptyOption={false}
 																				options={place_options
 																					.filter(
 																						(option) =>
@@ -422,6 +423,7 @@ export function Page2({
 														value: product.id.toString(),
 													}))}
 												value={items.find((item) => item.productId === 0)?.name || ""}
+												emptyOption={false}
 												onChange={(value) => {
 													setItems((prev) => [
 														...prev.filter((item) => item.productId.toString() !== value),
@@ -887,7 +889,9 @@ export function Page2({
 											color='blue-gray'
 											className='font-normal leading-none opacity-70'>
 											{hufFormatter.format(
-												(otherItemsNetTotal * 1.27 + netTotal * 1.27) / (1 + discount / 100)
+												otherItemsNetTotal * 1.27 +
+													netTotal * 1.27 -
+													(otherItemsNetTotal * 1.27 + (netTotal * 1.27 * discount) / 100)
 											)}
 										</Typography>
 									</td>
