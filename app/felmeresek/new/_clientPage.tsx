@@ -78,13 +78,13 @@ export default function Page({
 }) {
 	const { setProgress } = useGlobalState();
 	const searchParams = useSearchParams();
-	const [page, setPage] = React.useState(0);
+	const [page, setPage] = React.useState(1);
 	const [section, setSection] = React.useState("Alapadatok");
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>({
 		id: 0,
 		adatlap_id: searchParams.get("adatlap_id") ? parseInt(searchParams.get("adatlap_id")!) : 0,
 		type: "",
-		template: 0,
+		template: 73,
 		status: "DRAFT",
 	});
 	const [items, setItems] = React.useState<FelmeresItems[]>([]);
@@ -298,7 +298,7 @@ export default function Page({
 	return (
 		<div className='w-full'>
 			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-2'>
-				<div className='lg:mt-6 lg:px-10 lg:w-3/4'>
+				<div className={`lg:mt-6 lg:px-10 ${page === 1 ? "lg:w-11/12" : "lg:w-3/4"}`}>
 					<Card className='shadow-none'>
 						<CardBody className='bg-white lg:p-8 p-0 lg:rounded-md bg-transparent bg-opacity-20 lg:border transform'>
 							<div className='mt-5 lg:mt-0'>

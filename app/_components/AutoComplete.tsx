@@ -12,7 +12,7 @@ export default function AutoComplete({
 	create = false,
 	resetOnCreate = true,
 	emptyOption = true,
-	showOptions,
+	showOptions = true,
 }: {
 	options: { label: string; value: string }[];
 	value?: string;

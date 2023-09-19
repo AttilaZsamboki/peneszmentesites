@@ -21,6 +21,7 @@ export default function FormList({
 	itemHref,
 	optionDisplayDirection = "bottom",
 	emptyOption,
+	showOptions = true,
 }: {
 	title: string;
 	onAddNewItem?: (value: string) => void;
@@ -49,7 +50,7 @@ export default function FormList({
 					create={create}
 					options={options}
 					emptyOption={emptyOption}
-					showOptions={false}
+					showOptions={showOptions}
 				/>
 			</div>
 			<div className='flex flex-col gap-5'>
