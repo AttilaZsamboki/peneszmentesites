@@ -1,10 +1,33 @@
 "use client";
-import { Button, Card, CardBody, List, ListItem, Menu, Typography } from "@material-tailwind/react";
+import { Button, Card, CardBody, List, ListItem, Typography } from "@material-tailwind/react";
 import Skeleton from "react-loading-skeleton";
 import LoadingDots from "./LoadingDots";
-import { EllipsisVerticalIcon, PlusIcon } from "@heroicons/react/20/solid";
+import { usePathname } from "next/navigation";
 
 export default function BaseComponentLoading() {
+	const pathname = usePathname();
+	const paths = [
+		{
+			name: "",
+			href: "/",
+		},
+		{
+			name: "Felmérések",
+			href: "/felmeresek",
+		},
+		{
+			name: "Kérdések",
+			href: "/questions",
+		},
+		{
+			name: "Sablonok",
+			href: "/templates",
+		},
+		{
+			name: "Termékek",
+			href: "/products",
+		},
+	];
 	return (
 		<main className='flex min-h-screen flex-col items-center justify-start w-full'>
 			<div className='flex flex-col items-center justify-start w-full border-b'>
@@ -16,7 +39,7 @@ export default function BaseComponentLoading() {
 								<Typography
 									variant='h2'
 									className={`font-semibold text-gradient-to-tr from-gray-900 to-gray-800 lg:my-0 text-left`}>
-									<Skeleton width={200} height={30} />
+									{paths.find((path) => path.href === pathname)?.name}
 								</Typography>
 							</div>
 						</div>

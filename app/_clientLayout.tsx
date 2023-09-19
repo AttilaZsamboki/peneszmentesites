@@ -152,7 +152,7 @@ function Navbar() {
 					href: "/questions",
 				},
 				{
-					name: "Árajánlat sablonok",
+					name: "Sablonok",
 					href: "/templates",
 				},
 			],
