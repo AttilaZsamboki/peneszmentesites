@@ -2,6 +2,8 @@ import "./globals.css";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-material.css";
 import "react-loading-skeleton/dist/skeleton.css";
+import "filepond/dist/filepond.min.css";
+import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
 
 import RootLayoutClient from "./_clientLayout";
 
