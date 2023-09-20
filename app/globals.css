@@ -2,57 +2,79 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Scrollbar styling for WebKit-based browsers */
-*::-webkit-scrollbar {
-	width: 8px; /* Set the width of the scrollbar */
-	background-color: #f2f2f2; /* Set the background color of the scrollbar */
-}
+@layer base {
+	:root {
+		--background: 0 0% 100%;
+		--foreground: 222.2 84% 4.9%;
 
-*::-webkit-scrollbar-thumb {
-	background-color: #999; /* Set the color of the scrollbar thumb */
-	border-radius: 4px; /* Round the corners of the scrollbar thumb */
-}
+		--card: 0 0% 100%;
+		--card-foreground: 222.2 84% 4.9%;
 
-*::-webkit-scrollbar-track {
-	background-color: #f2f2f2; /* Set the color of the scrollbar track */
-}
+		--popover: 0 0% 100%;
+		--popover-foreground: 222.2 84% 4.9%;
 
-/* Scrollbar styling for Firefox */
-* {
-	scrollbar-width: thin; /* Set the width of the scrollbar */
-	scrollbar-color: #999 #f2f2f2; /* Set the color of the scrollbar thumb and track */
-}
+		--primary: 222.2 47.4% 11.2%;
+		--primary-foreground: 210 40% 98%;
 
-/* Additional styles for a narrow design */
-@media (max-width: 375px) {
-	*::-webkit-scrollbar {
-		width: 5px; /* Adjust the width of the scrollbar for narrow screens */
+		--secondary: 210 40% 96.1%;
+		--secondary-foreground: 222.2 47.4% 11.2%;
+
+		--muted: 210 40% 96.1%;
+		--muted-foreground: 215.4 16.3% 46.9%;
+
+		--accent: 210 40% 96.1%;
+		--accent-foreground: 222.2 47.4% 11.2%;
+
+		--destructive: 0 84.2% 60.2%;
+		--destructive-foreground: 210 40% 98%;
+
+		--border: 214.3 31.8% 91.4%;
+		--input: 214.3 31.8% 91.4%;
+		--ring: 222.2 84% 4.9%;
+
+		--radius: 0.5rem;
+	}
+
+	.dark {
+		--background: 222.2 84% 4.9%;
+		--foreground: 210 40% 98%;
+
+		--card: 222.2 84% 4.9%;
+		--card-foreground: 210 40% 98%;
+
+		--popover: 222.2 84% 4.9%;
+		--popover-foreground: 210 40% 98%;
+
+		--primary: 210 40% 98%;
+		--primary-foreground: 222.2 47.4% 11.2%;
+
+		--secondary: 217.2 32.6% 17.5%;
+		--secondary-foreground: 210 40% 98%;
+
+		--muted: 217.2 32.6% 17.5%;
+		--muted-foreground: 215 20.2% 65.1%;
+
+		--accent: 217.2 32.6% 17.5%;
+		--accent-foreground: 210 40% 98%;
+
+		--destructive: 0 62.8% 30.6%;
+		--destructive-foreground: 210 40% 98%;
+
+		--border: 217.2 32.6% 17.5%;
+		--input: 217.2 32.6% 17.5%;
+		--ring: 212.7 26.8% 83.9%;
 	}
 }
 
-/* Additional styles for a gray design */
-.gray-scrollbar *::-webkit-scrollbar-thumb {
-	background-color: #ccc; /* Set the color of the scrollbar thumb to gray */
-}
-
-/* Additional styles for a modern design */
-.modern-scrollbar *::-webkit-scrollbar-track {
-	background-color: #ddd; /* Set the color of the scrollbar track to a lighter gray */
-}
-
-@keyframes spin {
-	from {
-		transform: rotate(0deg);
+@layer base {
+	* {
+		@apply border-border;
 	}
-	to {
-		transform: rotate(360deg);
+	body {
+		@apply bg-background text-foreground;
 	}
-}
-
-.animate-spin {
-	animation: spin 1s linear infinite;
 }
 
 .input-field {
-	@apply !border !border-gray-300 bg-white text-gray-900 shadow-lg shadow-gray-900/5 ring-4 ring-transparent placeholder:text-gray-500;
+	@apply !border !border-gray-300 bg-white text-gray-900 ring-0 ring-transparent placeholder:text-gray-500;
 }

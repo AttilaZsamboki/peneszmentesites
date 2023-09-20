@@ -1,5 +1,5 @@
 "use client";
-import { Input as MaterialInput } from "@material-tailwind/react";
+import { Input as MaterialInput } from "@/components/ui/input";
 import React from "react";
 
 export default function Input({
@@ -20,23 +20,8 @@ export default function Input({
 		} else if (variant === "simple") {
 			setStyle("border !border !border-gray-200");
 		} else if (variant === "default") {
-			setStyle(
-				"input-field"
-			);
+			setStyle("input-field");
 		}
 	}, [variant]);
-	return (
-		<MaterialInput
-			crossOrigin=''
-			labelProps={{
-				className: label ? "" : "hidden",
-			}}
-			label={label}
-			value={value}
-			onChange={onChange}
-			className={style}
-			containerProps={{ className: label ? "" : "min-w-[100px]" }}
-			color='gray'
-		/>
-	);
+	return <MaterialInput value={value} onChange={onChange} className={style} />;
 }

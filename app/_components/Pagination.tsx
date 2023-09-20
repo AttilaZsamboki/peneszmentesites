@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, IconButton } from "@material-tailwind/react";
+import { Button } from "@/components/ui/button";
 import { ArrowRightIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
 
 export function DefaultPagination({
@@ -13,9 +13,9 @@ export function DefaultPagination({
 
 	const getItemProps = (index: number) =>
 		({
-			variant: active === index ? "filled" : "text",
-			color: "gray",
+			color: active === index ? "gray" : "blue",
 			onClick: () => setActive(index),
+			variant: active === index ? "default" : "solid",
 		} as any);
 
 	const next = () => {
@@ -45,37 +45,37 @@ export function DefaultPagination({
 			setEnd(active + 5);
 		}
 	}, [active, numPages]);
+
 	React.useEffect(() => {
 		onPageChange(active);
 	}, [active]);
 
 	return (
 		<div className='flex items-center gap-4'>
-			<Button variant='text' className='flex items-center gap-2' onClick={prev} disabled={active === 1}>
+			<Button className='flex items-center gap-2' onClick={prev} disabled={active === 1}>
 				<ArrowLeftIcon strokeWidth={2} className='h-4 w-4' /> Előző
 			</Button>
 			<div className='flex items-center gap-2'>
 				{start > 1 && (
 					<>
-						<IconButton {...getItemProps(1)}>1</IconButton>
+						<Button {...getItemProps(1)}>1</Button>
 						{start > 2 && <span className='text-gray-500'>...</span>}
 					</>
 				)}
 				{Array.from({ length: end - start + 1 }, (_, index) => (
-					<IconButton key={index} {...getItemProps(start + index)}>
+					<Button key={index} {...getItemProps(start + index)}>
 						{start + index}
-					</IconButton>
+					</Button>
 				))}
 				{end < numPages && (
 					<>
 						{end < numPages - 1 && <span className='text-gray-500'>...</span>}
-						<IconButton {...getItemProps(numPages)}>{numPages}</IconButton>
+						<Button {...getItemProps(numPages)}>{numPages}</Button>
 					</>
 				)}
 			</div>
-			<Button variant='text' className='flex items-center gap-2' onClick={next} disabled={active === end}>
-				Következő
-				<ArrowRightIcon strokeWidth={2} className='h-4 w-4' />
+			<Button className='flex items-center gap-2' onClick={next} disabled={active === end}>
+				Következő <ArrowRightIcon strokeWidth={2} className='h-4 w-4' />
 			</Button>
 		</div>
 	);

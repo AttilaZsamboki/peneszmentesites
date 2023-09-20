@@ -1,6 +1,7 @@
 "use client";
-import { Card, CardBody, Button, Tooltip } from "@material-tailwind/react";
-import Heading from "@/app/_components/Heading";
+import { Tooltip } from "@material-tailwind/react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import React from "react";
 import { FelmeresQuestions, ScaleOption } from "../page";
 import { AdatlapData } from "./page";
@@ -298,12 +299,12 @@ export default function Page({
 	return (
 		<div className='w-full'>
 			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-2'>
-				<div className={`lg:mt-6 lg:px-10 ${page === 1 ? "lg:w-11/12" : "lg:w-3/4"}`}>
-					<Card className='shadow-none'>
-						<CardBody className='bg-white lg:p-8 p-0 lg:rounded-md bg-transparent bg-opacity-20 lg:border transform'>
-							<div className='mt-5 lg:mt-0'>
-								<Heading title={section} marginY='sm:mb-2 lg:mb-12 lg:mt-8' variant='h3' />
-							</div>
+				<div className={`lg:mt-6 lg:px-10 ${page === 1 ? "lg:w-11/12" : page == 0 ? "lg:w-2/3" : "w-3/4"}`}>
+					<Card>
+						<CardHeader>
+							<CardTitle>{section}</CardTitle>
+						</CardHeader>
+						<CardContent className='lg:p-8 p-0 transform'>
 							<PageChooser
 								setOtherItems={setOtherItems}
 								globalData={data}
@@ -327,7 +328,7 @@ export default function Page({
 							<div className='flex flex-row justify-end gap-3 border-t py-4'>
 								{page === 0 ? null : (
 									<Button
-										variant='outlined'
+										variant='outline'
 										onClick={() => {
 											setPage(page - 1);
 											onPageChange(page - 1);
@@ -336,7 +337,10 @@ export default function Page({
 									</Button>
 								)}
 								{numPages === page + 1 ? (
-									<Button color='green' onClick={CreateFelmeres} disabled={isDisabled[numPages - 1]}>
+									<Button
+										className='bg-green-500 hover:bg-green-500/90'
+										onClick={CreateFelmeres}
+										disabled={isDisabled[numPages - 1]}>
 										Beküldés
 									</Button>
 								) : (
@@ -349,7 +353,7 @@ export default function Page({
 									</Button>
 								)}
 							</div>
-						</CardBody>
+						</CardContent>
 					</Card>
 				</div>
 			</div>
@@ -629,15 +633,19 @@ function FieldCreate({
 	const felmeres = globalData.find((felmeres) => isTrue(felmeres));
 
 	const setterMultipleUnordered = (value: string) => {
-		let values = [""];
-
-		if (felmeres?.value.includes(value) && values.length) {
-			values = (felmeres.value as unknown as string[]).filter((v) => v !== value);
-		} else {
-			values = [...(felmeres?.value as unknown as string[]), value];
-		}
 		setGlobalData((prev) =>
-			prev.map((felmeres) => (isTrue(felmeres) ? { ...felmeres, value: values as unknown as string } : felmeres))
+			prev.map((felmeres) =>
+				isTrue(felmeres)
+					? {
+							...felmeres,
+							value: felmeres.value.includes(value)
+								? ((felmeres.value as unknown as string[]).filter(
+										(v) => v !== value
+								  ) as unknown as string)
+								: ([...(felmeres.value as unknown as string[]), value] as unknown as string),
+					  }
+					: felmeres
+			)
 		);
 	};
 
@@ -701,7 +709,6 @@ function FieldCreate({
 			)
 		);
 	};
-	console.log(globalData);
 
 	if (question.type === "TEXT") {
 		return (

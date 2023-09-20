@@ -1,7 +1,7 @@
 "use client";
 import { hufFormatter } from "../felmeresek/[id]/_clientPage";
 import BaseComponentV2 from "../_components/BaseComponentV2";
-import { Checkbox } from "@material-tailwind/react";
+import { Checkbox } from "@/components/ui/checkbox";
 import React from "react";
 import { Product } from "./page";
 import CustomDialog from "../_components/CustomDialog";
@@ -184,18 +184,19 @@ function UpdateForm({
 	}, [attributeData]);
 
 	return (
-		<div className='-ml-2.5 flex flex-col'>
-			<Checkbox
-				label='Hely'
-				checked={attributeData ? attributeData.place : false}
-				onChange={() =>
-					setAttributeData((prev) => ({
-						...prev,
-						place: !prev.place,
-					}))
-				}
-				crossOrigin=''
-			/>
+		<div className='-ml-2.5 flex flex-col h-full overflow-y-scroll py-5 px-3'>
+			<div className='flex flex-row items-center space-x-2'>
+				<Checkbox
+					checked={attributeData ? attributeData.place : false}
+					onCheckedChange={() =>
+						setAttributeData((prev) => ({
+							...prev,
+							place: !prev.place,
+						}))
+					}
+				/>
+				<label>Hely</label>
+			</div>
 			{attributeData.place ? (
 				<FormList
 					title='Opciók'
@@ -234,7 +235,6 @@ function UpdateForm({
 				options={allQuestions
 					.filter((question) => !questions.map((question) => question.id).includes(question.id))
 					.map((question) => ({ value: question.question, label: question.question }))}
-				border={false}
 				onAddNewItem={(value) => {
 					const question = allQuestions.filter((question) => question.question === value)[0];
 					setQuestions((prev) => [...prev, question]);

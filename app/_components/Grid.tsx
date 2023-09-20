@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
-import { Radio, Checkbox } from "@material-tailwind/react";
+import { Radio } from "@material-tailwind/react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const Grid = ({
 	columns,
@@ -55,7 +56,6 @@ export const Grid = ({
 											{!radio ? (
 												<Checkbox
 													name={`${row}-${column}`}
-													color='gray'
 													checked={
 														value
 															? value
@@ -63,7 +63,6 @@ export const Grid = ({
 																	.includes(true)
 															: false
 													}
-													crossOrigin='anonymous'
 													disabled={disabled}
 													onClick={() => {
 														onChange && onChange({ column: column, row: index });

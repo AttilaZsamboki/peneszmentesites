@@ -1,8 +1,8 @@
-"use client";
-import { Button, Card, CardBody, CardFooter, CardHeader, Dialog, Typography } from "@material-tailwind/react";
-import React from "react";
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { TrashIcon } from "@heroicons/react/20/solid";
+import React from "react";
+import { DialogFooter } from "@material-tailwind/react";
 
 export default function CustomDialog({
 	open,
@@ -24,28 +24,24 @@ export default function CustomDialog({
 	disabledSubmit?: boolean;
 }) {
 	return (
-		<Dialog size='lg' open={open} handler={handler} className='bg-transparent shadow-none max-h-[90%] pt-10 pb-3'>
-			<Card className='mx-auto w-full max-w-full max-h-[70%]'>
-				<CardHeader variant='gradient' color='gray' className='mb-4 pl-4 grid h-28 place-items-center '>
-					<div className='flex flex-row w-full items-center justify-between px-20'>
-						<Typography variant='h4' color='white' className='text-left'>
-							{title}
-						</Typography>
-						{onDelete ? (
-							<Button onClick={onDelete}>
-								<TrashIcon className='w-7 h-7 text-red-700' />
-							</Button>
-						) : null}
-					</div>
-				</CardHeader>
-				<CardBody className='flex flex-col gap-4 overflow-y-scroll h-[70%]'>
-					<div className='max-h-[500px]'>{children}</div>
-				</CardBody>
-				<CardFooter className='-bottom-5 sticky bg-white z-50 rounded-b-md'>
-					<div className='flex flex-row justify-end w-full gap-5'>
+		<Dialog open={open} onOpenChange={handler}>
+			<DialogContent className='max-w-[600px]'>
+				<DialogHeader className='flex flex-row justify-between w-full items-center'>
+					<DialogTitle>{title}</DialogTitle>
+					{onDelete ? (
+						<button onClick={onDelete} className='pr-4'>
+							<TrashIcon className='w-7 h-7 text-red-700' />
+						</button>
+					) : null}
+				</DialogHeader>
+				<div className='flex flex-col gap-4 h-full'>
+					<div className='max-h-[700px]'>{children}</div>
+				</div>
+				<DialogFooter>
+					<div className='flex pt-4 flex-row justify-end w-full gap-5'>
 						<Button
-							color='green'
-							disabled={disabledSubmit}
+							className={`${disabledSubmit ? "disabled" : ""}`}
+							variant='default'
 							onClick={() => {
 								onSave ? onSave() : {};
 								handler();
@@ -53,7 +49,7 @@ export default function CustomDialog({
 							Mentés
 						</Button>
 						<Button
-							variant='outlined'
+							variant='outline'
 							onClick={() => {
 								handler();
 								onCancel ? onCancel() : {};
@@ -61,8 +57,8 @@ export default function CustomDialog({
 							Mégsem
 						</Button>
 					</div>
-				</CardFooter>
-			</Card>
+				</DialogFooter>
+			</DialogContent>
 		</Dialog>
 	);
 }

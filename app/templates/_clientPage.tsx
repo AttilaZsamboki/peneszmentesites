@@ -9,10 +9,11 @@ import AutoComplete from "../_components/AutoComplete";
 import { Product } from "../products/page";
 import Heading from "../_components/Heading";
 import { XMarkIcon } from "@heroicons/react/20/solid";
-import { Button } from "@material-tailwind/react";
+import { Button } from "@/components/ui/button";
 import BaseComponentV2 from "../_components/BaseComponentV2";
 import CustomDialog from "../_components/CustomDialog";
-import { useGlobalState } from "../_clientLayout";
+import { useToast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 
 export default function Page({ templates, products }: { templates: Template[]; products: Product[] }) {
 	const [template, setTemplate] = React.useState<Template>({ description: "", name: "", type: "", id: 0 });
@@ -20,8 +21,7 @@ export default function Page({ templates, products }: { templates: Template[]; p
 	const [upToDateTemplates, setUpToDateTemplates] = React.useState<any[]>(templates);
 	const [isNew, setIsNew] = React.useState(false);
 	const [openDialog, setOpenDialog] = React.useState(false);
-
-	const { setConfirm } = useGlobalState();
+	const { toast } = useToast();
 
 	React.useEffect(() => {
 		if (!isNew) {
@@ -141,9 +141,14 @@ export default function Page({ templates, products }: { templates: Template[]; p
 					!isNew
 						? () => {
 								setOpenDialog(false);
-								setConfirm({
-									message: "Biztos törölni akarod a sablont?",
-									onConfirm: () => deleteTemplate(),
+								toast({
+									title: "Biztos törölni akarod a sablont?",
+									variant: "destructive",
+									action: (
+										<ToastAction onClick={deleteTemplate} altText='delete'>
+											Igen
+										</ToastAction>
+									),
 								});
 						  }
 						: undefined
@@ -181,7 +186,7 @@ function Form({
 	setItems: React.Dispatch<React.SetStateAction<string[]>>;
 }) {
 	return (
-		<div className='flex flex-col w-full gap-5 overflow-y-scroll px-3'>
+		<div className='flex flex-col w-full gap-5 h-full overflow-y-scroll px-3'>
 			<div>
 				<div>Név</div>
 				<Input value={template.name} onChange={(e) => setTemplate({ ...template, name: e.target.value })} />
@@ -225,14 +230,15 @@ function Form({
 				</div>
 				<div className='flex flex-col gap-5'>
 					{items.map((item) => (
-						<div key={item} className='flex flex-row w-full items-center justify-between border-b pb-2'>
+						<div
+							key={item}
+							className='flex flex-row w-full items-center justify-between border-b pb-2 gap-3'>
 							<div>
 								{products.find((product) => product.id.toString() === item)?.sku} -{" "}
 								{products.find((product) => product.id.toString() === item)?.name}
 							</div>
 							<Button
-								size='sm'
-								color='red'
+								variant='destructive'
 								onClick={() => setItems([...items.filter((i) => i !== item)])}>
 								<XMarkIcon className='w-5 h-5 text-white' />
 							</Button>

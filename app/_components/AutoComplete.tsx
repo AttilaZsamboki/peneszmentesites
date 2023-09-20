@@ -60,16 +60,16 @@ export default function AutoComplete({
 				}
 			}}>
 			<div className='relative w-full'>
-				<div className='relative h-10 w-full cursor-default overflow-hidden rounded-lg text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm input-field'>
+				<div className='rounded-md'>
 					{create ? (
 						<Combobox.Input
-							className='w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none'
+							className='w-full border rounded-md py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none'
 							value={resetOnCreate ? query : undefined}
 							onChange={(event) => setQuery(event.target.value)}
 						/>
 					) : (
 						<Combobox.Input
-							className='w-full py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none'
+							className='w-full border rounded-md py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none'
 							onChange={(event) => setQuery(event.target.value)}
 						/>
 					)}
@@ -92,7 +92,7 @@ export default function AutoComplete({
 									<Combobox.Option
 										className={({ active }) =>
 											`relative cursor-default select-none py-2 pl-10 z-50 pr-4 ${
-												active ? "bg-gray-500 text-white" : "text-gray-900 bg-white"
+												active ? "bg-secondary" : "text-gray-900 bg-white"
 											}`
 										}
 										value={query}>
@@ -110,7 +110,7 @@ export default function AutoComplete({
 									key={option.value}
 									className={({ active }) =>
 										`relative cursor-default select-none py-2 pl-10 z-50 pr-4 ${
-											active ? "bg-gray-500 text-white" : "text-gray-900 bg-white"
+											active ? "bg-secondary" : "text-gray-900 bg-white"
 										}`
 									}
 									value={option.value}>
@@ -125,9 +125,7 @@ export default function AutoComplete({
 											{selected ? (
 												<span
 													className={`absolute inset-y-0 left-0 flex items-center pl-3 z-50 ${
-														active
-															? "text-white"
-															: "text-gradient-to-tr from-gray-900 to-gray-800"
+														active ? "" : "text-gradient-to-tr from-gray-900 to-gray-800"
 													}`}>
 													<CheckIcon className='h-5 w-5' aria-hidden='true' />
 												</span>

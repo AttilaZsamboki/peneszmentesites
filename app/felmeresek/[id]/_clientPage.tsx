@@ -9,17 +9,10 @@ import { useGlobalState } from "../../_clientLayout";
 
 import React from "react";
 
-import {
-	Typography,
-	Spinner,
-	Switch,
-	CardBody,
-	Card,
-	Slider,
-	Checkbox,
-	Button,
-	Chip as MaterialChip,
-} from "@material-tailwind/react";
+import { Typography, Spinner, Switch, Slider } from "@material-tailwind/react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { XMarkIcon, CheckIcon, ChevronRightIcon, ChevronLeftIcon } from "@heroicons/react/20/solid";
 import { BaseFelmeresData, FelmeresItems } from "../new/_clientPage";
 
@@ -28,10 +21,11 @@ import { Template } from "@/app/templates/page";
 import MultipleChoice from "@/app/_components/MultipleChoice";
 import { Grid } from "@/app/_components/Grid";
 import Gallery from "@/app/_components/Gallery";
-import Chip from "@/app/_components/Chip";
 
 import { statusMap } from "@/app/_utils/utils";
-import { color } from "@material-tailwind/react/types/components/alert";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 
 export function isJSONParsable(str: string) {
 	try {
@@ -64,7 +58,6 @@ export default function ClientPage({
 	adatlap: AdatlapDetails;
 	template: Template;
 }) {
-	const { setAlert, setConfirm } = useGlobalState();
 	interface PageMap {
 		component: JSX.Element;
 		title: string;
@@ -92,6 +85,7 @@ export default function ClientPage({
 		})),
 	];
 
+	const { toast } = useToast();
 	const [originalData, setOriginalData] = React.useState(felmeresQuestions);
 	const [filteredData, setFilteredData] = React.useState(
 		felmeresQuestions.filter((field) => field.section === sections[0].title)
@@ -150,56 +144,65 @@ export default function ClientPage({
 			<div className='flex flex-row w-ful flex-wrap lg:flex-nowrap justify-center mt-2'>
 				<div className='w-full'>
 					<div className='lg:mt-6 lg:px-10 w-full'>
-						<Card className='shadow-none'>
-							<CardBody className='bg-white p-8 lg:rounded-lg bg-transparent bg-opacity-20 lg:border transform'>
-								<div className='flex gap-5 flex-row items-center justify-start'>
-									<Chip color='gray' value={adatlap.Name} />
-									<Chip value={template.name + " - " + felmeres.type} color='amber' />
-									<div className='flex flex-row items-center'>
-										{prevStatus ? (
+						<Card>
+							<CardHeader>
+								<div className='flex gap-5 flex-row items-center justify-between w-full'>
+									<div className='flex flex-row items-center gap-5'>
+										<CardTitle>{adatlap.Name}</CardTitle>
+										<div className='flex flex-row items-center'>
+											{prevStatus ? (
+												<Button
+													onClick={() => changeStatus("prev")}
+													className={`items-center font-sans ${
+														felmeresStatus === "IN_PROGRESS"
+															? "bg-blue-500 hover:bg-blue-500"
+															: "bg-green-500 hover:bg-green-500"
+													} font-bold uppercase whitespace-nowrap select-none px-3 text-xs relative bg-clip-border rounded-l-md rounded-r-none overflow-hidden bg-gradient-to-tr text-white shadow-none py-1 text-center`}>
+													<ChevronLeftIcon className='w-6 h-6' />
+												</Button>
+											) : null}
 											<Button
-												onClick={() => changeStatus("prev")}
-												color={statusMap[felmeresStatus].color as color}
-												className='items-center font-sans font-bold uppercase whitespace-nowrap select-none px-3 text-xs relative bg-clip-border rounded-l-md rounded-r-none overflow-hidden bg-gradient-to-tr text-white shadow-none py-1 text-center'>
-												<ChevronLeftIcon className='w-6 h-6' />
+												className={`relative font-semibold uppercase ${
+													felmeresStatus === "IN_PROGRESS"
+														? "bg-blue-500 hover:bg-blue-500"
+														: felmeresStatus === "COMPLETED"
+														? "bg-green-500 hover:bg-green-500"
+														: "hover:bg-primary"
+												} bg-clip-border rounded-l-none rounded-r-none overflow-hidden bg-gradient-to-tr text-white shadow-none py-2 text-center ${
+													Object.values(statusMap)[
+														Object.keys(statusMap).indexOf(felmeresStatus) + 1
+													]
+														? "rounded-r-none"
+														: "rounded-r-md"
+												} ${
+													Object.values(statusMap)[
+														Object.keys(statusMap).indexOf(felmeresStatus) - 1
+													]
+														? "rounded-l-none"
+														: "rounded-l-md"
+												}`}>
+												{statusMap[felmeresStatus].name}
 											</Button>
-										) : null}
-										<MaterialChip
-											className={`relative bg-clip-border rounded-l-none rounded-r-none overflow-hidden bg-gradient-to-tr text-white shadow-none py-2 text-center ${
-												Object.values(statusMap)[
-													Object.keys(statusMap).indexOf(felmeresStatus) + 1
-												]
-													? "rounded-r-none"
-													: "rounded-r-md"
-											} ${
-												Object.values(statusMap)[
-													Object.keys(statusMap).indexOf(felmeresStatus) - 1
-												]
-													? "rounded-l-none"
-													: "rounded-l-md"
-											}`}
-											value={statusMap[felmeresStatus].name}
-											color={statusMap[felmeresStatus].color as color}
-										/>
-										{nextStatus ? (
-											<Button
-												onClick={() => changeStatus("next")}
-												color={statusMap[felmeresStatus].color as color}
-												className='items-center font-sans font-bold uppercase rounded-l-none whitespace-nowrap select-none px-3 text-xs relative bg-clip-border rounded-r-md overflow-hidden bg-gradient-to-tr text-white shadow-none py-1 text-center'>
-												<ChevronRightIcon className='w-6 h-6' />
-											</Button>
-										) : null}
+											{nextStatus ? (
+												<Button
+													onClick={() => changeStatus("next")}
+													className={`items-center hover:bg-primary font-sans font-bold uppercase rounded-l-none whitespace-nowrap select-none px-3 text-xs relative bg-clip-border rounded-r-md overflow-hidden bg-gradient-to-tr text-white shadow-none py-1 text-center ${
+														felmeresStatus === "IN_PROGRESS"
+															? "bg-blue-500 hover:bg-blue-500"
+															: felmeresStatus === "COMPLETED" &&
+															  "bg-green-500 hover:bg-green-500"
+													}`}>
+													<ChevronRightIcon className='w-6 h-6' />
+												</Button>
+											) : null}
+										</div>
+									</div>
+									<div className='flex gap-3 flex-row items-center justify-cente'>
+										<Badge>{template.name + " - " + felmeres.type}</Badge>
 									</div>
 								</div>
-								<Heading
-									title={
-										selectedSection
-											? sections.find((section) => section.title === selectedSection)!.title
-											: sections[0].title
-									}
-									variant='h3'
-									border={false}
-								/>
+							</CardHeader>
+							<CardContent>
 								{isAll
 									? sections.map((section, index) => {
 											if (index === 0) {
@@ -213,7 +216,7 @@ export default function ClientPage({
 											);
 									  })
 									: sections.find((section) => section.title === selectedSection)?.component}
-							</CardBody>
+							</CardContent>
 						</Card>
 					</div>
 				</div>
@@ -263,57 +266,71 @@ export default function ClientPage({
 								<div className='flex flex-row gap-2'>
 									<XMarkIcon
 										onClick={() => {
-											setConfirm({
-												message: "Biztosan elveted a módosításokat?",
-												onConfirm: () => {
-													setModifiedData([]);
-													setIsEditing(false);
-												},
+											toast({
+												title: "Biztosan elveted a módosításokat?",
+												action: (
+													<ToastAction
+														altText='yes'
+														onClick={() => {
+															setModifiedData([]);
+															setIsEditing(false);
+														}}>
+														Igen
+													</ToastAction>
+												),
 											});
 										}}
 										className='w-6 h-6 cursor-pointer rounded-md bg-red-500 text-white p-1'
 									/>
 									<CheckIcon
 										onClick={() => {
-											setConfirm({
-												message: modifiedData.filter((field) => !field.value.length).length
+											toast({
+												title: modifiedData.filter((field) => !field.value.length).length
 													? "Biztosan elmented a módosításokat? (az üresen hagyott mezők törlésre kerülnek)"
 													: "Biztosan elmented a módosításokat?",
-												onConfirm: () => {
-													setIsEditing(false);
-													modifiedData.map(async (field) => {
-														const resp = await fetch(
-															"https://pen.dataupload.xyz/felmeres_questions/" +
-																field.id +
-																"/",
-															{
-																method: "PATCH",
-																headers: {
-																	"Content-Type": "application/json",
-																},
-																body: JSON.stringify({
-																	value: Array.isArray(field.value)
-																		? JSON.stringify(field.value)
-																		: field.value,
-																}),
-															}
-														);
-														if (resp.ok) {
-															setFilteredData((prev) =>
-																prev.map((f) => (f.id === field.id ? field : f))
-															);
-															await fetch(
-																"/api/revalidate?tag=" + encodeURIComponent(felmeresId)
-															);
-															setModifiedData([]);
-														} else {
-															setAlert({
-																message: "Hiba történt a mentés során!",
-																level: "error",
+												action: (
+													<ToastAction
+														altText='yes'
+														onClick={() => {
+															setIsEditing(false);
+															modifiedData.map(async (field) => {
+																const resp = await fetch(
+																	"https://pen.dataupload.xyz/felmeres_questions/" +
+																		field.id +
+																		"/",
+																	{
+																		method: "PATCH",
+																		headers: {
+																			"Content-Type": "application/json",
+																		},
+																		body: JSON.stringify({
+																			value: Array.isArray(field.value)
+																				? JSON.stringify(field.value)
+																				: field.value,
+																		}),
+																	}
+																);
+																if (resp.ok) {
+																	setFilteredData((prev) =>
+																		prev.map((f) => (f.id === field.id ? field : f))
+																	);
+																	await fetch(
+																		"/api/revalidate?tag=" +
+																			encodeURIComponent(felmeresId)
+																	);
+																	setModifiedData([]);
+																} else {
+																	toast({
+																		title: "Hiba",
+																		description:
+																			"Hiba történt a változtatások metnése során",
+																	});
+																}
 															});
-														}
-													});
-												},
+														}}>
+														Igen
+													</ToastAction>
+												),
 											});
 										}}
 										className='w-6 h-6 rounded-md cursor-pointer bg-green-500 text-white p-1'
@@ -326,10 +343,8 @@ export default function ClientPage({
 								Minden
 							</Typography>
 							<Checkbox
-								crossOrigin=''
 								disabled={isLoading}
-								color='gray'
-								onChange={() => {
+								onCheckedChange={() => {
 									setIsAll(!isAll);
 									setSelectedSection(isAll ? sections[0].title : "");
 								}}

@@ -25,8 +25,8 @@ export default function Search({
 
 	return (
 		<div className='flex flex-row justify-between items-center mb-3 w-full gap-5 mt-5'>
-			<div className='mx-auto flex w-full rounded-md !border !border-gray-200'>
-				<div className='relative flex items-center w-full h-12 bg-white overflow-hidden'>
+			<div className='mx-auto flex w-full'>
+				<div className='relative flex items-center w-full h-12 bg-white overflow-hidden rounded-md border'>
 					<div className='grid place-items-center h-full w-12 text-gray-300'>
 						<svg
 							xmlns='http://www.w3.org/2000/svg'

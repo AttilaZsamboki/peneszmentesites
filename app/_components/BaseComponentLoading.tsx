@@ -1,5 +1,7 @@
 "use client";
-import { Button, Card, CardBody, List, ListItem, Typography } from "@material-tailwind/react";
+import { List, ListItem, Typography } from "@material-tailwind/react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import Skeleton from "react-loading-skeleton";
 import LoadingDots from "./LoadingDots";
 import { usePathname } from "next/navigation";
@@ -84,12 +86,12 @@ export default function BaseComponentLoading() {
 
 					<ul role='list' className='w-full bg-white rounded-lg flex flex-col justify-between border'>
 						{Array.from({ length: 10 }, (_, i) => i).map((item, index) => (
-							<Card
+							<div
 								key={index}
 								className={`rounded-none shadow-none border-b ${index === 0 ? "rounded-t-md" : ""} ${
 									index === 9 ? "rounded-b-md" : ""
 								}`}>
-								<CardBody className='flex justify-between py-5 bg-white bg-opacity-20 transform'>
+								<div className='flex px-6 justify-between py-5 bg-white bg-opacity-20 transform'>
 									<div className='flex flex-row min-w-0 gap-4'>
 										<Skeleton circle={true} height={50} width={50} />
 										<div className='min-w-0 flex-auto'>
@@ -111,8 +113,8 @@ export default function BaseComponentLoading() {
 										</p>
 										<Skeleton width={70} />
 									</div>
-								</CardBody>
-							</Card>
+								</div>
+							</div>
 						))}
 					</ul>
 				</div>
@@ -120,15 +122,9 @@ export default function BaseComponentLoading() {
 					<div className='flex flex-col items-center w-full mx-4'>
 						<Card className='w-full rounded-md shadow-none border'>
 							<List>
-								<ListItem
-									ripple={true}
-									className='active:bg-white hover:bg-white after:bg-white before:bg-white bg-white'>
-									<div className='flex flex-row justify-center items-center w-full'>
-										<Typography color='gray' variant='h5'>
-											Filter visszaállítása
-										</Typography>
-									</div>
-								</ListItem>
+								<CardHeader className='active:bg-white hover:bg-white after:bg-white before:bg-white bg-white'>
+									<CardTitle>Filterek</CardTitle>
+								</CardHeader>
 
 								{Array.from({ length: 5 }, (_, i) => i).map((i) => (
 									<ListItem key={i}>

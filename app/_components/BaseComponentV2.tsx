@@ -3,7 +3,9 @@ import StackedList, { ItemContent } from "../_components/StackedList";
 import Heading from "../_components/Heading";
 import React from "react";
 import Link from "next/link";
-import { Badge, Button, Card, List, ListItem, Typography } from "@material-tailwind/react";
+import { Badge, List, ListItem } from "@material-tailwind/react";
+import { Card, CardTitle, CardHeader, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Filter } from "../products/page";
 import { useGlobalState } from "../_clientLayout";
 import { EllipsisVerticalIcon, PlusIcon } from "@heroicons/react/20/solid";
@@ -11,6 +13,9 @@ import Menu from "../_components/Menu";
 import CustomDialog from "./CustomDialog";
 import Input from "./Input";
 import { useSearchParams } from "next/navigation";
+import { Eraser } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 
 function deepEqual(a: any, b: any) {
 	if (a === b) {
@@ -62,23 +67,29 @@ export default function BaseComponentV2({
 	pagination?: { numPages: number };
 	sort?: { by: string; order: "asc" | "desc" };
 }) {
+	const { toast } = useToast();
 	const searchParams = useSearchParams();
-	const { setAlert } = useGlobalState();
 	const [search, setSearch] = React.useState<Filter>({ id: 0, name: "", value: searchParams.get("filter") || "" });
 	const [savedFilters, setSavedFilters] = React.useState<Filter[]>([]);
 
+	const fetchSavedFilters = async () => {
+		const response = await fetch("https://pen.dataupload.xyz/filters?type=" + title);
+		if (response.ok) {
+			setSavedFilters(await response.json());
+			return;
+		}
+		toast({
+			title: "Hiba",
+			description: "Hiba történt a szűrők betöltése közben",
+			variant: "destructive",
+			action: (
+				<ToastAction altText='Try again' onClick={fetchSavedFilters}>
+					Újrapróbálkozás
+				</ToastAction>
+			),
+		});
+	};
 	React.useEffect(() => {
-		const fetchSavedFilters = async () => {
-			const response = await fetch("https://pen.dataupload.xyz/filters?type=" + title);
-			if (response.ok) {
-				setSavedFilters(await response.json());
-				return;
-			}
-			setAlert({
-				level: "error",
-				message: "Hiba történt a szűrők betöltése közben",
-			});
-		};
 		fetchSavedFilters();
 	}, []);
 
@@ -91,7 +102,7 @@ export default function BaseComponentV2({
 							createPath ? (
 								<Link href={createPath}>
 									<div className='flex flex-row justify-end w-full relative top-3 z-50 items-center gap-3'>
-										<Button className='w-36 h-10 flex items-center justify-center py-4 rounded-md hover:shadow-none shadow-none'>
+										<Button className='w-36 h-10 flex items-center justify-center py-4 rounded-md hover:shadow-none shadow-none font-semibold uppercase'>
 											{createButtonTitle}
 										</Button>
 									</div>
@@ -146,8 +157,8 @@ function FiltersComponent({
 	savedFilters: Filter[];
 	setSavedFilters: React.Dispatch<React.SetStateAction<Filter[]>>;
 }) {
-	const { setAlert } = useGlobalState();
 	const [openSaveFilter, setOpenSaveFilter] = React.useState(false);
+	const { toast } = useToast();
 
 	const saveFilter = async () => {
 		const response = await fetch("https://pen.dataupload.xyz/filters", {
@@ -194,19 +205,17 @@ function FiltersComponent({
 		<>
 			<div className='flex flex-row justify-center relative top-5'>
 				<div className='flex flex-col items-center w-full mx-4'>
-					<Card className='w-full rounded-md shadow-none border'>
+					<Card className='p-2'>
 						<List>
-							<ListItem
-								ripple={true}
-								onClick={() => setFilters({ id: 0, name: "", value: "" })}
-								className='active:bg-white hover:bg-white after:bg-white before:bg-white bg-white'>
-								<div className='flex flex-row justify-center items-center w-full'>
-									<Typography color='gray' variant='h5'>
-										Filter visszaállítása
-									</Typography>
+							<CardHeader>
+								<div className='flex gap-5 flex-row w-full items-center justify-between'>
+									<CardTitle>Filterek</CardTitle>
+									<Eraser
+										className='w-5 h-5 text-gray cursor-pointer'
+										onClick={() => setFilters({ id: 0, name: "", value: "" })}
+									/>
 								</div>
-							</ListItem>
-
+							</CardHeader>
 							{savedFilters
 								.sort((a, b) => a.id - b.id)
 								.map((filter) => {
@@ -316,9 +325,9 @@ function FiltersComponent({
 				setSavedFilters((prev) => prev.map((item) => (item.id === filter.id ? filters : item)));
 			}
 		} else {
-			setAlert({
-				level: "information",
-				message: "Nincs változás a filterben",
+			toast({
+				title: "Nincs változás",
+				description: "Nem történt változás a szűrőben",
 			});
 		}
 	}

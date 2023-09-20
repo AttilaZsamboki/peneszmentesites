@@ -2,10 +2,13 @@
 
 import React from "react";
 
-import { Accordion, AccordionBody, AccordionHeader, Button, Tooltip, Typography } from "@material-tailwind/react";
+import { Typography } from "@material-tailwind/react";
+import { Button } from "@/components/ui/button";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import AutoComplete from "./AutoComplete";
 import Heading from "./Heading";
-import { ArrowTopRightOnSquareIcon, ChevronDownIcon, ChevronUpIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { ArrowTopRightOnSquareIcon } from "@heroicons/react/24/outline";
+import { X } from "lucide-react";
 import Link from "next/link";
 
 export default function FormList({
@@ -16,7 +19,6 @@ export default function FormList({
 	options = [],
 	create = false,
 	value,
-	border = true,
 	accordion,
 	itemHref,
 	optionDisplayDirection = "bottom",
@@ -30,7 +32,6 @@ export default function FormList({
 	options?: { value: string; label: string }[];
 	create?: boolean;
 	value?: string;
-	border?: boolean;
 	accordion?: (item: string) => React.ReactNode;
 	itemHref?: (item: string) => any;
 	optionDisplayDirection?: "top" | "bottom";
@@ -38,107 +39,83 @@ export default function FormList({
 	showOptions?: boolean;
 }) {
 	return (
-		<div className={`${border ? "border-t" : ""} pt-2 mt-1`}>
-			<div className='-mt-10'>
-				<Heading title={title} variant='h4' />
-			</div>
-			<div className='relative bottom-10'>
-				<AutoComplete
-					onChange={(value) => (onAddNewItem ? onAddNewItem(value) : {})}
-					value={value}
-					optionDisplayDirection={optionDisplayDirection}
-					create={create}
-					options={options}
-					emptyOption={emptyOption}
-					showOptions={showOptions}
-				/>
-			</div>
-			<div className='flex flex-col gap-5'>
-				{items.map((item, index) => {
-					return (
-						<div key={index} className='flex flex-row w-full items-center justify-between border-b pb-2'>
-							{accordion ? (
-								<AccordionListItem
-									item={item}
-									accordion={accordion}
-									onDeleteItem={onDeleteItem}
-									itemHref={itemHref}
-								/>
-							) : itemHref ? (
-								<Link href={itemHref ? itemHref(item) : ""}>
-									<div>{item}</div>
+		<div className={`pt-2 mt-1`}>
+			<Heading border={false} title={title} variant='h5' />
+			<AutoComplete
+				onChange={(value) => (onAddNewItem ? onAddNewItem(value) : {})}
+				value={value}
+				optionDisplayDirection={optionDisplayDirection}
+				create={create}
+				options={options}
+				emptyOption={emptyOption}
+				showOptions={showOptions}
+			/>
+			<div className='flex flex-col gap-5 pt-6'>
+				{accordion ? (
+					<Accordion type='single' collapsible className='w-full'>
+						{items.map((item, index) => (
+							<AccordionItem value={item} key={index} className='w-full'>
+								<AccordionTrigger>
 									{onDeleteItem ? (
-										<Button size='sm' color='red' onClick={() => onDeleteItem(item)}>
-											<XMarkIcon className='w-5 h-5 text-white' />
-										</Button>
+										<div className='flex flex-row justify-between w-full items-center gap-2'>
+											{itemHref ? (
+												<div className='flex flex-row items-center gap-1'>
+													<Typography>{item}</Typography>
+													<Link href={itemHref(item)}>
+														<ArrowTopRightOnSquareIcon className='w-4 h-4 relative bottom-1' />
+													</Link>
+												</div>
+											) : (
+												<Typography>{item}</Typography>
+											)}
+											<Button
+												size='sm'
+												variant='destructive'
+												onClick={() => onDeleteItem(item)}
+												className='mr-5'>
+												<X className='w-5 h-5' />
+											</Button>
+										</div>
 									) : (
-										<div></div>
+										<div>{item}</div>
 									)}
-								</Link>
-							) : (
-								<>
-									<div>{item}</div>
-									{onDeleteItem ? (
-										<Button size='sm' color='red' onClick={() => onDeleteItem(item)}>
-											<XMarkIcon className='w-5 h-5 text-white' />
-										</Button>
-									) : (
-										<div></div>
-									)}
-								</>
-							)}
-						</div>
-					);
-				})}
+								</AccordionTrigger>
+								<AccordionContent>{accordion(item)}</AccordionContent>
+							</AccordionItem>
+						))}
+					</Accordion>
+				) : (
+					items.map((item, index) => {
+						return (
+							<div key={index} className='flex flex-row w-full items-center justify-between pb-2 gap-4'>
+								{itemHref ? (
+									<Link href={itemHref ? itemHref(item) : ""}>
+										<div>{item}</div>
+										{onDeleteItem ? (
+											<Button variant='destructive' onClick={() => onDeleteItem(item)}>
+												<X className='w-5 h-5' />
+											</Button>
+										) : (
+											<div></div>
+										)}
+									</Link>
+								) : (
+									<>
+										<div>{item}</div>
+										{onDeleteItem ? (
+											<Button size='sm' variant='destructive' onClick={() => onDeleteItem(item)}>
+												<X className='w-5 h-5 ' />
+											</Button>
+										) : (
+											<div></div>
+										)}
+									</>
+								)}
+							</div>
+						);
+					})
+				)}
 			</div>
 		</div>
-	);
-}
-
-function AccordionListItem({
-	item,
-	accordion,
-	onDeleteItem,
-	itemHref,
-}: {
-	item: string;
-	accordion: (item: string) => React.ReactNode;
-	onDeleteItem?: (item: string) => void;
-	itemHref?: (item: string) => any;
-}) {
-	const [open, setOpen] = React.useState(false);
-	return (
-		<Accordion
-			open={open}
-			icon={
-				open ? (
-					<ChevronUpIcon className='w-5 h-5 transition-transform' />
-				) : (
-					<ChevronDownIcon className='w-5 h-5 transition-transform' />
-				)
-			}>
-			<AccordionHeader onClick={() => setOpen(!open)}>
-				{onDeleteItem ? (
-					<div className='flex flex-row justify-between w-full items-center'>
-						{itemHref ? (
-							<div className='flex flex-row items-center gap-1'>
-								<Typography>{item}</Typography>
-								<Link href={itemHref(item)}>
-									<ArrowTopRightOnSquareIcon className='w-4 h-4 relative bottom-1' />
-								</Link>
-							</div>
-						) : (
-							<Typography>{item}</Typography>
-						)}
-						<Button size='sm' color='red' onClick={() => onDeleteItem(item)} className='mr-5'>
-							<XMarkIcon className='w-5 h-5 text-white' />
-						</Button>
-					</div>
-				) : (
-					<div>{item}</div>
-				)}
-			</AccordionHeader>
-			<AccordionBody>{accordion(item)}</AccordionBody>
-		</Accordion>
 	);
 }

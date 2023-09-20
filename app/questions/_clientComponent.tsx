@@ -1,5 +1,5 @@
 "use client";
-import { Checkbox, Option, Select } from "@material-tailwind/react";
+import { Checkbox } from "@/components/ui/checkbox";
 import React from "react";
 
 import AutoComplete from "../_components/AutoComplete";
@@ -17,8 +17,8 @@ import { Question } from "./page";
 
 import { typeMap } from "../_utils/utils";
 import { getFirstProduct } from "../_utils/utils";
-import { useGlobalState } from "../_clientLayout";
 import FormField from "../_components/FormField";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function ClientComponent({ data, products }: { data: any; products: Product[] }) {
 	const [question, setQuestion] = React.useState<Question>({
@@ -33,7 +33,7 @@ export default function ClientComponent({ data, products }: { data: any; product
 	const [openDialog, setOpenDialog] = React.useState(false);
 	const [allQuestions, setAllQuestions] = React.useState<any[]>(data);
 	const [isNew, setIsNew] = React.useState(false);
-	const { setAlert } = useGlobalState();
+	const { toast } = useToast();
 
 	const createQuestion = async () => {
 		const response = await fetch("https://pen.dataupload.xyz/questions/", {
@@ -163,11 +163,10 @@ export default function ClientComponent({ data, products }: { data: any; product
 			const bodyAsString = JSON.stringify(body); // Parse the JSON response into a string
 
 			if (bodyAsString.includes("pen_felmeres_questions_pen_questions_id_fk")) {
-				setAlert({
-					level: "error",
-					message: "Ez a kérdés már szerepel egy felmérésben, ezért nem törölhető!",
+				toast({
+					title: "Hiba",
+					description: "Ez a kérdés már szerepel egy felmérésben, ezért nem törölhető!",
 				});
-				setTimeout(() => setAlert(null), 5000);
 			}
 		}
 		setOpenDialog(false);
@@ -254,7 +253,7 @@ function QuestionForm({
 	const items = productItems ? productItems.map((item) => (item ? item.sku + " - " + item.name : "")) : [];
 
 	return (
-		<div className='flex flex-col w-full gap-5'>
+		<div className='flex flex-col w-full gap-5 h-full overflow-y-scroll'>
 			<FormField title='Kérdés'>
 				<Input
 					value={question.question}
@@ -284,8 +283,7 @@ function QuestionForm({
 			<FormField title='Kötelező'>
 				<Checkbox
 					checked={question.mandatory}
-					onChange={() => setQuestion((prev) => ({ ...prev, mandatory: !prev.mandatory }))}
-					crossOrigin=''
+					onCheckedChange={() => setQuestion((prev) => ({ ...prev, mandatory: !prev.mandatory }))}
 				/>
 			</FormField>
 			<FormField title='Leírás'>
@@ -332,7 +330,7 @@ function QuestionForm({
 							label: product.sku + " - " + product.name,
 						}))}
 					value=''
-					optionDisplayDirection="top"
+					optionDisplayDirection='top'
 				/>
 			) : null}
 		</div>
@@ -350,7 +348,7 @@ function OptionChooser({
 }) {
 	if (type === "TEXT" || type === "FILE_UPLOAD") {
 		return;
-	} else if (type === "LIST" || type === "MULTIPLE_CHOICE") {
+	} else if (type === "LIST" || type === "MULTIPLE_CHOICE" || type === "CHECKBOX") {
 		return (
 			<FormField title='Opciók'>
 				<MultipleChoiceCombobox

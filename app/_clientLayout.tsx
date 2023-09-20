@@ -1,23 +1,16 @@
 "use client";
 import React from "react";
-import { Alert, Button, Typography } from "@material-tailwind/react";
 import { HomeIcon, ArchiveBoxIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import CircularProgressBar from "./_components/CircularProgressBar";
-import { ArrowPathIcon } from "@heroicons/react/20/solid";
+import { Toaster } from "@/components/ui/toaster";
 
 interface Progress {
 	percent: number;
 }
 
 export const GlobalContext = React.createContext<{
-	setAlert: React.Dispatch<
-		React.SetStateAction<{
-			message: string;
-			level: "information" | "warning" | "error" | "success";
-		} | null>
-	>;
 	setConfirm: React.Dispatch<
 		React.SetStateAction<{
 			message: string;
@@ -27,16 +20,11 @@ export const GlobalContext = React.createContext<{
 	>;
 	setProgress: React.Dispatch<React.SetStateAction<Progress>>;
 }>({
-	setAlert: () => {},
 	setConfirm: () => {},
 	setProgress: () => {},
 });
 
 export default function RootLayoutClient({ children }: { children: React.ReactNode }) {
-	const [alert, setAlert] = React.useState<{
-		message: string;
-		level: "information" | "warning" | "error" | "success";
-	} | null>(null);
 	const [confirm, setConfirm] = React.useState<{
 		message: string;
 		onConfirm: () => void;
@@ -54,70 +42,12 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 
 	return (
 		<div>
-			{alert && (
-				<div className='flex justify-center items-center'>
-					<Alert
-						open={alert.message ? true : false}
-						color={
-							alert.level === "information"
-								? "blue"
-								: alert.level === "warning"
-								? "gray"
-								: alert.level === "success"
-								? "green"
-								: "red"
-						}
-						className='z-50 top-10 w-2/3 lg:w-1/3 absolute backdrop-filter backdrop-blur-sm'
-						onClose={() => setAlert(null)}>
-						<Typography variant='h5' color='white'>
-							{alert.level === "information"
-								? "Információ"
-								: alert.level === "warning"
-								? "Figyelmeztetés"
-								: alert.level === "success"
-								? "Siker"
-								: "Hiba"}
-						</Typography>
-						<Typography color='white' className='mt-2 font-normal'>
-							{alert.message}
-						</Typography>
-					</Alert>
-				</div>
-			)}
-			{confirm && (
-				<div className='flex justify-center items-center'>
-					<Alert
-						open={confirm.message ? true : false}
-						color='red'
-						className='z-50 top-10 w-2/3 h-20 lg:w-1/3 absolute flex flex-row justify-between items-center backdrop-filter backdrop-blur-sm'>
-						<Typography className='font-normal w-2/3 text-left'>{confirm.message}</Typography>
-						<div className='absolute right-5 bottom-5 items-center w-full flex flex-row justify-end gap-4'>
-							<Button
-								color='gray'
-								onClick={() => {
-									confirm.onConfirm();
-									setConfirm(null);
-								}}>
-								Igen
-							</Button>
-							<Button
-								color='gray'
-								variant='outlined'
-								onClick={() => {
-									confirm.onCancel && confirm.onCancel();
-									setConfirm(null);
-								}}>
-								Mégsem
-							</Button>
-						</div>
-					</Alert>
-				</div>
-			)}
 			<CircularProgressBar percent={progress.percent} />
 			<div className='flex w-full'>
 				<Navbar />
-				<GlobalContext.Provider value={{ setAlert, setConfirm, setProgress }}>
+				<GlobalContext.Provider value={{ setConfirm, setProgress }}>
 					{children}
+					<Toaster />
 				</GlobalContext.Provider>
 			</div>
 		</div>

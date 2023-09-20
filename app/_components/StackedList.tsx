@@ -2,7 +2,6 @@
 import Link from "next/link";
 import React from "react";
 import autoAnimate from "@formkit/auto-animate";
-import { Card, CardBody, Chip } from "@material-tailwind/react";
 import { Filter } from "../products/page";
 import { DefaultPagination } from "./Pagination";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -89,11 +88,11 @@ export default function StackedList({
 						if (editType === "link" && editHref) {
 							return (
 								<Link href={editHref + item[itemContent.id]} key={index}>
-									<Card
+									<div
 										className={`rounded-none shadow-none border-b ${
 											index === 0 ? "rounded-t-md" : ""
 										} ${index === data.length - 1 ? "rounded-b-md" : ""}`}>
-										<CardBody className='flex justify-between py-5 bg-white bg-opacity-20 transform'>
+										<div className='flex justify-between px-6 py-5 bg-white bg-opacity-20 transform'>
 											<div className='flex flex-row min-w-0 gap-4'>
 												{itemContent.imgSrc ? (
 													<img
@@ -108,18 +107,13 @@ export default function StackedList({
 															{item[itemContent.title]}
 														</p>
 														{itemContent.status ? (
-															<Chip
-																variant='ghost'
-																value={
+															<div
+																className={`${
 																	item[itemContent.status ? itemContent.status : ""]
-																		.name
+																		.className
 																}
-																color={
-																	item[itemContent.status ? itemContent.status : ""]
-																		.color
-																}
-																size='sm'
-																icon={
+																	relative grid items-center font-sans font-bold uppercase whitespace-nowrap select-none py-1 px-2 text-xs rounded-md`}>
+																<div className='absolute top-2/4 -translate-y-2/4 w-4 h-4 left-1'>
 																	<span
 																		className={
 																			`mx-auto mt-1 block h-2 w-2 rounded-full content-[''] ` +
@@ -129,8 +123,15 @@ export default function StackedList({
 																			]
 																		}
 																	/>
-																}
-															/>
+																</div>
+																<span className='ml-4'>
+																	{
+																		item[
+																			itemContent.status ? itemContent.status : ""
+																		].name
+																	}
+																</span>
+															</div>
 														) : null}
 													</div>
 
@@ -149,8 +150,8 @@ export default function StackedList({
 													</p>
 												) : null}
 											</div>
-										</CardBody>
-									</Card>
+										</div>
+									</div>
 								</Link>
 							);
 						} else if (editType === "dialog") {
@@ -195,12 +196,12 @@ function DialogItem({
 	onEditItem?: (item: any) => void;
 }) {
 	return (
-		<Card
+		<div
 			className={`rounded-none shadow-none border-b cursor-pointer ${index === 0 ? "rounded-t-md" : ""} ${
 				index === data.length - 1 ? "rounded-b-md" : ""
 			}`}
 			onClick={() => (onEditItem ? onEditItem(item) : null)}>
-			<CardBody className='flex justify-between py-5 bg-white bg-opacity-20 transform'>
+			<div className='flex px-6 justify-between py-5 bg-white bg-opacity-20 transform'>
 				<div className='flex flex-row min-w-0 gap-4'>
 					{itemContent.imgSrc ? (
 						<img
@@ -221,7 +222,7 @@ function DialogItem({
 						<p className='mt-1 text-xs leading-5 text-gray-500'>{item[itemContent.subtitle3]}</p>
 					) : null}
 				</div>
-			</CardBody>
-		</Card>
+			</div>
+		</div>
 	);
 }

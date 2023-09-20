@@ -1,4 +1,5 @@
-import { Radio, List, ListItem, ListItemPrefix, Typography, Checkbox } from "@material-tailwind/react";
+import { Radio, List, ListItem, ListItemPrefix, Typography } from "@material-tailwind/react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function MultipleChoice({
 	options,
@@ -7,7 +8,7 @@ export default function MultipleChoice({
 	radio,
 	disabled,
 }: {
-	options: any[];
+	options: string[];
 	value: string;
 	onChange: (value: string) => void;
 	radio?: boolean;
@@ -36,17 +37,10 @@ export default function MultipleChoice({
 								/>
 							) : (
 								<Checkbox
-									crossOrigin=''
 									name={option}
 									id={option}
-									ripple={false}
-									color='gray'
-									onChange={() => onChange(option)}
-									checked={value.includes(option)}
-									className='hover:before:opacity-0'
-									containerProps={{
-										className: "p-0",
-									}}
+									onCheckedChange={() => onChange(option)}
+									checked={value ? value.includes(option) : false}
 									disabled={disabled}
 								/>
 							)}

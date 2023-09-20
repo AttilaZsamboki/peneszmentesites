@@ -1,6 +1,7 @@
 "use client";
 import dynamic from "next/dynamic";
-import { Card, Typography } from "@material-tailwind/react";
+import { Typography } from "@material-tailwind/react";
+import { Card } from "@/components/ui/card";
 const Heading = dynamic(() => import("@/app/_components/Heading"));
 import React from "react";
 const AutoComplete = dynamic(() => import("@/app/_components/AutoComplete"));
@@ -156,7 +157,7 @@ export function Page2({
 	return (
 		<div>
 			<Card className='my-5'>
-				<div className=''>
+				<div>
 					<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
 						<thead>
 							<tr>
@@ -245,7 +246,6 @@ export function Page2({
 																	<div className='font-normal flex flex-col gap-2 max-w-[17rem]'>
 																		<div className='flex-row flex items-center gap-2'>
 																			<AutoComplete
-																				emptyOption={false}
 																				options={place_options
 																					.filter(
 																						(option) =>
@@ -423,7 +423,6 @@ export function Page2({
 														value: product.id.toString(),
 													}))}
 												value={items.find((item) => item.productId === 0)?.name || ""}
-												emptyOption={false}
 												onChange={(value) => {
 													setItems((prev) => [
 														...prev.filter((item) => item.productId.toString() !== value),
