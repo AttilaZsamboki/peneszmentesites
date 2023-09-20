@@ -110,7 +110,7 @@ export default function BaseComponentV2({
 							) : (
 								<div onClick={onCreateNew}>
 									<div className='flex flex-row justify-end w-full relative top-3 z-50 items-center gap-3'>
-										<Button className='w-36 h-10 flex items-center justify-center py-4 rounded-md hover:shadow-none shadow-none'>
+										<Button className='w-36 h-10 flex items-center justify-center py-4 rounded-md hover:shadow-none shadow-none font-semibold uppercase'>
 											{createButtonTitle}
 										</Button>
 									</div>

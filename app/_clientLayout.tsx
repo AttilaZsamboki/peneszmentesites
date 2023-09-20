@@ -11,25 +11,14 @@ interface Progress {
 }
 
 export const GlobalContext = React.createContext<{
-	setConfirm: React.Dispatch<
-		React.SetStateAction<{
-			message: string;
-			onConfirm: () => void;
-			onCancel?: (() => void) | undefined;
-		} | null>
-	>;
 	setProgress: React.Dispatch<React.SetStateAction<Progress>>;
+	progress: Progress;
 }>({
-	setConfirm: () => {},
 	setProgress: () => {},
+	progress: { percent: 0 },
 });
 
 export default function RootLayoutClient({ children }: { children: React.ReactNode }) {
-	const [confirm, setConfirm] = React.useState<{
-		message: string;
-		onConfirm: () => void;
-		onCancel?: () => void;
-	} | null>(null);
 	const [progress, setProgress] = React.useState<Progress>({ percent: 0 });
 
 	React.useEffect(() => {
@@ -42,10 +31,10 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 
 	return (
 		<div>
-			<CircularProgressBar percent={progress.percent} />
+			{progress.percent ? <CircularProgressBar percent={progress.percent} /> : null}
 			<div className='flex w-full'>
 				<Navbar />
-				<GlobalContext.Provider value={{ setConfirm, setProgress }}>
+				<GlobalContext.Provider value={{ setProgress, progress }}>
 					{children}
 					<Toaster />
 				</GlobalContext.Provider>

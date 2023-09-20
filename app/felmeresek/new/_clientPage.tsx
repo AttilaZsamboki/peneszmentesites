@@ -24,6 +24,7 @@ import { useSearchParams } from "next/navigation";
 import { useGlobalState } from "@/app/_clientLayout";
 
 import { Page2 } from "./Page2";
+import { useToast } from "@/components/ui/use-toast";
 
 export interface ProductTemplate {
 	product: number;
@@ -108,6 +109,7 @@ export default function Page({
 		},
 	]);
 	const [discount, setDiscount] = React.useState(0);
+	const { toast } = useToast();
 
 	React.useEffect(() => {
 		const fetchQuestions = async () => {
@@ -144,7 +146,16 @@ export default function Page({
 
 	const CreateFelmeres = async () => {
 		const percent = (num: number) => Math.floor((num / 3157) * 100);
+		const updateToast = (num: number) => {
+			toast({
+				title: "Felmérés létrehozása",
+				description: "Felmérés létrehozása folyamatban...",
+				duration: 5000,
+				action: <div>{percent(num)}%</div>,
+			});
+		};
 		setProgress({ percent: 1 });
+		updateToast(1);
 		const res = await fetch("https://pen.dataupload.xyz/felmeresek/", {
 			method: "POST",
 			headers: {
@@ -153,6 +164,7 @@ export default function Page({
 			body: JSON.stringify({ ...felmeres, created_at: new Date().toISOString().split("T")[0] }),
 		});
 		setProgress({ percent: percent(120) });
+		updateToast(120);
 		if (res.ok) {
 			const felmeresResponseData: BaseFelmeresData = await res.json();
 			await fetch("https://pen.dataupload.xyz/felmeres_items/", {
@@ -163,6 +175,7 @@ export default function Page({
 				body: JSON.stringify(submitItems.map((item) => ({ ...item, adatlap: felmeresResponseData.id }))),
 			});
 			setProgress({ percent: percent(214) });
+			updateToast(214);
 			let status = 1;
 			data.filter((question) => question.value).map(async (question) => {
 				const resQuestions = await fetch("https://pen.dataupload.xyz/felmeres_questions/", {
@@ -194,6 +207,7 @@ export default function Page({
 					template?.name
 				);
 				setProgress({ percent: percent(1762) });
+				updateToast(1762);
 				await fetch(`/api/minicrm-proxy/${felmeres.adatlap_id}?endpoint=Project`, {
 					method: "PUT",
 					headers: {
@@ -205,6 +219,7 @@ export default function Page({
 					}),
 				});
 				setProgress({ percent: percent(2271) });
+				updateToast(2271);
 				const todo_criteria = (todo: ToDo) => {
 					return todo["Type"] === 225 && todo["Status"] === "Open";
 				};
@@ -214,12 +229,15 @@ export default function Page({
 					await fetchMiniCRM("ToDo", todo[0].Id.toString(), "PUT", { Status: "Closed" });
 				}
 				setProgress({ percent: percent(2591) });
+				updateToast(2591);
 
 				await fetch("/api/revalidate?tag=felmeresek");
 				setProgress({ percent: percent(2992) });
+				updateToast(2992);
 				await fetch("/api/revalidate?tag=" + encodeURIComponent(felmeres.adatlap_id.toString()));
 
 				setProgress({ percent: percent(3157) });
+				updateToast(3157);
 				router.push("/felmeresek");
 			}
 		}
