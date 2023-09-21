@@ -13,6 +13,7 @@ export interface ItemContent {
 	subtitle: string;
 	subtitle2: string;
 	subtitle3?: string;
+	subtitle4?: string;
 	imgSrc?: string;
 	id: string;
 	status?: string;
@@ -140,6 +141,11 @@ export default function StackedList({
 													</p>
 												</div>
 											</div>
+											{itemContent.subtitle4 ? (
+												<p className='text-sm leading-6 text-gray-900 self-center'>
+													{item[itemContent.subtitle4]}
+												</p>
+											) : null}
 											<div className='hidden shrink-0 sm:flex sm:flex-col sm:items-end'>
 												<p className='text-sm leading-6 text-gray-900'>
 													{item[itemContent.subtitle2]}

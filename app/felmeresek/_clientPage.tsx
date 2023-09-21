@@ -23,6 +23,7 @@ export default function ClientPage({ allData }: { allData: any }) {
 				subtitle: "TeljesCim",
 				subtitle2: "type",
 				subtitle3: "Felmero2",
+				subtitle4: "CreatedAt",
 				imgSrc: "IngatlanKepe",
 				status: "status",
 			}}
