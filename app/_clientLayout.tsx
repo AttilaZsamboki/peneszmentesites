@@ -188,6 +188,7 @@ function Navbar2({
 					<Tabs value={router} className='flex flex-row w-full border-b pl-6'>
 						{activeRoute?.subRoutes.map((route) => (
 							<TabsHeader
+								key={route.href}
 								className='rounded-none bg-transparent p-0'
 								indicatorProps={{
 									className:
