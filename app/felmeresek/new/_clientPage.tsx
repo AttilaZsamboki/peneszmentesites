@@ -255,15 +255,20 @@ export default function Page({
 				)
 				.every((value) => value === true),
 		...Array.from(new Set(data.map((field) => field.section))).map(
-			(section) =>
+			(sect) =>
 				!data
 					.filter((field) =>
 						questions
 							.filter((question) => question.mandatory)
+							.filter((question) =>
+								question.connection === "Termék"
+									? products.find((product) => product.id === question.product)?.name === sect
+									: sect === "Fix"
+							)
 							.map((question) => question.id)
 							.includes(field.question)
 					)
-					.every((field) => field.value !== "" && field.section === section && field.value.length) ||
+					.every((field) => field.value !== "" && field.section === sect && field.value.length) ||
 				!data.length
 		),
 	];
@@ -627,16 +632,24 @@ function FieldCreate({
 	product?: string;
 }) {
 	React.useEffect(() => {
-		setGlobalData((prev) => [
-			...prev.filter((felmeres) => felmeres.question !== question.id || felmeres.section !== product),
-			{
-				adatlap_id: adatlap_id,
-				id: 0,
-				value: "",
-				question: question.id,
-				section: product ? product : "Fix",
-			},
-		]);
+		if (
+			!globalData.find(
+				(felmeres) =>
+					felmeres.question === question.id &&
+					(felmeres.section === "Termék" ? felmeres.section === product : true)
+			)
+		) {
+			setGlobalData((prev) => [
+				...prev.filter((felmeres) => felmeres.question !== question.id || felmeres.section !== product),
+				{
+					adatlap_id: adatlap_id,
+					id: 0,
+					value: "",
+					question: question.id,
+					section: product ? product : "Fix",
+				},
+			]);
+		}
 	}, [adatlap_id, product, question.id, setGlobalData]);
 
 	const isTrue = (felmeres: FelmeresQuestions) => {

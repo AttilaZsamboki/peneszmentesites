@@ -10,8 +10,8 @@ export default function Loading() {
 	return (
 		<div className='w-full'>
 			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-2'>
-				<div className='lg:mt-6 lg:px-10 lg:w-3/4'>
-					<Card className='shadow-none'>
+				<div className='lg:mt-6 lg:px-10 lg:w-2/3'>
+					<Card>
 						<CardHeader className='mt-5 lg:mt-0'>
 							<CardTitle>Alapadatok</CardTitle>
 						</CardHeader>
