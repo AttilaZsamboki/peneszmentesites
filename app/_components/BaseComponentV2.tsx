@@ -17,6 +17,8 @@ import { Eraser } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
+import { breakpoints } from "../_utils/utils";
+import useBreakpointValue from "./useBreakpoint";
 
 function deepEqual(a: any, b: any) {
 	if (a === b) {
@@ -72,6 +74,7 @@ export default function BaseComponentV2({
 	const searchParams = useSearchParams();
 	const [search, setSearch] = React.useState<Filter>({ id: 0, name: "", value: searchParams.get("filter") || "" });
 	const [savedFilters, setSavedFilters] = React.useState<Filter[]>([]);
+	const deviceWidth = useBreakpointValue();
 
 	const fetchSavedFilters = async () => {
 		const response = await fetch("https://pen.dataupload.xyz/filters?type=" + title);
@@ -97,7 +100,7 @@ export default function BaseComponentV2({
 	return (
 		<main className='flex min-h-screen flex-col items-center justify-start w-full'>
 			<div className='flex flex-col items-center justify-start w-full border-b bg-white'>
-				<div className='w-2/3 flex flex-row justify-between py-0'>
+				<div className='lg:w-2/3 flex flex-row justify-between py-0'>
 					<Heading border={false} width='w-full' title={title} marginY='mt-11 mb-8' variant='h2'>
 						{createButtonTitle ? (
 							createPath ? (
@@ -121,7 +124,7 @@ export default function BaseComponentV2({
 					</Heading>
 				</div>
 			</div>
-			<div className='flex flex-row justify-center w-full'>
+			<div className='flex flex-row justify-center w-full flex-wrap'>
 				<StackedList
 					onEditItem={onEditItem}
 					search={search}
@@ -133,13 +136,15 @@ export default function BaseComponentV2({
 					pagination={pagination}
 					sort={sort}
 				/>
-				<FiltersComponent
-					filterType={title}
-					filters={search}
-					savedFilters={savedFilters}
-					setFilters={setSearch}
-					setSavedFilters={setSavedFilters}
-				/>
+				{deviceWidth !== "sm" ? (
+					<FiltersComponent
+						filterType={title}
+						filters={search}
+						savedFilters={savedFilters}
+						setFilters={setSearch}
+						setSavedFilters={setSavedFilters}
+					/>
+				) : null}
 			</div>
 		</main>
 	);
@@ -196,7 +201,6 @@ function FiltersComponent({
 
 		window.addEventListener("keydown", handleKeyDown);
 
-		// Cleanup on unmount
 		return () => {
 			window.removeEventListener("keydown", handleKeyDown);
 		};
@@ -204,7 +208,7 @@ function FiltersComponent({
 
 	return (
 		<>
-			<div className='flex flex-row justify-center relative top-5'>
+			<div className='flex flex-row justify-center relative top-5 opacity-0 lg:opacity-100'>
 				<div className='flex flex-col items-center w-full mx-4'>
 					<Card className='p-2'>
 						<List>

@@ -1,13 +1,7 @@
 import { useState, useEffect } from "react";
+import { breakpoints } from "../_utils/utils";
 
 export default function useBreakpointValue() {
-	const breakpoints = [
-		{ size: "sm", min: 0, max: 768 },
-		{ size: "md", min: 768, max: 1024 },
-		{ size: "lg", min: 1024, max: 1280 },
-		{ size: "xl", min: 1280, max: 1536 },
-		{ size: "2xl", min: 1536, max: 9999 },
-	];
 	const [currentBreakpoint, setCurrentBreakpoint] = useState("");
 
 	useEffect(() => {

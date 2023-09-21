@@ -33,7 +33,7 @@ export default function BaseComponentLoading() {
 	return (
 		<main className='flex min-h-screen flex-col items-center justify-start w-full '>
 			<div className='flex flex-col items-center justify-start w-full border-b bg-white'>
-				<div className='w-2/3 flex flex-row justify-between py-0'>
+				<div className='lg:w-2/3 flex flex-row justify-between py-0'>
 					<div className={`flex lg:flex-row flex-col justify-between items-center w-full mb-2`}>
 						<div className='flex flex-col justify-items items-center w-full'>
 							<div
@@ -53,11 +53,12 @@ export default function BaseComponentLoading() {
 					</div>
 				</div>
 			</div>
-			<div className='flex flex-row justify-center w-full'>
-				<div className='w-2/3 flex flex-col'>
+			<div className='flex flex-row justify-center w-full flex-wrap'>
+				{/* Stacked List */}
+				<div className='lg:w-2/3 lg:px-0 flex flex-col w-full px-5'>
 					<div className='flex flex-row justify-between items-center mb-3 w-full gap-5 mt-5'>
-						<div className='mx-auto flex w-full rounded-md !border !border-gray-200'>
-							<div className='relative flex items-center w-full h-12 bg-white overflow-hidden'>
+						<div className='mx-auto flex w-full'>
+							<div className='relative flex items-center w-full h-12 bg-white overflow-hidden rounded-md border'>
 								<div className='grid place-items-center h-full w-12 text-gray-300'>
 									<svg
 										xmlns='http://www.w3.org/2000/svg'
@@ -97,7 +98,7 @@ export default function BaseComponentLoading() {
 										<div className='min-w-0 flex-auto'>
 											<div className='flex flex-row items-center gap-2'>
 												<p className='text-sm font-semibold leading-6 text-gray-900'>
-													<Skeleton width={150} />
+													<Skeleton className='lg:w-[150px] w-[50px]' />
 												</p>
 
 												<Skeleton width={100} height={20} />

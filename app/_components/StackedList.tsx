@@ -73,9 +73,9 @@ export default function StackedList({
 	};
 
 	return (
-		<div className='w-2/3 flex flex-col'>
+		<div className='w-full px-5 lg:px-0 lg:w-2/3 flex flex-col'>
 			<Search search={search} setSearch={setSearch} setFilteredData={setFilteredData} data={data} />
-			<ScrollArea className='h-[70dvh] rounded-md border p-2 bg-white'>
+			<ScrollArea className='lg:h-[70dvh] h-[62dvh] rounded-md border p-2 bg-white'>
 				<ul ref={parent} role='list' className='w-full bg-white rounded-lg flex flex-col justify-between'>
 					{filteredData
 						.sort((a, b) =>
