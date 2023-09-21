@@ -16,6 +16,7 @@ import { useSearchParams } from "next/navigation";
 import { Eraser } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
+import { ScrollArea } from "@radix-ui/react-scroll-area";
 
 function deepEqual(a: any, b: any) {
 	if (a === b) {
@@ -95,7 +96,7 @@ export default function BaseComponentV2({
 
 	return (
 		<main className='flex min-h-screen flex-col items-center justify-start w-full'>
-			<div className='flex flex-col items-center justify-start w-full border-b'>
+			<div className='flex flex-col items-center justify-start w-full border-b bg-white'>
 				<div className='w-2/3 flex flex-row justify-between py-0'>
 					<Heading border={false} width='w-full' title={title} marginY='mt-11 mb-8' variant='h2'>
 						{createButtonTitle ? (

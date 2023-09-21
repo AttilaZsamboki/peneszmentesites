@@ -25,7 +25,6 @@ import { useGlobalState } from "@/app/_clientLayout";
 
 import { Page2 } from "./Page2";
 import { useToast } from "@/components/ui/use-toast";
-import { Separator } from "@/components/ui/separator";
 
 export interface ProductTemplate {
 	product: number;

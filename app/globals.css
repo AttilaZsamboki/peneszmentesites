@@ -78,3 +78,48 @@
 .input-field {
 	@apply !border !border-gray-300 bg-white text-gray-900 ring-0 ring-transparent placeholder:text-gray-500;
 }
+
+body {
+	background: #fafafa;
+}
+
+body {
+	overflow: hidden;
+}
+
+*::-webkit-scrollbar {
+	width: 8px; /* Set the width of the scrollbar */
+	background-color: #f2f2f2; /* Set the background color of the scrollbar */
+}
+
+*::-webkit-scrollbar-thumb {
+	background-color: #999; /* Set the color of the scrollbar thumb */
+	border-radius: 4px; /* Round the corners of the scrollbar thumb */
+}
+
+*::-webkit-scrollbar-track {
+	background-color: #f2f2f2; /* Set the color of the scrollbar track */
+}
+
+/* Scrollbar styling for Firefox */
+* {
+	scrollbar-width: thin; /* Set the width of the scrollbar */
+	scrollbar-color: #999 #f2f2f2; /* Set the color of the scrollbar thumb and track */
+}
+
+/* Additional styles for a narrow design */
+@media (max-width: 375px) {
+	*::-webkit-scrollbar {
+		width: 5px; /* Adjust the width of the scrollbar for narrow screens */
+	}
+}
+
+/* Additional styles for a gray design */
+.gray-scrollbar *::-webkit-scrollbar-thumb {
+	background-color: #ccc; /* Set the color of the scrollbar thumb to gray */
+}
+
+/* Additional styles for a modern design */
+.modern-scrollbar *::-webkit-scrollbar-track {
+	background-color: #ddd; /* Set the color of the scrollbar track to a lighter gray */
+}

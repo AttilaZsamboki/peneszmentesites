@@ -31,8 +31,8 @@ export default function BaseComponentLoading() {
 		},
 	];
 	return (
-		<main className='flex min-h-screen flex-col items-center justify-start w-full'>
-			<div className='flex flex-col items-center justify-start w-full border-b'>
+		<main className='flex min-h-screen flex-col items-center justify-start w-full '>
+			<div className='flex flex-col items-center justify-start w-full border-b bg-white'>
 				<div className='w-2/3 flex flex-row justify-between py-0'>
 					<div className={`flex lg:flex-row flex-col justify-between items-center w-full mb-2`}>
 						<div className='flex flex-col justify-items items-center w-full'>
