@@ -24,9 +24,10 @@ export const GlobalContext = React.createContext<{
 export default function RootLayoutClient({ children }: { children: React.ReactNode }) {
 	const [progress, setProgress] = React.useState<Progress>({ percent: 0 });
 	const [openNav, setOpenNav] = React.useState(() => {
-		return JSON.parse(localStorage.getItem("openNav") || "false");
+		return typeof localStorage !== "undefined" ? JSON.parse(localStorage.getItem("openNav") || "false") : false;
 	});
 	React.useEffect(() => {
+		if (typeof localStorage === "undefined") return;
 		localStorage.setItem("openNav", JSON.stringify(openNav));
 	}, [openNav]);
 	const [ref] = useAutoAnimate<HTMLDivElement>();
