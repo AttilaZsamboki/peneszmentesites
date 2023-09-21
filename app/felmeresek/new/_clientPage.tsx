@@ -25,6 +25,7 @@ import { useGlobalState } from "@/app/_clientLayout";
 
 import { Page2 } from "./Page2";
 import { useToast } from "@/components/ui/use-toast";
+import { Separator } from "@/components/ui/separator";
 
 export interface ProductTemplate {
 	product: number;
@@ -326,7 +327,7 @@ export default function Page({
 	return (
 		<div className='w-full'>
 			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-2'>
-				<div className={`lg:mt-6 lg:px-10 ${page === 1 ? "lg:w-11/12" : page == 0 ? "lg:w-2/3" : "w-3/4"}`}>
+				<div className={`lg:mt-6 lg:px-10 ${page === 1 ? "lg:w-11/12" : page == 0 ? "w-1/4" : "w-2/3"}`}>
 					<Card>
 						<CardHeader>
 							<CardTitle>{section}</CardTitle>
@@ -352,7 +353,7 @@ export default function Page({
 								discount={discount}
 								setDiscount={setDiscount}
 							/>
-							<div className='flex flex-row justify-end gap-3 border-t py-4'>
+							<div className='flex flex-row justify-end gap-3 py-4'>
 								{page === 0 ? null : (
 									<Button
 										variant='outline'
@@ -486,16 +487,20 @@ export function QuestionTemplate({
 	title,
 	type,
 	mandatory,
+	description,
 }: {
 	children: React.ReactNode;
 	title: string;
 	type?: string;
 	mandatory?: boolean;
+	description?: string;
 }) {
 	return (
-		<div className='px-4 py-6 flex flex-row sm:gap-4 sm:px-0'>
-			<div className='text-base flex flex-row font-medium leading-6 text-gray-900 w-1/3'>
-				<div>{title}</div>
+		<div className='space-y-2'>
+			<div className='text-base flex flex-row font-medium leading-6 text-gray-900'>
+				<label className='text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70'>
+					{title}
+				</label>
 				{mandatory ? (
 					<Tooltip content='Kötelező'>
 						<span className='font-bold text-lg ml-1'>
@@ -504,12 +509,13 @@ export function QuestionTemplate({
 					</Tooltip>
 				) : null}
 			</div>
+
 			<div className='flex justify-end w-full items-center'>
-				<div
-					className={`${["GRID", "CHECKBOX_GRID", "FILE_UPLOAD"].includes(type ?? "") ? "w-full" : "w-1/3"}`}>
-					{children}
-				</div>
+				<div className={`w-full`}>{children}</div>
 			</div>
+			<p id=':r2o:-form-item-description' className='text-[0.8rem] text-muted-foreground'>
+				{description}
+			</p>
 		</div>
 	);
 }
@@ -526,9 +532,10 @@ function Page1({
 	setFelmeres: React.Dispatch<React.SetStateAction<BaseFelmeresData>>;
 }) {
 	return (
-		<>
+		<div className='flex flex-col items-center gap-5'>
 			<QuestionTemplate title='Adatlap'>
 				<AutoComplete
+					className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
 					options={adatlapok.map((adatlap) => ({
 						label: adatlap.Name,
 						value: adatlap.Id.toString(),
@@ -551,6 +558,7 @@ function Page1({
 			{felmeres.adatlap_id ? (
 				<QuestionTemplate title='Milyen rendszert tervezel?'>
 					<AutoComplete
+						className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
 						options={[
 							"Helyi elszívós rendszer",
 							"Központi ventillátoros",
@@ -568,6 +576,7 @@ function Page1({
 			{felmeres.type ? (
 				<QuestionTemplate title='Sablon'>
 					<AutoComplete
+						className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
 						options={templates
 							.filter((template) => template.type === felmeres.type)
 							.map((template) => ({
@@ -586,7 +595,7 @@ function Page1({
 					/>
 				</QuestionTemplate>
 			) : null}
-		</>
+		</div>
 	);
 }
 
@@ -604,12 +613,13 @@ function QuestionPage({
 	globalData: FelmeresQuestions[];
 }) {
 	return (
-		<>
+		<div className='flex flex-col gap-10'>
 			{questions.map((question) => (
 				<QuestionTemplate
 					key={question.id}
 					title={question.question}
 					type={question.type}
+					description={question.description}
 					mandatory={question.mandatory}>
 					<FieldCreate
 						globalData={globalData}
@@ -620,7 +630,7 @@ function QuestionPage({
 					/>
 				</QuestionTemplate>
 			))}
-		</>
+		</div>
 	);
 }
 

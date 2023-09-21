@@ -13,6 +13,7 @@ export default function AutoComplete({
 	resetOnCreate = true,
 	emptyOption = true,
 	showOptions = true,
+	className,
 }: {
 	options: { label: string; value: string }[];
 	value?: string;
@@ -22,6 +23,7 @@ export default function AutoComplete({
 	resetOnCreate?: boolean;
 	emptyOption?: boolean;
 	showOptions?: boolean;
+	className?: string;
 }) {
 	const [query, setQuery] = useState("");
 
@@ -63,13 +65,13 @@ export default function AutoComplete({
 				<div className='rounded-md'>
 					{create ? (
 						<Combobox.Input
-							className='w-full border rounded-md py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none'
+							className={`w-full border rounded-md py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none ${className}`}
 							value={resetOnCreate ? query : undefined}
 							onChange={(event) => setQuery(event.target.value)}
 						/>
 					) : (
 						<Combobox.Input
-							className='w-full border rounded-md py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none'
+							className={`w-full border rounded-md py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none ${className}`}
 							onChange={(event) => setQuery(event.target.value)}
 						/>
 					)}
