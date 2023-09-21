@@ -329,7 +329,7 @@ export function Page2({
 																			{inputValues.length > 1 ? (
 																				<MinusCircleIcon
 																					className='w-7 h-7 cursor-pointer'
-																					onClick={() =>
+																					onClick={() => {
 																						setItems([
 																							...items.filter(
 																								(item) =>
@@ -347,8 +347,8 @@ export function Page2({
 																									),
 																								],
 																							},
-																						])
-																					}
+																						]);
+																					}}
 																				/>
 																			) : null}
 																		</div>

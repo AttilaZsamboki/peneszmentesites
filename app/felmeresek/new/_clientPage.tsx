@@ -113,6 +113,10 @@ export default function Page({
 
 	React.useEffect(() => {
 		const fetchQuestions = async () => {
+			setQuestions((prev) =>
+				prev.filter((question) => items.map((item) => item.productId).includes(question.id))
+			);
+			setData((prev) => prev.filter((field) => items.map((item) => item.productId).includes(field.question)));
 			items.map(async (item) => {
 				const res = await fetch("https://pen.dataupload.xyz/question_products?product=" + item.productId);
 				if (res.ok) {
@@ -463,7 +467,9 @@ function PageChooser({
 			),
 			title:
 				(items.find((item) => item.productId === product)
-					? items.find((item) => item.productId === product)!.name
+					? items.find((item) => item.productId === product)!.sku +
+					  " - " +
+					  items.find((item) => item.productId === product)!.name
 					: "") || "Fix kérdések",
 		})),
 	];
