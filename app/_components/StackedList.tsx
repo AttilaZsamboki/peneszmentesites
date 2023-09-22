@@ -228,7 +228,7 @@ export default function StackedList({
 									{Object.entries(itemContent).map(([key, value]) => {
 										const options: any = Array.from(
 											new Set(
-												data.map((field: any) =>
+												filteredData.map((field: any) =>
 													field[value]
 														? key === "status"
 															? field[value].name.toString()
@@ -414,8 +414,6 @@ export default function StackedList({
 					.filter((filterItem) => filterItem.value)
 					.map((filterItem) => {
 						if (filterItem.field === "search") {
-							console.log(filterItem.value.toLowerCase().split(" "));
-							console.log(JSON.stringify(item).toLowerCase().includes("ETH".toLowerCase()));
 							return filterItem.value
 								.split(" ")
 								.map((searchWord: string) =>
@@ -597,7 +595,7 @@ function FiltersComponent({
 						className: "bg-transparent border-b-2 border-gray-900 mx-3 shadow-none rounded-none",
 					}}>
 					<Tab value={0} className='pb-2'>
-						Alap
+						Alap nézet
 					</Tab>
 					<div className='flex items-center pb-2'>
 						<Separator orientation='vertical' className='mx-2 ml-4' />
@@ -697,10 +695,10 @@ function FiltersComponent({
 			<CustomDialog
 				onSave={saveFilter}
 				open={openSaveFilter}
-				title='Filter mentése'
+				title='Nézet mentése'
 				handler={handleOpenSaveFilter}>
 				<Input
-					label='Filter neve'
+					label='Nézet neve'
 					value={filter.name}
 					onChange={(e) => setFilter((prev) => ({ ...prev, name: e.target.value }))}
 				/>
