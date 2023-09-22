@@ -27,7 +27,6 @@ import { Label } from "@/components/ui/label";
 import AutoComplete from "./AutoComplete";
 import { FunnelIcon } from "@heroicons/react/24/outline";
 
-import Search from "./Search";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import useBreakpointValue from "./useBreakpoint";
 import { Separator } from "@/components/ui/separator";
