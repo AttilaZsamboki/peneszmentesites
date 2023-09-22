@@ -91,10 +91,7 @@ export default function StackedList({
 	const searchParams = useSearchParams();
 	const deviceSize = useBreakpointValue();
 	const [filter, setFilter] = React.useState<Filter>({
-		filters: [
-			{ field: "search", value: "", id: 0 },
-			...Object.values(itemContent).map((value) => ({ field: value, value: "", id: 0 })),
-		],
+		filters: [{ field: "search", value: "", id: 0 }],
 		name: "",
 		type: "",
 		id: 0,
@@ -167,6 +164,13 @@ export default function StackedList({
 	};
 	React.useEffect(() => {
 		fetchSavedFilters();
+		setFilter((prev) => ({
+			...prev,
+			filters: [
+				...Object.values(itemContent).map((value) => ({ field: value, value: "", id: 0 })),
+				...prev.filters,
+			],
+		}));
 	}, []);
 
 	React.useEffect(() => {
@@ -205,7 +209,7 @@ export default function StackedList({
 								setFilter((prev) => ({
 									...prev,
 									filters: [
-										...prev.filters.filter((filter) => filter.id !== search.id),
+										...prev.filters.filter((filter) => filter.field !== "search"),
 										{ ...search, value },
 									],
 								}));
@@ -244,14 +248,19 @@ export default function StackedList({
 												</Label>
 												<AutoComplete
 													className='col-span-3'
-													value={filter.filters.find((item) => item.field === value)?.value}
+													value={
+														filter.filters.find((item) => item.field === value)
+															? filter.filters.find((item) => item.field === value)!.value
+															: "a"
+													}
 													onChange={(v) => {
+														console.log(filter.filters);
 														setFilter((prev) => ({
 															...prev,
 															filters: prev.filters.map((item) => {
-																console.log(value, v);
+																console.log(item.field, value);
 																if (item.field === value) {
-																	return { ...item, value: v };
+																	return { field: value, id: 0, value: v };
 																}
 																return item;
 															}),
