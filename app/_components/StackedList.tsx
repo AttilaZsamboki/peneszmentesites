@@ -147,7 +147,6 @@ export default function StackedList({
 								filters: data,
 							};
 						} else {
-							console.log(response.statusText);
 							return {
 								...item,
 								filters: Object.values(itemContent).map((value) => ({
@@ -254,11 +253,6 @@ export default function StackedList({
 												)
 											)
 										).filter((field) => field);
-										console.log(
-											filter.filters.find((item) => item.field === value),
-											filter,
-											value
-										);
 										return (
 											<div key={key} className='grid grid-cols-4 items-center gap-4'>
 												<Label htmlFor='username' className='text-right'>
@@ -272,11 +266,9 @@ export default function StackedList({
 															: "a"
 													}
 													onChange={(v) => {
-														console.log(filter.filters);
 														setFilter((prev) => ({
 															...prev,
 															filters: prev.filters.map((item) => {
-																console.log(item.field, value);
 																if (item.field === value) {
 																	return { field: value, id: item.id, value: v };
 																}
@@ -493,7 +485,9 @@ function DialogItem({
 					</div>
 				</div>
 				<div className='hidden shrink-0 sm:flex sm:flex-col sm:items-end'>
-					<p className='text-sm leading-6 text-gray-900'>{item[itemContent.subtitle2]}</p>
+					<p className='text-sm leading-6 text-gray-900 w-60 truncate text-right'>
+						{item[itemContent.subtitle2]}
+					</p>
 					{itemContent.subtitle3 ? (
 						<p className='mt-1 text-xs leading-5 text-gray-500'>{item[itemContent.subtitle3]}</p>
 					) : null}
@@ -520,6 +514,11 @@ function FiltersComponent({
 	const { toast } = useToast();
 
 	const saveFilter = async () => {
+		toast({
+			title: "Mentés",
+			description: "Ne kattints el! A szűrő mentése folyamatban...",
+			variant: "default",
+		});
 		const response = await fetch("https://pen.dataupload.xyz/filters", {
 			method: "POST",
 			headers: {
@@ -544,6 +543,10 @@ function FiltersComponent({
 			if (response2.ok) {
 				handleOpenSaveFilter();
 				setSavedFilters((prev) => [...prev, { ...filter, id: data.id }]);
+				toast({
+					title: "Sikeres mentés",
+					description: "A szűrő sikeresen el lett mentve",
+				});
 				return;
 			}
 			await fetch(`https://pen.dataupload.xyz/filters/${data.id}`, {
@@ -607,7 +610,6 @@ function FiltersComponent({
 			window.removeEventListener("keydown", handleKeyDown);
 		};
 	}, [filter, savedFilters]);
-	console.log(filter);
 
 	return (
 		<div className='flex flex-row justify-center items-center w-full bg-white rounded-md p-2 border pb-0'>
@@ -676,24 +678,7 @@ function FiltersComponent({
 											filter.filters.map(
 												async (f) => await onSaveFilter(isNotEqual, f, filter.id)
 											)
-										}
-										onDuplicate={async () => {
-											const response = await fetch("https://pen.dataupload.xyz/filters", {
-												method: "POST",
-												headers: {
-													"Content-Type": "application/json",
-												},
-												body: JSON.stringify({
-													...savedFilter,
-													id: 0,
-													name: `${savedFilter.name} másolat`,
-												}),
-											});
-											if (response.ok) {
-												const data = await response.json();
-												setSavedFilters((prev) => [...prev, { ...data, name: `${data.name}` }]);
-											}
-										}}>
+										}>
 										<EllipsisVerticalIcon className='w-5 h-5' />
 									</Menu>
 									<Separator orientation='vertical' className='mx-2 ml-4' />

@@ -1,25 +1,14 @@
-import { Menu, Transition } from "@headlessui/react";
-import { Fragment } from "react";
-import {
-	DocumentDuplicateIcon,
-	TrashIcon,
-	BookmarkSquareIcon,
-	PencilIcon,
-	InformationCircleIcon,
-} from "@heroicons/react/24/outline";
+import { DocumentDuplicateIcon, TrashIcon, BookmarkSquareIcon, PencilIcon } from "@heroicons/react/24/outline";
 import {
 	DropdownMenu as Dropdown,
 	DropdownMenuContent,
 	DropdownMenuItem,
-	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuShortcut,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { Tooltip } from "@material-tailwind/react";
 import { DropdownMenuGroup } from "@radix-ui/react-dropdown-menu";
-import { Separator } from "@/components/ui/separator";
 
 export default function DropdownMenu({
 	children,
@@ -31,7 +20,7 @@ export default function DropdownMenu({
 	children: React.ReactNode;
 	onDelete: () => void;
 	onSave: () => void;
-	onDuplicate: () => void;
+	onDuplicate?: () => void;
 	onEdit?: () => void;
 }) {
 	return (

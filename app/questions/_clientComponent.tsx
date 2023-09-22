@@ -189,11 +189,11 @@ export default function ClientComponent({ data, products }: { data: any; product
 				data={allQuestions}
 				editType='dialog'
 				itemContent={{
-					id: "id",
-					title: "question",
-					subtitle2: "subtitle",
-					subtitle: "subtitle2",
-					subtitle3: "isMandatory",
+					id: "Azonosító",
+					title: "Név",
+					subtitle2: "Termék",
+					subtitle: "Típus",
+					subtitle3: "Kötelező",
 				}}
 				onEditItem={(item) => {
 					setQuestion(item);

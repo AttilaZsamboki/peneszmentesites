@@ -17,11 +17,15 @@ export default async function Page() {
 	}).then((resp) => resp.json());
 	return (
 		<ClientPage
-			templates={templates.map((template) => ({
-				...template,
-				truncatedDescription:
-					template.description.substring(0, 40) + (template.description.length > 40 ? "..." : ""),
-			}))}
+			templates={
+				templates.map((template) => ({
+					...template,
+					Leírás: template.description,
+					Név: template.name,
+					Típus: template.type,
+					Azonosító: template.id,
+				})) as unknown as Template[]
+			}
 			products={products}
 		/>
 	);

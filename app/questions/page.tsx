@@ -41,23 +41,17 @@ export default async function QuestionsFetch() {
 	const allData = data.map((question) => {
 		return {
 			...question,
-			subtitle:
+			Azonosító: question.id,
+			Név: question.question,
+			Termék:
 				question.connection === "Fix"
 					? "Fix"
 					: productData.find(getFirstProduct(question))?.sku +
 							" - " +
-							(productData.find(getFirstProduct(question))?.name.substring(0, 25) +
-								((
-									productData.find(getFirstProduct(question))
-										? productData.find(getFirstProduct(question))!.name.length > 25
-										: false
-								)
-									? "..."
-									: "")) ||
-					  "" ||
-					  "",
-			subtitle2: (typeMap as any)[question.type] || "Nincs típus",
-			isMandatory: question.mandatory ? "Kötelező" : "Nem kötelező",
+							productData.find(getFirstProduct(question))?.name +
+							"" || "",
+			Típus: (typeMap as any)[question.type] || "Nincs típus",
+			Kötelező: question.mandatory ? "Kötelező" : "Nem kötelező",
 		};
 	});
 

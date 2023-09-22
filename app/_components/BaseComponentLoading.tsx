@@ -114,23 +114,6 @@ export default function BaseComponentLoading() {
 						))}
 					</ul>
 				</div>
-				<div className='flex flex-row justify-center relative top-5'>
-					<div className='flex flex-col items-center w-full mx-4'>
-						<Card className='w-full rounded-md shadow-none border'>
-							<List>
-								<CardHeader className='active:bg-white hover:bg-white after:bg-white before:bg-white bg-white'>
-									<CardTitle>Filterek</CardTitle>
-								</CardHeader>
-
-								{Array.from({ length: 5 }, (_, i) => i).map((i) => (
-									<ListItem key={i}>
-										<Skeleton width={200} height={25} />
-									</ListItem>
-								))}
-							</List>
-						</Card>
-					</div>
-				</div>
 			</div>
 		</main>
 	);

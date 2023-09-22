@@ -118,7 +118,7 @@ export default function Page({ templates, products }: { templates: Template[]; p
 				createButtonTitle='Új sablon'
 				data={upToDateTemplates}
 				editType='dialog'
-				itemContent={{ title: "name", subtitle: "type", subtitle2: "truncatedDescription", id: "id" }}
+				itemContent={{ id: "Azonosító", title: "Név", subtitle: "Típus", subtitle2: "Leírás" }}
 				title='Sablonok'
 				onCreateNew={() => {
 					setOpenDialog(true);
