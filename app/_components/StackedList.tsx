@@ -12,6 +12,20 @@ import Menu from "../_components/Menu";
 import CustomDialog from "./CustomDialog";
 import Input from "./Input";
 import { Badge, Tab, Tabs, TabsHeader } from "@material-tailwind/react";
+import { Button } from "@/components/ui/button";
+import {
+	Sheet,
+	SheetClose,
+	SheetContent,
+	SheetDescription,
+	SheetFooter,
+	SheetHeader,
+	SheetTitle,
+	SheetTrigger,
+} from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
+import AutoComplete from "./AutoComplete";
+import { FunnelIcon } from "@heroicons/react/24/outline";
 
 import Search from "./Search";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -77,8 +91,18 @@ export default function StackedList({
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const deviceSize = useBreakpointValue();
-	const [filter, setFilter] = React.useState<Filter>({ filters: [], name: "", type: "", id: 0 });
-	const search = filter.filters.find((filter) => filter.field === "search");
+	const [filter, setFilter] = React.useState<Filter>({
+		filters: [
+			{ field: "search", value: "", id: 0 },
+			...Object.values(itemContent).map((value) => ({ field: value, value: "", id: 0 })),
+		],
+		name: "",
+		type: "",
+		id: 0,
+	});
+	const search = filter.filters.find((filter) => filter.field === "search")
+		? filter.filters.find((filter) => filter.field === "search")!
+		: { id: 0, field: "search", value: "" };
 
 	const [filteredData, setFilteredData] = React.useState(data);
 
@@ -114,7 +138,21 @@ export default function StackedList({
 	const fetchSavedFilters = async () => {
 		const response = await fetch("https://pen.dataupload.xyz/filters?type=" + title);
 		if (response.ok) {
-			setSavedFilters(await response.json());
+			const data: { id: number; name: string; type: string }[] = await response.json();
+
+			setSavedFilters(
+				await Promise.all(
+					data.map(async (item) => {
+						const response = await fetch("https://pen.dataupload.xyz/filter_items?filter=" + item.id);
+						if (response.ok) {
+							const data: FilterItem[] = await response.json();
+							return { ...item, filters: data };
+						} else {
+							return { ...item, filters: [] };
+						}
+					})
+				)
+			);
 			return;
 		}
 		toast({
@@ -132,21 +170,125 @@ export default function StackedList({
 		fetchSavedFilters();
 	}, []);
 
+	React.useEffect(() => {
+		refilterData(filter);
+	}, [filter, data]);
+
 	return (
 		<div className='w-full px-5 lg:px-0 lg:w-2/3 flex flex-col gap-3'>
-			<Search
-				search={search ? search : { id: 0, field: "search", value: "" }}
-				setSearch={setFilter}
-				setFilteredData={setFilteredData}
-				data={data}
-				itemContent={itemContent}
-			/>
+			<div className='flex flex-row justify-between items-center mb-3 w-full gap-5 mt-5'>
+				<div className='mx-auto flex w-full gap-3'>
+					<div className='relative flex items-center w-full h-12 bg-white overflow-hidden rounded-md border'>
+						<div className='grid place-items-center h-full w-12 text-gray-300'>
+							<svg
+								xmlns='http://www.w3.org/2000/svg'
+								className='h-6 w-6'
+								fill='none'
+								viewBox='0 0 24 24'
+								stroke='currentColor'>
+								<path
+									stroke-linecap='round'
+									stroke-linejoin='round'
+									stroke-width='2'
+									d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
+								/>
+							</svg>
+						</div>
+
+						<input
+							className='peer h-full w-full outline-none text-sm text-gray-700 pr-2'
+							type='text'
+							id='search'
+							value={search.value}
+							placeholder='Keresés...'
+							onChange={(e) => {
+								const value = e.target.value;
+								setFilter((prev) => ({
+									...prev,
+									filters: [
+										...prev.filters.filter((filter) => filter.id !== search.id),
+										{ ...search, value },
+									],
+								}));
+							}}
+						/>
+					</div>
+					<div className='rounded-md'>
+						<Sheet>
+							<SheetTrigger asChild>
+								<div className='flex items-center justify-center relative h-12 w-12 bg-white overflow-hidden rounded-md border cursor-pointer'>
+									<FunnelIcon className='w-5 h-5' />
+								</div>
+							</SheetTrigger>
+							<SheetContent>
+								<SheetHeader>
+									<SheetTitle>Szűrők</SheetTitle>
+									<SheetDescription>Itt tudsz egyedi mezőkre szűrni</SheetDescription>
+								</SheetHeader>
+								<div className='grid gap-4 py-4'>
+									{Object.entries(itemContent).map(([key, value]) => {
+										const options: any = Array.from(
+											new Set(
+												data.map((field: any) =>
+													field[value]
+														? key === "status"
+															? field[value].name.toString()
+															: field[value].toString()
+														: null
+												)
+											)
+										).filter((field) => field);
+										return (
+											<div key={key} className='grid grid-cols-4 items-center gap-4'>
+												<Label htmlFor='username' className='text-right'>
+													{value}
+												</Label>
+												<AutoComplete
+													className='col-span-3'
+													value={filter.filters.find((item) => item.field === value)?.value}
+													onChange={(v) => {
+														setFilter((prev) => ({
+															...prev,
+															filters: prev.filters.map((item) => {
+																console.log(value, v);
+																if (item.field === value) {
+																	return { ...item, value: v };
+																}
+																return item;
+															}),
+														}));
+													}}
+													options={options.map((field: any) => ({
+														value: field,
+														label: field,
+													}))}
+												/>
+											</div>
+										);
+									})}
+								</div>
+								<SheetFooter>
+									<SheetClose asChild>
+										<Button type='submit'>Alkalmaz</Button>
+									</SheetClose>
+									<SheetClose asChild>
+										<Button type='button' variant='secondary'>
+											Mégse
+										</Button>
+									</SheetClose>
+								</SheetFooter>
+							</SheetContent>
+						</Sheet>
+					</div>
+				</div>
+			</div>
 			<FiltersComponent
 				filterType={title}
 				filter={filter}
 				savedFilters={savedFilters}
 				setFilter={setFilter}
 				setSavedFilters={setSavedFilters}
+				refilterData={refilterData}
 			/>
 			<ScrollArea className='lg:h-[70dvh] h-[62dvh] rounded-md border p-2 bg-white'>
 				<ul ref={parent} role='list' className='w-full bg-white rounded-lg flex flex-col justify-between'>
@@ -265,6 +407,32 @@ export default function StackedList({
 			) : null}
 		</div>
 	);
+
+	function refilterData(f: Filter = filter) {
+		setFilteredData(
+			data.filter((item) => {
+				return f.filters
+					.filter((filterItem) => filterItem.value)
+					.map((filterItem) => {
+						if (filterItem.field === "search") {
+							console.log(filterItem.value.toLowerCase().split(" "));
+							console.log(JSON.stringify(item).toLowerCase().includes("ETH".toLowerCase()));
+							return filterItem.value
+								.split(" ")
+								.map((searchWord: string) =>
+									JSON.stringify(item).toLowerCase().includes(searchWord.toLowerCase())
+								)
+								.every((item: boolean) => item === true);
+						} else {
+							return JSON.stringify(item[filterItem.field])
+								?.toLowerCase()
+								.includes(filterItem.value.toLowerCase());
+						}
+					})
+					.every((item: boolean) => item === true);
+			})
+		);
+	}
 }
 
 function DialogItem({
@@ -315,15 +483,17 @@ function DialogItem({
 function FiltersComponent({
 	filter,
 	filterType,
-	setFilter: setFilter,
+	setFilter,
 	savedFilters,
 	setSavedFilters,
+	refilterData,
 }: {
 	filter: Filter;
 	filterType: string;
 	setFilter: React.Dispatch<React.SetStateAction<Filter>>;
 	savedFilters: Filter[];
 	setSavedFilters: React.Dispatch<React.SetStateAction<Filter[]>>;
+	refilterData: (f: Filter) => void;
 }) {
 	const [openSaveFilter, setOpenSaveFilter] = React.useState(false);
 	const { toast } = useToast();
@@ -337,10 +507,40 @@ function FiltersComponent({
 			body: JSON.stringify({ ...filter, type: filterType }),
 		});
 		if (response.ok) {
-			handleOpenSaveFilter();
 			const data = await response.json();
-			setSavedFilters((prev) => [...prev, { ...filter, id: data.id }]);
+			const response2 = await fetch("https://pen.dataupload.xyz/filter_items/", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(
+					filter.filters.map((item) => {
+						const { id, ...rest } = item;
+						return { ...rest, filter: data.id };
+					})
+				),
+			});
+			if (response2.ok) {
+				handleOpenSaveFilter();
+				setSavedFilters((prev) => [...prev, { ...filter, id: data.id }]);
+				return;
+			}
+			await fetch(`https://pen.dataupload.xyz/filters/${data.id}`, {
+				method: "DELETE",
+			});
+			toast({
+				title: "Hiba",
+				description: `Hiba történt a szűrő mentése közben. Error: '${response2.statusText}'`,
+				variant: "destructive",
+			});
+			return;
 		}
+		toast({
+			title: "Hiba",
+			description: `Hiba történt a szűrő mentése közben. Error:  '${response.statusText}'`,
+			variant: "destructive",
+		});
+		return;
 	};
 
 	const handleOpenSaveFilter = () => {
@@ -391,7 +591,9 @@ function FiltersComponent({
 			<Tabs value={filter.id} className='flex flex-row w-full pl-3 lg:pl-6 items-center gap-3'>
 				<TabsHeader
 					className='rounded-none bg-transparent p-0 cursor-pointer'
-					onClick={() => setFilter(savedFilters.find((filter) => filter.id === 0) as Filter)}
+					onClick={() => {
+						setFilter({ filters: [], name: "", type: "", id: 0 });
+					}}
 					indicatorProps={{
 						className: "bg-transparent border-b-2 border-gray-900 mx-3 shadow-none rounded-none",
 					}}>
@@ -450,6 +652,11 @@ function FiltersComponent({
 												setSavedFilters((prev) =>
 													prev.filter((item) => item.id !== savedFilter.id)
 												);
+											} else {
+												toast({
+													title: "Hiba",
+													description: "Hiba történt a szűrő törlése közben",
+												});
 											}
 										}}
 										onSave={async () =>
@@ -504,14 +711,12 @@ function FiltersComponent({
 
 	async function onSaveFilter(isNotEqual: boolean, filter: FilterItem) {
 		if (isNotEqual) {
-			await fetch(`https://pen.dataupload.xyz/filter_item/${filter.id}/`, {
+			await fetch(`https://pen.dataupload.xyz/filter_items/${filter.id}/`, {
 				method: "PUT",
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({
-					...filter,
-				}),
+				body: JSON.stringify(filter),
 			});
 		} else {
 			toast({
