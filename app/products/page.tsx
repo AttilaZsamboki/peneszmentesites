@@ -12,7 +12,15 @@ export interface Product {
 export interface Filter {
 	id: number;
 	name: string;
-	value: any;
+	filters: FilterItem[];
+	type: string;
+}
+
+export interface FilterItem {
+	id: number;
+	field: string;
+	type?: "text";
+	value: string;
 }
 
 export default async function ProductsFetch({

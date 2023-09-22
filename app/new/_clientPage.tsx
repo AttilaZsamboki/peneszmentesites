@@ -324,14 +324,17 @@ export default function Page({
 	};
 
 	return (
-		<div className='w-full'>
+		<div className='w-full overflow-y-scroll h-screen pb-10 mb-10'>
 			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-2'>
-				<div className={`lg:mt-6 lg:px-10 ${page === 1 ? "lg:w-11/12" : page == 0 ? "w-1/4" : "w-2/3"}`}>
+				<div
+					className={`lg:mt-6 w-11/12 lg:px-10 ${
+						page === 1 ? "lg:w-11/12" : page == 0 ? "lg:w-1/4" : "lg:w-2/3"
+					}`}>
 					<Card>
 						<CardHeader>
 							<CardTitle>{section}</CardTitle>
 						</CardHeader>
-						<CardContent className='lg:p-8 p-0 transform'>
+						<CardContent className='p-8 transform'>
 							<PageChooser
 								setOtherItems={setOtherItems}
 								globalData={data}
@@ -534,7 +537,7 @@ function Page1({
 		<div className='flex flex-col items-center gap-5'>
 			<QuestionTemplate title='Adatlap'>
 				<AutoComplete
-					className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
+					inputClassName='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
 					options={adatlapok.map((adatlap) => ({
 						label: adatlap.Name,
 						value: adatlap.Id.toString(),
@@ -557,7 +560,7 @@ function Page1({
 			{felmeres.adatlap_id ? (
 				<QuestionTemplate title='Milyen rendszert tervezel?'>
 					<AutoComplete
-						className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
+						inputClassName='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
 						options={[
 							"Helyi elszívós rendszer",
 							"Központi ventillátoros",
@@ -575,7 +578,7 @@ function Page1({
 			{felmeres.type ? (
 				<QuestionTemplate title='Sablon'>
 					<AutoComplete
-						className='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
+						inputClassName='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
 						options={templates
 							.filter((template) => template.type === felmeres.type)
 							.map((template) => ({

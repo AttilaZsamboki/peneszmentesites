@@ -1,6 +1,6 @@
 "use client";
 import { List, ListItem, Typography } from "@material-tailwind/react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Skeleton from "react-loading-skeleton";
 import LoadingDots from "./LoadingDots";
@@ -10,12 +10,8 @@ export default function BaseComponentLoading() {
 	const pathname = usePathname();
 	const paths = [
 		{
-			name: "",
-			href: "/",
-		},
-		{
 			name: "Felmérések",
-			href: "/felmeresek",
+			href: "/",
 		},
 		{
 			name: "Kérdések",
@@ -34,21 +30,20 @@ export default function BaseComponentLoading() {
 		<main className='flex min-h-screen flex-col items-center justify-start w-full '>
 			<div className='flex flex-col items-center justify-start w-full border-b bg-white'>
 				<div className='lg:w-2/3 flex flex-row justify-between py-0'>
-					<div className={`flex lg:flex-row flex-col justify-between items-center w-full mb-2`}>
+					<div className='flex lg:flex-row flex-col justify-between items-center w-full mb-2 '>
 						<div className='flex flex-col justify-items items-center w-full'>
-							<div
-								className={`flex flex-col w-full px-2 lg:items-start sm:items-center justify-center mt-11 mb-8 lg:justify-between text-center`}>
-								<Typography
-									variant='h2'
-									className={`font-semibold text-gradient-to-tr from-gray-900 to-gray-800 lg:my-0 text-left`}>
+							<div className='flex flex-col w-full px-2 lg:items-start sm:items-center justify-center mt-11 mb-8 lg:justify-between text-center'>
+								<h2 className='block antialiased tracking-normal font-sans text-4xl leading-[1.3] font-semibold text-gradient-to-tr from-gray-900 to-gray-800 lg:my-0 text-left'>
 									{paths.find((path) => path.href === pathname)?.name}
-								</Typography>
+								</h2>
 							</div>
 						</div>
-						<div className='flex flex-row justify-end w-full relative top-3 z-50 items-center gap-3'>
-							<Button className='w-36 h-10 flex items-center justify-center py-4 rounded-md hover:shadow-none shadow-none'>
-								<LoadingDots />
-							</Button>
+						<div>
+							<div className='flex flex-row justify-end w-full relative top-3 z-50 items-center gap-3'>
+								<button className='text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 px-4 w-36 h-10 flex items-center justify-center py-4 rounded-md hover:shadow-none shadow-none font-semibold uppercase'>
+									<LoadingDots />
+								</button>
+							</div>
 						</div>
 					</div>
 				</div>

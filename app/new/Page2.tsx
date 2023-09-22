@@ -157,7 +157,7 @@ export function Page2({
 	return (
 		<div>
 			<Card className='my-5'>
-				<div>
+				<div className='w-full lg:overflow-hidden overflow-x-scroll'>
 					<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
 						<thead>
 							<tr>
@@ -515,7 +515,7 @@ export function Page2({
 			<div className='mt-8'>
 				<Heading title='Egyéb' variant='h5' marginY='lg:my-4' border={false} />
 				<Card>
-					<div className=''>
+					<div className='w-full lg:overflow-hidden overflow-x-scroll'>
 						<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
 							<thead>
 								<tr>
@@ -716,7 +716,7 @@ export function Page2({
 			<div className='mt-8'>
 				<Heading title='Összesítés' variant='h5' marginY='lg:my-4' border={false} />
 				<Card>
-					<div className=''>
+					<div className='w-full lg:overflow-hidden overflow-x-scroll'>
 						<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
 							<thead>
 								<tr>

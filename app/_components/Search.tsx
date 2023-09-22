@@ -1,16 +1,33 @@
-import { Filter } from "../products/page";
+import { FunnelIcon } from "@heroicons/react/24/outline";
+import { FilterItem, Filter } from "../products/page";
 import React from "react";
+import { Button } from "@/components/ui/button";
+import {
+	Sheet,
+	SheetClose,
+	SheetContent,
+	SheetDescription,
+	SheetFooter,
+	SheetHeader,
+	SheetTitle,
+	SheetTrigger,
+} from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
+import { ItemContent } from "./StackedList";
+import AutoComplete from "./AutoComplete";
 
 export default function Search({
 	data,
 	search,
 	setSearch,
 	setFilteredData,
+	itemContent,
 }: {
 	data: any;
-	search: Filter;
+	search: FilterItem;
 	setSearch: React.Dispatch<React.SetStateAction<Filter>>;
 	setFilteredData: React.Dispatch<React.SetStateAction<any[]>>;
+	itemContent: ItemContent;
 }) {
 	React.useEffect(() => {
 		setFilteredData(
@@ -25,7 +42,7 @@ export default function Search({
 
 	return (
 		<div className='flex flex-row justify-between items-center mb-3 w-full gap-5 mt-5'>
-			<div className='mx-auto flex w-full'>
+			<div className='mx-auto flex w-full gap-3'>
 				<div className='relative flex items-center w-full h-12 bg-white overflow-hidden rounded-md border'>
 					<div className='grid place-items-center h-full w-12 text-gray-300'>
 						<svg
@@ -48,10 +65,16 @@ export default function Search({
 						type='text'
 						id='search'
 						value={search.value}
-						placeholder='Keress valamit..'
+						placeholder='Keresés...'
 						onChange={(e) => {
 							const value = e.target.value;
-							setSearch((prev) => ({ ...prev, value: value }));
+							setSearch((prev) => ({
+								...prev,
+								filters: [
+									...prev.filters.filter((filter) => filter.id !== search.id),
+									{ ...search, value },
+								],
+							}));
 							setFilteredData(
 								data.filter((item: any) =>
 									value
@@ -64,6 +87,56 @@ export default function Search({
 							);
 						}}
 					/>
+				</div>
+				<div className='rounded-md'>
+					<Sheet>
+						<SheetTrigger asChild>
+							<div className='flex items-center justify-center relative h-12 w-12 bg-white overflow-hidden rounded-md border cursor-pointer'>
+								<FunnelIcon className='w-5 h-5' />
+							</div>
+						</SheetTrigger>
+						<SheetContent>
+							<SheetHeader>
+								<SheetTitle>Szűrők</SheetTitle>
+								<SheetDescription>Itt tudsz egyedi mezőkre szűrni</SheetDescription>
+							</SheetHeader>
+							<div className='grid gap-4 py-4'>
+								{Object.entries(itemContent).map(([key, value]) => {
+									const options: any = Array.from(
+										new Set(
+											data.map((field: any) =>
+												key === "status" ? field[value].name : field[value]
+											)
+										)
+									).filter((field) => field);
+									return (
+										<div key={key} className='grid grid-cols-4 items-center gap-4'>
+											<Label htmlFor='username' className='text-right'>
+												{value}
+											</Label>
+											<AutoComplete
+												className='col-span-3'
+												options={options.map((field: any) => ({
+													value: field,
+													label: field,
+												}))}
+											/>
+										</div>
+									);
+								})}
+							</div>
+							<SheetFooter>
+								<SheetClose asChild>
+									<Button type='submit'>Alkalmaz</Button>
+								</SheetClose>
+								<SheetClose asChild>
+									<Button type='button' variant='secondary'>
+										Mégse
+									</Button>
+								</SheetClose>
+							</SheetFooter>
+						</SheetContent>
+					</Sheet>
 				</div>
 			</div>
 		</div>

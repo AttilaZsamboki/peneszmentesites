@@ -1,5 +1,5 @@
 "use client";
-import { hufFormatter } from "../felmeresek/[id]/_clientPage";
+import { hufFormatter } from "../[id]/_clientPage";
 import BaseComponentV2 from "../_components/BaseComponentV2";
 import { Checkbox } from "@/components/ui/checkbox";
 import React from "react";

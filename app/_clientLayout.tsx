@@ -23,13 +23,7 @@ export const GlobalContext = React.createContext<{
 
 export default function RootLayoutClient({ children }: { children: React.ReactNode }) {
 	const [progress, setProgress] = React.useState<Progress>({ percent: 0 });
-	const [openNav, setOpenNav] = React.useState(() => {
-		return typeof localStorage !== "undefined" ? JSON.parse(localStorage.getItem("openNav") || "false") : false;
-	});
-	React.useEffect(() => {
-		if (typeof localStorage === "undefined") return;
-		localStorage.setItem("openNav", JSON.stringify(openNav));
-	}, [openNav]);
+	const [openNav, setOpenNav] = React.useState(false);
 	const [ref] = useAutoAnimate<HTMLDivElement>();
 
 	React.useEffect(() => {
@@ -43,12 +37,12 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 	const routes: { name: string; href: string; icon: any; subRoutes: { name: string; href: string }[] }[] = [
 		{
 			name: "Főoldal",
-			href: "/felmeresek",
+			href: "/",
 			icon: <HomeIcon className='w-6 h-6' />,
 			subRoutes: [
 				{
 					name: "Felmérések",
-					href: "/felmeresek",
+					href: "/",
 				},
 				{
 					name: "Kérdések",
@@ -148,8 +142,9 @@ function Navbar2({
 	const router = usePathname().split("?")[0];
 
 	const activeRoute = routes.find(
-		(route) => route.subRoutes.map((route) => route.href).includes(router) || route.href === router
+		(route) => route.subRoutes.some((subRoute) => router.startsWith(subRoute.href)) || router.startsWith(route.href)
 	);
+
 	return (
 		<div className='flex flex-col w-full'>
 			{activeRoute ? (

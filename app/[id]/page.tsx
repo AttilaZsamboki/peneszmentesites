@@ -63,15 +63,19 @@ export default async function Page({ params }: { params: { id: string } }) {
 		.then((res) => res.json())
 		.catch((err) => console.log(err));
 
-	return (
-		<ClientPage
-			felmeresQuestions={formattedFelmeres}
-			felmeresItems={felmeresItems}
-			questions={question}
-			felmeresId={felmeresId}
-			felmeresNonState={felmeres}
-			adatlap={adatlap}
-			template={template}
-		/>
-	);
+	if (adatlap) {
+		return (
+			<ClientPage
+				felmeresQuestions={formattedFelmeres}
+				felmeresItems={felmeresItems}
+				questions={question}
+				felmeresId={felmeresId}
+				felmeresNonState={felmeres}
+				adatlap={adatlap}
+				template={template}
+			/>
+		);
+	} else {
+		return <div>Nincs adatlap</div>;
+	}
 }

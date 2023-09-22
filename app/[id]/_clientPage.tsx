@@ -2,10 +2,10 @@
 import { FelmeresQuestions, GridOptions, ScaleOption } from "../page";
 import { AdatlapDetails } from "@/app/_utils/MiniCRM";
 
-import Heading from "../../_components/Heading";
-const Sections = React.lazy(() => import("../../_components/Sections"));
+import Heading from "../_components/Heading";
+const Sections = React.lazy(() => import("../_components/Sections"));
 
-import { useGlobalState } from "../../_clientLayout";
+import { useGlobalState } from "../_clientLayout";
 
 import React from "react";
 

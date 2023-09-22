@@ -13,16 +13,18 @@ export default function AutoComplete({
 	resetOnCreate = true,
 	emptyOption = true,
 	showOptions = true,
+	inputClassName,
 	className,
 }: {
 	options: { label: string; value: string }[];
 	value?: string;
-	onChange: (value: string) => void;
+	onChange?: (value: string) => void;
 	optionDisplayDirection?: "top" | "bottom";
 	create?: boolean;
 	resetOnCreate?: boolean;
 	emptyOption?: boolean;
 	showOptions?: boolean;
+	inputClassName?: string;
 	className?: string;
 }) {
 	const [query, setQuery] = useState("");
@@ -56,22 +58,22 @@ export default function AutoComplete({
 		<Combobox
 			value={value}
 			onChange={(localValue) => {
-				onChange(localValue);
+				onChange ? onChange(localValue) : null;
 				if (resetOnCreate) {
 					setQuery("");
 				}
 			}}>
-			<div className='relative w-full'>
+			<div className={`relative w-full ${className}`}>
 				<div className='rounded-md'>
 					{create ? (
 						<Combobox.Input
-							className={`w-full border rounded-md py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none ${className}`}
+							className={`w-full border rounded-md py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none ${inputClassName}`}
 							value={resetOnCreate ? query : undefined}
 							onChange={(event) => setQuery(event.target.value)}
 						/>
 					) : (
 						<Combobox.Input
-							className={`w-full border rounded-md py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none ${className}`}
+							className={`w-full border rounded-md py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none ${inputClassName}`}
 							onChange={(event) => setQuery(event.target.value)}
 						/>
 					)}

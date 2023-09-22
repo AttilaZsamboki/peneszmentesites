@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import BaseComponentV2 from "../_components/BaseComponentV2";
+import BaseComponentV2 from "./_components/BaseComponentV2";
 
 export interface Filter {
 	id: number;
@@ -12,20 +12,20 @@ export default function ClientPage({ allData }: { allData: any }) {
 	return (
 		<BaseComponentV2
 			title='Felmérések'
-			editHref='/felmeresek/'
+			editHref='/'
 			editType='link'
 			createButtonTitle='Új felmérés'
-			createPath='/felmeresek/new'
+			createPath='/new'
 			data={allData}
 			itemContent={{
-				id: "id",
-				title: "title",
-				subtitle: "TeljesCim",
-				subtitle2: "type",
-				subtitle3: "Felmero2",
-				subtitle4: "CreatedAt",
-				imgSrc: "IngatlanKepe",
-				status: "status",
+				id: "Azonosító",
+				title: "Felmérés neve",
+				subtitle: "Teljes cím",
+				subtitle2: "Felmérés típusa",
+				subtitle3: "Felmérő",
+				subtitle4: "Dátum",
+				imgSrc: "Ingatlan képe",
+				status: "Státusz",
 			}}
 			sort={{ by: "id", order: "desc" }}
 		/>

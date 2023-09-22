@@ -1,4 +1,4 @@
-import { FelmeresItems } from "../felmeresek/new/_clientPage";
+import { FelmeresItems } from "../new/_clientPage";
 
 export interface AdatlapDetails {
 	Id: number;

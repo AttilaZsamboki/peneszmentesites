@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { breakpoints } from "../_utils/utils";
+import { DeviceSizes, breakpoints } from "../_utils/utils";
 
 export default function useBreakpointValue() {
-	const [currentBreakpoint, setCurrentBreakpoint] = useState("");
+	const [currentBreakpoint, setCurrentBreakpoint] = useState<DeviceSizes>("");
 
 	useEffect(() => {
 		const handleResize = () => {
@@ -10,8 +10,7 @@ export default function useBreakpointValue() {
 			setCurrentBreakpoint(breakpoints.find((bp) => bp.max >= windowWidth && bp.min <= windowWidth)?.size || "");
 		};
 
-		handleResize(); // Initial call to set the breakpoint on mount
-
+		handleResize();
 		window.addEventListener("resize", handleResize);
 
 		return () => {
