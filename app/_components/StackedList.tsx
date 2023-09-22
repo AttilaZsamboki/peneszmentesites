@@ -142,9 +142,20 @@ export default function StackedList({
 						const response = await fetch("https://pen.dataupload.xyz/filter_items?filter=" + item.id);
 						if (response.ok) {
 							const data: FilterItem[] = await response.json();
-							return { ...item, filters: data };
+							return {
+								...item,
+								filters: data,
+							};
 						} else {
-							return { ...item, filters: [] };
+							console.log(response.statusText);
+							return {
+								...item,
+								filters: Object.values(itemContent).map((value) => ({
+									field: value,
+									value: "",
+									id: 0,
+								})),
+							};
 						}
 					})
 				)
@@ -164,6 +175,8 @@ export default function StackedList({
 	};
 	React.useEffect(() => {
 		fetchSavedFilters();
+	}, []);
+	React.useEffect(() => {
 		setFilter((prev) => ({
 			...prev,
 			filters: [
@@ -241,6 +254,11 @@ export default function StackedList({
 												)
 											)
 										).filter((field) => field);
+										console.log(
+											filter.filters.find((item) => item.field === value),
+											filter,
+											value
+										);
 										return (
 											<div key={key} className='grid grid-cols-4 items-center gap-4'>
 												<Label htmlFor='username' className='text-right'>
@@ -260,7 +278,7 @@ export default function StackedList({
 															filters: prev.filters.map((item) => {
 																console.log(item.field, value);
 																if (item.field === value) {
-																	return { field: value, id: 0, value: v };
+																	return { field: value, id: item.id, value: v };
 																}
 																return item;
 															}),
@@ -296,7 +314,6 @@ export default function StackedList({
 				savedFilters={savedFilters}
 				setFilter={setFilter}
 				setSavedFilters={setSavedFilters}
-				refilterData={refilterData}
 			/>
 			<ScrollArea className='lg:h-[70dvh] h-[62dvh] rounded-md border p-2 bg-white'>
 				<ul ref={parent} role='list' className='w-full bg-white rounded-lg flex flex-col justify-between'>
@@ -492,14 +509,12 @@ function FiltersComponent({
 	setFilter,
 	savedFilters,
 	setSavedFilters,
-	refilterData,
 }: {
 	filter: Filter;
 	filterType: string;
 	setFilter: React.Dispatch<React.SetStateAction<Filter>>;
 	savedFilters: Filter[];
 	setSavedFilters: React.Dispatch<React.SetStateAction<Filter[]>>;
-	refilterData: (f: Filter) => void;
 }) {
 	const [openSaveFilter, setOpenSaveFilter] = React.useState(false);
 	const { toast } = useToast();
@@ -568,7 +583,8 @@ function FiltersComponent({
 										item.value,
 										savedFilter.filters.find((fItem) => fItem.id === item.id)
 									),
-									item
+									item,
+									filter.id
 								);
 							}
 						});
@@ -591,6 +607,7 @@ function FiltersComponent({
 			window.removeEventListener("keydown", handleKeyDown);
 		};
 	}, [filter, savedFilters]);
+	console.log(filter);
 
 	return (
 		<div className='flex flex-row justify-center items-center w-full bg-white rounded-md p-2 border pb-0'>
@@ -613,18 +630,8 @@ function FiltersComponent({
 				{savedFilters
 					.sort((a, b) => a.id - b.id)
 					.map((savedFilter) => {
-						const isNotEqual: boolean =
-							savedFilter.id === filter.id &&
-							filter.filters
-								.map(
-									(f) =>
-										!deepEqual(
-											f.value,
-											savedFilter.filters.find((savedFilterItem) => savedFilterItem.id === f.id)
-												?.value
-										)
-								)
-								.every((item) => item === true);
+						const isNotEqual =
+							savedFilter.id === filter.id && JSON.stringify(savedFilter) !== JSON.stringify(filter);
 
 						return (
 							<TabsHeader
@@ -666,7 +673,9 @@ function FiltersComponent({
 											}
 										}}
 										onSave={async () =>
-											filter.filters.map(async (f) => await onSaveFilter(isNotEqual, f))
+											filter.filters.map(
+												async (f) => await onSaveFilter(isNotEqual, f, filter.id)
+											)
 										}
 										onDuplicate={async () => {
 											const response = await fetch("https://pen.dataupload.xyz/filters", {
@@ -715,14 +724,14 @@ function FiltersComponent({
 		</div>
 	);
 
-	async function onSaveFilter(isNotEqual: boolean, filter: FilterItem) {
+	async function onSaveFilter(isNotEqual: boolean, filter: FilterItem, filterId: number) {
 		if (isNotEqual) {
 			await fetch(`https://pen.dataupload.xyz/filter_items/${filter.id}/`, {
 				method: "PUT",
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify(filter),
+				body: JSON.stringify({ ...filter, filter: filterId }),
 			});
 		} else {
 			toast({
