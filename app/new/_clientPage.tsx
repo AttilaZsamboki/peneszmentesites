@@ -25,6 +25,7 @@ import { useGlobalState } from "@/app/_clientLayout";
 
 import { Page2 } from "./Page2";
 import { useToast } from "@/components/ui/use-toast";
+import Textarea from "../_components/Textarea";
 
 export interface ProductTemplate {
 	product: number;
@@ -760,9 +761,7 @@ function FieldCreate({
 	};
 
 	if (question.type === "TEXT") {
-		return (
-			<Input onChange={(e) => setterSingle(e.target.value)} value={felmeres?.value as string} variant='simple' />
-		);
+		return <Textarea onChange={(e) => setterSingle(e)} value={felmeres?.value as string} />;
 	} else if (question.type === "LIST") {
 		return (
 			<AutoComplete
