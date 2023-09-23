@@ -30,6 +30,7 @@ import { FunnelIcon } from "@heroicons/react/24/outline";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import useBreakpointValue from "./useBreakpoint";
 import { Separator } from "@/components/ui/separator";
+import DateRangePicker from "@/components/daterange";
 
 function deepEqual(a: any, b: any) {
 	if (a === b) {
@@ -67,13 +68,20 @@ export interface ItemContent {
 	status?: string;
 }
 
+type FilterTypes = "text" | "daterange" | "select";
+
 export interface FilterItem {
 	id?: number;
 	label: string;
-	type: "text" | "daterange" | "select";
+	type: FilterTypes;
 	field: string;
-	options?: { value: string; label: string }[];
-	value?: string;
+	options?: Option[];
+	value?: string | { from: Date; to: Date };
+}
+
+interface Option {
+	label: string;
+	value: string;
 }
 
 export default function StackedList({
@@ -155,7 +163,37 @@ export default function StackedList({
 							const data: FilterItem[] = await response.json();
 							return {
 								...item,
-								filters: data,
+								filters: data.map((item) =>
+									item.type === "daterange"
+										? {
+												...item,
+												value: {
+													from: new Date(
+														JSON.parse(
+															item.value
+																? (item.value as unknown as string).replace(/'/g, '"')
+																: "{}"
+														).from
+													),
+													to:
+														item.value &&
+														JSON.parse((item.value as unknown as string).replace(/'/g, '"'))
+															.to
+															? new Date(
+																	JSON.parse(
+																		item.value
+																			? (item.value as unknown as string).replace(
+																					/'/g,
+																					'"'
+																			  )
+																			: "{}"
+																	).to
+															  )
+															: (null as unknown as Date),
+												},
+										  }
+										: item
+								),
 							};
 						} else {
 							return {
@@ -198,9 +236,10 @@ export default function StackedList({
 			}),
 		}));
 	};
+	console.log(savedFilters);
 
 	return (
-		<div className='w-full px-5 lg:px-0 lg:w-2/3 flex flex-col gap-3'>
+		<div className='w-full px-5 lg:px-0 lg:w-2/3 flex flex-col gap-3 '>
 			<div className='flex flex-row justify-between items-center mb-3 w-full gap-5 mt-5'>
 				<div className='mx-auto flex w-full gap-3'>
 					<div className='relative flex items-center w-full h-12 bg-white overflow-hidden rounded-md border'>
@@ -224,7 +263,7 @@ export default function StackedList({
 							className='peer h-full w-full outline-none text-sm text-gray-700 pr-2'
 							type='text'
 							id='search'
-							value={search.value}
+							value={search.value as unknown as string}
 							placeholder='Keresés...'
 							onChange={(e) => {
 								const value = e.target.value;
@@ -257,7 +296,7 @@ export default function StackedList({
 											: Array.from(
 													new Set(
 														filteredData.map((item: any) =>
-															item[field] ? item[field].toString() : null
+															item[field] ? item[field].toString().trim() : null
 														)
 													)
 											  )
@@ -268,22 +307,24 @@ export default function StackedList({
 												<Label htmlFor='username' className='text-right'>
 													{label}
 												</Label>
-												<AutoComplete
-													className='col-span-3'
-													value={realOptions.find((option) => option.value === value)?.label}
-													onChange={(v) => {
-														setFilter((prev) => ({
-															...prev,
-															filters: prev.filters.map((item) => {
-																if (item.field === field) {
-																	return { ...item, value: v };
-																}
-																return item;
-															}),
-														}));
-													}}
-													options={realOptions}
-												/>
+												<div className='col-span-3'>
+													<InputOptionChooser
+														type={type}
+														options={realOptions}
+														onChange={(value) =>
+															setFilter((prev) => ({
+																...prev,
+																filters: prev.filters.map((item) => {
+																	if (item.field === field) {
+																		return { ...item, value };
+																	}
+																	return item;
+																}),
+															}))
+														}
+														value={value}
+													/>
+												</div>
 											</div>
 										);
 									})}
@@ -310,7 +351,7 @@ export default function StackedList({
 				setFilter={setFilter}
 				setSavedFilters={setSavedFilters}
 			/>
-			<ScrollArea className='lg:h-[70dvh] h-[62dvh] rounded-md border p-2 bg-white'>
+			<ScrollArea className='lg:h-[70dvh] h-[62dvh] rounded-md border p-2 bg-white pb-20'>
 				<ul ref={parent} role='list' className='w-full bg-white rounded-lg flex flex-col justify-between'>
 					{filteredData
 						.sort((a, b) =>
@@ -435,18 +476,23 @@ export default function StackedList({
 					.filter((filterItem) => filterItem.value)
 					.map((filterItem) => {
 						if (!filterItem.value) return false;
-						if (filterItem.field === "search") {
-							return filterItem.value
+						if (["text", "select"].includes(filterItem.type)) {
+							return (filterItem.value as unknown as string)
 								.split(" ")
 								.map((searchWord: string) =>
-									JSON.stringify(item).toLowerCase().includes(searchWord.toLowerCase())
+									JSON.stringify(filterItem.field === "search" ? item : item[filterItem.field])
+										.toLowerCase()
+										.includes(searchWord.toLowerCase())
 								)
 								.every((item: boolean) => item === true);
-						} else {
-							return JSON.stringify(item[filterItem.field])
-								?.toLowerCase()
-								.includes(filterItem.value.toLowerCase());
+						} else if (filterItem.type === "daterange") {
+							const value = filterItem.value as { from: Date; to: Date };
+							return (
+								new Date(item[filterItem.field]) >= value.from &&
+								new Date(item[filterItem.field]) <= value.to
+							);
 						}
+						return false;
 					})
 					.every((item: boolean) => item === true);
 			})
@@ -575,34 +621,41 @@ function FiltersComponent({
 		setFilter((prev) => ({ ...prev, id: 0, name: "" }));
 		setOpenSaveFilter(!openSaveFilter);
 	};
-
 	React.useEffect(() => {
 		const handleKeyDown = async (event: KeyboardEvent) => {
 			if (event.ctrlKey && event.key === "s") {
 				event.preventDefault(); // Prevents the browser's default save action
 				if (savedFilters.length !== 0) {
 					if (filter) {
-						filter.filters.map(async (item) => {
-							const savedFilter = savedFilters.find((savedFilter) => savedFilter.id === filter.id);
-							if (savedFilter) {
-								await onSaveFilter(
-									!deepEqual(
-										item.value,
-										savedFilter.filters.find((fItem) => fItem.id === item.id)
-									),
-									item,
-									filter.id
-								);
-							}
-						});
-						setSavedFilters((prev) =>
-							prev.map((item) => {
-								if (item.id === filter.id) {
-									return filter;
+						const resps = await Promise.all(
+							filter.filters.map(async (item) => {
+								const savedFilter = savedFilters.find((savedFilter) => savedFilter.id === filter.id);
+								if (savedFilter) {
+									return await onSaveFilter(
+										!deepEqual(
+											item.value,
+											savedFilter.filters.find((fItem) => fItem.id === item.id)
+										),
+										item,
+										filter.id
+									);
 								}
-								return item;
 							})
 						);
+						if (resps.every((item) => item === true)) {
+							toast({
+								title: "Sikeres mentés",
+								description: "A szűrő sikeresen el lett mentve",
+							});
+							setSavedFilters((prev) =>
+								prev.map((item) => {
+									if (item.id === filter.id) {
+										return filter;
+									}
+									return item;
+								})
+							);
+						}
 					}
 				}
 			}
@@ -683,11 +736,26 @@ function FiltersComponent({
 												});
 											}
 										}}
-										onSave={async () =>
-											filter.filters.map(
-												async (f) => await onSaveFilter(isNotEqual, f, filter.id)
-											)
-										}>
+										onSave={async () => {
+											const resps = await Promise.all(
+												filter.filters.map(
+													async (f) => await onSaveFilter(isNotEqual, f, filter.id)
+												)
+											);
+
+											if (resps.every((item) => item === true)) {
+												toast({
+													title: "Sikeres mentés",
+													description: "A szűrő sikeresen el lett mentve",
+												});
+												return;
+											}
+											toast({
+												title: "Hiba",
+												description: `Hiba történt a szűrő mentése közben`,
+												variant: "destructive",
+											});
+										}}>
 										<EllipsisVerticalIcon className='w-5 h-5' />
 									</Menu>
 									<Separator orientation='vertical' className='mx-2 ml-4' />
@@ -720,18 +788,76 @@ function FiltersComponent({
 
 	async function onSaveFilter(isNotEqual: boolean, filter: FilterItem, filterId: number) {
 		if (isNotEqual) {
-			await fetch(`https://pen.dataupload.xyz/filter_items/${filter.id}/`, {
+			const resp = await fetch(`https://pen.dataupload.xyz/filter_items/${filter.id}/`, {
 				method: "PUT",
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({ ...filter, filter: filterId }),
+				body: JSON.stringify({
+					...filter,
+					filter: filterId,
+					value: filter.type === "daterange" ? JSON.stringify(filter.value) : filter.value,
+				}),
 			});
+			if (resp.ok) {
+				return true;
+			}
+			return false;
 		} else {
 			toast({
 				title: "Nincs változás",
 				description: "Nem történt változás a szűrőben",
 			});
 		}
+	}
+}
+
+function InputOptionChooser({
+	type,
+	options,
+	value,
+	onChange,
+}: {
+	type: FilterTypes;
+	options?: Option[];
+	value?: string | { from: Date; to: Date };
+	onChange: (value: string | { from: Date; to: Date }) => void;
+}) {
+	if (type === "text") {
+		return (
+			<Input
+				value={value ? (value as unknown as string) : ""}
+				onChange={(e) => {
+					onChange(e.target.value);
+				}}
+			/>
+		);
+	} else if (type === "select") {
+		if (!options) return null;
+		return (
+			<AutoComplete
+				value={options.find((option) => option.value === value)?.label}
+				onChange={onChange}
+				options={options}
+			/>
+		);
+	} else if (type === "daterange") {
+		if (typeof value === "string") return null;
+		return (
+			<DateRangePicker
+				value={value ? value : { from: new Date(), to: new Date() }}
+				onChange={(value) => {
+					if (value) {
+						if (value.to) {
+							value.to.setHours(23);
+							value.to.setMinutes(59);
+							value.to.setSeconds(59);
+							value.to.setMilliseconds(999);
+						}
+					}
+					onChange(value);
+				}}
+			/>
+		);
 	}
 }

@@ -36,10 +36,10 @@ export default function ClientPage({ allData }: { allData: any }) {
 					type: "select",
 					options: Object.entries(statusMap).map(([key, value]) => ({ value: key, label: value.name })),
 				},
-				{ field: "Felmérő", label: "Felmérő", type: "select" },
+				{ field: "Felmérő", label: "Felmérő", type: "text" },
 				{ field: "Felmérés típusa", label: "Felmérés típusa", type: "select" },
 				{ field: "Teljes cím", label: "Cím", type: "select" },
-				{ field: "CreatedAt", label: "Dátum", type: "select" },
+				{ field: "CreatedAt", label: "Dátum", type: "daterange" },
 				{ field: "Name", label: "Név", type: "select" },
 			]}
 			sort={{ by: "id", order: "desc" }}
