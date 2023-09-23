@@ -2,7 +2,7 @@
 import Link from "next/link";
 import React from "react";
 import autoAnimate from "@formkit/auto-animate";
-import { Filter, FilterItem } from "../products/page";
+import { Filter } from "../products/page";
 import { DefaultPagination } from "./Pagination";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
@@ -67,6 +67,15 @@ export interface ItemContent {
 	status?: string;
 }
 
+export interface FilterItem {
+	id?: number;
+	label: string;
+	type: "text" | "daterange" | "select";
+	field: string;
+	options?: { value: string; label: string }[];
+	value?: string;
+}
+
 export default function StackedList({
 	data,
 	editType,
@@ -76,6 +85,7 @@ export default function StackedList({
 	pagination,
 	sort = { by: "id", order: "asc" },
 	title,
+	filters,
 }: {
 	data: any[];
 	editType: "link" | "dialog";
@@ -85,20 +95,21 @@ export default function StackedList({
 	pagination: { numPages: number };
 	sort?: { by: string; order: "asc" | "desc" };
 	title: string;
+	filters: FilterItem[];
 }) {
 	const parent = React.useRef<HTMLUListElement | null>(null);
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const deviceSize = useBreakpointValue();
 	const [filter, setFilter] = React.useState<Filter>({
-		filters: [{ field: "search", value: "", id: 0 }],
+		filters: filters,
 		name: "",
 		type: "",
 		id: 0,
 	});
-	const search = filter.filters.find((filter) => filter.field === "search")
+	const search: FilterItem = filter.filters.find((filter) => filter.field === "search")
 		? filter.filters.find((filter) => filter.field === "search")!
-		: { id: 0, field: "search", value: "" };
+		: { id: 0, field: "search", value: "", label: "", type: "text" };
 
 	const [filteredData, setFilteredData] = React.useState(data);
 
@@ -149,11 +160,7 @@ export default function StackedList({
 						} else {
 							return {
 								...item,
-								filters: Object.values(itemContent).map((value) => ({
-									field: value,
-									value: "",
-									id: 0,
-								})),
+								filters: filters,
 							};
 						}
 					})
@@ -175,19 +182,22 @@ export default function StackedList({
 	React.useEffect(() => {
 		fetchSavedFilters();
 	}, []);
-	React.useEffect(() => {
-		setFilter((prev) => ({
-			...prev,
-			filters: [
-				...Object.values(itemContent).map((value) => ({ field: value, value: "", id: 0 })),
-				...prev.filters,
-			],
-		}));
-	}, []);
 
 	React.useEffect(() => {
 		refilterData(filter);
 	}, [filter, data]);
+
+	const resetFilter = (exceptSearch: boolean) => {
+		setFilter((prev) => ({
+			...prev,
+			filters: prev.filters.map((item) => {
+				if (item.field === "search" && exceptSearch) {
+					return item;
+				}
+				return { ...item, value: "" };
+			}),
+		}));
+	};
 
 	return (
 		<div className='w-full px-5 lg:px-0 lg:w-2/3 flex flex-col gap-3'>
@@ -241,45 +251,38 @@ export default function StackedList({
 									<SheetDescription>Itt tudsz egyedi mezőkre szűrni</SheetDescription>
 								</SheetHeader>
 								<div className='grid gap-4 py-4'>
-									{Object.entries(itemContent).map(([key, value]) => {
-										const options: any = Array.from(
-											new Set(
-												filteredData.map((field: any) =>
-													field[value]
-														? key === "status"
-															? field[value].name.toString()
-															: field[value].toString()
-														: null
-												)
-											)
-										).filter((field) => field);
+									{filter.filters.map(({ field, label, type, options, value }) => {
+										const realOptions: { label: string; value: string }[] = options
+											? options
+											: Array.from(
+													new Set(
+														filteredData.map((item: any) =>
+															item[field] ? item[field].toString() : null
+														)
+													)
+											  )
+													.filter((item) => item)
+													.map((item) => ({ label: item, value: item }));
 										return (
-											<div key={key} className='grid grid-cols-4 items-center gap-4'>
+											<div key={field} className='grid grid-cols-4 items-center gap-4'>
 												<Label htmlFor='username' className='text-right'>
-													{value}
+													{label}
 												</Label>
 												<AutoComplete
 													className='col-span-3'
-													value={
-														filter.filters.find((item) => item.field === value)
-															? filter.filters.find((item) => item.field === value)!.value
-															: "a"
-													}
+													value={realOptions.find((option) => option.value === value)?.label}
 													onChange={(v) => {
 														setFilter((prev) => ({
 															...prev,
 															filters: prev.filters.map((item) => {
-																if (item.field === value) {
-																	return { field: value, id: item.id, value: v };
+																if (item.field === field) {
+																	return { ...item, value: v };
 																}
 																return item;
 															}),
 														}));
 													}}
-													options={options.map((field: any) => ({
-														value: field,
-														label: field,
-													}))}
+													options={realOptions}
 												/>
 											</div>
 										);
@@ -290,7 +293,7 @@ export default function StackedList({
 										<Button type='submit'>Alkalmaz</Button>
 									</SheetClose>
 									<SheetClose asChild>
-										<Button type='button' variant='secondary'>
+										<Button type='button' onClick={() => resetFilter(true)} variant='secondary'>
 											Mégse
 										</Button>
 									</SheetClose>
@@ -431,6 +434,7 @@ export default function StackedList({
 				return f.filters
 					.filter((filterItem) => filterItem.value)
 					.map((filterItem) => {
+						if (!filterItem.value) return false;
 						if (filterItem.field === "search") {
 							return filterItem.value
 								.split(" ")
@@ -617,7 +621,12 @@ function FiltersComponent({
 				<TabsHeader
 					className='rounded-none bg-transparent p-0 cursor-pointer'
 					onClick={() => {
-						setFilter({ filters: [], name: "", type: "", id: 0 });
+						setFilter((prev) => ({
+							filters: prev.filters.map((filter) => ({ ...filter, value: "" })),
+							name: "",
+							type: "",
+							id: 0,
+						}));
 					}}
 					indicatorProps={{
 						className: "bg-transparent border-b-2 border-gray-900 mx-3 shadow-none rounded-none",

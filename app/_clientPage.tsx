@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import BaseComponentV2 from "./_components/BaseComponentV2";
+import { statusMap } from "./_utils/utils";
 
 export interface Filter {
 	id: number;
@@ -27,6 +28,20 @@ export default function ClientPage({ allData }: { allData: any }) {
 				imgSrc: "Ingatlan képe",
 				status: "Státusz",
 			}}
+			filters={[
+				{ field: "StatusId", label: "MiniCRM státusz", type: "select" },
+				{
+					field: "status",
+					label: "Státusz",
+					type: "select",
+					options: Object.entries(statusMap).map(([key, value]) => ({ value: key, label: value.name })),
+				},
+				{ field: "Felmérő", label: "Felmérő", type: "select" },
+				{ field: "Felmérés típusa", label: "Felmérés típusa", type: "select" },
+				{ field: "Teljes cím", label: "Cím", type: "select" },
+				{ field: "CreatedAt", label: "Dátum", type: "select" },
+				{ field: "Name", label: "Név", type: "select" },
+			]}
 			sort={{ by: "id", order: "desc" }}
 		/>
 	);

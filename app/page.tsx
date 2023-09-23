@@ -47,6 +47,9 @@ export default async function Home() {
 			const adatlap = adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id);
 			const template = templates.find((template) => template.id === felmeres.template);
 			return {
+				...adatlap,
+				...template,
+				...felmeres,
 				"Azonosító": felmeres.id,
 				"Teljes cím": `${adatlap ? adatlap.Cim2 : ""} ${adatlap ? adatlap.Telepules : ""} ${
 					adatlap ? adatlap.Iranyitoszam : ""

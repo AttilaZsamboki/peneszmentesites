@@ -1,3 +1,4 @@
+import { FilterItem } from "../_components/StackedList";
 import { Question } from "../questions/page";
 import Products from "./_clientPage";
 
@@ -14,13 +15,6 @@ export interface Filter {
 	name: string;
 	filters: FilterItem[];
 	type: string;
-}
-
-export interface FilterItem {
-	id: number;
-	field: string;
-	type?: "text";
-	value: string;
 }
 
 export default async function ProductsFetch({

@@ -1,5 +1,5 @@
 "use client";
-import StackedList, { ItemContent } from "../_components/StackedList";
+import StackedList, { FilterItem, ItemContent } from "../_components/StackedList";
 import Heading from "../_components/Heading";
 import React from "react";
 import Link from "next/link";
@@ -19,6 +19,7 @@ export default function BaseComponentV2({
 	onEditItem,
 	pagination = { numPages: 0 },
 	sort,
+	filters = [],
 }: {
 	data: any;
 	title: string;
@@ -31,6 +32,7 @@ export default function BaseComponentV2({
 	onEditItem?: (item: any) => void;
 	pagination?: { numPages: number };
 	sort?: { by: string; order: "asc" | "desc" };
+	filters?: FilterItem[];
 }) {
 	return (
 		<main className='flex min-h-screen flex-col items-center justify-start w-full'>
@@ -62,6 +64,7 @@ export default function BaseComponentV2({
 			<div className='flex flex-row justify-center w-full flex-wrap'>
 				<StackedList
 					onEditItem={onEditItem}
+					filters={filters}
 					data={data}
 					editHref={editHref}
 					editType={editType}
