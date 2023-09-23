@@ -236,7 +236,6 @@ export default function StackedList({
 			}),
 		}));
 	};
-	console.log(savedFilters);
 
 	return (
 		<div className='w-full px-5 lg:px-0 lg:w-2/3 flex flex-col gap-3 '>
@@ -476,7 +475,7 @@ export default function StackedList({
 					.filter((filterItem) => filterItem.value)
 					.map((filterItem) => {
 						if (!filterItem.value) return false;
-						if (["text", "select"].includes(filterItem.type)) {
+						if ("text" === filterItem.type) {
 							return (filterItem.value as unknown as string)
 								.split(" ")
 								.map((searchWord: string) =>
@@ -491,6 +490,8 @@ export default function StackedList({
 								new Date(item[filterItem.field]) >= value.from &&
 								new Date(item[filterItem.field]) <= value.to
 							);
+						} else if (filterItem.type === "select") {
+							return item[filterItem.field] === (filterItem.value as unknown as string);
 						}
 						return false;
 					})
@@ -675,7 +676,10 @@ function FiltersComponent({
 					className='rounded-none bg-transparent p-0 cursor-pointer'
 					onClick={() => {
 						setFilter((prev) => ({
-							filters: prev.filters.map((filter) => ({ ...filter, value: "" })),
+							filters: prev.filters.map((filter) => ({
+								...filter,
+								value: filter.type === "daterange" ? undefined : "",
+							})),
 							name: "",
 							type: "",
 							id: 0,

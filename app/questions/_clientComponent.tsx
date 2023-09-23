@@ -195,6 +195,16 @@ export default function ClientComponent({ data, products }: { data: any; product
 					subtitle: "Típus",
 					subtitle3: "Kötelező",
 				}}
+				filters={[
+					{ field: "Név", type: "select", label: "Név" },
+					{ field: "jsonProducts", type: "text", label: "Termék" },
+					{ field: "Típus", type: "select", label: "Típus" },
+					{
+						field: "Kötelező",
+						type: "select",
+						label: "Kötelező",
+					},
+				]}
 				onEditItem={(item) => {
 					setQuestion(item);
 					setOpenDialog(true);

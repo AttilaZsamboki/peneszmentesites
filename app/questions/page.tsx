@@ -52,8 +52,14 @@ export default async function QuestionsFetch() {
 							"" || "",
 			Típus: (typeMap as any)[question.type] || "Nincs típus",
 			Kötelező: question.mandatory ? "Kötelező" : "Nem kötelező",
+			jsonProducts: JSON.stringify(
+				question.connection === "Termék"
+					? question.products?.map((product) => productData.find((p) => p.id === product))
+					: ""
+			),
 		};
 	});
+	console.log(allData);
 
 	return <Questions data={allData} products={productData} />;
 }
