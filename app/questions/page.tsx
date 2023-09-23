@@ -59,7 +59,6 @@ export default async function QuestionsFetch() {
 			),
 		};
 	});
-	console.log(allData);
 
 	return <Questions data={allData} products={productData} />;
 }

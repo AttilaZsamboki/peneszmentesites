@@ -52,6 +52,10 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 					name: "Sablonok",
 					href: "/templates",
 				},
+				{
+					name: "Felmérések",
+					href: "/new",
+				},
 			],
 		},
 		{
@@ -141,8 +145,13 @@ function Navbar2({
 }) {
 	const router = usePathname().split("?")[0];
 
+	const routerParts = router.split("/");
+	const routerBasePath = isNaN(Number(routerParts[1])) ? routerParts[1] : routerParts[0]; // Check if the base path is an integer
+
 	const activeRoute = routes.find(
-		(route) => route.subRoutes.some((subRoute) => router.startsWith(subRoute.href)) || router.startsWith(route.href)
+		(route) =>
+			route.subRoutes.some((subRoute) => "/" + routerBasePath === subRoute.href) ||
+			"/" + routerBasePath === route.href
 	);
 
 	return (

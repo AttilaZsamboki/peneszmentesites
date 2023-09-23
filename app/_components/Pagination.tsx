@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRightIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
+import useBreakpointValue from "./useBreakpoint";
 
 export function DefaultPagination({
 	numPages,
@@ -10,6 +11,7 @@ export function DefaultPagination({
 	onPageChange: (page: number) => void;
 }) {
 	const [active, setActive] = React.useState(1);
+	const deviceSize = useBreakpointValue();
 
 	const getItemProps = (index: number) =>
 		({
@@ -53,7 +55,7 @@ export function DefaultPagination({
 	return (
 		<div className='flex items-center gap-4'>
 			<Button className='flex items-center gap-2' onClick={prev} disabled={active === 1}>
-				<ArrowLeftIcon strokeWidth={2} className='h-4 w-4' /> Előző
+				<ArrowLeftIcon strokeWidth={2} className='h-4 w-4' /> {deviceSize === "sm" ? null : "Előző"}
 			</Button>
 			<div className='flex items-center gap-2'>
 				{start > 1 && (
@@ -62,11 +64,15 @@ export function DefaultPagination({
 						{start > 2 && <span className='text-gray-500'>...</span>}
 					</>
 				)}
-				{Array.from({ length: end - start + 1 }, (_, index) => (
-					<Button key={index} {...getItemProps(start + index)}>
-						{start + index}
-					</Button>
-				))}
+				{deviceSize === "sm" ? (
+					<Button {...getItemProps(active)}>{active}</Button>
+				) : (
+					Array.from({ length: end - start + 1 }, (_, index) => (
+						<Button key={index} {...getItemProps(start + index)}>
+							{start + index}
+						</Button>
+					))
+				)}
 				{end < numPages && (
 					<>
 						{end < numPages - 1 && <span className='text-gray-500'>...</span>}
@@ -75,7 +81,7 @@ export function DefaultPagination({
 				)}
 			</div>
 			<Button className='flex items-center gap-2' onClick={next} disabled={active === end}>
-				Következő <ArrowRightIcon strokeWidth={2} className='h-4 w-4' />
+				{deviceSize === "sm" ? null : "Következő"} <ArrowRightIcon strokeWidth={2} className='h-4 w-4' />
 			</Button>
 		</div>
 	);

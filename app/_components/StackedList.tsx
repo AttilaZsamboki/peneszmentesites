@@ -350,7 +350,10 @@ export default function StackedList({
 				setFilter={setFilter}
 				setSavedFilters={setSavedFilters}
 			/>
-			<ScrollArea className='lg:h-[70dvh] h-[62dvh] rounded-md border p-2 bg-white pb-20'>
+			<ScrollArea
+				className={`${
+					pagination.numPages ? "h-[50dvh] lg:h-[55dvh] pb-0" : "h-[58dvh] lg:h-[63dvh]"
+				} rounded-md border p-2 bg-white `}>
 				<ul ref={parent} role='list' className='w-full bg-white rounded-lg flex flex-col justify-between'>
 					{filteredData
 						.sort((a, b) =>

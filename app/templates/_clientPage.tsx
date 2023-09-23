@@ -61,9 +61,7 @@ export default function Page({ templates, products }: { templates: Template[]; p
 				...upToDateTemplates,
 				{
 					...templateResponseData,
-					truncatedDescription:
-						templateResponseData.description.substring(0, 40) +
-						(templateResponseData.description.length > 40 ? "..." : ""),
+					truncatedDescription: templateResponseData.description,
 				},
 			]);
 			setItems([]);
@@ -118,7 +116,19 @@ export default function Page({ templates, products }: { templates: Template[]; p
 				createButtonTitle='Új sablon'
 				data={upToDateTemplates}
 				editType='dialog'
-				itemContent={{ id: "Azonosító", title: "Név", subtitle: "Típus", subtitle2: "Leírás" }}
+				itemContent={{
+					id: "Azonosító",
+					title: "Név",
+					subtitle: "Típus",
+					subtitle2: "Leírás",
+					subtitle3: "firstProduct",
+				}}
+				filters={[
+					{ field: "Név", label: "Név", type: "select" },
+					{ field: "Típus", label: "Típus", type: "select" },
+					{ field: "Leírás", label: "Leírás", type: "select" },
+					{ field: "jsonProducts", label: "Termék", type: "text" },
+				]}
 				title='Sablonok'
 				onCreateNew={() => {
 					setOpenDialog(true);

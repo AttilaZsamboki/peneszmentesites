@@ -113,6 +113,23 @@ export default function ClientPage({
 					subtitle2: "priceStr",
 					subtitle3: "type",
 				}}
+				filters={[
+					{
+						field: "name",
+						label: "Név",
+						type: "select",
+					},
+					{
+						field: "sku",
+						label: "SKU",
+						type: "select",
+					},
+					{
+						field: "type",
+						label: "Típus",
+						type: "select",
+					},
+				]}
 				title='Termékek'
 				onEditItem={(item) => {
 					setOpen(true);
