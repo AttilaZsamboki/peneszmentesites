@@ -219,7 +219,7 @@ export default function Page({
 						"Content-Type": "application/json",
 					},
 					body: JSON.stringify({
-						FelmeresAdatok: "https://app.peneszmentesites.hu/felmeresek/" + felmeres.adatlap_id,
+						FelmeresAdatok: "https://app.peneszmentesites.hu/" + felmeres.adatlap_id,
 						StatusId: "Elszámolásra vár",
 					}),
 				});
@@ -243,7 +243,7 @@ export default function Page({
 
 				setProgress({ percent: percent(3157) });
 				updateToast(3157);
-				router.push("/felmeresek");
+				router.push("/");
 			}
 		}
 	};
