@@ -164,7 +164,7 @@ export default function Page({
 		setProgress({ percent: 1 });
 		updateToast(1);
 		let date = new Date();
-		date.setHours(date.getHours() + 2);
+		date.setHours(date.getHours() + 4);
 		let formattedDate =
 			date.getFullYear() +
 			"-" +
