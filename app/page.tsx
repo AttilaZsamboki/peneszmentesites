@@ -46,6 +46,20 @@ export default async function Home() {
 		const allData = felmeresek.map((felmeres) => {
 			const adatlap = adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id);
 			const template = templates.find((template) => template.id === felmeres.template);
+			let date = new Date(felmeres.created_at);
+			let formattedDate =
+				date.getFullYear() +
+				"-" +
+				("0" + (date.getMonth() + 1)).slice(-2) +
+				"-" +
+				("0" + date.getDate()).slice(-2) +
+				" " +
+				("0" + date.getHours()).slice(-2) +
+				":" +
+				("0" + date.getMinutes()).slice(-2) +
+				":" +
+				("0" + date.getSeconds()).slice(-2);
+
 			return {
 				...adatlap,
 				...template,
@@ -58,8 +72,8 @@ export default async function Home() {
 				"Státusz": statusMap[felmeres.status ? felmeres.status : "DRAFT"],
 				"Felmérés neve": (adatlap ? adatlap.Name + " - " : "") + (template ? template.name : ""),
 				"Felmérő": adatlap ? adatlap.Felmero2 : "",
-				"Dátum": adatlap ? adatlap.CreatedAt : "",
 				"Ingatla képe": adatlap ? adatlap.IngatlanKepe : "",
+				"created_at": formattedDate,
 			};
 		});
 

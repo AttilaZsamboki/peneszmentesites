@@ -38,6 +38,7 @@ export interface BaseFelmeresData {
 	type: string;
 	template: number;
 	status: "DRAFT" | "IN_PROGRESS" | "COMPLETED" | undefined;
+	created_at: string;
 }
 
 export interface FelmeresItems {
@@ -89,6 +90,7 @@ export default function Page({
 		type: "",
 		template: 0,
 		status: "DRAFT",
+		created_at: "",
 	});
 	const [items, setItems] = React.useState<FelmeresItems[]>([]);
 	const [numPages, setNumPages] = React.useState(0);
@@ -161,12 +163,27 @@ export default function Page({
 		};
 		setProgress({ percent: 1 });
 		updateToast(1);
+		let date = new Date();
+		date.setHours(date.getHours() + 2);
+		let formattedDate =
+			date.getFullYear() +
+			"-" +
+			("0" + (date.getMonth() + 1)).slice(-2) +
+			"-" +
+			("0" + date.getDate()).slice(-2) +
+			" " +
+			("0" + date.getHours()).slice(-2) +
+			":" +
+			("0" + date.getMinutes()).slice(-2) +
+			":" +
+			("0" + date.getSeconds()).slice(-2);
+
 		const res = await fetch("https://pen.dataupload.xyz/felmeresek/", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify({ ...felmeres, created_at: new Date().toISOString().split("T")[0] }),
+			body: JSON.stringify({ ...felmeres, created_at: formattedDate }),
 		});
 		setProgress({ percent: percent(120) });
 		updateToast(120);

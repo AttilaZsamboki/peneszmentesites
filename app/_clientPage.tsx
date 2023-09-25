@@ -24,7 +24,7 @@ export default function ClientPage({ allData }: { allData: any }) {
 				subtitle: "Teljes cím",
 				subtitle2: "Felmérés típusa",
 				subtitle3: "Felmérő",
-				subtitle4: "Dátum",
+				subtitle4: "created_at",
 				imgSrc: "Ingatlan képe",
 				status: "Státusz",
 			}}
@@ -39,7 +39,7 @@ export default function ClientPage({ allData }: { allData: any }) {
 				{ field: "Felmérő", label: "Felmérő", type: "text" },
 				{ field: "Felmérés típusa", label: "Felmérés típusa", type: "select" },
 				{ field: "Teljes cím", label: "Cím", type: "select" },
-				{ field: "CreatedAt", label: "Dátum", type: "daterange" },
+				{ field: "created_at", label: "Dátum", type: "daterange" },
 				{ field: "Name", label: "Név", type: "select" },
 			]}
 			sort={{ by: "id", order: "desc" }}

@@ -157,7 +157,7 @@ function Navbar2({
 	return (
 		<div className='flex flex-col w-full'>
 			{activeRoute ? (
-				<div className='bg-white sm:border-t-0 border-t lg:relative absolute bottom-0 md:top-0 md:fixed z-50 w-full pt-2'>
+				<div className='bg-white sm:border-t-0 border-t lg:relative absolute bottom-0 md:top-0 md:fixed z-40 w-full pt-2'>
 					<Tabs value={router} className='flex flex-row w-full border-b pl-3 lg:pl-6 items-center'>
 						<TabsHeader
 							className='rounded-none bg-transparent p-0 cursor-pointer'
