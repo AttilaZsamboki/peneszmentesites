@@ -71,7 +71,7 @@ export interface ItemContent {
 
 type FilterTypes = "text" | "daterange" | "select";
 
-interface DateRange {
+export interface DateRange {
 	from: Date;
 	to: Date;
 }
@@ -179,15 +179,6 @@ export default function StackedList({
 
 	React.useEffect(() => {
 		// if (pagination.active) {
-		console.log(
-			filter.filters.filter(
-				(filter) =>
-					filter.value &&
-					(filter.type === "daterange"
-						? (filter.value as DateRange).from || (filter.value as DateRange).to
-						: true)
-			)
-		);
 		router.push(
 			`?${filter.filters
 				.filter(
@@ -239,30 +230,35 @@ export default function StackedList({
 									item.type === "daterange"
 										? {
 												...item,
-												value: {
-													from: new Date(
-														JSON.parse(
-															item.value
-																? (item.value as unknown as string).replace(/'/g, '"')
-																: "{}"
-														).from
-													),
-													to:
-														item.value &&
-														JSON.parse((item.value as unknown as string).replace(/'/g, '"'))
-															.to
-															? new Date(
-																	JSON.parse(
-																		item.value
-																			? (item.value as unknown as string).replace(
-																					/'/g,
-																					'"'
-																			  )
-																			: "{}"
-																	).to
-															  )
-															: (null as unknown as Date),
-												},
+												value: item.value
+													? {
+															from: new Date(
+																JSON.parse(
+																	item.value
+																		? (item.value as unknown as string).replace(
+																				/'/g,
+																				'"'
+																		  )
+																		: "{}"
+																).from
+															),
+															to:
+																item.value &&
+																JSON.parse(
+																	(item.value as unknown as string).replace(/'/g, '"')
+																).to
+																	? new Date(
+																			JSON.parse(
+																				item.value
+																					? (
+																							item.value as unknown as string
+																					  ).replace(/'/g, '"')
+																					: "{}"
+																			).to
+																	  )
+																	: (null as unknown as Date),
+													  }
+													: undefined,
 										  }
 										: item
 								),
@@ -560,7 +556,6 @@ export default function StackedList({
 	);
 
 	function refilterData(f: Filter = filter) {
-		console.log(f);
 		setFilteredData(
 			data.filter((item) => {
 				return f.filters

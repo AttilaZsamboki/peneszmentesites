@@ -9,7 +9,7 @@ export default function DateRangePicker({
 	className = "",
 	onChange,
 }: {
-	value?: { from: Date; to: Date };
+	value?: DateRange;
 	className?: string;
 	onChange?: (value: { from: Date; to: Date }) => void;
 }) {
