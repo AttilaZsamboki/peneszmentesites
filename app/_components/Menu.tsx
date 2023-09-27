@@ -43,10 +43,12 @@ export default function DropdownMenu({
 					) : (
 						<div></div>
 					)}
-					<DropdownMenuItem onClick={onDuplicate}>
-						<DocumentDuplicateIcon className='w-5 h-5 mr-2' />
-						Másolás
-					</DropdownMenuItem>
+					{onDuplicate ? (
+						<DropdownMenuItem onClick={onDuplicate}>
+							<DocumentDuplicateIcon className='w-5 h-5 mr-2' />
+							Másolás
+						</DropdownMenuItem>
+					) : null}
 					<DropdownMenuSeparator />
 					<DropdownMenuItem onClick={onDelete}>
 						<TrashIcon className='w-5 h-5 mr-2 text-red-900' />

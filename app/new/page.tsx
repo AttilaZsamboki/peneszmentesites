@@ -42,7 +42,6 @@ export default async function Page() {
 	const products: Product[] = await fetch("https://pen.dataupload.xyz/products?all=true", {
 		next: { tags: ["products"] },
 	}).then((response) => response.json());
-	console.log(products);
 	const productAttributes: ProductAttributes[] = await fetch("https://pen.dataupload.xyz/product_attributes", {
 		next: { tags: ["product-attributes"] },
 	})

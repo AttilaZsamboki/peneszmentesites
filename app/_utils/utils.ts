@@ -1,6 +1,8 @@
 import { Product } from "../products/page";
 import { Question } from "../questions/page";
 
+import React from "react";
+
 export const typeMap = {
 	TEXT: "Szöveg",
 	LIST: "Lista",
@@ -36,4 +38,19 @@ interface Breakpoint {
 	size: DeviceSizes;
 	min: number;
 	max: number;
+}
+
+export const createQueryString = (searchParams: any) => {
+	return React.useCallback(
+		(name: string, value: string) => {
+			const params = new URLSearchParams(searchParams as unknown as string);
+			params.set(name, value);
+			return params.toString();
+		},
+		[searchParams]
+	);
+};
+
+export function isValidDate(d: Date) {
+  return !isNaN(d.getTime());
 }

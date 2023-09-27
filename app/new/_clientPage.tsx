@@ -25,6 +25,7 @@ import { useGlobalState } from "@/app/_clientLayout";
 import { Page2 } from "./Page2";
 import { useToast } from "@/components/ui/use-toast";
 import Textarea from "../_components/Textarea";
+import { Checkmark } from "@/components/check";
 
 export interface ProductTemplate {
 	product: number;
@@ -157,7 +158,7 @@ export default function Page({
 				title: "Felmérés létrehozása",
 				description: "Felmérés létrehozása folyamatban...",
 				duration: 5000,
-				action: <div>{percent(num)}%</div>,
+				action: percent(num) === 100 ? <Checkmark width={50} height={50} /> : <div>{percent(num)}%</div>,
 			});
 		};
 		setProgress({ percent: 1 });
@@ -235,7 +236,7 @@ export default function Page({
 						"Content-Type": "application/json",
 					},
 					body: JSON.stringify({
-						FelmeresAdatok: "https://app.peneszmentesites.hu/" + felmeres.adatlap_id,
+						FelmeresAdatok: "https://app.peneszmentesites.hu/" + felmeresResponseData.id,
 						StatusId: "Elszámolásra vár",
 					}),
 				});

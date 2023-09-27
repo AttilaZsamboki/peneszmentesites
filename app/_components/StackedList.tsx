@@ -31,6 +31,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import useBreakpointValue from "./useBreakpoint";
 import { Separator } from "@/components/ui/separator";
 import DateRangePicker from "@/components/daterange";
+import { createQueryString, isValidDate } from "../_utils/utils";
 
 function deepEqual(a: any, b: any) {
 	if (a === b) {
@@ -70,13 +71,18 @@ export interface ItemContent {
 
 type FilterTypes = "text" | "daterange" | "select";
 
+interface DateRange {
+	from: Date;
+	to: Date;
+}
+
 export interface FilterItem {
 	id?: number;
 	label: string;
 	type: FilterTypes;
 	field: string;
 	options?: Option[];
-	value?: string | { from: Date; to: Date };
+	value?: string | DateRange;
 }
 
 interface Option {
@@ -114,6 +120,10 @@ export default function StackedList({
 	const router = useRouter();
 	const searchParams = useSearchParams()!;
 	const deviceSize = useBreakpointValue();
+	const [savedFilters, setSavedFilters] = React.useState<Filter[]>([]);
+	const savedFilterFromURL = searchParams.get("selectedFilter")
+		? savedFilters.find((filter) => filter.id === parseInt(searchParams.get("selectedFilter") ?? ""))
+		: "";
 	const [filter, setFilter] = React.useState<Filter>({
 		filters: [...filters, { id: 0, field: "filter", value: "", label: "", type: "text" } as FilterItem].map(
 			(filter) => {
@@ -122,7 +132,30 @@ export default function StackedList({
 				if (params.entries()) {
 					for (let [key, value] of params.entries() as any) {
 						if (filter.field === key) {
-							return { ...filter, value: value } as FilterItem;
+							if (filter.type !== "daterange") {
+								return { ...filter, value: value } as FilterItem;
+							} else {
+								return {
+									...filter,
+									value: {
+										from: new Date(
+											JSON.parse(
+												value ? (value as unknown as string).replace(/'/g, '"') : "{}"
+											).from
+										),
+										to:
+											value && JSON.parse((value as unknown as string).replace(/'/g, '"')).to
+												? new Date(
+														JSON.parse(
+															value
+																? (value as unknown as string).replace(/'/g, '"')
+																: "{}"
+														).to
+												  )
+												: (null as unknown as Date),
+									},
+								} as FilterItem;
+							}
 						}
 					}
 					return filter;
@@ -132,7 +165,7 @@ export default function StackedList({
 		) as FilterItem[],
 		name: "",
 		type: "",
-		id: 0,
+		id: searchParams.get("selectedFilter") ? parseInt(searchParams.get("selectedFilter") ?? "") : 0,
 	});
 	const search: FilterItem = filter.filters.find((filter) => filter.field === "filter")!;
 
@@ -145,16 +178,40 @@ export default function StackedList({
 	}, [parent.current]);
 
 	React.useEffect(() => {
-		if (pagination.active) {
-			router.push(
-				`?${filter.filters
-					.filter((filter) => filter.value)
-					.map((filter) => `${filter.field}=${filter.value}`)
-					.join("&")}`,
-				{ scroll: false }
-			);
-		}
+		// if (pagination.active) {
+		console.log(
+			filter.filters.filter(
+				(filter) =>
+					filter.value &&
+					(filter.type === "daterange"
+						? (filter.value as DateRange).from || (filter.value as DateRange).to
+						: true)
+			)
+		);
+		router.push(
+			`?${filter.filters
+				.filter(
+					(filter) =>
+						filter.value &&
+						(filter.type === "daterange"
+							? isValidDate((filter.value as DateRange).from) &&
+							  isValidDate((filter.value as DateRange).to)
+							: true)
+				)
+				.map((filter) =>
+					filter.type !== "daterange"
+						? `${filter.field}=${filter.value}`
+						: `${filter.field}=${JSON.stringify(filter.value)}`
+				)
+				.join("&")}${filter.id ? "&selectedFilter=" + filter.id : ""}`,
+			{ scroll: false }
+		);
 	}, [filter]);
+	React.useEffect(() => {
+		if (savedFilterFromURL) {
+			setFilter(savedFilterFromURL);
+		}
+	}, [savedFilterFromURL]);
 
 	const tailwindColorMap = {
 		yellow: "bg-yellow-900",
@@ -163,7 +220,6 @@ export default function StackedList({
 		blue: "bg-blue-900",
 		gray: "bg-gray-900",
 	};
-	const [savedFilters, setSavedFilters] = React.useState<Filter[]>([]);
 	const { toast } = useToast();
 
 	const fetchSavedFilters = async () => {
@@ -253,21 +309,7 @@ export default function StackedList({
 		}));
 	};
 
-	const urlParams = React.useCallback(() => {
-		const params = new URLSearchParams(searchParams as unknown as string);
-
-		return params.toString();
-	}, [searchParams]);
-
-	const createQueryString = React.useCallback(
-		(name: string, value: string) => {
-			const params = new URLSearchParams(searchParams as unknown as string);
-			params.set(name, value);
-
-			return params.toString();
-		},
-		[searchParams]
-	);
+	const createQueryStringCallback = createQueryString(searchParams);
 
 	return (
 		<div className='w-full px-5 lg:px-0 lg:w-2/3 flex flex-col gap-3 '>
@@ -507,7 +549,7 @@ export default function StackedList({
 					<DefaultPagination
 						numPages={pagination.numPages}
 						onPageChange={(page) => {
-							router.push("?" + createQueryString("page", page.toString()), {
+							router.push("?" + createQueryStringCallback("page", page.toString()), {
 								scroll: false,
 							});
 						}}
@@ -518,13 +560,13 @@ export default function StackedList({
 	);
 
 	function refilterData(f: Filter = filter) {
+		console.log(f);
 		setFilteredData(
 			data.filter((item) => {
 				return f.filters
 					.filter((filterItem) => filterItem.value)
 					.map((filterItem) => {
-						if (!filterItem.value) return false;
-						if ("text" === filterItem.type || pagination) {
+						if ("text" === filterItem.type || pagination.active) {
 							return (filterItem.value as unknown as string)
 								.split(" ")
 								.map((searchWord: string) =>
@@ -534,7 +576,7 @@ export default function StackedList({
 								)
 								.every((item: boolean) => item === true);
 						} else if (filterItem.type === "daterange") {
-							const value = filterItem.value as { from: Date; to: Date };
+							const value = filterItem.value as DateRange;
 							return (
 								new Date(item[filterItem.field]) >= value.from &&
 								new Date(item[filterItem.field]) <= value.to
@@ -874,8 +916,8 @@ function InputOptionChooser({
 }: {
 	type: FilterTypes;
 	options?: Option[];
-	value?: string | { from: Date; to: Date };
-	onChange: (value: string | { from: Date; to: Date }) => void;
+	value?: string | DateRange;
+	onChange: (value: string | DateRange) => void;
 	pagination?: boolean;
 }) {
 	if (type === "text") {
