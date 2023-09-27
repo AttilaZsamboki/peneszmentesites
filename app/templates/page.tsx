@@ -14,7 +14,7 @@ export default async function Page() {
 		next: { tags: ["templates"] },
 	}).then((resp) => resp.json());
 
-	const products: Product[] = await fetch("https://pen.dataupload.xyz/products", {
+	const products: Product[] = await fetch("https://pen.dataupload.xyz/products?all=true", {
 		next: { tags: ["products"] },
 	}).then((resp) => resp.json());
 	await Promise.all(
@@ -32,10 +32,6 @@ export default async function Page() {
 			templates={
 				templates.map((template) => ({
 					...template,
-					Leírás: template.description,
-					Név: template.name,
-					Típus: template.type,
-					Azonosító: template.id,
 					firstProduct: template.items ? template.items[0]?.sku : "",
 					jsonProducts: JSON.stringify(template.items),
 				})) as unknown as Template[]

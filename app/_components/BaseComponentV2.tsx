@@ -1,11 +1,9 @@
 "use client";
-import StackedList, { FilterItem, ItemContent } from "../_components/StackedList";
+import StackedList, { FilterItem, ItemContent, PaginationOptions } from "../_components/StackedList";
 import Heading from "../_components/Heading";
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Filter } from "../products/page";
-import { useSearchParams } from "next/navigation";
 
 export default function BaseComponentV2({
 	data,
@@ -17,7 +15,7 @@ export default function BaseComponentV2({
 	createPath,
 	onCreateNew,
 	onEditItem,
-	pagination = { numPages: 0 },
+	pagination = { numPages: 0, active: false },
 	sort,
 	filters = [],
 }: {
@@ -30,7 +28,7 @@ export default function BaseComponentV2({
 	createPath?: string;
 	onCreateNew?: () => void;
 	onEditItem?: (item: any) => void;
-	pagination?: { numPages: number };
+	pagination?: PaginationOptions;
 	sort?: { by: string; order: "asc" | "desc" };
 	filters?: FilterItem[];
 }) {

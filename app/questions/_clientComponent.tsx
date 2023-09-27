@@ -111,16 +111,23 @@ export default function ClientComponent({ data, products }: { data: any; product
 			body: JSON.stringify(question),
 		});
 		if (response.ok) {
-			const responseProduct = await fetch(
-				`https://pen.dataupload.xyz/question_products/?question_id=${question.id}`,
-				{
-					method: "PUT",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify(question.products),
-				}
-			);
+			let responseProduct: Response;
+			if (question.connection === "Fix" && question.products) {
+				responseProduct = await fetch(`https://pen.dataupload.xyz/question_products/${question.id}/`, {
+					method: "DELETE",
+				});
+			} else {
+				responseProduct = await fetch(
+					`https://pen.dataupload.xyz/question_products/?question_id=${question.id}`,
+					{
+						method: "PUT",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify(question.products),
+					}
+				);
+			}
 			if (responseProduct.ok) {
 				await fetch("/api/revalidate?tag=questions");
 				setAllQuestions((prev) => {
@@ -128,29 +135,21 @@ export default function ClientComponent({ data, products }: { data: any; product
 					const newArr = [...prev];
 					newArr[index] = {
 						...question,
-						subtitle:
+						Termék:
 							question.connection === "Fix"
 								? "Fix"
 								: products.find(getFirstProduct(question))?.sku +
-										" - " +
-										(products.find(getFirstProduct(question))?.name.substring(0, 25) +
-											((
-												products.find(getFirstProduct(question))
-													? products.find(getFirstProduct(question))!.name.length > 25
-													: false
-											)
-												? "..."
-												: "")) ||
-								  "" ||
-								  "",
-						subtitle2: (typeMap as any)[question.type] || "Nincs típus",
-						isMandatory: question.mandatory ? "Kötelező" : "Nem kötelező",
+								  " - " +
+								  products.find(getFirstProduct(question))?.name,
+						Típus: (typeMap as any)[question.type] || "Nincs típus",
+						Kötelező: question.mandatory ? "Kötelező" : "Nem kötelező",
 					};
 					return newArr;
 				});
 			}
 		}
 	};
+
 	const deleteQuestion = async () => {
 		const response = await fetch(`https://pen.dataupload.xyz/questions/${question.id}/`, {
 			method: "DELETE",
@@ -272,7 +271,7 @@ function QuestionForm({
 			</FormField>
 			<FormField title='Kapcsolat'>
 				<AutoComplete
-					onChange={(e) => setQuestion((prev) => ({ ...prev, connection: e ?? "" }))}
+					onChange={(e) => setQuestion((prev) => ({ ...prev, connection: (e as "Fix" | "Termék") ?? "" }))}
 					options={["Termék", "Fix"].map((option) => ({ label: option, value: option }))}
 					value={question.connection}
 				/>

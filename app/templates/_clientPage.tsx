@@ -61,7 +61,8 @@ export default function Page({ templates, products }: { templates: Template[]; p
 				...upToDateTemplates,
 				{
 					...templateResponseData,
-					truncatedDescription: templateResponseData.description,
+					firstProduct: products.find((product) => product.id.toString() === items[0])?.sku,
+					jsonProducts: JSON.stringify(items),
 				},
 			]);
 			setItems([]);
@@ -102,8 +103,8 @@ export default function Page({ templates, products }: { templates: Template[]; p
 				const newArr = [...prev];
 				newArr[index] = {
 					...template,
-					truncatedDescription:
-						template.description.substring(0, 35) + (template.description.length > 35 ? "..." : ""),
+					firstProduct: products.find((product) => product.id.toString() === items[0])?.sku,
+					jsonProducts: JSON.stringify(items),
 				};
 				return newArr;
 			});
@@ -117,16 +118,16 @@ export default function Page({ templates, products }: { templates: Template[]; p
 				data={upToDateTemplates}
 				editType='dialog'
 				itemContent={{
-					id: "Azonosító",
-					title: "Név",
-					subtitle: "Típus",
-					subtitle2: "Leírás",
+					id: "id",
+					title: "name",
+					subtitle: "type",
+					subtitle2: "description",
 					subtitle3: "firstProduct",
 				}}
 				filters={[
-					{ field: "Név", label: "Név", type: "select" },
-					{ field: "Típus", label: "Típus", type: "select" },
-					{ field: "Leírás", label: "Leírás", type: "select" },
+					{ field: "name", label: "Név", type: "select" },
+					{ field: "type", label: "Típus", type: "select" },
+					{ field: "description", label: "Leírás", type: "select" },
 					{ field: "jsonProducts", label: "Termék", type: "text" },
 				]}
 				title='Sablonok'

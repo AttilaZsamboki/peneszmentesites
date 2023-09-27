@@ -1,7 +1,4 @@
 "use client";
-import { List, ListItem, Typography } from "@material-tailwind/react";
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import Skeleton from "react-loading-skeleton";
 import LoadingDots from "./LoadingDots";
 import { usePathname } from "next/navigation";

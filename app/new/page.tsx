@@ -32,18 +32,22 @@ export default async function Page() {
 		headers: myHeaders,
 	};
 
-	const adatlapok: AdatlapData[] = await fetch("https://r3.minicrm.hu/Api/R3/Project?CategoryId=23", requestOptions)
+	const adatlapok = await fetch("https://r3.minicrm.hu/Api/R3/Project?CategoryId=23", requestOptions)
 		.then((response) => response.json())
+		.catch((error) => console.log("error", error))
 		.then((result: Adatlap) => Object.values(result.Results).filter((adatlap) => adatlap.Deleted === 0));
-	const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates").then((response) =>
-		response.json()
-	);
-	const products: Product[] = await fetch("https://pen.dataupload.xyz/products", {
+	const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates")
+		.then((response) => response.json())
+		.catch((error) => console.log("error", error));
+	const products: Product[] = await fetch("https://pen.dataupload.xyz/products?all=true", {
 		next: { tags: ["products"] },
 	}).then((response) => response.json());
+	console.log(products);
 	const productAttributes: ProductAttributes[] = await fetch("https://pen.dataupload.xyz/product_attributes", {
 		next: { tags: ["product-attributes"] },
-	}).then((response) => response.json());
+	})
+		.then((response) => response.json())
+		.catch((error) => console.log("error", error));
 
 	return (
 		<ClientPage

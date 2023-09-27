@@ -84,6 +84,11 @@ interface Option {
 	value: string;
 }
 
+export interface PaginationOptions {
+	numPages: number;
+	active: boolean;
+}
+
 export default function StackedList({
 	data,
 	editType,
@@ -100,24 +105,36 @@ export default function StackedList({
 	editHref?: string;
 	itemContent: ItemContent;
 	onEditItem?: (item: any) => void;
-	pagination: { numPages: number };
+	pagination: PaginationOptions;
 	sort?: { by: string; order: "asc" | "desc" };
 	title: string;
 	filters: FilterItem[];
 }) {
 	const parent = React.useRef<HTMLUListElement | null>(null);
 	const router = useRouter();
-	const searchParams = useSearchParams();
+	const searchParams = useSearchParams()!;
 	const deviceSize = useBreakpointValue();
 	const [filter, setFilter] = React.useState<Filter>({
-		filters: filters,
+		filters: [...filters, { id: 0, field: "filter", value: "", label: "", type: "text" } as FilterItem].map(
+			(filter) => {
+				const params = new URLSearchParams(searchParams as unknown as string);
+
+				if (params.entries()) {
+					for (let [key, value] of params.entries() as any) {
+						if (filter.field === key) {
+							return { ...filter, value: value } as FilterItem;
+						}
+					}
+					return filter;
+				}
+				return filter;
+			}
+		) as FilterItem[],
 		name: "",
 		type: "",
 		id: 0,
 	});
-	const search: FilterItem = filter.filters.find((filter) => filter.field === "search")
-		? filter.filters.find((filter) => filter.field === "search")!
-		: { id: 0, field: "search", value: "", label: "", type: "text" };
+	const search: FilterItem = filter.filters.find((filter) => filter.field === "filter")!;
 
 	const [filteredData, setFilteredData] = React.useState(data);
 
@@ -126,17 +143,16 @@ export default function StackedList({
 			autoAnimate(parent.current);
 		}
 	}, [parent.current]);
+
 	React.useEffect(() => {
-		if (pagination.numPages) {
-			if (pagination.numPages && search?.value) {
-				router.push(`?filter=${search?.value}`, { scroll: false });
-			} else if (searchParams.get("filter")) {
-				router.push(`?page=1&limit=10`, { scroll: false });
-			}
-		} else {
-			router.push(`?filter=${search?.value}`, {
-				scroll: false,
-			});
+		if (pagination.active) {
+			router.push(
+				`?${filter.filters
+					.filter((filter) => filter.value)
+					.map((filter) => `${filter.field}=${filter.value}`)
+					.join("&")}`,
+				{ scroll: false }
+			);
 		}
 	}, [filter]);
 
@@ -229,13 +245,29 @@ export default function StackedList({
 		setFilter((prev) => ({
 			...prev,
 			filters: prev.filters.map((item) => {
-				if (item.field === "search" && exceptSearch) {
+				if (item.field === "filter" && exceptSearch) {
 					return item;
 				}
 				return { ...item, value: "" };
 			}),
 		}));
 	};
+
+	const urlParams = React.useCallback(() => {
+		const params = new URLSearchParams(searchParams as unknown as string);
+
+		return params.toString();
+	}, [searchParams]);
+
+	const createQueryString = React.useCallback(
+		(name: string, value: string) => {
+			const params = new URLSearchParams(searchParams as unknown as string);
+			params.set(name, value);
+
+			return params.toString();
+		},
+		[searchParams]
+	);
 
 	return (
 		<div className='w-full px-5 lg:px-0 lg:w-2/3 flex flex-col gap-3 '>
@@ -261,7 +293,7 @@ export default function StackedList({
 						<input
 							className='peer h-full w-full outline-none text-sm text-gray-700 pr-2'
 							type='text'
-							id='search'
+							id='filter'
 							value={search.value as unknown as string}
 							placeholder='Keresés...'
 							onChange={(e) => {
@@ -269,7 +301,7 @@ export default function StackedList({
 								setFilter((prev) => ({
 									...prev,
 									filters: [
-										...prev.filters.filter((filter) => filter.field !== "search"),
+										...prev.filters.filter((filter) => filter.field !== "filter"),
 										{ ...search, value },
 									],
 								}));
@@ -289,44 +321,56 @@ export default function StackedList({
 									<SheetDescription>Itt tudsz egyedi mezőkre szűrni</SheetDescription>
 								</SheetHeader>
 								<div className='grid gap-4 py-4'>
-									{filter.filters.map(({ field, label, type, options, value }) => {
-										const realOptions: { label: string; value: string }[] = options
-											? options
-											: Array.from(
-													new Set(
-														filteredData.map((item: any) =>
-															item[field] ? item[field].toString().trim() : null
+									{filter.filters
+										.filter((filter) => filter.field !== "filter")
+										.map(({ field, label, type, options, value }) => {
+											const realOptions: { label: string; value: string }[] = options
+												? options
+												: Array.from(
+														new Set(
+															filteredData.map((item: any) =>
+																item[field] ? item[field].toString().trim() : null
+															)
 														)
-													)
-											  )
-													.filter((item) => item)
-													.map((item) => ({ label: item, value: item }));
-										return (
-											<div key={field} className='grid grid-cols-4 items-center gap-4'>
-												<Label htmlFor='username' className='text-right'>
-													{label}
-												</Label>
-												<div className='col-span-3'>
-													<InputOptionChooser
-														type={type}
-														options={realOptions}
-														onChange={(value) =>
-															setFilter((prev) => ({
-																...prev,
-																filters: prev.filters.map((item) => {
-																	if (item.field === field) {
-																		return { ...item, value };
-																	}
-																	return item;
-																}),
-															}))
-														}
-														value={value}
-													/>
+												  )
+														.filter((item) => item)
+														.map((item) => ({ label: item, value: item }));
+
+											return (
+												<div key={field} className='grid grid-cols-4 items-center gap-4'>
+													<Label htmlFor='username' className='text-right'>
+														{label}
+													</Label>
+													<div className='col-span-3'>
+														<InputOptionChooser
+															type={type}
+															options={
+																pagination.active
+																	? value
+																		? (value as string).length > 3
+																			? realOptions
+																			: undefined
+																		: undefined
+																	: realOptions
+															}
+															pagination={pagination.active}
+															onChange={(value) =>
+																setFilter((prev) => ({
+																	...prev,
+																	filters: prev.filters.map((item) => {
+																		if (item.field === field) {
+																			return { ...item, value };
+																		}
+																		return item;
+																	}),
+																}))
+															}
+															value={value}
+														/>
+													</div>
 												</div>
-											</div>
-										);
-									})}
+											);
+										})}
 								</div>
 								<SheetFooter>
 									<SheetClose asChild>
@@ -463,7 +507,9 @@ export default function StackedList({
 					<DefaultPagination
 						numPages={pagination.numPages}
 						onPageChange={(page) => {
-							router.push(`?page=${page}&limit=10`, { scroll: false });
+							router.push("?" + createQueryString("page", page.toString()), {
+								scroll: false,
+							});
 						}}
 					/>
 				</div>
@@ -478,11 +524,11 @@ export default function StackedList({
 					.filter((filterItem) => filterItem.value)
 					.map((filterItem) => {
 						if (!filterItem.value) return false;
-						if ("text" === filterItem.type) {
+						if ("text" === filterItem.type || pagination) {
 							return (filterItem.value as unknown as string)
 								.split(" ")
 								.map((searchWord: string) =>
-									JSON.stringify(filterItem.field === "search" ? item : item[filterItem.field])
+									JSON.stringify(filterItem.field === "filter" ? item : item[filterItem.field])
 										.toLowerCase()
 										.includes(searchWord.toLowerCase())
 								)
@@ -824,11 +870,13 @@ function InputOptionChooser({
 	options,
 	value,
 	onChange,
+	pagination = false,
 }: {
 	type: FilterTypes;
 	options?: Option[];
 	value?: string | { from: Date; to: Date };
 	onChange: (value: string | { from: Date; to: Date }) => void;
+	pagination?: boolean;
 }) {
 	if (type === "text") {
 		return (
@@ -840,12 +888,24 @@ function InputOptionChooser({
 			/>
 		);
 	} else if (type === "select") {
-		if (!options) return null;
+		if (!options && !pagination) return null;
 		return (
 			<AutoComplete
-				value={options.find((option) => option.value === value)?.label}
+				value={
+					pagination
+						? value
+							? (value as unknown as string)
+							: ""
+						: options!.find((option) => option.value === value)
+						? options!.find((option) => option.value === value)!.label
+						: value
+						? (value as unknown as string)
+						: ""
+				}
 				onChange={onChange}
-				options={options}
+				options={options ? options : []}
+				showOptions={pagination ? (value ? (value as string).length > 3 : false) : true}
+				updateOnQueryChange={pagination}
 			/>
 		);
 	} else if (type === "daterange") {

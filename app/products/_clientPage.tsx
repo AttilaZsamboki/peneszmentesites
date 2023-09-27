@@ -115,13 +115,13 @@ export default function ClientPage({
 				}}
 				filters={[
 					{
-						field: "name",
-						label: "Név",
+						field: "sku",
+						label: "SKU",
 						type: "select",
 					},
 					{
-						field: "sku",
-						label: "SKU",
+						field: "name",
+						label: "Név",
 						type: "select",
 					},
 					{
@@ -138,6 +138,7 @@ export default function ClientPage({
 				}}
 				pagination={{
 					numPages: Math.ceil(data.count / 10),
+					active: true,
 				}}
 			/>
 			<CustomDialog

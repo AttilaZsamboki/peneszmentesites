@@ -9,7 +9,7 @@ export interface Question {
 	question: string;
 	type: string;
 	options: any;
-	connection: string;
+	connection: "Termék" | "Fix" | "";
 	products?: number[];
 	mandatory: boolean;
 	description: string;
@@ -24,7 +24,7 @@ export interface QuestionProducts {
 export default async function QuestionsFetch() {
 	const response = await fetch("https://pen.dataupload.xyz/questions", { next: { tags: ["questions"] } });
 	const data: Question[] = (await response.json()) as Question[];
-	const productData: Product[] = (await fetch("https://pen.dataupload.xyz/products").then((res) =>
+	const productData: Product[] = (await fetch("https://pen.dataupload.xyz/products?all=true").then((res) =>
 		res.json()
 	)) as Product[];
 	await Promise.all(

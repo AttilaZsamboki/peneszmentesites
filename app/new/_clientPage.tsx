@@ -12,7 +12,6 @@ import { Question } from "@/app/questions/page";
 
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
-import Input from "@/app/_components/Input";
 import MultipleChoice from "@/app/_components/MultipleChoice";
 import { GridOptions } from "../page";
 import { Grid } from "@/app/_components/Grid";

@@ -13,6 +13,16 @@ interface Progress {
 	percent: number;
 }
 
+interface Route {
+	name: string;
+	href: string;
+	icon: any;
+	subRoutes: {
+		name: string;
+		href: string[];
+	}[];
+}
+
 export const GlobalContext = React.createContext<{
 	setProgress: React.Dispatch<React.SetStateAction<Progress>>;
 	progress: Progress;
@@ -34,7 +44,7 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 		}
 	}, [progress.percent]);
 
-	const routes: { name: string; href: string; icon: any; subRoutes: { name: string; href: string }[] }[] = [
+	const routes: Route[] = [
 		{
 			name: "Főoldal",
 			href: "/",
@@ -42,19 +52,15 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 			subRoutes: [
 				{
 					name: "Felmérések",
-					href: "/",
+					href: ["/", "/new"],
 				},
 				{
 					name: "Kérdések",
-					href: "/questions",
+					href: ["/questions"],
 				},
 				{
 					name: "Sablonok",
-					href: "/templates",
-				},
-				{
-					name: "Felmérések",
-					href: "/new",
+					href: ["/templates"],
 				},
 			],
 		},
@@ -65,7 +71,7 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 			subRoutes: [
 				{
 					name: "Termékek",
-					href: "/products",
+					href: ["/products"],
 				},
 			],
 		},
@@ -95,11 +101,7 @@ export function useGlobalState() {
 	return context;
 }
 
-function Navbar({
-	routes,
-}: {
-	routes: { name: string; href: string; icon: any; subRoutes: { name: string; href: string }[] }[];
-}) {
+function Navbar({ routes }: { routes: Route[] }) {
 	const router = usePathname();
 
 	return (
@@ -140,7 +142,7 @@ function Navbar2({
 	setOpen,
 }: {
 	children: React.ReactNode;
-	routes: { name: string; href: string; icon: any; subRoutes: { name: string; href: string }[] }[];
+	routes: Route[];
 	setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
 	const router = usePathname().split("?")[0];
@@ -150,7 +152,7 @@ function Navbar2({
 
 	const activeRoute = routes.find(
 		(route) =>
-			route.subRoutes.some((subRoute) => "/" + routerBasePath === subRoute.href) ||
+			route.subRoutes.some((subRoute) => subRoute.href.includes("/" + routerBasePath)) ||
 			"/" + routerBasePath === route.href
 	);
 
@@ -173,14 +175,14 @@ function Navbar2({
 						</TabsHeader>
 						{activeRoute?.subRoutes.map((route) => (
 							<TabsHeader
-								key={route.href}
+								key={route.href[0]}
 								className='rounded-none bg-transparent p-0'
 								indicatorProps={{
 									className:
 										"bg-transparent border-b-2 border-gray-900 mx-3 shadow-none rounded-none",
 								}}>
-								<Link href={route.href}>
-									<Tab value={route.href} className='pb-2'>
+								<Link href={route.href[0]}>
+									<Tab value={route.href[0]} className='pb-2'>
 										<div className='hover:bg-gray-100 px-3 py-1 rounded-md'>{route.name}</div>
 									</Tab>
 								</Link>
