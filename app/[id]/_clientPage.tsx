@@ -155,7 +155,7 @@ export default function ClientPage({
 				<div className='w-full'>
 					<div className='mt-6 lg:px-10 px-3 w-full'>
 						<Card>
-							<CardHeader className='bg-gray-100 pb-6 border rounded-t'>
+							<CardHeader>
 								<div className='flex gap-5 flex-row items-center justify-between w-full flex-wrap'>
 									<div className='flex flex-row items-center gap-5'>
 										<CardTitle>{adatlap.Name}</CardTitle>
