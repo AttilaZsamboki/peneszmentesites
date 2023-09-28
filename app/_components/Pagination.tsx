@@ -53,7 +53,7 @@ export function DefaultPagination({
 	}, [active]);
 
 	return (
-		<div className='flex items-center gap-4'>
+		<div className='flex items-center gap-4 bg-white border-t bottom-0 fixed z-40 w-full py-2 justify-between lg:justify-center px-4'>
 			<Button className='flex items-center gap-2' onClick={prev} disabled={active === 1}>
 				<ArrowLeftIcon strokeWidth={2} className='h-4 w-4' /> {deviceSize === "sm" ? null : "Előző"}
 			</Button>
