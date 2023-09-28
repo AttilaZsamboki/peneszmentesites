@@ -1,7 +1,7 @@
 import { Question } from "@/app/questions/page";
 import { FelmeresQuestions } from "../page";
 import ClientPage from "./_clientPage";
-import { BaseFelmeresData, FelmeresItems } from "../new/_clientPage";
+import { BaseFelmeresData, FelmeresItem } from "../new/_clientPage";
 import { fetchAdatlapDetails } from "@/app/_utils/MiniCRM";
 
 export interface FelmeresNotes {
@@ -48,7 +48,7 @@ export default async function Page({ params }: { params: { id: string } }) {
 	})
 		.then((res) => res.json())
 		.catch((err) => console.log(err));
-	const felmeresItems: FelmeresItems[] = await fetch(
+	const felmeresItems: FelmeresItem[] = await fetch(
 		"https://pen.dataupload.xyz/felmeres_items?adatlap_id=" + felmeresId,
 		{
 			next: { tags: [encodeURIComponent(felmeresId)] },

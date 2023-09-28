@@ -25,7 +25,7 @@ export default function DropdownMenu({
 }) {
 	return (
 		<Dropdown>
-			<DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+			<DropdownMenuTrigger>{children}</DropdownMenuTrigger>
 			<DropdownMenuContent className='w-56'>
 				<DropdownMenuGroup>
 					<DropdownMenuItem onClick={onSave}>

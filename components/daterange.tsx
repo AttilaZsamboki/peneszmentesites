@@ -3,15 +3,18 @@ import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { DateRange } from "@/app/_components/StackedList";
 
 export default function DateRangePicker({
 	value,
 	className = "",
 	onChange,
+	numberOfMonths = 2,
 }: {
 	value?: DateRange;
 	className?: string;
 	onChange?: (value: { from: Date; to: Date }) => void;
+	numberOfMonths?: number;
 }) {
 	return (
 		<div className={`grid gap-2 ${className}`}>
@@ -38,14 +41,14 @@ export default function DateRangePicker({
 						)}
 					</Button>
 				</PopoverTrigger>
-				<PopoverContent className='w-auto p-0' align='start'>
+				<PopoverContent className='w-auto p-0 mr-2' align='start'>
 					<Calendar
 						initialFocus
 						mode='range'
 						defaultMonth={value?.from}
 						selected={value}
 						onSelect={(value) => (onChange ? onChange(value as { from: Date; to: Date }) : () => {})}
-						numberOfMonths={2}
+						numberOfMonths={numberOfMonths}
 					/>
 				</PopoverContent>
 			</Popover>

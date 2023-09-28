@@ -16,7 +16,7 @@ import Select from "@/app/_components/Select";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import {
 	BaseFelmeresData,
-	FelmeresItems,
+	FelmeresItem,
 	OtherFelmeresItems,
 	ProductTemplate,
 	hufFormatter,
@@ -35,8 +35,8 @@ export function Page2({
 	setDiscount,
 }: {
 	felmeres: BaseFelmeresData;
-	items: FelmeresItems[];
-	setItems: React.Dispatch<React.SetStateAction<FelmeresItems[]>>;
+	items: FelmeresItem[];
+	setItems: React.Dispatch<React.SetStateAction<FelmeresItem[]>>;
 	products: Product[];
 	productAttributes: ProductAttributes[];
 	otherItems: OtherFelmeresItems[];
@@ -148,7 +148,7 @@ export function Page2({
 				{
 					...prev.find((item) => item.attributeId === id),
 					placeOptions: [...prev.find((item) => item.attributeId === id)!.placeOptions, option],
-				} as FelmeresItems,
+				} as FelmeresItem,
 			]);
 			await fetch("/api/revalidate?tag=product-attributes");
 		}

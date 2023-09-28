@@ -410,7 +410,7 @@ export default function StackedList({
 											);
 										})}
 								</div>
-								<SheetFooter>
+								<SheetFooter className='flex flex-row w-full space-x-2 justify-end items-center'>
 									<SheetClose asChild>
 										<Button type='submit'>Alkalmaz</Button>
 									</SheetClose>
@@ -915,6 +915,7 @@ function InputOptionChooser({
 	onChange: (value: string | DateRange) => void;
 	pagination?: boolean;
 }) {
+	const deviceSize = useBreakpointValue();
 	if (type === "text") {
 		return (
 			<Input
@@ -946,10 +947,10 @@ function InputOptionChooser({
 			/>
 		);
 	} else if (type === "daterange") {
-		if (typeof value === "string") return null;
 		return (
 			<DateRangePicker
-				value={value ? value : { from: new Date(), to: new Date() }}
+				numberOfMonths={deviceSize === "sm" ? 1 : 2}
+				value={value ? (value as DateRange) : { from: new Date(), to: new Date() }}
 				onChange={(value) => {
 					if (value) {
 						if (value.to) {

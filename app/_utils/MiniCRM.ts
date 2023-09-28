@@ -1,4 +1,4 @@
-import { FelmeresItems } from "../new/_clientPage";
+import { FelmeresItem } from "../new/_clientPage";
 
 export interface AdatlapDetails {
 	Id: number;
@@ -201,7 +201,7 @@ export async function assembleOfferXML(
 	status: "Vázlat" | "Elfogadásra vár" | "Elfogadott ajánlat" | "Elutasítva" | "Sztornózva",
 	userId = 39636,
 	contactId: string,
-	items: FelmeresItems[],
+	items: FelmeresItem[],
 	adatlapId: string,
 	subject?: string,
 	templateName?: string

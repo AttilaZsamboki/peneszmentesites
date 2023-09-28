@@ -83,10 +83,6 @@ body {
 	background: #fafafa;
 }
 
-body {
-	overflow: hidden;
-}
-
 *::-webkit-scrollbar {
 	width: 8px; /* Set the width of the scrollbar */
 	background-color: #f2f2f2; /* Set the background color of the scrollbar */

@@ -29,6 +29,7 @@ export default function ClientPage({ allData }: { allData: any }) {
 				status: "Státusz",
 			}}
 			filters={[
+				{ field: "Name", label: "Név", type: "select" },
 				{ field: "StatusId", label: "MiniCRM státusz", type: "select" },
 				{
 					field: "status",
@@ -40,7 +41,6 @@ export default function ClientPage({ allData }: { allData: any }) {
 				{ field: "Felmérés típusa", label: "Felmérés típusa", type: "select" },
 				{ field: "Teljes cím", label: "Cím", type: "select" },
 				{ field: "created_at", label: "Dátum", type: "daterange" },
-				{ field: "Name", label: "Név", type: "select" },
 			]}
 			sort={{ by: "id", order: "desc" }}
 		/>

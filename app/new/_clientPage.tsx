@@ -41,7 +41,7 @@ export interface BaseFelmeresData {
 	created_at: string;
 }
 
-export interface FelmeresItems {
+export interface FelmeresItem {
 	name: string;
 	place: boolean;
 	placeOptions: string[];
@@ -92,7 +92,7 @@ export default function Page({
 		status: "DRAFT",
 		created_at: "",
 	});
-	const [items, setItems] = React.useState<FelmeresItems[]>([]);
+	const [items, setItems] = React.useState<FelmeresItem[]>([]);
 	const [numPages, setNumPages] = React.useState(0);
 	const router = useRouter();
 	const [data, setData] = React.useState<FelmeresQuestions[]>([]);
@@ -156,7 +156,8 @@ export default function Page({
 		const updateToast = (num: number) => {
 			toast({
 				title: "Felmérés létrehozása",
-				description: "Felmérés létrehozása folyamatban...",
+				description:
+					percent(num) === 100 ? "Felmérés sikeresen létrehozva!" : "Felmérés létrehozása folyamatban...",
 				duration: 5000,
 				action: percent(num) === 100 ? <Checkmark width={50} height={50} /> : <div>{percent(num)}%</div>,
 			});
@@ -334,7 +335,7 @@ export default function Page({
 			netPrice: Math.round(-((netTotal + otherItemsNetTotal) * (discount / 100)) / 1.27),
 			sku: null as unknown as string,
 		},
-	] as FelmeresItems[];
+	] as FelmeresItem[];
 	const onPageChange = (page: number) => {
 		if (page === 0) {
 			setItems([]);
@@ -436,8 +437,8 @@ function PageChooser({
 	templates: Template[];
 	felmeres: BaseFelmeresData;
 	setFelmeres: React.Dispatch<React.SetStateAction<BaseFelmeresData>>;
-	items: FelmeresItems[];
-	setItems: React.Dispatch<React.SetStateAction<FelmeresItems[]>>;
+	items: FelmeresItem[];
+	setItems: React.Dispatch<React.SetStateAction<FelmeresItem[]>>;
 	setNumPages: React.Dispatch<React.SetStateAction<number>>;
 	globalData: FelmeresQuestions[];
 	products: Product[];
@@ -476,23 +477,25 @@ function PageChooser({
 			),
 			title: "Tételek",
 		},
-		...Array.from(new Set(questions.map((question) => question.product))).map((product) => ({
-			component: (
-				<QuestionPage
-					globalData={globalData}
-					product={items.find((item) => item.productId === product)?.name || ""}
-					adatlap_id={felmeres.adatlap_id}
-					questions={questions.filter((question) => question.product === product)}
-					setData={setData}
-				/>
-			),
-			title:
-				(items.find((item) => item.productId === product)
-					? items.find((item) => item.productId === product)!.sku +
-					  " - " +
-					  items.find((item) => item.productId === product)!.name
-					: "") || "Fix kérdések",
-		})),
+		...Array.from(new Set(questions.map((question) => question.product))).map((product) => {
+			const sectionName = items.find((item) => item.productId === product)
+				? items.find((item) => item.productId === product)!.sku +
+				  " - " +
+				  items.find((item) => item.productId === product)!.name
+				: "";
+			return {
+				component: (
+					<QuestionPage
+						globalData={globalData}
+						product={sectionName || ""}
+						adatlap_id={felmeres.adatlap_id}
+						questions={questions.filter((question) => question.product === product)}
+						setData={setData}
+					/>
+				),
+				title: sectionName || "Fix kérdések",
+			};
+		}),
 	];
 	React.useEffect(() => {
 		setNumPages(pageMap.length);
@@ -505,13 +508,11 @@ function PageChooser({
 export function QuestionTemplate({
 	children,
 	title,
-	type,
 	mandatory,
 	description,
 }: {
 	children: React.ReactNode;
 	title: string;
-	type?: string;
 	mandatory?: boolean;
 	description?: string;
 }) {
@@ -638,7 +639,6 @@ function QuestionPage({
 				<QuestionTemplate
 					key={question.id}
 					title={question.question}
-					type={question.type}
 					description={question.description}
 					mandatory={question.mandatory}>
 					<FieldCreate

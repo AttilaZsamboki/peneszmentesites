@@ -1,3 +1,4 @@
+import { ButtonProps } from "@/components/ui/button";
 import { Product } from "../products/page";
 import { Question } from "../questions/page";
 
@@ -14,9 +15,9 @@ export const typeMap = {
 	FILE_UPLOAD: "Fájlfeltöltés",
 };
 
-export const statusMap = {
+export const statusMap: { [key: string]: { name: string; color: ButtonProps["color"]; className?: string } } = {
 	DRAFT: { name: "Vázlat", color: "gray", className: "bg-gray-900/10 text-gray-900" },
-	IN_PROGRESS: { name: "Folyamatban", color: "blue", className: "bg-blue-500/20 text-blue-900" },
+	IN_PROGRESS: { name: "Folyamatban", color: "yellow" },
 	COMPLETED: { name: "Kész", color: "green", className: "bg-green-500/20 text-green-900" },
 };
 
@@ -52,5 +53,5 @@ export const createQueryString = (searchParams: any) => {
 };
 
 export function isValidDate(d: Date) {
-  return !isNaN(d.getTime());
+	return !isNaN(d.getTime());
 }

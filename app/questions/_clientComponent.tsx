@@ -203,6 +203,15 @@ export default function ClientComponent({ data, products }: { data: any; product
 						type: "select",
 						label: "Kötelező",
 					},
+					{
+						field: "connection",
+						type: "select",
+						label: "Kapcsolat",
+						options: [
+							{ label: "Fix", value: "Fix" },
+							{ label: "Termék", value: "Termék" },
+						],
+					},
 				]}
 				onEditItem={(item) => {
 					setQuestion(item);
