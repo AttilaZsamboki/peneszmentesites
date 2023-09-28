@@ -34,8 +34,8 @@ export default function Sections({
 }) {
 	const [open, setOpen] = React.useState(true);
 	return (
-		<Tabs className='sticky top-5 w-full flex flex-col' orientation='vertical'>
-			<TabsHeader className='rounded-none lg:rounded-md px-5'>
+		<Tabs className='sticky top-5 w-full flex flex-col ' orientation='vertical'>
+			<TabsHeader className='rounded-none lg:rounded-sm px-5 border'>
 				<Accordion open={open} icon={<Icon open={open} />}>
 					<AccordionHeader onClick={() => setOpen(!open)}>
 						<div className='mx-3 my-1 mb-3 w-full'>

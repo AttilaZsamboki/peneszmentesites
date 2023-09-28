@@ -150,12 +150,12 @@ export default function ClientPage({
 	};
 
 	return (
-		<div className='w-full overflow-y-scroll overflow-x-hidden h-[80dvh]'>
+		<div className='w-full overflow-y-scroll overflow-x-hidden lg:h-[93dvh] h-[80dvh]'>
 			<div className='flex flex-row w-ful flex-wrap lg:flex-nowrap justify-center mt-2'>
 				<div className='w-full'>
-					<div className='lg:mt-6 lg:px-10 px-3 w-full'>
+					<div className='mt-6 lg:px-10 px-3 w-full'>
 						<Card>
-							<CardHeader>
+							<CardHeader className='bg-gray-100 pb-6 border rounded-t'>
 								<div className='flex gap-5 flex-row items-center justify-between w-full flex-wrap'>
 									<div className='flex flex-row items-center gap-5'>
 										<CardTitle>{adatlap.Name}</CardTitle>
@@ -192,7 +192,7 @@ export default function ClientPage({
 									</div>
 								</div>
 							</CardHeader>
-							<Separator className='my-4' />
+							<Separator className='mb-4' />
 							<CardContent>
 								{isAll
 									? sections.map((section, index) => {
@@ -248,7 +248,7 @@ export default function ClientPage({
 									)}
 								</div>
 							</React.Suspense>
-							<div className='flex flex-row w-full justify-between my-5 p-2 px-4 border rounded-md'>
+							<div className='flex flex-row w-full justify-between my-5 p-2 px-4 border rounded-md bg-white'>
 								<Typography className={`${isLoading ? "text-gray-600" : ""}`} variant='h6'>
 									Módosítás
 								</Typography>
@@ -337,7 +337,7 @@ export default function ClientPage({
 									</div>
 								)}
 							</div>
-							<div className='flex flex-row w-full justify-between my-5 p-2 px-4 border rounded-md items-center'>
+							<div className='flex flex-row w-full justify-between bg-white my-5 p-2 px-4 border rounded-md items-center'>
 								<Typography className={`${isLoading ? "text-gray-600" : ""}`} variant='h6'>
 									Minden
 								</Typography>
@@ -384,7 +384,7 @@ function Page2({ items }: { items: FelmeresItem[] }) {
 	const TABLE_HEAD = ["Név", "Darab + Hely", "Nettó egység", "Nettó összesen"];
 
 	return (
-		<Card className='my-5'>
+		<Card className='my-5 rounded-sm'>
 			<div className='w-full lg:overflow-hidden overflow-x-scroll'>
 				<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
 					<thead>
