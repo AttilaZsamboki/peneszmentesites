@@ -218,12 +218,13 @@ function UpdateForm({
 			{attributeData.place ? (
 				<FormList
 					title='Opciók'
-					onAddNewItem={(value) =>
+					onAddNewItem={(value) => {
+						console.log(value);
 						setAttributeData((prev) => ({
 							...prev,
 							place_options: [...prev.place_options, value],
-						}))
-					}
+						}));
+					}}
 					items={attributeData.place_options}
 					onDeleteItem={(item) =>
 						setAttributeData((prev) => ({
@@ -233,7 +234,7 @@ function UpdateForm({
 					}
 					create={true}
 					emptyOption={false}
-					showOptions={false}
+					showOptions={true}
 				/>
 			) : (
 				<div></div>
