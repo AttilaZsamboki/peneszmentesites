@@ -53,5 +53,7 @@ export const useCreateQueryString = (searchParams: any) => {
 };
 
 export function isValidDate(d: Date) {
-	return !isNaN(d.getTime());
+	if (d instanceof Date && !isNaN(d as unknown as number)) {
+		return !isNaN(d.getTime());
+	}
 }
