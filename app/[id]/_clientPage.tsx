@@ -358,6 +358,7 @@ export default function ClientPage({
 							className='flex flex-row w-full border-b pl-3 lg:pl-6 items-center overflow-x-scroll'>
 							{sections.map((section) => (
 								<TabsHeader
+									key={section.title}
 									className='rounded-none bg-transparent p-0'
 									onClick={() => setSelectedSection(section.title)}
 									indicatorProps={{

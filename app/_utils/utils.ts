@@ -41,7 +41,7 @@ interface Breakpoint {
 	max: number;
 }
 
-export const createQueryString = (searchParams: any) => {
+export const useCreateQueryString = (searchParams: any) => {
 	return React.useCallback(
 		(name: string, value: string) => {
 			const params = new URLSearchParams(searchParams as unknown as string);

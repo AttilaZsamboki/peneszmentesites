@@ -31,7 +31,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import useBreakpointValue from "./useBreakpoint";
 import { Separator } from "@/components/ui/separator";
 import DateRangePicker from "@/components/daterange";
-import { createQueryString, isValidDate } from "../_utils/utils";
+import { useCreateQueryString, isValidDate } from "../_utils/utils";
 
 function deepEqual(a: any, b: any) {
 	if (a === b) {
@@ -305,7 +305,7 @@ export default function StackedList({
 		}));
 	};
 
-	const createQueryStringCallback = createQueryString(searchParams);
+	const createQueryStringCallback = useCreateQueryString(searchParams);
 
 	return (
 		<div className='w-full px-5 lg:px-0 lg:w-2/3 flex flex-col gap-3 '>
