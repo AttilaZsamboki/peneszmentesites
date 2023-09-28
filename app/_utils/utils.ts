@@ -17,7 +17,7 @@ export const typeMap = {
 
 export const statusMap: { [key: string]: { name: string; color: ButtonProps["color"]; className?: string } } = {
 	DRAFT: { name: "Vázlat", color: "gray", className: "bg-gray-900/10 text-gray-900" },
-	IN_PROGRESS: { name: "Folyamatban", color: "yellow" },
+	IN_PROGRESS: { name: "Folyamatban", color: "yellow", className: "bg-yellow-500/20 text-yellow-900" },
 	COMPLETED: { name: "Kész", color: "green", className: "bg-green-500/20 text-green-900" },
 };
 

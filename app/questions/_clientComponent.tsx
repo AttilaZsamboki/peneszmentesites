@@ -271,7 +271,7 @@ function QuestionForm({
 	const items = productItems ? productItems.map((item) => (item ? item.sku + " - " + item.name : "")) : [];
 
 	return (
-		<div className='flex flex-col w-full gap-5 h-full overflow-y-scroll'>
+		<div className='flex flex-col w-full gap-5 h-full overflow-y-scroll px-2'>
 			<FormField title='Kérdés'>
 				<Input
 					value={question.question}

@@ -25,7 +25,7 @@ export default function CustomDialog({
 }) {
 	return (
 		<Dialog open={open} onOpenChange={handler}>
-			<DialogContent className='max-w-[600px]'>
+			<DialogContent className='lg:max-w-[35dvw] max-w-[95dvw]'>
 				<DialogHeader className='flex flex-row justify-between w-full items-center'>
 					<DialogTitle>{title}</DialogTitle>
 					{onDelete ? (
@@ -35,7 +35,7 @@ export default function CustomDialog({
 					) : null}
 				</DialogHeader>
 				<div className='flex flex-col gap-4 h-full'>
-					<div className='max-h-[700px]'>{children}</div>
+					<div className='max-h-[70dvh]'>{children}</div>
 				</div>
 				<DialogFooter>
 					<div className='flex pt-4 flex-row justify-end w-full gap-5'>
