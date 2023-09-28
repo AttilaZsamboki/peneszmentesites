@@ -41,7 +41,6 @@ export default async function QuestionsFetch() {
 	const allData = data.map((question) => {
 		return {
 			...question,
-			Azonosító: question.id,
 			Név: question.question,
 			Termék:
 				question.connection === "Fix"

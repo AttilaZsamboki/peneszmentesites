@@ -76,23 +76,15 @@ export default function ClientComponent({ data, products }: { data: any; product
 				...prev,
 				{
 					...question,
-					subtitle:
+					Termék:
 						question.connection === "Fix"
 							? "Fix"
 							: products.find(getFirstProduct(question))?.sku +
-									" - " +
-									(products.find(getFirstProduct(question))?.name.substring(0, 25) +
-										((
-											products.find(getFirstProduct(question))
-												? products.find(getFirstProduct(question))!.name.length > 25
-												: false
-										)
-											? "..."
-											: "")) ||
-							  "" ||
-							  "",
-					subtitle2: (typeMap as any)[question.type] || "Nincs típus",
-					isMandatory: question.mandatory ? "Kötelező" : "Nem kötelező",
+							  " - " +
+							  products.find(getFirstProduct(question))?.name,
+					Név: question.question,
+					Típus: (typeMap as any)[question.type] || "Nincs típus",
+					Kötelező: question.mandatory ? "Kötelező" : "Nem kötelező",
 					id: data.id,
 					product: null,
 				},
@@ -188,7 +180,7 @@ export default function ClientComponent({ data, products }: { data: any; product
 				data={allQuestions}
 				editType='dialog'
 				itemContent={{
-					id: "Azonosító",
+					id: "id",
 					title: "Név",
 					subtitle2: "Termék",
 					subtitle: "Típus",
