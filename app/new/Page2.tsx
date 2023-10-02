@@ -105,6 +105,7 @@ export function Page2({
 										sku: productData.sku,
 										attributeId: productAttributeData ? productAttributeData.id : 0,
 										type: "Item",
+										valueType: "fixed",
 									},
 								]);
 							}
@@ -202,7 +203,6 @@ export function Page2({
 										},
 										index
 									) => {
-										const isLast = index === items.length - 1;
 										const classes = "p-4";
 
 										return (
@@ -224,8 +224,13 @@ export function Page2({
 																	<Typography
 																		variant='small'
 																		color='blue-gray'
-																		className='font-normal w-12'>
-																		{inputValue.ammount} darab
+																		className='font-normal w-40 flex flex-row gap-2'>
+																		<span>{inputValue.ammount} darab</span>
+																		{place ? (
+																			<>
+																				-<span>{inputValue.value}</span>
+																			</>
+																		) : null}
 																	</Typography>
 																) : (
 																	<Counter
@@ -267,14 +272,7 @@ export function Page2({
 																	}>
 																	<div className='font-normal flex flex-col gap-2 max-w-[17rem]'>
 																		<div className='flex-row flex items-center gap-2'>
-																			{readonly ? (
-																				<Typography
-																					variant='small'
-																					color='blue-gray'
-																					className='font-normal w-10'>
-																					{inputValue.value}
-																				</Typography>
-																			) : (
+																			{readonly ? null : (
 																				<>
 																					<AutoComplete
 																						options={place_options
@@ -608,35 +606,67 @@ export function Page2({
 												</Typography>
 											</td>
 											<td className='mr-5 p-4 pr-8 border-b border-blue-gray-50 w-40'>
-												<div className='relative'>
-													<Input
-														variant='simple'
-														value={
-															item.type === "percent"
-																? item.value
-																: numberFormatter.format(item.value)
-														}
-														onChange={(e) => {
-															if (!setOtherItems) return;
-															setOtherItems((prev) => [
-																...prev.filter((prevItem) => item.id !== prevItem.id),
-																{
-																	...prev.find(
-																		(prevItem) => prevItem.id === item.id
-																	)!,
-																	value: e.target.value
-																		? parseInt(e.target.value.replace(/\D/g, ""))
-																		: 0,
-																},
-															]);
-														}}
-													/>
-													<Typography
-														variant='small'
-														className='font-extralight text-gray-500 absolute top-2 right-2 max-w-[30rem]'>
-														{item.type === "percent" ? "%" : "Ft"}
-													</Typography>
-												</div>
+												{readonly && item.type === "fixed" ? null : (
+													<div className='relative'>
+														{readonly ? (
+															<Typography
+																variant='small'
+																color='blue-gray'
+																className='font-normal max-w-[30rem]'>
+																{item.type === "percent" ? (
+																	<div>
+																		{item.value}{" "}
+																		<span className='font-extralight text-gray-500'>
+																			%
+																		</span>
+																	</div>
+																) : (
+																	numberFormatter.format(item.value)
+																)}
+															</Typography>
+														) : (
+															<>
+																<Input
+																	variant='simple'
+																	value={
+																		item.type === "percent"
+																			? item.value
+																			: numberFormatter.format(item.value)
+																	}
+																	onChange={(e) => {
+																		if (!setOtherItems) return;
+																		setOtherItems((prev) => [
+																			...prev.filter(
+																				(prevItem) => item.id !== prevItem.id
+																			),
+																			{
+																				...prev.find(
+																					(prevItem) =>
+																						prevItem.id === item.id
+																				)!,
+																				value: e.target.value
+																					? parseInt(
+																							e.target.value.replace(
+																								/\D/g,
+																								""
+																							)
+																					  )
+																					: 0,
+																			},
+																		]);
+																	}}
+																/>
+																<Typography
+																	variant='small'
+																	className={`font-extralight text-gray-500 absolute ${
+																		readonly ? "top-0" : "top-2"
+																	} right-2 max-w-[30rem]`}>
+																	{item.type === "percent" ? "%" : "Ft"}
+																</Typography>
+															</>
+														)}
+													</div>
+												)}
 											</td>
 											<td className='p-4 border-b border-blue-gray-50 w-40'>
 												<Typography
@@ -904,23 +934,35 @@ export function Page2({
 									<td></td>
 									<td className='p-4 border-b pr-8 border-blue-gray-50 w-40'>
 										<div className='relative'>
-											<Input
-												variant='simple'
-												value={discount}
-												onChange={(e) => {
-													if (!setDiscount) return;
-													setDiscount(
-														parseInt(e.target.value.replace(/\D/g, "")) <= 100
-															? parseInt(e.target.value.replace(/\D/g, ""))
-															: 0
-													);
-												}}
-											/>
-											<Typography
-												variant='small'
-												className='font-extralight text-gray-500 absolute top-2 right-2 max-w-[30rem]'>
-												%
-											</Typography>
+											{readonly ? (
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													{discount}
+													<span className='font-extralight text-gray-500 pl-1'>%</span>
+												</Typography>
+											) : (
+												<>
+													<Input
+														variant='simple'
+														value={discount}
+														onChange={(e) => {
+															if (!setDiscount) return;
+															setDiscount(
+																parseInt(e.target.value.replace(/\D/g, "")) <= 100
+																	? parseInt(e.target.value.replace(/\D/g, ""))
+																	: 0
+															);
+														}}
+													/>
+													<Typography
+														variant='small'
+														className={`font-extralight text-gray-500 absolute right-2 max-w-[30rem]`}>
+														%
+													</Typography>
+												</>
+											)}
 										</div>
 									</td>
 								</tr>

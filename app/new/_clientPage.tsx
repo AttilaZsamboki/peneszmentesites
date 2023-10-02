@@ -54,6 +54,7 @@ export interface FelmeresItem {
 	sku: string;
 	attributeId: number;
 	type: "Item" | "Fee" | "Discount";
+	valueType: "percent" | "fixed";
 }
 
 export const hufFormatter = new Intl.NumberFormat("hu-HU", {

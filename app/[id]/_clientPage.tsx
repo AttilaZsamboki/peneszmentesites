@@ -91,26 +91,12 @@ export default function ClientPage({
 						.map((item) => ({
 							id: item.id ? item.id : 0,
 							name: item.name,
-							type: "fixed",
+							type: item.valueType ? item.valueType : "fixed",
 							value: item.netPrice,
 						}))}
 					discount={
 						felmeresItems.find((item) => item.type === "Discount")
-							? Math.round(
-									(Math.abs(felmeresItems.find((item) => item.type === "Discount")!.netPrice) /
-										felmeresItems
-											.map((item) =>
-												item.type !== "Discount"
-													? item.netPrice *
-													  item.inputValues
-															.map((value) => value.ammount)
-															.reduce((a, b) => a + b, 0)
-													: 0
-											)
-											.reduce((a, b) => a + b, 0)) *
-										1.27 *
-										100
-							  )
+							? felmeresItems.find((item) => item.type === "Discount")!.netPrice
 							: 0
 					}
 				/>
