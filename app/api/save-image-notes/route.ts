@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
 	const files: File[] | null = data.getAll("files") as unknown as File[];
 
 	if (!files) {
-		console.log("FAIL");
+		console.error("FAIL");
 		return NextResponse.json({ success: false }, { status: 400 });
 	}
 

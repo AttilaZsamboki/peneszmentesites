@@ -219,7 +219,6 @@ function UpdateForm({
 				<FormList
 					title='Opciók'
 					onAddNewItem={(value) => {
-						console.log(value);
 						setAttributeData((prev) => ({
 							...prev,
 							place_options: [...prev.place_options, value],

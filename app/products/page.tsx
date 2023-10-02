@@ -34,7 +34,7 @@ export default async function ProductsFetch({ searchParams }: { searchParams: { 
 	)
 		.then((res) => res.json())
 		.catch((err) => {
-			console.log(err);
+			console.error(err);
 			return { count: 0, results: [] };
 		});
 	return <Products data={data} questions={questions} />;

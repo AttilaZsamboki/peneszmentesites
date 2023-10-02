@@ -3,7 +3,7 @@ import { Tooltip } from "@material-tailwind/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import React from "react";
-import { FelmeresQuestions, ScaleOption } from "../page";
+import { FelmeresQuestion, ScaleOption } from "../page";
 import { AdatlapData } from "./page";
 import AutoComplete from "@/app/_components/AutoComplete";
 import { Template } from "@/app/templates/page";
@@ -26,6 +26,7 @@ import { Page2 } from "./Page2";
 import { useToast } from "@/components/ui/use-toast";
 import Textarea from "../_components/Textarea";
 import { Checkmark } from "@/components/check";
+import { isJSONParsable } from "../[id]/_clientPage";
 
 export interface ProductTemplate {
 	product: number;
@@ -42,15 +43,17 @@ export interface BaseFelmeresData {
 }
 
 export interface FelmeresItem {
+	id?: number;
 	name: string;
 	place: boolean;
 	placeOptions: string[];
-	productId: number;
+	product: number;
 	inputValues: { value: string; id: number; ammount: number }[];
 	netPrice: number;
 	adatlap: number;
 	sku: string;
 	attributeId: number;
+	type: "Item" | "Fee" | "Discount";
 }
 
 export const hufFormatter = new Intl.NumberFormat("hu-HU", {
@@ -62,7 +65,7 @@ export const numberFormatter = new Intl.NumberFormat("hu-HU", {
 	style: "decimal",
 });
 
-export interface OtherFelmeresItems {
+export interface OtherFelmeresItem {
 	name: string;
 	value: number;
 	type: "percent" | "fixed";
@@ -74,30 +77,47 @@ export default function Page({
 	templates,
 	products,
 	productAttributes,
+	editFelmeres,
+	editFelmeresItems,
+	editData,
 }: {
 	adatlapok: AdatlapData[];
 	templates: Template[];
 	products: Product[];
 	productAttributes: ProductAttributes[];
+	editFelmeres?: BaseFelmeresData;
+	editFelmeresItems?: FelmeresItem[];
+	editData?: FelmeresQuestion[];
 }) {
 	const { setProgress } = useGlobalState();
 	const searchParams = useSearchParams();
 	const [page, setPage] = React.useState(0);
 	const [section, setSection] = React.useState("Alapadatok");
-	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>({
-		id: 0,
-		adatlap_id: searchParams.get("adatlap_id") ? parseInt(searchParams.get("adatlap_id")!) : 0,
-		type: "",
-		template: 0,
-		status: "DRAFT",
-		created_at: "",
-	});
-	const [items, setItems] = React.useState<FelmeresItem[]>([]);
+	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>(
+		editFelmeres
+			? editFelmeres
+			: {
+					id: 0,
+					adatlap_id: searchParams.get("adatlap_id") ? parseInt(searchParams.get("adatlap_id")!) : 0,
+					type: "",
+					template: 0,
+					status: "DRAFT",
+					created_at: "",
+			  }
+	);
+	const [items, setItems] = React.useState<FelmeresItem[]>(editFelmeresItems ? editFelmeresItems : []);
 	const [numPages, setNumPages] = React.useState(0);
 	const router = useRouter();
-	const [data, setData] = React.useState<FelmeresQuestions[]>([]);
+	const [data, setData] = React.useState<FelmeresQuestion[]>(
+		editData
+			? editData.map((field) => ({
+					...field,
+					value: isJSONParsable(field.value) ? JSON.parse(field.value) : field.value,
+			  }))
+			: []
+	);
 	const [questions, setQuestions] = React.useState<Question[]>([]);
-	const [otherItems, setOtherItems] = React.useState<OtherFelmeresItems[]>([
+	const [otherItems, setOtherItems] = React.useState<OtherFelmeresItem[]>([
 		{
 			name: "Munkadíj",
 			value: 0,
@@ -116,12 +136,12 @@ export default function Page({
 
 	React.useEffect(() => {
 		const fetchQuestions = async () => {
-			setQuestions((prev) =>
-				prev.filter((question) => items.map((item) => item.productId).includes(question.id))
-			);
-			setData((prev) => prev.filter((field) => items.map((item) => item.productId).includes(field.question)));
+			setQuestions((prev) => prev.filter((question) => items.map((item) => item.product).includes(question.id)));
+			if (!data.length) {
+				setData((prev) => prev.filter((field) => items.map((item) => item.product).includes(field.question)));
+			}
 			items.map(async (item) => {
-				const res = await fetch("https://pen.dataupload.xyz/question_products?product=" + item.productId);
+				const res = await fetch("https://pen.dataupload.xyz/question_products?product=" + item.product);
 				if (res.ok) {
 					const questionProducts: { question: number; product: number }[] = await res.json();
 					questionProducts.map(async (questionProduct) => {
@@ -131,9 +151,9 @@ export default function Page({
 							setQuestions((prev) => [
 								...prev.filter(
 									(question) =>
-										question.id !== questionProduct.question || question.product !== item.productId
+										question.id !== questionProduct.question || question.product !== item.product
 								),
-								{ ...question, product: item.productId },
+								{ ...question, product: item.product },
 							]);
 						}
 					});
@@ -195,7 +215,14 @@ export default function Page({
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify(submitItems.map((item) => ({ ...item, adatlap: felmeresResponseData.id }))),
+				body: JSON.stringify(
+					submitItems.map((item) => ({
+						...item,
+						create_name: item.product ? null : item.name,
+						adatlap: felmeresResponseData.id,
+						netPrice: item.type === "Discount" ? Math.floor(item.netPrice / 1.27) : item.netPrice,
+					}))
+				),
 			});
 			setProgress({ percent: percent(214) });
 			updateToast(214);
@@ -313,7 +340,7 @@ export default function Page({
 			name: item.name,
 			place: false,
 			placeOptions: [],
-			productId: Math.floor(Math.random() * 10000),
+			product: null,
 			adatlap: felmeres.adatlap_id,
 			inputValues: [{ ammount: 1, id: 0, value: "" }],
 			netPrice: Math.round(
@@ -324,16 +351,18 @@ export default function Page({
 							(item.value / 100)
 			),
 			sku: null as unknown as string,
+			type: "Fee",
 		})),
 		{
 			name: "Kedvezmény",
 			place: false,
 			placeOptions: [],
-			productId: Math.floor(Math.random() * 10000),
+			product: null,
 			adatlap: felmeres.adatlap_id,
 			inputValues: [{ ammount: 1, id: 0, value: "" }],
-			netPrice: Math.round(-((netTotal + otherItemsNetTotal) * (discount / 100)) / 1.27),
+			netPrice: Math.round(-((netTotal + otherItemsNetTotal) * (discount / 100))),
 			sku: null as unknown as string,
+			type: "Discount",
 		},
 	] as FelmeresItem[];
 	const onPageChange = (page: number) => {
@@ -431,7 +460,7 @@ function PageChooser({
 	setDiscount,
 }: {
 	page: number;
-	setData: React.Dispatch<React.SetStateAction<FelmeresQuestions[]>>;
+	setData: React.Dispatch<React.SetStateAction<FelmeresQuestion[]>>;
 	adatlapok: AdatlapData[];
 	setSection: React.Dispatch<React.SetStateAction<string>>;
 	templates: Template[];
@@ -440,12 +469,12 @@ function PageChooser({
 	items: FelmeresItem[];
 	setItems: React.Dispatch<React.SetStateAction<FelmeresItem[]>>;
 	setNumPages: React.Dispatch<React.SetStateAction<number>>;
-	globalData: FelmeresQuestions[];
+	globalData: FelmeresQuestion[];
 	products: Product[];
 	productAttributes: ProductAttributes[];
 	questions: Question[];
-	otherItems: OtherFelmeresItems[];
-	setOtherItems: React.Dispatch<React.SetStateAction<OtherFelmeresItems[]>>;
+	otherItems: OtherFelmeresItem[];
+	setOtherItems: React.Dispatch<React.SetStateAction<OtherFelmeresItem[]>>;
 	discount: number;
 	setDiscount: React.Dispatch<React.SetStateAction<number>>;
 }) {
@@ -478,10 +507,10 @@ function PageChooser({
 			title: "Tételek",
 		},
 		...Array.from(new Set(questions.map((question) => question.product))).map((product) => {
-			const sectionName = items.find((item) => item.productId === product)
-				? items.find((item) => item.productId === product)!.sku +
+			const sectionName = items.find((item) => item.product === product)
+				? items.find((item) => item.product === product)!.sku +
 				  " - " +
-				  items.find((item) => item.productId === product)!.name
+				  items.find((item) => item.product === product)!.name
 				: "";
 			return {
 				component: (
@@ -629,9 +658,9 @@ function QuestionPage({
 }: {
 	product: string;
 	questions: Question[];
-	setData: React.Dispatch<React.SetStateAction<FelmeresQuestions[]>>;
+	setData: React.Dispatch<React.SetStateAction<FelmeresQuestion[]>>;
 	adatlap_id: number;
-	globalData: FelmeresQuestions[];
+	globalData: FelmeresQuestion[];
 }) {
 	return (
 		<div className='flex flex-col gap-10'>
@@ -662,8 +691,8 @@ function FieldCreate({
 	product,
 }: {
 	question: Question;
-	setGlobalData: React.Dispatch<React.SetStateAction<FelmeresQuestions[]>>;
-	globalData: FelmeresQuestions[];
+	setGlobalData: React.Dispatch<React.SetStateAction<FelmeresQuestion[]>>;
+	globalData: FelmeresQuestion[];
 	adatlap_id: number;
 	product?: string;
 }) {
@@ -688,7 +717,7 @@ function FieldCreate({
 		}
 	}, [adatlap_id, product, question.id, setGlobalData]);
 
-	const isTrue = (felmeres: FelmeresQuestions) => {
+	const isTrue = (felmeres: FelmeresQuestion) => {
 		return (
 			felmeres.question === question.id && (question.connection === "Fix" ? true : felmeres.section === product)
 		);

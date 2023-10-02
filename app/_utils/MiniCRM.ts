@@ -264,7 +264,7 @@ export async function assembleOfferXML(
                     <!-- Id = External id of product [required int] -->
                     ${items
 						.map(
-							(item) => `<Product Id="${item.productId}">
+							(item) => `<Product Id="${item.product ? item.product : Math.floor(Math.random() * 1000)}">
                         <!-- Name of product [required int] -->
                         <Name>${item.name}</Name>
                         <!-- SKU code of product [optional string]-->

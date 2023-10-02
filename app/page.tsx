@@ -19,7 +19,7 @@ export interface ScaleOption {
 	max: number;
 }
 
-export interface FelmeresQuestions {
+export interface FelmeresQuestion {
 	id: number;
 	adatlap_id: number;
 	question: number;
@@ -40,7 +40,7 @@ export default async function Home() {
 					next: { tags: [encodeURIComponent(felmeres.adatlap_id)] },
 				})
 					.then((res) => res.json())
-					.catch((err) => console.log(err))
+					.catch((err) => console.error(err))
 			)
 		);
 		const allData = felmeresek.map((felmeres) => {

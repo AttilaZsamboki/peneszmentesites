@@ -1,11 +1,9 @@
 "use client";
-import { FelmeresQuestions, GridOptions, ScaleOption } from "../page";
+import { FelmeresQuestion, GridOptions } from "../page";
 import { AdatlapDetails } from "@/app/_utils/MiniCRM";
 
 import Heading from "../_components/Heading";
 const Sections = React.lazy(() => import("../_components/Sections"));
-
-import { useGlobalState } from "../_clientLayout";
 
 import React from "react";
 
@@ -13,8 +11,8 @@ import { Typography, Spinner, Switch, Slider, Tabs, TabsHeader, Tab } from "@mat
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { XMarkIcon, CheckIcon, ChevronRightIcon, ChevronLeftIcon } from "@heroicons/react/20/solid";
-import { BaseFelmeresData, FelmeresItem, QuestionTemplate } from "../new/_clientPage";
+import { XMarkIcon, CheckIcon } from "@heroicons/react/20/solid";
+import { BaseFelmeresData, FelmeresItem, OtherFelmeresItem, QuestionTemplate } from "../new/_clientPage";
 
 import { Question } from "@/app/questions/page";
 import { Template } from "@/app/templates/page";
@@ -23,7 +21,6 @@ import { Grid } from "@/app/_components/Grid";
 import Gallery from "@/app/_components/Gallery";
 
 import { statusMap } from "@/app/_utils/utils";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import useBreakpointValue from "../_components/useBreakpoint";
@@ -37,6 +34,9 @@ import {
 	DropdownMenuTrigger,
 	DropdownMenu,
 } from "@/components/ui/dropdown-menu";
+import { FileEdit } from "lucide-react";
+import Link from "next/link";
+import { Page2 } from "../new/Page2";
 
 export function isJSONParsable(str: string) {
 	try {
@@ -61,7 +61,7 @@ export default function ClientPage({
 	questions,
 	template,
 }: {
-	felmeresQuestions: FelmeresQuestions[];
+	felmeresQuestions: FelmeresQuestion[];
 	felmeresId: string;
 	felmeresNonState: BaseFelmeresData;
 	felmeresItems: FelmeresItem[];
@@ -81,7 +81,40 @@ export default function ClientPage({
 
 	const sections: PageMap[] = [
 		{
-			component: <Page2 items={felmeresItems} />,
+			component: (
+				<Page2
+					felmeres={felmeres}
+					readonly={true}
+					items={felmeresItems.filter((item) => item.type === "Item")}
+					otherItems={felmeresItems
+						.filter((item) => item.type === "Fee")
+						.map((item) => ({
+							id: item.id ? item.id : 0,
+							name: item.name,
+							type: "fixed",
+							value: item.netPrice,
+						}))}
+					discount={
+						felmeresItems.find((item) => item.type === "Discount")
+							? Math.round(
+									(Math.abs(felmeresItems.find((item) => item.type === "Discount")!.netPrice) /
+										felmeresItems
+											.map((item) =>
+												item.type !== "Discount"
+													? item.netPrice *
+													  item.inputValues
+															.map((value) => value.ammount)
+															.reduce((a, b) => a + b, 0)
+													: 0
+											)
+											.reduce((a, b) => a + b, 0)) *
+										1.27 *
+										100
+							  )
+							: 0
+					}
+				/>
+			),
 			title: "Tételek",
 		},
 		...Array.from(
@@ -105,7 +138,7 @@ export default function ClientPage({
 	const [selectedSection, setSelectedSection] = React.useState("");
 	const [isLoading, setIsLoading] = React.useState(true);
 	const [isEditing, setIsEditing] = React.useState(false);
-	const [modifiedData, setModifiedData] = React.useState<FelmeresQuestions[]>([]);
+	const [modifiedData, setModifiedData] = React.useState<FelmeresQuestion[]>([]);
 
 	const deviceSize = useBreakpointValue();
 	const [isAll, setIsAll] = React.useState(false);
@@ -189,6 +222,13 @@ export default function ClientPage({
 										<div>{felmeres.type}</div>
 										<Separator orientation='vertical' />
 										<div>{template.name}</div>
+									</div>
+									<div>
+										<div className='cursor-pointer text-gray-800'>
+											<Link href={`/${felmeresId}/edit`}>
+												<FileEdit />
+											</Link>
+										</div>
 									</div>
 								</div>
 							</CardHeader>
@@ -380,122 +420,13 @@ export default function ClientPage({
 	);
 }
 
-function Page2({ items }: { items: FelmeresItem[] }) {
-	const TABLE_HEAD = ["Név", "Darab + Hely", "Nettó egység", "Nettó összesen"];
-
-	return (
-		<Card className='my-5 rounded-sm'>
-			<div className='w-full lg:overflow-hidden overflow-x-scroll'>
-				<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
-					<thead>
-						<tr>
-							{TABLE_HEAD.map((head) => (
-								<th key={head} className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-									<Typography
-										variant='small'
-										color='blue-gray'
-										className='font-normal leading-none opacity-70'>
-										{head}
-									</Typography>
-								</th>
-							))}
-						</tr>
-					</thead>
-					<tbody>
-						{items
-							.sort((a, b) => a.productId - b.productId)
-							.map(({ name, place, inputValues, netPrice }, index) => {
-								const isLast = index === items.length - 1;
-								const classes = isLast ? "p-4" : "p-4 border-b border-blue-gray-50";
-
-								return (
-									<tr key={name}>
-										<td className={classes}>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{name}
-											</Typography>
-										</td>
-										{inputValues
-											.sort((a, b) => a.id - b.id)
-											.map((inputValue) => (
-												<div key={inputValue.id} className='flex flex-row'>
-													<td className={classes}>
-														<div>{inputValue.ammount}</div>
-													</td>
-													{place ? (
-														<td
-															className={
-																classes + " flex flex-row w-full items-center gap-2"
-															}>
-															<div className='font-normal flex flex-col gap-2 max-w-[17rem]'>
-																<div className='flex-row flex items-center gap-2'>
-																	<div>{inputValue.value}</div>
-																</div>
-															</div>
-														</td>
-													) : null}
-												</div>
-											))}
-										<td className={classes}>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(netPrice)}
-											</Typography>
-										</td>
-										<td className={classes}>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(
-													netPrice * inputValues.reduce((a, b) => a + b.ammount, 0)
-												)}
-											</Typography>
-										</td>
-									</tr>
-								);
-							})}
-					</tbody>
-					<tfoot className='bg-gray'>
-						<tr>
-							<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>Össz:</td>
-							<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
-							<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
-							<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-								<Typography
-									variant='small'
-									color='blue-gray'
-									className='font-normal leading-none opacity-70'>
-									{hufFormatter.format(
-										items
-											.map(
-												({ inputValues, netPrice }) =>
-													netPrice * inputValues.reduce((a, b) => a + b.ammount, 0)
-											)
-											.reduce((a, b) => a + b, 0)
-									)}
-								</Typography>
-							</td>
-						</tr>
-					</tfoot>
-				</table>
-			</div>
-		</Card>
-	);
-}
-
 function QuestionPage({
 	questions,
 	data,
 	product,
 }: {
 	questions: Question[];
-	data: FelmeresQuestions[];
+	data: FelmeresQuestion[];
 	product: string;
 }) {
 	return (
@@ -514,7 +445,7 @@ function QuestionPage({
 	);
 }
 
-function FieldViewing({ data, question }: { data: FelmeresQuestions; question: Question }) {
+function FieldViewing({ data, question }: { data: FelmeresQuestion; question: Question }) {
 	if (["TEXT", "LIST", "MULTIPLE_CHOICE", "SCALE"].includes(question.type)) {
 		return (
 			<dd className='mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 lg:text-right'>{data.value}</dd>

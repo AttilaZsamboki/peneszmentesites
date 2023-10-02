@@ -17,7 +17,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import {
 	BaseFelmeresData,
 	FelmeresItem,
-	OtherFelmeresItems,
+	OtherFelmeresItem,
 	ProductTemplate,
 	hufFormatter,
 	numberFormatter,
@@ -33,20 +33,22 @@ export function Page2({
 	setOtherItems,
 	discount,
 	setDiscount,
+	readonly,
 }: {
 	felmeres: BaseFelmeresData;
 	items: FelmeresItem[];
-	setItems: React.Dispatch<React.SetStateAction<FelmeresItem[]>>;
-	products: Product[];
-	productAttributes: ProductAttributes[];
-	otherItems: OtherFelmeresItems[];
-	setOtherItems: React.Dispatch<React.SetStateAction<OtherFelmeresItems[]>>;
+	setItems?: React.Dispatch<React.SetStateAction<FelmeresItem[]>>;
+	products?: Product[];
+	productAttributes?: ProductAttributes[];
+	otherItems: OtherFelmeresItem[];
+	setOtherItems?: React.Dispatch<React.SetStateAction<OtherFelmeresItem[]>>;
 	discount: number;
-	setDiscount: React.Dispatch<React.SetStateAction<number>>;
+	setDiscount?: React.Dispatch<React.SetStateAction<number>>;
+	readonly?: boolean;
 }) {
 	const [isAddingNewItem, setIsAddingNewItem] = React.useState(false);
 	const [isAddingNewOtherItem, setIsAddingNewOtherItem] = React.useState(false);
-	const [newOtherItem, setNewOtherItem] = React.useState<OtherFelmeresItems>();
+	const [newOtherItem, setNewOtherItem] = React.useState<OtherFelmeresItem>();
 	const [isEditingItems, setIsEditingItems] = React.useState(false);
 	const [isEditingOtherItems, setIsEditingOtherItems] = React.useState(false);
 
@@ -75,10 +77,11 @@ export function Page2({
 							);
 							if (productAttributeResp.ok) {
 								const productAttributeData = await productAttributeResp.json().then((data) => data[0]);
+								if (!setItems) return;
 								setItems((prevItems) => [
-									...prevItems.filter((item) => item.productId !== productTemplate.product),
+									...prevItems.filter((item) => item.product !== productTemplate.product),
 									{
-										productId: productTemplate.product,
+										product: productTemplate.product,
 										name: productData.name,
 										place: productAttributeData ? productAttributeData.place : false,
 										placeOptions: productAttributeData
@@ -101,6 +104,7 @@ export function Page2({
 										adatlap: felmeres.adatlap_id,
 										sku: productData.sku,
 										attributeId: productAttributeData ? productAttributeData.id : 0,
+										type: "Item",
 									},
 								]);
 							}
@@ -112,7 +116,7 @@ export function Page2({
 		}
 	}, []);
 
-	const TABLE_HEAD_ITEMS = ["Név", "Darab + Hely", "Nettó egység", "Nettó összesen"];
+	const TABLE_HEAD_ITEMS = ["Név", "Darab + Hely", "Nettó egységár", "Nettó összesen"];
 	const TABLE_HEAD_OTHER = ["Név", "Nettó egységár", "Nettó összesen"];
 
 	const netTotal = items
@@ -143,6 +147,7 @@ export function Page2({
 			}),
 		});
 		if (resp.ok) {
+			if (!setItems) return;
 			setItems((prev) => [
 				...prev.filter((item) => item.attributeId !== id),
 				{
@@ -171,17 +176,19 @@ export function Page2({
 										</Typography>
 									</th>
 								))}
-								<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-									<PencilSquareIcon
-										className='w-5 h-5 cursor-pointer'
-										onClick={() => setIsEditingItems(!isEditingItems)}
-									/>
-								</th>
+								{!readonly ? (
+									<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+										<PencilSquareIcon
+											className='w-5 h-5 cursor-pointer'
+											onClick={() => setIsEditingItems(!isEditingItems)}
+										/>
+									</th>
+								) : null}
 							</tr>
 						</thead>
 						<tbody ref={itemsTableRef}>
 							{items
-								.sort((a, b) => a.productId - b.productId)
+								.sort((a, b) => a.product - b.product)
 								.map(
 									(
 										{
@@ -196,10 +203,10 @@ export function Page2({
 										index
 									) => {
 										const isLast = index === items.length - 1;
-										const classes = isLast ? "p-4" : "p-4 border-b border-blue-gray-50";
+										const classes = "p-4";
 
 										return (
-											<tr key={name}>
+											<tr key={name} className='border-b border-blue-gray-50'>
 												<td className={classes}>
 													<Typography
 														variant='small'
@@ -211,70 +218,27 @@ export function Page2({
 												{inputValues
 													.sort((a, b) => a.id - b.id)
 													.map((inputValue) => (
-														<div key={inputValue.id} className='flex flex-row'>
+														<div key={inputValue.id} className='flex flex-row items-center'>
 															<td className={classes}>
-																<Counter
-																	maxWidth='max-w-[10rem]'
-																	value={inputValue.ammount}
-																	onChange={(value) =>
-																		setItems([
-																			...items.filter(
-																				(i) =>
-																					i.productId !==
-																					items[index].productId
-																			),
-																			{
-																				...items[index],
-																				inputValues: [
-																					...inputValues.filter(
-																						(value) =>
-																							value.id !== inputValue.id
-																					),
-																					{ ...inputValue, ammount: value },
-																				],
-																			},
-																		])
-																	}
-																/>
-															</td>
-															{place ? (
-																<td
-																	className={
-																		classes +
-																		" flex flex-row w-full items-center gap-2"
-																	}>
-																	<div className='font-normal flex flex-col gap-2 max-w-[17rem]'>
-																		<div className='flex-row flex items-center gap-2'>
-																			<AutoComplete
-																				options={place_options
-																					.filter(
-																						(option) =>
-																							!inputValues
-																								.map(
-																									(value) =>
-																										value.value
-																								)
-																								.includes(option)
-																					)
-																					.map((option) => ({
-																						label: option,
-																						value: option,
-																					}))}
-																				value={inputValue.value}
-																				create={true}
-																				resetOnCreate={false}
-																				onChange={(e) => {
-																					if (!place_options.includes(e)) {
-																						createNewPlaceOption(
-																							e,
-																							attributeId
-																						);
-																					}
-																					setItems([
+																{readonly ? (
+																	<Typography
+																		variant='small'
+																		color='blue-gray'
+																		className='font-normal w-12'>
+																		{inputValue.ammount} darab
+																	</Typography>
+																) : (
+																	<Counter
+																		maxWidth='max-w-[10rem]'
+																		value={inputValue.ammount}
+																		onChange={(value) =>
+																			!setItems
+																				? null
+																				: setItems([
 																						...items.filter(
-																							(item) =>
-																								item.productId !==
-																								items[index].productId
+																							(i) =>
+																								i.product !==
+																								items[index].product
 																						),
 																						{
 																							...items[index],
@@ -285,57 +249,143 @@ export function Page2({
 																										inputValue.id
 																								),
 																								{
-																									value: e,
-																									id: inputValue.id,
-																									ammount:
-																										inputValue.ammount,
+																									...inputValue,
+																									ammount: value,
 																								},
 																							],
 																						},
-																					]);
-																				}}
-																			/>
-																			<PlusCircleIcon
-																				className='w-7 h-7 cursor-pointer'
-																				onClick={() =>
-																					setItems([
-																						...items.filter(
-																							(item) =>
-																								item.productId !==
-																								items[index].productId
-																						),
-																						{
-																							...items[index],
-																							inputValues: [
-																								...inputValues,
+																				  ])
+																		}
+																	/>
+																)}
+															</td>
+															{place ? (
+																<td
+																	className={
+																		classes +
+																		" flex flex-row w-full items-center gap-2"
+																	}>
+																	<div className='font-normal flex flex-col gap-2 max-w-[17rem]'>
+																		<div className='flex-row flex items-center gap-2'>
+																			{readonly ? (
+																				<Typography
+																					variant='small'
+																					color='blue-gray'
+																					className='font-normal w-10'>
+																					{inputValue.value}
+																				</Typography>
+																			) : (
+																				<>
+																					<AutoComplete
+																						options={place_options
+																							.filter(
+																								(option) =>
+																									!inputValues
+																										.map(
+																											(value) =>
+																												value.value
+																										)
+																										.includes(
+																											option
+																										)
+																							)
+																							.map((option) => ({
+																								label: option,
+																								value: option,
+																							}))}
+																						value={inputValue.value}
+																						create={true}
+																						resetOnCreate={false}
+																						onChange={(e) => {
+																							if (
+																								!place_options.includes(
+																									e
+																								)
+																							) {
+																								createNewPlaceOption(
+																									e,
+																									attributeId
+																								);
+																							}
+																							if (!setItems) return;
+																							setItems([
+																								...items.filter(
+																									(item) =>
+																										item.product !==
+																										items[index]
+																											.product
+																								),
 																								{
-																									value: "",
-																									id:
-																										Math.max(
-																											...inputValues.map(
-																												(
-																													value
-																												) =>
-																													value.id
-																											)
-																										) + 1,
-																									ammount: 0,
+																									...items[index],
+																									inputValues: [
+																										...inputValues.filter(
+																											(value) =>
+																												value.id !==
+																												inputValue.id
+																										),
+																										{
+																											value: e,
+																											id: inputValue.id,
+																											ammount:
+																												inputValue.ammount,
+																										},
+																									],
 																								},
-																							],
-																						},
-																					])
-																				}
-																			/>
-																			{inputValues.length > 1 ? (
+																							]);
+																						}}
+																					/>
+																					<PlusCircleIcon
+																						className='w-7 h-7 cursor-pointer'
+																						onClick={() =>
+																							!setItems
+																								? null
+																								: setItems([
+																										...items.filter(
+																											(item) =>
+																												item.product !==
+																												items[
+																													index
+																												]
+																													.product
+																										),
+																										{
+																											...items[
+																												index
+																											],
+																											inputValues:
+																												[
+																													...inputValues,
+																													{
+																														value: "",
+																														id:
+																															Math.max(
+																																...inputValues.map(
+																																	(
+																																		value
+																																	) =>
+																																		value.id
+																																)
+																															) +
+																															1,
+																														ammount: 0,
+																													},
+																												],
+																										},
+																								  ])
+																						}
+																					/>
+																				</>
+																			)}
+																			{!readonly && inputValues.length > 1 ? (
 																				<MinusCircleIcon
 																					className='w-7 h-7 cursor-pointer'
 																					onClick={() => {
+																						if (!setItems) return;
 																						setItems([
 																							...items.filter(
 																								(item) =>
-																									item.productId !==
-																									items[index]
-																										.productId
+																									item.product !==
+																									items[index].product
 																							),
 																							{
 																								...items[index],
@@ -377,18 +427,24 @@ export function Page2({
 														)}
 													</Typography>
 												</td>
-												<td className={classes}>
-													{isEditingItems ? (
-														<MinusCircleIcon
-															className='w-7 h-7 text-red-600 cursor-pointer'
-															onClick={() =>
-																setItems((prev) =>
-																	prev.filter((item) => item.name !== name)
-																)
-															}
-														/>
-													) : null}
-												</td>
+												{!readonly ? (
+													<td className={classes}>
+														{isEditingItems ? (
+															<MinusCircleIcon
+																className='w-7 h-7 text-red-600 cursor-pointer'
+																onClick={() =>
+																	!setItems
+																		? null
+																		: setItems((prev) =>
+																				prev.filter(
+																					(item) => item.name !== name
+																				)
+																		  )
+																}
+															/>
+														) : null}
+													</td>
+												) : null}
 											</tr>
 										);
 									}
@@ -413,37 +469,39 @@ export function Page2({
 									<>
 										<td className='p-4 border-b border-blue-gray-50'>
 											<AutoComplete
-												options={products
-													.filter(
-														(product) =>
-															!items.map((item) => item.productId).includes(product.id)
-													)
-													.map((product) => ({
-														label: product.sku + " - " + product.name,
-														value: product.id.toString(),
-													}))}
-												value={items.find((item) => item.productId === 0)?.name || ""}
+												options={
+													!products
+														? []
+														: products
+																.filter(
+																	(product) =>
+																		!items
+																			.map((item) => item.product)
+																			.includes(product.id)
+																)
+																.map((product) => ({
+																	label: product.sku + " - " + product.name,
+																	value: product.id.toString(),
+																}))
+												}
+												value={items.find((item) => item.product === 0)?.name || ""}
 												onChange={(value) => {
+													if (!setItems || !products || !productAttributes) return;
+													const product = products.find(
+														(product) => product.id === parseInt(value)
+													)!;
+													const productAttribute = productAttributes.find(
+														(attribute) => attribute.product === parseInt(value)
+													);
 													setItems((prev) => [
-														...prev.filter((item) => item.productId.toString() !== value),
+														...prev.filter((item) => item.product.toString() !== value),
 														{
 															...prev[prev.length - 1],
 															adatlap: felmeres.adatlap_id,
-															productId: parseInt(value),
-															name: products.find(
-																(product) => product.id === parseInt(value)
-															)!.name,
-															sku: products.find(
-																(product) => product.id === parseInt(value)
-															)!.sku,
-															place: productAttributes.find(
-																(attribute) => attribute.product === parseInt(value)
-															)
-																? productAttributes.find(
-																		(attribute) =>
-																			attribute.product === parseInt(value)
-																  )!.place
-																: false,
+															product: parseInt(value),
+															name: product.name,
+															sku: product.sku,
+															place: productAttribute ? productAttribute!.place : false,
 															inputValues: [
 																{
 																	value: "",
@@ -451,19 +509,12 @@ export function Page2({
 																	ammount: 0,
 																},
 															],
-															netPrice: products.find(
-																(product) => product.id === parseInt(value)
-															)!.price_list_alapertelmezett_net_price_huf,
-															placeOptions: productAttributes.find(
-																(attribute) => attribute.product === parseInt(value)
-															)
+															netPrice: product.price_list_alapertelmezett_net_price_huf,
+															placeOptions: productAttribute
 																? JSON.parse(
 																		(
-																			productAttributes.find(
-																				(attribute) =>
-																					attribute.product ===
-																					parseInt(value)
-																			)!.place_options as unknown as string
+																			productAttribute!
+																				.place_options as unknown as string
 																		).replace(/'/g, '"')
 																  )
 																: [],
@@ -487,7 +538,9 @@ export function Page2({
 						</tbody>
 						<tfoot className='bg-gray'>
 							<tr>
-								<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+								<td
+									className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'
+									style={{ borderTopWidth: 0 }}>
 									<Typography
 										variant='small'
 										color='blue-gray'
@@ -505,7 +558,9 @@ export function Page2({
 										{hufFormatter.format(netTotal)}
 									</Typography>
 								</td>
-								<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
+								{readonly ? null : (
+									<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
+								)}
 							</tr>
 						</tfoot>
 					</table>
@@ -529,12 +584,14 @@ export function Page2({
 											</Typography>
 										</th>
 									))}
-									<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-										<PencilSquareIcon
-											className='w-5 h-5 cursor-pointer'
-											onClick={() => setIsEditingOtherItems(!isEditingOtherItems)}
-										/>
-									</th>
+									{!readonly ? (
+										<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+											<PencilSquareIcon
+												className='w-5 h-5 cursor-pointer'
+												onClick={() => setIsEditingOtherItems(!isEditingOtherItems)}
+											/>
+										</th>
+									) : null}
 								</tr>
 							</thead>
 							<tbody ref={otherItemsTableRef}>
@@ -560,6 +617,7 @@ export function Page2({
 																: numberFormatter.format(item.value)
 														}
 														onChange={(e) => {
+															if (!setOtherItems) return;
 															setOtherItems((prev) => [
 																...prev.filter((prevItem) => item.id !== prevItem.id),
 																{
@@ -603,18 +661,25 @@ export function Page2({
 													)}
 												</Typography>
 											</td>
-											<td className='p-4 border-b border-blue-gray-50 w-10'>
-												{isEditingOtherItems ? (
-													<MinusCircleIcon
-														className='w-7 h-7 text-red-600 cursor-pointer'
-														onClick={() =>
-															setOtherItems((prev) =>
-																prev.filter((prevItem) => prevItem.name !== item.name)
-															)
-														}
-													/>
-												) : null}
-											</td>
+											{!readonly ? (
+												<td className='p-4 border-b border-blue-gray-50 w-10'>
+													{isEditingOtherItems ? (
+														<MinusCircleIcon
+															className='w-7 h-7 text-red-600 cursor-pointer'
+															onClick={() =>
+																!setOtherItems
+																	? null
+																	: setOtherItems((prev) =>
+																			prev.filter(
+																				(prevItem) =>
+																					prevItem.name !== item.name
+																			)
+																	  )
+															}
+														/>
+													) : null}
+												</td>
+											) : null}
 										</tr>
 									))}
 								<tr>
@@ -642,7 +707,7 @@ export function Page2({
 														value={newOtherItem?.name || ""}
 														onChange={(e) => {
 															setNewOtherItem((prev) => ({
-																...(prev as OtherFelmeresItems),
+																...(prev as OtherFelmeresItem),
 																name: e.target.value,
 															}));
 														}}
@@ -652,7 +717,7 @@ export function Page2({
 														variant='simple'
 														onChange={(value) =>
 															setNewOtherItem((prev) => ({
-																...(prev as OtherFelmeresItems),
+																...(prev as OtherFelmeresItem),
 																type: value as "fixed" | "percent",
 															}))
 														}
@@ -671,10 +736,11 @@ export function Page2({
 													className='w-7 h-7 text-green-600 cursor-pointer'
 													onClick={() => {
 														setIsAddingNewOtherItem(false);
+														if (!setOtherItems) return;
 														setOtherItems((prev) => [
 															...prev,
 															{
-																...(newOtherItem as OtherFelmeresItems),
+																...(newOtherItem as OtherFelmeresItem),
 																id: Math.max(...prev.map((item) => item.id)) + 1,
 																value: 0,
 															},
@@ -706,7 +772,9 @@ export function Page2({
 											{hufFormatter.format(otherItemsNetTotal)}
 										</Typography>
 									</td>
-									<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
+									{readonly ? null : (
+										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
+									)}
 								</tr>
 							</tfoot>
 						</table>
@@ -840,6 +908,7 @@ export function Page2({
 												variant='simple'
 												value={discount}
 												onChange={(e) => {
+													if (!setDiscount) return;
 													setDiscount(
 														parseInt(e.target.value.replace(/\D/g, "")) <= 100
 															? parseInt(e.target.value.replace(/\D/g, ""))
@@ -890,7 +959,7 @@ export function Page2({
 											{hufFormatter.format(
 												otherItemsNetTotal * 1.27 +
 													netTotal * 1.27 -
-													(otherItemsNetTotal * 1.27 + (netTotal * 1.27 * discount) / 100)
+													((otherItemsNetTotal * 1.27 + netTotal * 1.27) * discount) / 100
 											)}
 										</Typography>
 									</td>

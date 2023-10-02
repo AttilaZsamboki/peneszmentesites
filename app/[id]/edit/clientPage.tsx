@@ -1,27 +1,19 @@
 import { Template } from "@/app/templates/page";
-import ClientPage from "./_clientPage";
+import ClientPage, { BaseFelmeresData, FelmeresItem } from "@/app/new/_clientPage";
 import { Product } from "@/app/products/page";
 import { ProductAttributes } from "@/app/products/_clientPage";
+import { Adatlap } from "@/app/new/page";
+import { FelmeresQuestion } from "@/app/page";
 
-export interface Adatlap {
-	Count: number;
-	Results: {
-		[adatlap_id: number]: AdatlapData;
-	};
-}
-
-export interface AdatlapData {
-	Id: number;
-	Name: string;
-	Url: string;
-	ContactId: number;
-	StatusId: number;
-	UserId: number;
-	Deleted: number;
-	BusinessId?: number;
-}
-
-export default async function Page() {
+export default async function Page({
+	felmeres,
+	felmeresItems,
+	felmeresQuestions,
+}: {
+	felmeres: BaseFelmeresData;
+	felmeresItems: FelmeresItem[];
+	felmeresQuestions: FelmeresQuestion[];
+}) {
 	var myHeaders = new Headers();
 	myHeaders.append("Authorization", "Basic MTE5OkQwNlBVTE9JM2VUUkJLY2xqQUdRWWJkNEZFcHVWeTFn");
 	myHeaders.append("Content-Type", "application/json");
@@ -53,10 +45,13 @@ export default async function Page() {
 
 	return (
 		<ClientPage
+			editFelmeresItems={felmeresItems}
+			editFelmeres={felmeres}
 			adatlapok={adatlapok}
 			templates={templates}
 			products={products}
 			productAttributes={productAttributes}
+			editData={felmeresQuestions}
 		/>
 	);
 }
