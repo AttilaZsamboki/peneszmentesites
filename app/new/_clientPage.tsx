@@ -27,6 +27,7 @@ import { useToast } from "@/components/ui/use-toast";
 import Textarea from "../_components/Textarea";
 import { Checkmark } from "@/components/check";
 import { isJSONParsable } from "../[id]/_clientPage";
+import _ from "lodash";
 
 export interface ProductTemplate {
 	product: number;
@@ -280,7 +281,27 @@ export default function Page({
 			console.log("Kérdések létrehozása: " + (createQuestions - start) + "ms");
 
 			// MiniCRM ajánlat létrehozása
-			if (status === 1) {
+			if (
+				status === 1 &&
+				(isEdit
+					? !_.isEqual(
+							editFelmeresItems?.map((item) => ({
+								...item,
+								id: 0,
+								inputValues: item.inputValues.map((value) => value.ammount),
+								sku: item.sku ? item.sku : null,
+								adatlap: null,
+							})),
+							submitItems.map((item) => ({
+								...item,
+								id: 0,
+								inputValues: item.inputValues.map((value) => value.ammount),
+								sku: item.sku ? item.sku : null,
+								adatlap: null,
+							}))
+					  )
+					: true)
+			) {
 				// XML string összeállítása
 				const template = templates.find((template) => template.id === felmeres.template);
 				await assembleOfferXML(
@@ -341,17 +362,17 @@ export default function Page({
 
 				if (isEdit) {
 					// Régi ajánlat stornózása
+				} else {
+					const todo = await list_to_dos(felmeres.adatlap_id.toString(), todo_criteria);
+					if (todo.length) {
+						await fetchMiniCRM("ToDo", todo[0].Id.toString(), "PUT", { Status: "Closed" });
+					}
+					const closeTodo = performance.now();
+					console.log("ToDo lezárása: " + (closeTodo - start) + "ms");
 				}
-
-				const todo = await list_to_dos(felmeres.adatlap_id.toString(), todo_criteria);
-				if (todo.length) {
-					await fetchMiniCRM("ToDo", todo[0].Id.toString(), "PUT", { Status: "Closed" });
-				}
-				const closeTodo = performance.now();
-				console.log("ToDo lezárása: " + (closeTodo - start) + "ms");
-				updateStatus(3400);
-				router.push("/");
 			}
+			updateStatus(3400);
+			router.push("/");
 		}
 	};
 
@@ -419,6 +440,25 @@ export default function Page({
 			valueType: "percent",
 		},
 	] as FelmeresItem[];
+	console.log(
+		editFelmeresItems?.map((item) => ({
+			...item,
+			id: 0,
+			inputValues: item.inputValues.map((value) => value.ammount),
+			sku: item.sku ? item.sku : null,
+			adatlap: null,
+		}))
+	);
+	console.log(
+		submitItems.map((item) => ({
+			...item,
+			id: 0,
+			inputValues: item.inputValues.map((value) => value.ammount),
+			sku: item.sku ? item.sku : null,
+			adatlap: null,
+		}))
+	);
+	console.log();
 	const onPageChange = (page: number) => {
 		if (page === 0) {
 			setItems([]);
