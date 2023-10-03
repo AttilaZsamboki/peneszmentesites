@@ -7,12 +7,11 @@ const Sections = React.lazy(() => import("../_components/Sections"));
 
 import React from "react";
 
-import { Typography, Spinner, Switch, Slider, Tabs, TabsHeader, Tab } from "@material-tailwind/react";
+import { Typography, Spinner, Tabs, TabsHeader, Tab } from "@material-tailwind/react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { XMarkIcon, CheckIcon } from "@heroicons/react/20/solid";
-import { BaseFelmeresData, FelmeresItem, OtherFelmeresItem, QuestionTemplate } from "../new/_clientPage";
+import { BaseFelmeresData, FelmeresItem, QuestionPage, QuestionTemplate } from "../new/_clientPage";
 
 import { Question } from "@/app/questions/page";
 import { Template } from "@/app/templates/page";
@@ -21,8 +20,7 @@ import { Grid } from "@/app/_components/Grid";
 import Gallery from "@/app/_components/Gallery";
 
 import { statusMap } from "@/app/_utils/utils";
-import { useToast } from "@/components/ui/use-toast";
-import { ToastAction } from "@/components/ui/toast";
+import { toast, useToast } from "@/components/ui/use-toast";
 import useBreakpointValue from "../_components/useBreakpoint";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -34,9 +32,11 @@ import {
 	DropdownMenuTrigger,
 	DropdownMenu,
 } from "@/components/ui/dropdown-menu";
-import { FileEdit } from "lucide-react";
+import { Check, FileEdit, IterationCw, X } from "lucide-react";
 import Link from "next/link";
 import { Page2 } from "../new/Page2";
+import _ from "lodash";
+import { ToastAction } from "@/components/ui/toast";
 
 export function isJSONParsable(str: string) {
 	try {
@@ -79,6 +79,23 @@ export default function ClientPage({
 			: ({ adatlap_id: 0, status: "DRAFT", template: 0, type: "Helyi elszívós rendszer" } as BaseFelmeresData)
 	);
 
+	const [isEditing, setIsEditing] = React.useState(false);
+	const [originalData, setOriginalData] = React.useState(
+		felmeresQuestions.map((field) => ({
+			...field,
+			value: isJSONParsable(field.value) ? JSON.parse(field.value) : field.value,
+		}))
+	);
+	const [filteredData, setFilteredData] = React.useState(
+		felmeresQuestions
+			.filter((field) => field.section === "Tételek")
+			.map((field) => ({
+				...field,
+				value: isJSONParsable(field.value) ? JSON.parse(field.value) : field.value,
+			}))
+	);
+	const [selectedSection, setSelectedSection] = React.useState("");
+
 	const sections: PageMap[] = [
 		{
 			component: (
@@ -110,21 +127,32 @@ export default function ClientPage({
 					.map((question) => question.section)
 			)
 		).map((product) => ({
-			component: <QuestionPage product={product} questions={questions} data={felmeresQuestions} />,
+			component: isEditing ? (
+				<QuestionPage
+					questions={questions.filter((question) =>
+						felmeresQuestions
+							.filter((field) => field.section === product)
+							.map((field) => field.question)
+							.includes(question.id)
+					)}
+					setData={setFilteredData}
+					adatlap_id={felmeres.adatlap_id}
+					globalData={filteredData.map((field) => ({
+						...field,
+						value: isJSONParsable(field.value) ? JSON.parse(field.value) : field.value,
+					}))}
+					product={product}
+					key={product}
+				/>
+			) : (
+				<QuestionPageRead product={product} questions={questions} data={filteredData} key={product} />
+			),
 			title: product,
 		})),
 	];
 
-	const { toast } = useToast();
-	const [originalData, setOriginalData] = React.useState(felmeresQuestions);
-	const [filteredData, setFilteredData] = React.useState(
-		felmeresQuestions.filter((field) => field.section === sections[0].title)
-	);
 	const [filter, setFilter] = React.useState("");
-	const [selectedSection, setSelectedSection] = React.useState("");
 	const [isLoading, setIsLoading] = React.useState(true);
-	const [isEditing, setIsEditing] = React.useState(false);
-	const [modifiedData, setModifiedData] = React.useState<FelmeresQuestion[]>([]);
 
 	const deviceSize = useBreakpointValue();
 	const [isAll, setIsAll] = React.useState(false);
@@ -166,6 +194,57 @@ export default function ClientPage({
 			await fetch("/api/revalidate?tag=" + encodeURIComponent(felmeresId));
 			await fetch("/api/revalidate?tag=felmeresek");
 		}
+	};
+	const handleChangeEditing = () => {
+		setIsEditing((prev) => !prev);
+	};
+	const handleDiscardChanges = () => {
+		setIsEditing(false);
+		setFilteredData(originalData);
+	};
+	const handleSaveChanges = async () => {
+		if (
+			filteredData.filter((field) => originalData.find((f) => f.id === field.id)?.value !== field.value)
+				.length === 0
+		) {
+			setIsEditing(false);
+			return toast({
+				title: "Nincs változás",
+				description: "Nem történt változás, így nem lett mentve",
+			});
+		}
+		const status = await Promise.all(
+			filteredData.map(async (field) => {
+				const response = await fetch(`https://pen.dataupload.xyz/felmeres_questions/${field.id}/`, {
+					method: "PATCH",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						value: JSON.stringify(field.value),
+					}),
+				});
+				return response.ok;
+			})
+		).then((status) => status.every((s) => s === true));
+		if (status) {
+			setIsEditing(false);
+			setOriginalData((prev) => [
+				...prev.filter((field) => field.section !== filteredData[0].section),
+				...filteredData,
+			]);
+			return;
+		}
+		toast({
+			title: "Hiba",
+			description: "Hiba történt a mentés során",
+			variant: "destructive",
+			action: (
+				<ToastAction altText='Try again' onClick={handleSaveChanges}>
+					<IterationCw className='w-5 h-5' />
+				</ToastAction>
+			),
+		});
 	};
 
 	return (
@@ -209,13 +288,31 @@ export default function ClientPage({
 										<Separator orientation='vertical' />
 										<div>{template.name}</div>
 									</div>
-									<div>
-										<div className='cursor-pointer text-gray-800'>
-											<Link href={`/${felmeresId}/edit`}>
-												<FileEdit />
-											</Link>
-										</div>
-									</div>
+									{deviceSize === "sm" ? <Separator /> : null}
+									{isEditing ? (
+										<>
+											<div className='w-full lg:w-fit flex lg:flex-none flex-row items-center gap-4'>
+												<Button
+													color='green'
+													size='icon'
+													className='lg:w-10 w-1/2'
+													onClick={handleSaveChanges}>
+													<Check className='h-6 w-6' />
+												</Button>
+												<Button
+													variant='destructive'
+													size='icon'
+													className='lg:w-10 w-1/2'
+													onClick={handleDiscardChanges}>
+													<X className='h-6 w-6' />
+												</Button>
+											</div>
+										</>
+									) : selectedSection === "Tételek" ? (
+										<EditButton href={`/${felmeresId}/edit`} />
+									) : (
+										<EditButton onClick={handleChangeEditing} />
+									)}
 								</div>
 							</CardHeader>
 							<Separator className='mb-4' />
@@ -274,95 +371,6 @@ export default function ClientPage({
 									)}
 								</div>
 							</React.Suspense>
-							<div className='flex flex-row w-full justify-between my-5 p-2 px-4 border rounded-md bg-white'>
-								<Typography className={`${isLoading ? "text-gray-600" : ""}`} variant='h6'>
-									Módosítás
-								</Typography>
-								{modifiedData.length === 0 ? (
-									<Switch
-										crossOrigin=''
-										disabled={isLoading}
-										color='gray'
-										onChange={() => setIsEditing(!isEditing)}
-									/>
-								) : (
-									<div className='flex flex-row gap-2'>
-										<XMarkIcon
-											onClick={() => {
-												toast({
-													title: "Biztosan elveted a módosításokat?",
-													action: (
-														<ToastAction
-															altText='yes'
-															onClick={() => {
-																setModifiedData([]);
-																setIsEditing(false);
-															}}>
-															Igen
-														</ToastAction>
-													),
-												});
-											}}
-											className='w-6 h-6 cursor-pointer rounded-md bg-red-500 text-white p-1'
-										/>
-										<CheckIcon
-											onClick={() => {
-												toast({
-													title: modifiedData.filter((field) => !field.value.length).length
-														? "Biztosan elmented a módosításokat? (az üresen hagyott mezők törlésre kerülnek)"
-														: "Biztosan elmented a módosításokat?",
-													action: (
-														<ToastAction
-															altText='yes'
-															onClick={() => {
-																setIsEditing(false);
-																modifiedData.map(async (field) => {
-																	const resp = await fetch(
-																		"https://pen.dataupload.xyz/felmeres_questions/" +
-																			field.id +
-																			"/",
-																		{
-																			method: "PATCH",
-																			headers: {
-																				"Content-Type": "application/json",
-																			},
-																			body: JSON.stringify({
-																				value: Array.isArray(field.value)
-																					? JSON.stringify(field.value)
-																					: field.value,
-																			}),
-																		}
-																	);
-																	if (resp.ok) {
-																		setFilteredData((prev) =>
-																			prev.map((f) =>
-																				f.id === field.id ? field : f
-																			)
-																		);
-																		await fetch(
-																			"/api/revalidate?tag=" +
-																				encodeURIComponent(felmeresId)
-																		);
-																		setModifiedData([]);
-																	} else {
-																		toast({
-																			title: "Hiba",
-																			description:
-																				"Hiba történt a változtatások metnése során",
-																		});
-																	}
-																});
-															}}>
-															Igen
-														</ToastAction>
-													),
-												});
-											}}
-											className='w-6 h-6 rounded-md cursor-pointer bg-green-500 text-white p-1'
-										/>
-									</div>
-								)}
-							</div>
 							<div className='flex flex-row w-full justify-between bg-white my-5 p-2 px-4 border rounded-md items-center'>
 								<Typography className={`${isLoading ? "text-gray-600" : ""}`} variant='h6'>
 									Minden
@@ -406,7 +414,28 @@ export default function ClientPage({
 	);
 }
 
-function QuestionPage({
+function EditButton({ onClick, href }: { onClick?: () => void; href?: string }) {
+	if (href) {
+		return (
+			<div className='w-full lg:w-fit lg:flex-none flex flex-row items-center gap-4'>
+				<Link href={href} className='w-full'>
+					<Button variant='outline' className='flex flex-row items-center w-full' onClick={onClick}>
+						<FileEdit />
+					</Button>
+				</Link>
+			</div>
+		);
+	}
+	return (
+		<div className='w-full lg:w-fit lg:flex-none flex flex-row items-center gap-4'>
+			<Button variant='outline' className='flex flex-row items-center w-full' onClick={onClick}>
+				<FileEdit />
+			</Button>
+		</div>
+	);
+}
+
+function QuestionPageRead({
 	questions,
 	data,
 	product,
@@ -451,11 +480,7 @@ function FieldViewing({ data, question }: { data: FelmeresQuestion; question: Qu
 			<Grid
 				columns={(question.options as GridOptions).columns}
 				rows={(question.options as GridOptions).rows}
-				value={
-					isJSONParsable(data.value)
-						? (JSON.parse(data.value) as unknown as { column: string; row: number }[])
-						: []
-				}
+				value={data.value as unknown as { column: string; row: number }[]}
 				radio={question.type === "CHECKBOX_GRID" ? false : true}
 				disabled
 			/>
@@ -463,9 +488,7 @@ function FieldViewing({ data, question }: { data: FelmeresQuestion; question: Qu
 	} else if (question.type === "FILE_UPLOAD") {
 		return (
 			<div className='lg:col-span-2'>
-				<Gallery
-					media={isJSONParsable(data.value) ? (JSON.parse(data.value) as unknown as string[]) : [data.value]}
-				/>
+				<Gallery media={data.value as unknown as string[]} />
 			</div>
 		);
 	}

@@ -28,6 +28,7 @@ import Textarea from "../_components/Textarea";
 import { Checkmark } from "@/components/check";
 import { isJSONParsable } from "../[id]/_clientPage";
 import _ from "lodash";
+import Gallery from "../_components/Gallery";
 
 export interface ProductTemplate {
 	product: number;
@@ -440,25 +441,6 @@ export default function Page({
 			valueType: "percent",
 		},
 	] as FelmeresItem[];
-	console.log(
-		editFelmeresItems?.map((item) => ({
-			...item,
-			id: 0,
-			inputValues: item.inputValues.map((value) => value.ammount),
-			sku: item.sku ? item.sku : null,
-			adatlap: null,
-		}))
-	);
-	console.log(
-		submitItems.map((item) => ({
-			...item,
-			id: 0,
-			inputValues: item.inputValues.map((value) => value.ammount),
-			sku: item.sku ? item.sku : null,
-			adatlap: null,
-		}))
-	);
-	console.log();
 	const onPageChange = (page: number) => {
 		if (page === 0) {
 			setItems([]);
@@ -758,7 +740,7 @@ function Page1({
 	);
 }
 
-function QuestionPage({
+export function QuestionPage({
 	questions,
 	setData,
 	adatlap_id,
@@ -961,28 +943,50 @@ function FieldCreate({
 		);
 	} else if (question.type === "FILE_UPLOAD") {
 		return (
-			<FileUpload
-				route={`/api/save-image`}
-				onUpload={(file) =>
-					setGlobalData((prev) =>
-						prev.map((felmeres) =>
-							isTrue(felmeres)
-								? {
-										adatlap_id: adatlap_id,
-										id: 0,
-										question: question.id,
-										section: felmeres.section,
-										value: [
-											...(felmeres.value as unknown as string[]),
-											"https://felmeres-note-images.s3.eu-central-1.amazonaws.com/" +
-												file.filename,
-										] as unknown as string,
-								  }
-								: felmeres
+			<div className='flex flex-col gap-2'>
+				{globalData.find((felmeres) => isTrue(felmeres))?.value ? (
+					<Gallery
+						media={globalData.find((felmeres) => isTrue(felmeres))?.value as unknown as string[]}
+						edit={true}
+						onDelete={(index) => {
+							setGlobalData((prev) =>
+								prev.map((felmeres) =>
+									isTrue(felmeres)
+										? {
+												...felmeres,
+												value: (felmeres.value as unknown as string[]).filter(
+													(_, i) => i !== index
+												) as unknown as string,
+										  }
+										: felmeres
+								)
+							);
+						}}
+					/>
+				) : null}
+				<FileUpload
+					route={`/api/save-image`}
+					onUpload={(file) =>
+						setGlobalData((prev) =>
+							prev.map((felmeres) =>
+								isTrue(felmeres)
+									? {
+											...felmeres,
+											adatlap_id: adatlap_id,
+											question: question.id,
+											section: felmeres.section,
+											value: [
+												...(felmeres.value as unknown as string[]),
+												"https://felmeres-note-images.s3.eu-central-1.amazonaws.com/" +
+													file.filename,
+											] as unknown as string,
+									  }
+									: felmeres
+							)
 						)
-					)
-				}
-			/>
+					}
+				/>
+			</div>
 		);
 	}
 }

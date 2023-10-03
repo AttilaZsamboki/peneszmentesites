@@ -1,5 +1,6 @@
+import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
+import { ArrowLeftIcon, ArrowRightIcon, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 
 function Carousel({ images, selectedImageIndex }: { images: string[]; selectedImageIndex: number }) {
@@ -15,20 +16,34 @@ function Carousel({ images, selectedImageIndex }: { images: string[]; selectedIm
 
 	return (
 		<div className='relative'>
-			<ArrowLeftIcon
-				className='w-6 h-6 absolute left-0 top-1/2 transform -translate-y-1/2 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground'
-				onClick={handlePreviousClick}
-			/>
+			<Button
+				size='icon'
+				variant='outline'
+				className='absolute left-0 top-1/2 transform -translate-y-1/2 opacity-70'>
+				<ArrowLeftIcon className='h-6 w-6' onClick={handlePreviousClick} />
+			</Button>
 			<img src={images[currentImageIndex]} alt={`Carousel image ${currentImageIndex + 1}`} />
-			<ArrowRightIcon
-				className='h-6 w-6 absolute right-0 top-1/2 transform -translate-y-1/2 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground'
-				onClick={handleNextClick}
-			/>
+			<Button
+				size='icon'
+				variant='outline'
+				className='absolute right-0 top-1/2 transform -translate-y-1/2 opacity-70'>
+				<ArrowRightIcon className='h-6 w-6' onClick={handleNextClick} />
+			</Button>
 		</div>
 	);
 }
 
-export default function Gallery({ media: images, single }: { media: string[]; single?: boolean }) {
+export default function Gallery({
+	media: images,
+	single,
+	edit,
+	onDelete,
+}: {
+	media: string[];
+	single?: boolean;
+	edit?: boolean;
+	onDelete?: (index: number) => void;
+}) {
 	const [open, setOpen] = useState(false);
 	const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
@@ -40,6 +55,11 @@ export default function Gallery({ media: images, single }: { media: string[]; si
 	const handleClose = () => {
 		setOpen(false);
 	};
+
+	const handleDelete = (index: number) => {
+		onDelete ? onDelete(index) : null;
+	};
+
 	const isVideo = (media: string): boolean => {
 		const videoExtensions = [".mp4", ".avi", ".mov"];
 		const extension = media.substring(media.lastIndexOf("."));
@@ -53,12 +73,21 @@ export default function Gallery({ media: images, single }: { media: string[]; si
 			) : (
 				<div className='grid grid-cols-2 md:grid-cols-3 gap-4'>
 					{images.map((media, index) => (
-						<div onClick={() => handleOpen(index)} key={index}>
-							{isVideo(media) ? (
-								<video className='h-auto max-w-full rounded-lg' src={media} controls />
-							) : (
-								<img className='h-auto max-w-full rounded-lg' src={media} />
-							)}
+						<div key={index} className='relative'>
+							<div onClick={() => handleOpen(index)}>
+								{isVideo(media) ? (
+									<video className='h-auto max-w-full rounded-lg' src={media} controls />
+								) : (
+									<img className='h-auto max-w-full rounded-lg' src={media} />
+								)}
+							</div>
+							{edit ? (
+								<div className='absolute top-2 right-2'>
+									<Button size='icon' variant='outline' onClick={() => handleDelete(index)}>
+										<Trash2 className='text-red-700' />
+									</Button>
+								</div>
+							) : null}
 						</div>
 					))}
 				</div>

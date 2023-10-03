@@ -19,7 +19,7 @@ export default function MultipleChoice({
 	return (
 		<List className={orientation === "row" ? "flex flex-row" : ""}>
 			{options.map((option) => (
-				<ListItem key={option} className={`p-0 ${orientation === "row" ? "w-20" : ""}`}>
+				<ListItem key={option} className={`p-0 ${orientation === "row" ? "lg:w-20 w-10" : ""}`}>
 					<label
 						htmlFor={option}
 						className={`flex w-full ${

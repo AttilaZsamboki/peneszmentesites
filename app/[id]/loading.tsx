@@ -45,9 +45,16 @@ export default function Loading() {
 								<div className='flex gap-5 flex-row items-center justify-between w-full flex-wrap'>
 									<div className='flex flex-row items-center gap-5'>
 										<CardTitle>
-											<Skeleton width={150} height={24} />
+											<Skeleton width={135} height={24} />
 										</CardTitle>
-										<Skeleton width={128} height={40} />
+										<Skeleton width={108} height={40} />
+										{deviceSize === "sm" ? (
+											<div>
+												<div className='cursor-pointer text-gray-300'>
+													<FileEdit />
+												</div>
+											</div>
+										) : null}
 									</div>
 									{deviceSize !== "" ? deviceSize === "sm" ? <Separator /> : null : null}
 									<div className='flex w-full lg:w-1/4 lg:justify-normal justify-center h-5 items-center space-x-4 lg:text-md lg:font-medium text-sm'>
@@ -60,11 +67,15 @@ export default function Loading() {
 										))}
 									</div>
 
-									<div>
-										<div className='cursor-not-allowed text-gray-800'>
-											<FileEdit />
-										</div>
-									</div>
+									{deviceSize ? (
+										deviceSize !== "sm" ? (
+											<div>
+												<div className='cursor-not-allowed text-gray-300 sm:opacity-0 sm:w-0 w-full lg:opacity-100'>
+													<FileEdit className='sm:w-0 w-full' />
+												</div>
+											</div>
+										) : null
+									) : null}
 								</div>
 							</CardHeader>
 							<CardContent>
@@ -95,12 +106,6 @@ export default function Loading() {
 										</Accordion>
 									</TabsHeader>
 								</Tabs>
-							</div>
-							<div className='flex flex-row w-full justify-between my-5 p-2 px-4 border rounded-md bg-white'>
-								<Typography className='text-gray-600' variant='h6'>
-									Módosítás
-								</Typography>
-								<Switch crossOrigin='' disabled={true} color='gray' />
 							</div>
 							<div className='flex flex-row w-full justify-between bg-white my-5 p-2 px-4 border rounded-md items-center'>
 								<Typography className='text-gray-600' variant='h6'>

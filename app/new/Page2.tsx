@@ -224,11 +224,16 @@ export function Page2({
 																	<Typography
 																		variant='small'
 																		color='blue-gray'
-																		className='font-normal w-40 flex flex-row gap-2'>
-																		<span>{inputValue.ammount} darab</span>
+																		className='font-normal w-80 flex flex-row gap-4 '>
+																		<span className='break-keep '>
+																			{inputValue.ammount} darab
+																		</span>
 																		{place ? (
 																			<>
-																				-<span>{inputValue.value}</span>
+																				-
+																				<span className='w-2/3'>
+																					{inputValue.value}
+																				</span>
 																			</>
 																		) : null}
 																	</Typography>
