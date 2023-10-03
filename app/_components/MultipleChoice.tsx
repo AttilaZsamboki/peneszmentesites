@@ -7,19 +7,25 @@ export default function MultipleChoice({
 	onChange,
 	radio,
 	disabled,
+	orientation,
 }: {
 	options: string[];
 	value: string;
 	onChange: (value: string) => void;
 	radio?: boolean;
 	disabled?: boolean;
+	orientation?: "row" | "column";
 }) {
 	return (
-		<List>
+		<List className={orientation === "row" ? "flex flex-row" : ""}>
 			{options.map((option) => (
-				<ListItem key={option} className='p-0'>
-					<label htmlFor={option} className='flex w-full cursor-pointer items-center px-3 py-2'>
-						<ListItemPrefix className='mr-3'>
+				<ListItem key={option} className={`p-0 ${orientation === "row" ? "w-20" : ""}`}>
+					<label
+						htmlFor={option}
+						className={`flex w-full ${
+							orientation === "row" ? "flex-col" : ""
+						} cursor-pointer items-center px-3 py-2`}>
+						<ListItemPrefix className={orientation === "row" ? "m-3" : "mr-3"}>
 							{radio ? (
 								<Radio
 									crossOrigin=''
@@ -45,7 +51,9 @@ export default function MultipleChoice({
 								/>
 							)}
 						</ListItemPrefix>
-						<Typography color='gray' className='font-medium'>
+						<Typography
+							color='gray'
+							className={`font-medium ${orientation === "row" ? "order-first text-center" : ""}`}>
 							{option}
 						</Typography>
 					</label>

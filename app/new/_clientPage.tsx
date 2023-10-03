@@ -82,6 +82,7 @@ export default function Page({
 	editFelmeresItems,
 	editData,
 	startPage,
+	isEdit,
 }: {
 	adatlapok: AdatlapData[];
 	templates: Template[];
@@ -91,6 +92,7 @@ export default function Page({
 	editFelmeresItems?: FelmeresItem[];
 	editData?: FelmeresQuestion[];
 	startPage?: number;
+	isEdit?: boolean;
 }) {
 	const { setProgress } = useGlobalState();
 	const searchParams = useSearchParams();
@@ -194,8 +196,9 @@ export default function Page({
 	}, [items]);
 
 	const CreateFelmeres = async () => {
-		const percent = (num: number) => Math.floor((num / 3157) * 100);
-		const updateToast = (num: number) => {
+		const start = performance.now();
+		const percent = (num: number) => Math.floor((num / 3400) * 100);
+		const updateStatus = (num: number) => {
 			toast({
 				title: "Felmérés létrehozása",
 				description:
@@ -203,9 +206,11 @@ export default function Page({
 				duration: 5000,
 				action: percent(num) === 100 ? <Checkmark width={50} height={50} /> : <div>{percent(num)}%</div>,
 			});
+			setProgress({ percent: percent(num) });
 		};
-		setProgress({ percent: 1 });
-		updateToast(1);
+		updateStatus(1);
+
+		// Felmérés alapadatok mentése
 		let date = new Date();
 		date.setHours(date.getHours() + 4);
 		let formattedDate =
@@ -220,7 +225,6 @@ export default function Page({
 			("0" + date.getMinutes()).slice(-2) +
 			":" +
 			("0" + date.getSeconds()).slice(-2);
-
 		const res = await fetch("https://pen.dataupload.xyz/felmeresek/", {
 			method: "POST",
 			headers: {
@@ -228,9 +232,12 @@ export default function Page({
 			},
 			body: JSON.stringify({ ...felmeres, created_at: formattedDate }),
 		});
-		setProgress({ percent: percent(120) });
-		updateToast(120);
+		updateStatus(57);
+		const createFelmeres = performance.now();
+		console.log("Felmérés alapadatok mentése: " + (createFelmeres - start) + "ms");
+
 		if (res.ok) {
+			// Tételek mentése
 			const felmeresResponseData: BaseFelmeresData = await res.json();
 			await fetch("https://pen.dataupload.xyz/felmeres_items/", {
 				method: "POST",
@@ -246,8 +253,11 @@ export default function Page({
 					}))
 				),
 			});
-			setProgress({ percent: percent(214) });
-			updateToast(214);
+			updateStatus(196);
+			const saveOfferItems = performance.now();
+			console.log("Tételek mentése: " + (saveOfferItems - start) + "ms");
+
+			// Kérdések mentése
 			let status = 1;
 			data.filter((question) => question.value).map(async (question) => {
 				const resQuestions = await fetch("https://pen.dataupload.xyz/felmeres_questions/", {
@@ -265,8 +275,13 @@ export default function Page({
 					status = 0;
 				}
 			});
+			updateStatus(203);
+			const createQuestions = performance.now();
+			console.log("Kérdések létrehozása: " + (createQuestions - start) + "ms");
 
+			// MiniCRM ajánlat létrehozása
 			if (status === 1) {
+				// XML string összeállítása
 				const template = templates.find((template) => template.id === felmeres.template);
 				await assembleOfferXML(
 					"Elfogadásra vár",
@@ -299,10 +314,14 @@ export default function Page({
 
 					felmeres.adatlap_id.toString(),
 					template?.description,
-					template?.name
+					template?.name,
+					felmeresResponseData.id
 				);
-				setProgress({ percent: percent(1762) });
-				updateToast(1762);
+				updateStatus(2035);
+				const createXmlString = performance.now();
+				console.log("Ajánlat létrehozása: " + (createXmlString - start) + "ms");
+
+				// MiniCRM ajánlat létrehozása
 				await fetch(`/api/minicrm-proxy/${felmeres.adatlap_id}?endpoint=Project`, {
 					method: "PUT",
 					headers: {
@@ -313,60 +332,66 @@ export default function Page({
 						StatusId: "Elszámolásra vár",
 					}),
 				});
-				setProgress({ percent: percent(2271) });
-				updateToast(2271);
+				updateStatus(2961);
+				const createOffer = performance.now();
+				console.log("Ajánlat létrehozása: " + (createOffer - start) + "ms");
 				const todo_criteria = (todo: ToDo) => {
 					return todo["Type"] === 225 && todo["Status"] === "Open";
 				};
+
+				if (isEdit) {
+					// Régi ajánlat stornózása
+				}
 
 				const todo = await list_to_dos(felmeres.adatlap_id.toString(), todo_criteria);
 				if (todo.length) {
 					await fetchMiniCRM("ToDo", todo[0].Id.toString(), "PUT", { Status: "Closed" });
 				}
-				setProgress({ percent: percent(2591) });
-				updateToast(2591);
-
-				await fetch("/api/revalidate?tag=felmeresek");
-				setProgress({ percent: percent(2992) });
-				updateToast(2992);
-				await fetch("/api/revalidate?tag=" + encodeURIComponent(felmeres.adatlap_id.toString()));
-
-				setProgress({ percent: percent(3157) });
-				updateToast(3157);
+				const closeTodo = performance.now();
+				console.log("ToDo lezárása: " + (closeTodo - start) + "ms");
+				updateStatus(3400);
 				router.push("/");
 			}
 		}
 	};
 
-	const isDisabled = [
-		!felmeres.adatlap_id || !felmeres.type || !felmeres.template,
-		!items
-			.map((item) => item.inputValues.map((value) => value.ammount).every((value) => value > 0))
-			.every((value) => value === true) ||
+	const isDisabled = {
+		Alapadatok: !felmeres.adatlap_id || !felmeres.type || !felmeres.template,
+		Tételek:
+			!items
+				.map((item) => item.inputValues.map((value) => value.ammount).every((value) => value > 0))
+				.every((value) => value === true) ||
 			!items.length ||
 			!items
 				.map((item) =>
 					item.place ? item.inputValues.map((value) => value.value).every((value) => value !== "") : true
 				)
 				.every((value) => value === true),
-		...Array.from(new Set(data.map((field) => field.section))).map(
-			(sect) =>
-				!data
+		...Object.assign(
+			{},
+			...Array.from(new Set(data.map((field) => field.section))).map((sect) => ({
+				[sect]: !data
 					.filter((field) =>
 						questions
 							.filter((question) => question.mandatory)
 							.filter((question) =>
 								question.connection === "Termék"
-									? products.find((product) => product.id === question.product)?.name === sect
+									? products.find((product) => product.id === question.product)?.sku +
+											" - " +
+											products.find((product) => product.id === question.product)?.name ===
+									  sect
 									: sect === "Fix"
 							)
 							.map((question) => question.id)
 							.includes(field.question)
 					)
-					.every((field) => field.value !== "" && field.section === sect && field.value.length) ||
-				!data.length
+					.every((field) => {
+						return field.value.toString() !== "" && field.section === sect && field.value.toString().length;
+					}),
+			}))
 		),
-	];
+	};
+
 	const submitItems = [
 		...items,
 		...otherItems.map((item) => ({
@@ -415,28 +440,6 @@ export default function Page({
 		)
 		.reduce((a, b) => a + b, 0);
 
-	console.log(
-		submitItems.map((item) => ({
-			...item,
-			netPrice:
-				item.valueType === "percent"
-					? item.type === "Fee"
-						? submitItems
-								.map((sumItem) =>
-									sumItem.type === "Item" || (item.type === "Fee" && sumItem.name !== item.name)
-										? sumItem.netPrice *
-										  sumItem.inputValues.map((value) => value.ammount).reduce((a, b) => a + b, 0)
-										: 0
-								)
-								.reduce((a, b) => a + b, 0) *
-						  (item.netPrice / 100)
-						: item.type === "Discount"
-						? (otherItemsNetTotal + netTotal) * (item.netPrice / 100)
-						: item.netPrice
-					: item.netPrice,
-		}))
-	);
-
 	return (
 		<div className='w-full overflow-y-scroll h-screen pb-10 mb-10'>
 			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-2'>
@@ -470,7 +473,7 @@ export default function Page({
 								setDiscount={setDiscount}
 							/>
 							<div className='flex flex-row justify-end gap-3 py-4'>
-								{page === 0 ? null : (
+								{page === 0 || startPage === page ? null : (
 									<Button
 										variant='outline'
 										onClick={() => {
@@ -484,7 +487,7 @@ export default function Page({
 									<Button
 										className='bg-green-500 hover:bg-green-500/90'
 										onClick={CreateFelmeres}
-										disabled={isDisabled[numPages - 1]}>
+										disabled={isDisabled[section === "Fix kérdések" ? "Fix" : section]}>
 										Beküldés
 									</Button>
 								) : (
@@ -492,7 +495,7 @@ export default function Page({
 										onClick={() => {
 											setPage(page + 1);
 										}}
-										disabled={isDisabled[page]}>
+										disabled={isDisabled[section === "Fix kérdések" ? "Fix" : section]}>
 										Következő
 									</Button>
 								)}
@@ -885,13 +888,18 @@ function FieldCreate({
 				value={felmeres?.value as string}
 			/>
 		);
-	} else if (["MULTIPLE_CHOICE", "CHECKBOX"].includes(question.type)) {
+	} else if (["MULTIPLE_CHOICE", "CHECKBOX", "SCALE"].includes(question.type)) {
 		return (
 			<MultipleChoice
-				options={(question.options as string[]).map((option) => option)}
-				value={felmeres?.value as string}
+				options={
+					question.type === "SCALE"
+						? Array.from({ length: (question.options as ScaleOption).max }, (_, i) => (i + 1).toString())
+						: (question.options as string[]).map((option) => option)
+				}
+				value={felmeres?.value.toString() as string}
 				onChange={question.type === "CHECKBOX" ? setterMultipleUnordered : setterSingle}
-				radio={question.type === "MULTIPLE_CHOICE"}
+				radio={question.type === "MULTIPLE_CHOICE" || question.type === "SCALE"}
+				orientation={question.type === "SCALE" ? "row" : "column"}
 			/>
 		);
 	} else if (question.type === "GRID" || question.type === "CHECKBOX_GRID") {
@@ -909,15 +917,6 @@ function FieldCreate({
 				}}
 				radio={question.type === "CHECKBOX_GRID" ? false : true}
 				disabled={false}
-			/>
-		);
-	} else if (question.type === "SCALE") {
-		return (
-			<MultipleChoice
-				options={Array.from({ length: (question.options as ScaleOption).max }, (_, i) => (i + 1).toString())}
-				value={felmeres?.value as string}
-				onChange={setterSingle}
-				radio={true}
 			/>
 		);
 	} else if (question.type === "FILE_UPLOAD") {

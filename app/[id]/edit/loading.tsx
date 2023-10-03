@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/button";
 import { Typography } from "@material-tailwind/react";
 import Skeleton from "react-loading-skeleton";
 
@@ -259,12 +260,7 @@ export default function EditLoading() {
 								</div>
 							</div>
 							<div className='flex flex-row justify-end gap-3 py-4'>
-								<button className='inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-htmlForeground h-10 px-4 py-2'>
-									Előző
-								</button>
-								<button className='inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-htmlForeground hover:bg-primary/90 h-10 px-4 py-2'>
-									Következő
-								</button>
+								<Button disabled={true}>Következő</Button>
 							</div>
 						</div>
 					</div>
