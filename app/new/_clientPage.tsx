@@ -81,6 +81,7 @@ export default function Page({
 	editFelmeres,
 	editFelmeresItems,
 	editData,
+	startPage,
 }: {
 	adatlapok: AdatlapData[];
 	templates: Template[];
@@ -89,10 +90,11 @@ export default function Page({
 	editFelmeres?: BaseFelmeresData;
 	editFelmeresItems?: FelmeresItem[];
 	editData?: FelmeresQuestion[];
+	startPage?: number;
 }) {
 	const { setProgress } = useGlobalState();
 	const searchParams = useSearchParams();
-	const [page, setPage] = React.useState(0);
+	const [page, setPage] = React.useState(startPage ? startPage : 0);
 	const [section, setSection] = React.useState("Alapadatok");
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>(
 		editFelmeres
@@ -106,7 +108,9 @@ export default function Page({
 					created_at: "",
 			  }
 	);
-	const [items, setItems] = React.useState<FelmeresItem[]>(editFelmeresItems ? editFelmeresItems : []);
+	const [items, setItems] = React.useState<FelmeresItem[]>(
+		editFelmeresItems ? editFelmeresItems.filter((item) => item.type === "Item") : []
+	);
 	const [numPages, setNumPages] = React.useState(0);
 	const router = useRouter();
 	const [data, setData] = React.useState<FelmeresQuestion[]>(
@@ -118,21 +122,38 @@ export default function Page({
 			: []
 	);
 	const [questions, setQuestions] = React.useState<Question[]>([]);
-	const [otherItems, setOtherItems] = React.useState<OtherFelmeresItem[]>([
-		{
-			name: "Munkadíj",
-			value: 0,
-			type: "percent",
-			id: 0,
-		},
-		{
-			name: "Egyéb szerelési segédanyagok",
-			value: 0,
-			type: "fixed",
-			id: 1,
-		},
-	]);
-	const [discount, setDiscount] = React.useState(0);
+	const [otherItems, setOtherItems] = React.useState<OtherFelmeresItem[]>(
+		editFelmeresItems
+			? editFelmeresItems
+					.filter((item) => item.type === "Fee")
+					.map((item) => ({
+						id: item.id ? item.id : 0,
+						name: item.name,
+						type: item.valueType ? item.valueType : "fixed",
+						value: item.netPrice,
+					}))
+			: [
+					{
+						name: "Munkadíj",
+						value: 0,
+						type: "percent",
+						id: 0,
+					},
+					{
+						name: "Egyéb szerelési segédanyagok",
+						value: 0,
+						type: "fixed",
+						id: 1,
+					},
+			  ]
+	);
+	const [discount, setDiscount] = React.useState(
+		editFelmeresItems
+			? editFelmeresItems.find((item) => item.type === "Discount")
+				? editFelmeresItems.find((item) => item.type === "Discount")!.netPrice
+				: 0
+			: 0
+	);
 	const { toast } = useToast();
 
 	React.useEffect(() => {
@@ -221,7 +242,7 @@ export default function Page({
 						...item,
 						create_name: item.product ? null : item.name,
 						adatlap: felmeresResponseData.id,
-						netPrice: item.type === "Discount" ? Math.floor(item.netPrice / 1.27) : item.netPrice,
+						netPrice: item.netPrice,
 					}))
 				),
 			});
@@ -244,6 +265,7 @@ export default function Page({
 					status = 0;
 				}
 			});
+
 			if (status === 1) {
 				const template = templates.find((template) => template.id === felmeres.template);
 				await assembleOfferXML(
@@ -252,7 +274,29 @@ export default function Page({
 					adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)
 						? adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)!.ContactId.toString()
 						: "",
-					submitItems,
+					submitItems.map((item) => ({
+						...item,
+						netPrice:
+							item.valueType === "percent"
+								? item.type === "Fee"
+									? submitItems
+											.map((sumItem) =>
+												sumItem.type === "Item" ||
+												(item.type === "Fee" && sumItem.name !== item.name)
+													? sumItem.netPrice *
+													  sumItem.inputValues
+															.map((value) => value.ammount)
+															.reduce((a, b) => a + b, 0)
+													: 0
+											)
+											.reduce((a, b) => a + b, 0) *
+									  (item.netPrice / 100)
+									: item.type === "Discount"
+									? -((otherItemsNetTotal + netTotal) * (item.netPrice / 100))
+									: item.netPrice
+								: item.netPrice,
+					})),
+
 					felmeres.adatlap_id.toString(),
 					template?.description,
 					template?.name
@@ -323,18 +367,6 @@ export default function Page({
 				!data.length
 		),
 	];
-
-	const netTotal = items
-		.map(({ inputValues, netPrice }) => netPrice * inputValues.reduce((a, b) => a + b.ammount, 0))
-		.reduce((a, b) => a + b, 0);
-	const otherItemsNetTotal = otherItems
-		.map((item) =>
-			item.type === "fixed"
-				? item.value
-				: (netTotal + otherItems.filter((item) => item.type !== "percent").reduce((a, b) => a + b.value, 0)) *
-				  (item.value / 100)
-		)
-		.reduce((a, b) => a + b, 0);
 	const submitItems = [
 		...items,
 		...otherItems.map((item) => ({
@@ -344,15 +376,10 @@ export default function Page({
 			product: null,
 			adatlap: felmeres.adatlap_id,
 			inputValues: [{ ammount: 1, id: 0, value: "" }],
-			netPrice: Math.round(
-				item.type === "fixed"
-					? item.value
-					: (netTotal +
-							otherItems.filter((item) => item.type !== "percent").reduce((a, b) => a + b.value, 0)) *
-							(item.value / 100)
-			),
+			netPrice: item.value,
 			sku: null as unknown as string,
 			type: "Fee",
+			valueType: item.type,
 		})),
 		{
 			name: "Kedvezmény",
@@ -361,9 +388,10 @@ export default function Page({
 			product: null,
 			adatlap: felmeres.adatlap_id,
 			inputValues: [{ ammount: 1, id: 0, value: "" }],
-			netPrice: Math.round(-((netTotal + otherItemsNetTotal) * (discount / 100))),
+			netPrice: discount,
 			sku: null as unknown as string,
 			type: "Discount",
+			valueType: "percent",
 		},
 	] as FelmeresItem[];
 	const onPageChange = (page: number) => {
@@ -371,6 +399,43 @@ export default function Page({
 			setItems([]);
 		}
 	};
+	const netTotal = items
+		.map(({ inputValues, netPrice }) => netPrice * inputValues.reduce((a, b) => a + b.ammount, 0))
+		.reduce((a, b) => a + b, 0);
+	const otherItemsNetTotal = otherItems
+		.filter((item) => !isNaN(item.value))
+		.map((item) =>
+			item.type === "fixed"
+				? item.value
+				: (netTotal +
+						otherItems
+							.filter((item) => item.type !== "percent" && !isNaN(item.value))
+							.reduce((a, b) => a + b.value, 0)) *
+				  (item.value / 100)
+		)
+		.reduce((a, b) => a + b, 0);
+
+	console.log(
+		submitItems.map((item) => ({
+			...item,
+			netPrice:
+				item.valueType === "percent"
+					? item.type === "Fee"
+						? submitItems
+								.map((sumItem) =>
+									sumItem.type === "Item" || (item.type === "Fee" && sumItem.name !== item.name)
+										? sumItem.netPrice *
+										  sumItem.inputValues.map((value) => value.ammount).reduce((a, b) => a + b, 0)
+										: 0
+								)
+								.reduce((a, b) => a + b, 0) *
+						  (item.netPrice / 100)
+						: item.type === "Discount"
+						? (otherItemsNetTotal + netTotal) * (item.netPrice / 100)
+						: item.netPrice
+					: item.netPrice,
+		}))
+	);
 
 	return (
 		<div className='w-full overflow-y-scroll h-screen pb-10 mb-10'>

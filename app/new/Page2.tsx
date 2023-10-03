@@ -658,8 +658,7 @@ export function Page2({
 																/>
 																<Typography
 																	variant='small'
-																	className={`font-extralight text-gray-500 absolute ${
-																		readonly ? "top-0" : "top-2"
+																	className={`font-extralight text-gray-500 absolute top-2
 																	} right-2 max-w-[30rem]`}>
 																	{item.type === "percent" ? "%" : "Ft"}
 																</Typography>
@@ -958,7 +957,7 @@ export function Page2({
 													/>
 													<Typography
 														variant='small'
-														className={`font-extralight text-gray-500 absolute right-2 max-w-[30rem]`}>
+														className={`font-extralight text-gray-500 absolute right-2 top-2 max-w-[30rem]`}>
 														%
 													</Typography>
 												</>

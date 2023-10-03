@@ -52,6 +52,7 @@ export default async function Page({
 			products={products}
 			productAttributes={productAttributes}
 			editData={felmeresQuestions}
+			startPage={1}
 		/>
 	);
 }

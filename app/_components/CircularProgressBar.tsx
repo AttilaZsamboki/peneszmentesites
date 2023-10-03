@@ -5,7 +5,7 @@ const ScrollProgress = ({ percent }: { percent: number }) => {
 	return (
 		<div className='container'>
 			<div className='fixed inset-x-0 top-0 z-50'>
-				<Progress className='rounded-none' value={percent} />
+				<Progress className='rounded-none h-2' value={percent} />
 			</div>
 		</div>
 	);
