@@ -507,7 +507,7 @@ export default function Page({
 		.reduce((a, b) => a + b, 0);
 
 	return (
-		<div className='w-full overflow-y-scroll h-screen pb-10 mb-10'>
+		<div className='w-full overflow-y-scroll h-[90dvh] pb-10 mb-10'>
 			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-2'>
 				<div
 					className={`lg:mt-6 w-11/12 lg:px-10 ${
