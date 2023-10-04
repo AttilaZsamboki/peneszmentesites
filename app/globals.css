@@ -119,3 +119,11 @@ body {
 .modern-scrollbar *::-webkit-scrollbar-track {
 	background-color: #ddd; /* Set the color of the scrollbar track to a lighter gray */
 }
+
+.rotate {
+	transition: transform 0.3s;
+}
+
+.rotate.up {
+	transform: rotate(180deg);
+}

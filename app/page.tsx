@@ -45,7 +45,7 @@ export default async function Home() {
 		);
 		const allData = felmeresek.map((felmeres) => {
 			const adatlap = adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id);
-			const template = templates.find((template) => template.id === felmeres.template);
+			const template = templates.find((template) => template?.id === felmeres.template);
 			let date = new Date(felmeres.created_at);
 			let formattedDate =
 				date.getFullYear() +
