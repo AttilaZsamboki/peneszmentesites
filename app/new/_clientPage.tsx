@@ -29,6 +29,8 @@ import { Checkmark } from "@/components/check";
 import { isJSONParsable } from "../[id]/_clientPage";
 import _ from "lodash";
 import Gallery from "../_components/Gallery";
+import { ToastAction } from "@/components/ui/toast";
+import { IterationCw } from "lucide-react";
 
 export interface ProductTemplate {
 	product: number;
@@ -363,6 +365,46 @@ export default function Page({
 
 				if (isEdit) {
 					// Régi ajánlat stornózása
+					const cancelOffer = async () => {
+						const resp = await fetch("https://pen.dataupload.xyz/cancel_offer/", {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+							},
+							body: JSON.stringify({
+								// adatlap_id: felmeresResponseData.id,
+								adatlap_id: felmeres.id.toString(),
+							}),
+						});
+						if (!resp.ok) {
+							toast({
+								title: "Hiba",
+								description: "Hiba akadt a régi adatlap sztornózása közben: " + resp.statusText,
+								variant: "destructive",
+								action: (
+									<ToastAction
+										altText='Try again'
+										onClick={async () => {
+											const retryResp = await cancelOffer();
+											if (retryResp === "Error") {
+												return;
+											}
+											updateStatus(3400);
+											router.push("/");
+										}}>
+										<IterationCw className='w-5 h-5' />
+									</ToastAction>
+								),
+							});
+							return "Error";
+						}
+					};
+					const resp = await cancelOffer();
+					if (resp === "Error") {
+						return;
+					}
+					updateStatus(3400);
+					router.push("/");
 				} else {
 					const todo = await list_to_dos(felmeres.adatlap_id.toString(), todo_criteria);
 					if (todo.length) {
@@ -370,6 +412,8 @@ export default function Page({
 					}
 					const closeTodo = performance.now();
 					console.log("ToDo lezárása: " + (closeTodo - start) + "ms");
+					updateStatus(3400);
+					router.push("/");
 				}
 			}
 			updateStatus(3400);
