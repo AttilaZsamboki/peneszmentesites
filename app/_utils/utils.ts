@@ -43,9 +43,11 @@ interface Breakpoint {
 
 export const useCreateQueryString = (searchParams: any) => {
 	return React.useCallback(
-		(name: string, value: string) => {
+		(setParams: { name: string; value: string }[]) => {
 			const params = new URLSearchParams(searchParams as unknown as string);
-			params.set(name, value);
+			setParams.forEach(({ name, value }) => {
+				params.set(name, value);
+			});
 			return params.toString();
 		},
 		[searchParams]

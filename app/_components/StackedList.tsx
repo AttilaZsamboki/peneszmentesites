@@ -95,6 +95,11 @@ export interface PaginationOptions {
 	active: boolean;
 }
 
+export interface Sort {
+	by: string;
+	order: "asc" | "desc";
+}
+
 export default function StackedList({
 	data,
 	editType,
@@ -102,9 +107,9 @@ export default function StackedList({
 	itemContent,
 	onEditItem,
 	pagination,
-	sort = { by: "id", order: "asc" },
 	title,
 	filters,
+	savedFiltersOriginal,
 }: {
 	data: any[];
 	editType: "link" | "dialog";
@@ -112,15 +117,15 @@ export default function StackedList({
 	itemContent: ItemContent;
 	onEditItem?: (item: any) => void;
 	pagination: PaginationOptions;
-	sort?: { by: string; order: "asc" | "desc" };
 	title: string;
 	filters: FilterItem[];
+	savedFiltersOriginal?: Filter[];
 }) {
 	const parent = React.useRef<HTMLUListElement | null>(null);
 	const router = useRouter();
 	const searchParams = useSearchParams()!;
 	const deviceSize = useBreakpointValue();
-	const [savedFilters, setSavedFilters] = React.useState<Filter[]>([]);
+	const [savedFilters, setSavedFilters] = React.useState<Filter[]>(savedFiltersOriginal ? savedFiltersOriginal : []);
 	const savedFilterFromURL = searchParams.get("selectedFilter")
 		? savedFilters.find((filter) => filter.id === parseInt(searchParams.get("selectedFilter") ?? ""))
 		: "";
@@ -166,6 +171,8 @@ export default function StackedList({
 		name: "",
 		type: "",
 		id: searchParams.get("selectedFilter") ? parseInt(searchParams.get("selectedFilter") ?? "") : 0,
+		sort_by: searchParams.get("sort_by") ?? "id",
+		sort_order: (searchParams.get("sort_order") as "asc" | "desc") ?? "asc",
 	});
 	const search: FilterItem = filter.filters.find((filter) => filter.field === "filter")!;
 
@@ -197,7 +204,17 @@ export default function StackedList({
 				.join("&")}${filter.id ? "&selectedFilter=" + filter.id : ""}`,
 			{ scroll: false }
 		);
-	}, [filter]);
+	}, [filter.filters]);
+	React.useEffect(() => {
+		router.push(
+			"?" +
+				createQueryStringCallback([
+					{ name: "sort_by", value: filter.sort_by },
+					{ name: "sort_order", value: filter.sort_order },
+				]),
+			{ scroll: false }
+		);
+	}, [filter.sort_by, filter.sort_order]);
 	React.useEffect(() => {
 		if (savedFilterFromURL) {
 			setFilter(savedFilterFromURL);
@@ -214,9 +231,12 @@ export default function StackedList({
 	const { toast } = useToast();
 
 	const fetchSavedFilters = async () => {
+		if (savedFiltersOriginal?.length) {
+			return;
+		}
 		const response = await fetch("https://pen.dataupload.xyz/filters?type=" + title);
 		if (response.ok) {
-			const data: { id: number; name: string; type: string }[] = await response.json();
+			const data: Filter[] = await response.json();
 
 			setSavedFilters(
 				await Promise.all(
@@ -320,9 +340,9 @@ export default function StackedList({
 								viewBox='0 0 24 24'
 								stroke='currentColor'>
 								<path
-									stroke-linecap='round'
+									strokeLinecap='round'
 									stroke-linejoin='round'
-									stroke-width='2'
+									strokeWidth='2'
 									d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
 								/>
 							</svg>
@@ -410,6 +430,66 @@ export default function StackedList({
 											);
 										})}
 								</div>
+								{pagination.numPages ? null : (
+									<>
+										<Separator className='my-4' />
+										<SheetHeader>
+											<SheetTitle>Sorrend</SheetTitle>
+											<SheetDescription>
+												Itt tudod meghatározni mi szerint legyenek az adatok besorolva
+											</SheetDescription>
+										</SheetHeader>
+										<div className='grid gap-4 py-4 pb-10'>
+											<div className='grid grid-cols-4 items-center gap-4'>
+												<Label htmlFor='order-field' className='text-right'>
+													Mező
+												</Label>
+												<div id='order-field' className='col-span-3'>
+													<AutoComplete
+														options={filter.filters
+															.filter((filter) => filter.label)
+															.map((filter) => ({
+																label: filter.label,
+																value: filter.field,
+															}))}
+														value={
+															filter.filters.find((item) => item.field === filter.sort_by)
+																?.label
+														}
+														optionDisplayDirection='top'
+														onChange={(value) => {
+															setFilter((prev) => ({
+																...prev,
+																sort_by: value,
+															}));
+														}}
+													/>
+												</div>
+											</div>
+											<div className='grid grid-cols-4 items-center gap-4'>
+												<Label htmlFor='order' className='text-right'>
+													Típus
+												</Label>
+												<div id='order' className='col-span-3'>
+													<AutoComplete
+														options={[
+															{ label: "Növekvő", value: "asc" },
+															{ label: "Csökkenő", value: "desc" },
+														]}
+														value={filter.sort_order === "asc" ? "Növekvő" : "Csökkenő"}
+														emptyOption={false}
+														onChange={(value) => {
+															setFilter((prev) => ({
+																...prev,
+																sort_order: value as "asc" | "desc",
+															}));
+														}}
+													/>
+												</div>
+											</div>
+										</div>
+									</>
+								)}
 								<SheetFooter className='flex flex-row w-full space-x-2 justify-end items-center'>
 									<SheetClose asChild>
 										<Button type='submit'>Alkalmaz</Button>
@@ -438,15 +518,17 @@ export default function StackedList({
 				} rounded-md border p-2 bg-white `}>
 				<ul ref={parent} role='list' className='w-full bg-white rounded-lg flex flex-col justify-between'>
 					{filteredData
-						.sort((a, b) =>
-							sort
-								? sort.order === "desc"
-									? b[itemContent[sort.by as keyof ItemContent] as string] -
-									  a[itemContent[sort.by as keyof ItemContent] as string]
-									: a[itemContent[sort.by as keyof ItemContent] as string] -
-									  b[itemContent[sort.by as keyof ItemContent] as string]
-								: 0
-						)
+						.sort((a, b) => {
+							if (typeof a[filter.sort_by] === "string") {
+								return filter.sort_order === "desc"
+									? b[filter.sort_by]?.localeCompare(a[filter.sort_by])
+									: a[filter.sort_by]?.localeCompare(b[filter.sort_by]);
+							} else {
+								return filter.sort_order === "desc"
+									? b[filter.sort_by] - a[filter.sort_by]
+									: a[filter.sort_by] - b[filter.sort_by];
+							}
+						})
 						.map((item, index) => {
 							if (editType === "link" && editHref) {
 								return (
@@ -545,7 +627,7 @@ export default function StackedList({
 					<DefaultPagination
 						numPages={pagination.numPages}
 						onPageChange={(page) => {
-							router.push("?" + createQueryStringCallback("page", page.toString()), {
+							router.push("?" + createQueryStringCallback([{ name: "page", value: page.toString() }]), {
 								scroll: false,
 							});
 						}}
@@ -756,10 +838,21 @@ function FiltersComponent({
 	}, [filter, savedFilters]);
 
 	return (
-		<div className='flex flex-row justify-center items-center w-full bg-white rounded-md p-2 border pb-0'>
-			<Tabs value={filter.id} className='flex flex-row w-full pl-3 lg:pl-6 items-center gap-3'>
+		<div className='flex flex-row justify-center items-center w-full bg-white rounded-md p-2 border pb-0 '>
+			<Tabs
+				value={filter.id}
+				className='flex flex-row w-full pl-3 lg:pl-6 items-center gap-3 justify-start overflow-x-scroll'>
 				<TabsHeader
-					className='rounded-none bg-transparent p-0 cursor-pointer'
+					className='rounded-none bg-transparent p-0 cursor-pointer inline-flex items-center lg:w-auto '
+					onClick={handleOpenSaveFilter}
+					indicatorProps={{
+						className: "bg-transparent border-b-2 border-gray-900 mx-3 shadow-none rounded-none",
+					}}>
+					<PlusIcon className='w-5 h-5' />
+				</TabsHeader>
+
+				<TabsHeader
+					className='rounded-none bg-transparent w-36 lg:w-full p-0 cursor-pointer'
 					onClick={() => {
 						setFilter((prev) => ({
 							filters: prev.filters.map((filter) => ({
@@ -769,11 +862,16 @@ function FiltersComponent({
 							name: "",
 							type: "",
 							id: 0,
+							sort_by: "",
+							sort_order: "asc",
 						}));
 					}}
 					indicatorProps={{
 						className: "bg-transparent border-b-2 border-gray-900 mx-3 shadow-none rounded-none",
 					}}>
+					<div className='flex items-center pb-2 -ml-2'>
+						<Separator orientation='vertical' className='mx-2 ml-4' />
+					</div>
 					<Tab value={0} className='pb-2'>
 						Alap nézet
 					</Tab>
@@ -781,6 +879,7 @@ function FiltersComponent({
 						<Separator orientation='vertical' className='mx-2 ml-4' />
 					</div>
 				</TabsHeader>
+
 				{savedFilters
 					.sort((a, b) => a.id - b.id)
 					.map((savedFilter) => {
@@ -790,7 +889,7 @@ function FiltersComponent({
 						return (
 							<TabsHeader
 								key={savedFilter.id}
-								className='rounded-none bg-transparent p-0 cursor-pointer'
+								className='rounded-none bg-transparent p-0 cursor-pointer w-40 lg:w-full'
 								indicatorProps={{
 									className:
 										"bg-transparent border-b-2 border-gray-900 mx-3 shadow-none rounded-none",
@@ -853,14 +952,6 @@ function FiltersComponent({
 							</TabsHeader>
 						);
 					})}
-				<TabsHeader
-					className='rounded-none bg-transparent p-0 cursor-pointer relative inline-flex items-center'
-					onClick={handleOpenSaveFilter}
-					indicatorProps={{
-						className: "bg-transparent border-b-2 border-gray-900 mx-3 shadow-none rounded-none",
-					}}>
-					<PlusIcon className='w-5 h-5' />
-				</TabsHeader>
 			</Tabs>
 			<CustomDialog
 				onSave={saveFilter}

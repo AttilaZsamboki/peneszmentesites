@@ -2,6 +2,8 @@
 import React from "react";
 import BaseComponentV2 from "./_components/BaseComponentV2";
 import { statusMap } from "./_utils/utils";
+import { Filter as OtherFilter } from "./products/page";
+import { useSearchParams } from "next/navigation";
 
 export interface Filter {
 	id: number;
@@ -9,7 +11,8 @@ export interface Filter {
 	searchField: string;
 }
 
-export default function ClientPage({ allData }: { allData: any }) {
+export default function ClientPage({ allData, savedFilters }: { allData: any; savedFilters?: OtherFilter[] }) {
+	const searchParams = useSearchParams();
 	return (
 		<BaseComponentV2
 			title='Felmérések'
@@ -42,7 +45,7 @@ export default function ClientPage({ allData }: { allData: any }) {
 				{ field: "Teljes cím", label: "Cím", type: "select" },
 				{ field: "created_at", label: "Dátum", type: "daterange" },
 			]}
-			sort={{ by: "id", order: "desc" }}
+			savedFilters={savedFilters}
 		/>
 	);
 }

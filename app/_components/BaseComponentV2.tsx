@@ -1,10 +1,10 @@
 "use client";
-import StackedList, { FilterItem, ItemContent, PaginationOptions } from "../_components/StackedList";
+import StackedList, { FilterItem, ItemContent, PaginationOptions, Sort } from "../_components/StackedList";
 import Heading from "../_components/Heading";
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { Filter } from "../products/page";
 
 export default function BaseComponentV2({
 	data,
@@ -17,8 +17,8 @@ export default function BaseComponentV2({
 	onCreateNew,
 	onEditItem,
 	pagination = { numPages: 0, active: false },
-	sort,
 	filters = [],
+	savedFilters = [],
 }: {
 	data: any;
 	title: string;
@@ -30,8 +30,8 @@ export default function BaseComponentV2({
 	onCreateNew?: () => void;
 	onEditItem?: (item: any) => void;
 	pagination?: PaginationOptions;
-	sort?: { by: string; order: "asc" | "desc" };
 	filters?: FilterItem[];
+	savedFilters?: Filter[];
 }) {
 	return (
 		<main className='flex min-h-screen flex-col items-center justify-start w-full'>
@@ -69,8 +69,8 @@ export default function BaseComponentV2({
 					editType={editType}
 					itemContent={itemContent}
 					pagination={pagination}
-					sort={sort}
 					title={title}
+					savedFiltersOriginal={savedFilters}
 				/>
 			</div>
 		</main>

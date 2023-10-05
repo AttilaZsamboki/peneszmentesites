@@ -15,6 +15,8 @@ export interface Filter {
 	name: string;
 	filters: FilterItem[];
 	type: string;
+	sort_by: string;
+	sort_order: "asc" | "desc";
 }
 
 export default async function ProductsFetch({ searchParams }: { searchParams: { page: string; filter?: string } }) {
