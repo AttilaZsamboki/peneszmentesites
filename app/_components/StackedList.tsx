@@ -434,7 +434,7 @@ export default function StackedList({
 			/>
 			<ScrollArea
 				className={`${
-					pagination.numPages ? "h-[50dvh] lg:h-[55dvh] pb-0" : "h-[58dvh] lg:h-[63dvh]"
+					pagination.numPages ? "h-[50dvh] lg:h-[55dvh] pb-0" : "h-[58dvh] lg:h-[70dvh]"
 				} rounded-md border p-2 bg-white `}>
 				<ul ref={parent} role='list' className='w-full bg-white rounded-lg flex flex-col justify-between'>
 					{filteredData

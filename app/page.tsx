@@ -30,7 +30,7 @@ export interface FelmeresQuestion {
 export default async function Home() {
 	const data = await fetch("https://pen.dataupload.xyz/felmeresek", { next: { tags: ["felmeresek"] } });
 	if (data.ok) {
-		const felmeresek: BaseFelmeresData[] = await data.json();
+		const felmeresek: BaseFelmeresData[] = await data.json().catch((err) => console.log(err));
 		const adatlapok: AdatlapDetails[] = await Promise.all(
 			felmeresek.map(async (felmeres) => fetchAdatlapDetails(felmeres.adatlap_id.toString()))
 		).then((adatlapok) => adatlapok.filter((adatlap) => adatlap !== undefined));
@@ -40,7 +40,7 @@ export default async function Home() {
 					next: { tags: [encodeURIComponent(felmeres.adatlap_id)] },
 				})
 					.then((res) => res.json())
-					.catch((err) => console.error(err))
+					.catch((err) => console.log(err))
 			)
 		);
 		const allData = felmeresek.map((felmeres) => {

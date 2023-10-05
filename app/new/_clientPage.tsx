@@ -31,6 +31,7 @@ import _ from "lodash";
 import Gallery from "../_components/Gallery";
 import { ToastAction } from "@/components/ui/toast";
 import { IterationCw } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
 
 export interface ProductTemplate {
 	product: number;
@@ -507,17 +508,17 @@ export default function Page({
 		.reduce((a, b) => a + b, 0);
 
 	return (
-		<div className='w-full overflow-y-scroll h-[90dvh] pb-10 mb-10'>
-			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-2'>
+		<div className='w-full overflow-y-scroll h-[100dvh] pb-0 mb-0 lg:pb-10 lg:mb-10'>
+			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-0 lg:mt-2'>
 				<div
-					className={`lg:mt-6 w-11/12 lg:px-10 ${
+					className={`lg:mt-6 lg:px-10 px-0 w-full ${
 						page === 1 ? "lg:w-11/12" : page == 0 ? "lg:w-1/4" : "lg:w-2/3"
 					}`}>
-					<Card>
+					<Card className='lg:rounded-md rounded-none lg:border border-0'>
 						<CardHeader>
 							<CardTitle>{section}</CardTitle>
 						</CardHeader>
-						<CardContent className='p-8 transform'>
+						<CardContent className={`${page !== 1 ? "p-8" : null} transform`}>
 							<PageChooser
 								setOtherItems={setOtherItems}
 								globalData={data}
@@ -799,20 +800,24 @@ export function QuestionPage({
 }) {
 	return (
 		<div className='flex flex-col gap-10'>
-			{questions.map((question) => (
-				<QuestionTemplate
-					key={question.id}
-					title={question.question}
-					description={question.description}
-					mandatory={question.mandatory}>
-					<FieldCreate
-						globalData={globalData}
-						product={product}
-						adatlap_id={adatlap_id}
-						question={question}
-						setGlobalData={setData}
-					/>
-				</QuestionTemplate>
+			{questions.map((question, index) => (
+				<>
+					{index === 0 ? <Separator /> : null}
+					<QuestionTemplate
+						key={question.id}
+						title={question.question}
+						description={question.description}
+						mandatory={question.mandatory}>
+						<FieldCreate
+							globalData={globalData}
+							product={product}
+							adatlap_id={adatlap_id}
+							question={question}
+							setGlobalData={setData}
+						/>
+					</QuestionTemplate>
+					{index === questions.length - 1 ? null : <Separator />}
+				</>
 			))}
 		</div>
 	);
@@ -832,21 +837,16 @@ function FieldCreate({
 	product?: string;
 }) {
 	React.useEffect(() => {
-		if (
-			!globalData.find(
-				(felmeres) =>
-					felmeres.question === question.id &&
-					(felmeres.section === "Termék" ? felmeres.section === product : true)
-			)
-		) {
+		if (!globalData.find((felmeres) => isTrue(felmeres))) {
+			console.log(product);
 			setGlobalData((prev) => [
-				...prev.filter((felmeres) => felmeres.question !== question.id || felmeres.section !== product),
+				...prev.filter((felmeres) => !isTrue(felmeres)),
 				{
 					adatlap_id: adatlap_id,
 					id: 0,
 					value: "",
 					question: question.id,
-					section: product ? product : "Fix",
+					section: question.connection === "Fix" ? "Fix" : product || "",
 				},
 			]);
 		}
@@ -854,11 +854,13 @@ function FieldCreate({
 
 	const isTrue = (felmeres: FelmeresQuestion) => {
 		return (
-			felmeres.question === question.id && (question.connection === "Fix" ? true : felmeres.section === product)
+			felmeres.question === question.id &&
+			(question.connection === "Fix" ? true : felmeres.section === product && product !== "")
 		);
 	};
 
 	const setterSingle = (value: string) => {
+		console.log(value);
 		setGlobalData((prev) => prev.map((felmeres) => (isTrue(felmeres) ? { ...felmeres, value: value } : felmeres)));
 	};
 	const felmeres = globalData.find((felmeres) => isTrue(felmeres));

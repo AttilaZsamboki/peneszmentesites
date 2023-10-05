@@ -4,6 +4,7 @@ import Heading from "../_components/Heading";
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 export default function BaseComponentV2({
 	data,

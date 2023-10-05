@@ -20,7 +20,7 @@ import { Grid } from "@/app/_components/Grid";
 import Gallery from "@/app/_components/Gallery";
 
 import { statusMap } from "@/app/_utils/utils";
-import { toast, useToast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/use-toast";
 import useBreakpointValue from "../_components/useBreakpoint";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -248,7 +248,7 @@ export default function ClientPage({
 	};
 
 	return (
-		<div className='w-full overflow-y-scroll overflow-x-hidden lg:h-[93dvh] h-[80dvh]'>
+		<div className='w-full overflow-y-scroll overflow-x-hidden lg:h-[98dvh] h-[90dvh]'>
 			<div className='flex flex-row w-ful flex-wrap lg:flex-nowrap justify-center mt-2'>
 				<div className='w-full'>
 					<div className='mt-6 lg:px-10 px-3 w-full'>
@@ -418,7 +418,7 @@ function EditButton({ onClick, href }: { onClick?: () => void; href?: string }) 
 	if (href) {
 		return (
 			<div className='w-full lg:w-fit lg:flex-none flex flex-row items-center gap-4'>
-				<Link href={href} className='w-full'>
+				<Link href={href} className='flex flex-row items-center w-full'>
 					<Button variant='outline' className='flex flex-row items-center w-full' onClick={onClick}>
 						<FileEdit />
 					</Button>

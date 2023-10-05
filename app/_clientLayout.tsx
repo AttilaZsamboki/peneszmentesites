@@ -1,25 +1,16 @@
 "use client";
 import React from "react";
-import { HomeIcon, ArchiveBoxIcon } from "@heroicons/react/24/outline";
+import { ArchiveBoxIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import CircularProgressBar from "./_components/CircularProgressBar";
 import { Toaster } from "@/components/ui/toaster";
 import { Tab, Tabs, TabsHeader } from "@material-tailwind/react";
-import {
-	ChevronDown,
-	ChevronLeft,
-	ChevronRight,
-	ChevronUp,
-	Menu,
-	PanelRightClose,
-	PanelRightOpen,
-	Search,
-} from "lucide-react";
+import { ChevronDown, Menu, Search } from "lucide-react";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
 import useBreakpointValue from "./_components/useBreakpoint";
+import { Button } from "@/components/ui/button";
 
 interface Progress {
 	percent: number;
@@ -133,9 +124,9 @@ function Navbar({ routes }: { routes: Route[] }) {
 			{!openNav ? (
 				deviceSize === "sm" || !deviceSize ? (
 					<div
-						className='pb-2 active:bg-white cursor-pointer absolute top-2 left-2'
+						className='border rounded-sm active:bg-white cursor-pointer absolute top-2 left-2 bg-white'
 						onClick={() => setOpenNav((prev) => !prev)}>
-						<Menu className='bg-white' />
+						<Menu className='' />
 					</div>
 				) : (
 					<aside className='border-r'>
