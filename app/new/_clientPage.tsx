@@ -838,7 +838,6 @@ function FieldCreate({
 }) {
 	React.useEffect(() => {
 		if (!globalData.find((felmeres) => isTrue(felmeres))) {
-			console.log(product);
 			setGlobalData((prev) => [
 				...prev.filter((felmeres) => !isTrue(felmeres)),
 				{
@@ -850,7 +849,7 @@ function FieldCreate({
 				},
 			]);
 		}
-	}, [adatlap_id, product, question.id, setGlobalData]);
+	}, [product, question.id]);
 
 	const isTrue = (felmeres: FelmeresQuestion) => {
 		return (
@@ -860,9 +859,9 @@ function FieldCreate({
 	};
 
 	const setterSingle = (value: string) => {
-		console.log(value);
 		setGlobalData((prev) => prev.map((felmeres) => (isTrue(felmeres) ? { ...felmeres, value: value } : felmeres)));
 	};
+
 	const felmeres = globalData.find((felmeres) => isTrue(felmeres));
 
 	const setterMultipleUnordered = (value: string) => {
@@ -959,6 +958,7 @@ function FieldCreate({
 	} else if (["MULTIPLE_CHOICE", "CHECKBOX", "SCALE"].includes(question.type)) {
 		return (
 			<MultipleChoice
+				name={question.id.toString()}
 				options={
 					question.type === "SCALE"
 						? Array.from({ length: (question.options as ScaleOption).max }, (_, i) => (i + 1).toString())
