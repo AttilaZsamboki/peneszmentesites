@@ -2,6 +2,7 @@
 import React from "react";
 import { Radio } from "@material-tailwind/react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const Grid = ({
 	columns,
@@ -20,38 +21,26 @@ export const Grid = ({
 }) => {
 	return (
 		<div className='relative sm:rounded-lg w-full'>
-			<div className='overflow-x-auto'>
-				<table
-					className='text-sm w-full text-left text-gray-500 dark:text-gray-400'
+			<div className='overflow-x-auto w-full'>
+				<Table
+					className={disabled ? "text-sm w-full text-left text-gray-500 dark:text-gray-400" : ""}
 					style={{ tableLayout: "fixed" }}>
-					<colgroup>
-						<col style={{ minWidth: "200px" }} />
-						{columns.map((column) => (
-							<col key={column} />
-						))}
-					</colgroup>
-					<thead className='text-xs text-gray-700 uppercase dark:bg-gray-700 dark:text-gray-400'>
-						<tr>
-							<th className=''></th>
+					<TableHeader>
+						<TableRow>
+							<TableHead className='lg:w-auto w-[70px]'></TableHead>
 							{columns.map((column) => (
-								<th scope='col' className='px-6 py-3' key={column}>
+								<TableHead scope='col' className='lg:w-auto w-[70px]' key={column}>
 									{column}
-								</th>
+								</TableHead>
 							))}
-						</tr>
-					</thead>
-					<tbody>
+						</TableRow>
+					</TableHeader>
+					<TableBody className='w-full'>
 						{rows.map((row, index) => (
-							<tr
-								className='bg-gray-50 border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600'
-								key={row}>
-								<td
-									scope='row'
-									className='px-6 bg-gray-50 z-50 py-4 font-medium text-gray-900 dark:text-white break-text'>
-									{row}
-								</td>
+							<TableRow key={row}>
+								<TableCell className='font-medium text-left'>{row}</TableCell>
 								{columns.map((column) => (
-									<td className='w-4 p-4' key={column}>
+									<TableCell key={column}>
 										<div className='flex items-center'>
 											{!radio ? (
 												<Checkbox
@@ -87,12 +76,12 @@ export const Grid = ({
 												/>
 											)}
 										</div>
-									</td>
+									</TableCell>
 								))}
-							</tr>
+							</TableRow>
 						))}
-					</tbody>
-				</table>
+					</TableBody>
+				</Table>
 			</div>
 		</div>
 	);

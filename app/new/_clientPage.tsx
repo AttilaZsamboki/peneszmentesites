@@ -662,11 +662,14 @@ function PageChooser({
 			};
 		}),
 	];
+
 	React.useEffect(() => {
 		setNumPages(pageMap.length);
 	}, [pageMap.length]);
+	React.useEffect(() => {
+		setSection(pageMap[page].title);
+	}, [page]);
 
-	setSection(pageMap[page].title);
 	return pageMap[page].component;
 }
 
