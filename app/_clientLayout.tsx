@@ -10,7 +10,6 @@ import { ChevronDown, Menu, Search } from "lucide-react";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Separator } from "@/components/ui/separator";
 import useBreakpointValue from "./_components/useBreakpoint";
-import { Button } from "@/components/ui/button";
 
 interface Progress {
 	percent: number;
@@ -83,10 +82,13 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 			{progress.percent ? <CircularProgressBar percent={progress.percent} /> : null}
 			<div className='flex w-full h-full'>
 				<Navbar routes={routes} />
-				<GlobalContext.Provider value={{ setProgress, progress }}>
-					{children}
-					<Toaster />
-				</GlobalContext.Provider>
+
+				<div className='flex flex-col w-full'>
+					<GlobalContext.Provider value={{ setProgress, progress }}>
+						<div className='w-full'>{children}</div>
+						<Toaster />
+					</GlobalContext.Provider>
+				</div>
 			</div>
 		</div>
 	);
@@ -240,66 +242,6 @@ function Navbar({ routes }: { routes: Route[] }) {
 					</aside>
 				</div>
 			)}
-		</div>
-	);
-}
-
-function Navbar2({
-	children,
-	routes,
-	setOpen,
-}: {
-	children: React.ReactNode;
-	routes: Route[];
-	setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}) {
-	const router = usePathname().split("?")[0];
-
-	const routerParts = router.split("/");
-	const routerBasePath = isNaN(Number(routerParts[1])) ? routerParts[1] : routerParts[0]; // Check if the base path is an integer
-
-	const activeRoute = routes.find(
-		(route) =>
-			route.subRoutes.some((subRoute) => subRoute.href.includes("/" + routerBasePath)) ||
-			"/" + routerBasePath === route.href
-	);
-
-	return (
-		<div className='flex flex-col w-full'>
-			{activeRoute ? (
-				<div className='bg-white sm:border-t-0 border-t lg:relative top-0 md:fixed z-40 w-full pt-2'>
-					<Tabs value={router} className='flex flex-row w-full border-b pl-3 lg:pl-6 items-center'>
-						<TabsHeader
-							className='rounded-none bg-transparent p-0 cursor-pointer'
-							onClick={() => {
-								setOpen((prev) => !prev);
-							}}
-							indicatorProps={{
-								className: "bg-transparent border-b-2 border-gray-900 mx-3 shadow-none rounded-none",
-							}}>
-							<div className='pb-2 bg-white active:bg-white'>
-								<Menu className='bg-white' />
-							</div>
-						</TabsHeader>
-						{activeRoute?.subRoutes.map((route) => (
-							<TabsHeader
-								key={route.href[0]}
-								className='rounded-none bg-transparent p-0'
-								indicatorProps={{
-									className:
-										"bg-transparent border-b-2 border-gray-900 mx-3 shadow-none rounded-none",
-								}}>
-								<Link href={route.href[0]}>
-									<Tab value={route.href[0]} className='pb-2'>
-										<div className='hover:bg-gray-100 px-3 py-1 rounded-md'>{route.name}</div>
-									</Tab>
-								</Link>
-							</TabsHeader>
-						))}
-					</Tabs>
-				</div>
-			) : null}
-			<div className='w-full'>{children}</div>
 		</div>
 	);
 }

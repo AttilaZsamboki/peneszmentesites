@@ -383,18 +383,28 @@ export default function Page({
 								description: "Hiba akadt a régi adatlap sztornózása közben: " + resp.statusText,
 								variant: "destructive",
 								action: (
-									<ToastAction
-										altText='Try again'
-										onClick={async () => {
-											const retryResp = await cancelOffer();
-											if (retryResp === "Error") {
-												return;
-											}
-											updateStatus(3400);
-											router.push("/");
-										}}>
-										<IterationCw className='w-5 h-5' />
-									</ToastAction>
+									<div className='flex flex-col gap-2'>
+										<ToastAction
+											altText='Try again'
+											onClick={async () => {
+												const retryResp = await cancelOffer();
+												if (retryResp === "Error") {
+													return;
+												}
+												updateStatus(3400);
+												router.push("/");
+											}}>
+											<IterationCw className='w-5 h-5' />
+										</ToastAction>
+										<ToastAction
+											altText='skip'
+											onClick={async () => {
+												updateStatus(3400);
+												router.push("/");
+											}}>
+											Kihagyás
+										</ToastAction>
+									</div>
 								),
 							});
 							return "Error";

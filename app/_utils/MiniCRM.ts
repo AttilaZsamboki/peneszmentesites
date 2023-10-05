@@ -205,7 +205,7 @@ export async function assembleOfferXML(
 	adatlapId: string,
 	subject?: string,
 	templateName?: string,
-	felmeresrId?: number
+	felmeresId?: number
 ) {
 	const randomId = Math.floor(Math.random() * 1000000);
 	const statusMap = {
@@ -287,8 +287,9 @@ export async function assembleOfferXML(
 						.join("\n")}
                 </Products>
 				<Project>
-					<Felmeresid>${felmeresrId}</Felmeresid>
+					<Felmeresid>${felmeresId}</Felmeresid>
 					<UserId>${adatlap.Felmero2}</UserId>
+					<KapcsolodoFelmeres>https://app.peneszmentesites.hu/${felmeresId}</KapcsolodoFelmeres>
 				</Project>
             </Offer>
         </Offers>
