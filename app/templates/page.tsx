@@ -21,7 +21,9 @@ export default async function Page() {
 		templates.map(async (template) => {
 			const response: { product: number; template: number }[] = await fetch(
 				`https://pen.dataupload.xyz/product_templates/${template.id}/`
-			).then((res) => res.json());
+			)
+				.then((res) => res.json())
+				.catch(() => []);
 			template.items = response.map((item: { product: number }) =>
 				products.find((product) => product.id === item.product)
 			) as Product[];

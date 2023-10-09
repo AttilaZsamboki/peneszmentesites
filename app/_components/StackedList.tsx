@@ -201,20 +201,12 @@ export default function StackedList({
 						? `${filter.field}=${filter.value}`
 						: `${filter.field}=${JSON.stringify(filter.value)}`
 				)
-				.join("&")}${filter.id ? "&selectedFilter=" + filter.id : ""}`,
+				.join("&")}${filter.id ? "&selectedFilter=" + filter.id : ""}${
+				filter.sort_by ? "&sort_by=" + filter.sort_by : ""
+			}${filter.sort_order ? "&sort_order=" + filter.sort_order : ""}`,
 			{ scroll: false }
 		);
-	}, [filter.filters]);
-	React.useEffect(() => {
-		router.push(
-			"?" +
-				createQueryStringCallback([
-					{ name: "sort_by", value: filter.sort_by },
-					{ name: "sort_order", value: filter.sort_order },
-				]),
-			{ scroll: false }
-		);
-	}, [filter.sort_by, filter.sort_order]);
+	}, [filter]);
 	React.useEffect(() => {
 		if (savedFilterFromURL) {
 			setFilter(savedFilterFromURL);

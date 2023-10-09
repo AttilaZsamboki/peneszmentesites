@@ -1,5 +1,6 @@
-import { Radio, List, ListItem, ListItemPrefix, Typography } from "@material-tailwind/react";
+import { Radio, List, ListItem, ListItemPrefix } from "@material-tailwind/react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 export default function MultipleChoice({
 	options,
@@ -46,18 +47,18 @@ export default function MultipleChoice({
 							) : (
 								<Checkbox
 									name={option}
-									id={option}
+									id={option + name}
 									onCheckedChange={() => onChange(option)}
 									checked={value ? value.includes(option) : false}
 									disabled={disabled}
 								/>
 							)}
 						</ListItemPrefix>
-						<Typography
-							color='gray'
+						<Label
+							htmlFor={option + name}
 							className={`font-medium ${orientation === "row" ? "order-first text-center" : ""}`}>
 							{option}
-						</Typography>
+						</Label>
 					</label>
 				</ListItem>
 			))}

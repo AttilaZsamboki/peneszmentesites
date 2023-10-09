@@ -11,7 +11,8 @@ import { Typography, Spinner, Tabs, TabsHeader, Tab } from "@material-tailwind/r
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BaseFelmeresData, FelmeresItem, QuestionPage, QuestionTemplate } from "../new/_clientPage";
+import { BaseFelmeresData, FelmeresItem, QuestionTemplate } from "../new/_clientPage";
+import { QuestionPage } from "../../components/QuestionPage";
 
 import { Question } from "@/app/questions/page";
 import { Template } from "@/app/templates/page";
