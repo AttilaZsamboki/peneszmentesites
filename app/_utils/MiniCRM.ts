@@ -125,6 +125,8 @@ export async function fetchMiniCRM(endpoint: string, id?: string, method?: "POST
 	var requestOptions = {
 		method: "GET",
 		headers: myHeaders,
+		caches: "force-store" as RequestCache,
+		next: { revalidate: 360 },
 	};
 	if (method === "GET" || !method) {
 		// if called from client and needed as proxy
@@ -137,7 +139,7 @@ export async function fetchMiniCRM(endpoint: string, id?: string, method?: "POST
 				const data = await resp.json();
 				return data;
 			}
-			throw new Error(`Request failed with status ${resp.status}`);
+			throw new Error(`Request failed with status ${resp.status}. Reason: ${resp.statusText}`);
 		}
 		// if called from server
 		const resp = await fetch("https://r3.minicrm.hu/Api/R3/" + endpoint + (id ? "/" + id : ""), requestOptions);
@@ -145,6 +147,10 @@ export async function fetchMiniCRM(endpoint: string, id?: string, method?: "POST
 			const data = await resp.json();
 			return data;
 		}
+		if (resp.status === 429) {
+			console.log("Too many requests");
+		}
+		return null;
 	} else if (method === "POST") {
 		const resp = await fetch("/api/minicrm-proxy?endpoint=" + endpoint, {
 			method: "POST",

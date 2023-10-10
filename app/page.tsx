@@ -30,23 +30,23 @@ export interface FelmeresQuestion {
 }
 
 export default async function Home() {
-	const data = await fetch("https://pen.dataupload.xyz/felmeresek", { next: { tags: ["felmeresek"] } });
+	const data = await fetch("https://pen.dataupload.xyz/felmeresek/");
 	if (data.ok) {
 		const felmeresek: BaseFelmeresData[] = await data.json().catch((err) => console.log(err));
-		const adatlapok: AdatlapDetails[] = await Promise.all(
-			felmeresek.map(async (felmeres) => fetchAdatlapDetails(felmeres.adatlap_id.toString()))
+		const adatlapIds = Array.from(new Set(felmeresek.map((felmeres) => felmeres.adatlap_id.toString())));
+		const adatlapok: (AdatlapDetails | null)[] = await Promise.all(
+			adatlapIds.map(async (id) => fetchAdatlapDetails(id))
 		).then((adatlapok) => adatlapok.filter((adatlap) => adatlap !== undefined));
-		const templates: Template[] = await Promise.all(
-			felmeresek.map(async (felmeres) =>
-				fetch("https://pen.dataupload.xyz/templates/" + felmeres.template, {
-					next: { tags: [encodeURIComponent(felmeres.adatlap_id)] },
-				})
-					.then((res) => res.json())
-					.catch((err) => console.log(err))
-			)
-		);
+		const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates/")
+			.then((res) => res.json())
+			.catch((err) => console.log(err))
+			.then((data: Template[]) =>
+				data.filter((template) => felmeresek.map((felmeres) => felmeres.template).includes(template.id))
+			);
 		const allData = felmeresek.map((felmeres) => {
-			const adatlap = adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id);
+			const adatlap = adatlapok
+				.filter((adatlap) => adatlap)
+				.find((adatlap) => adatlap!.Id === felmeres.adatlap_id);
 			const template = templates.find((template) => template?.id === felmeres.template);
 			let date = new Date(felmeres.created_at);
 			let formattedDate =

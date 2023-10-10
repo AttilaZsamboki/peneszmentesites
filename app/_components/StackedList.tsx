@@ -186,27 +186,36 @@ export default function StackedList({
 
 	React.useEffect(() => {
 		// if (pagination.active) {
-		router.push(
-			`?${filter.filters
-				.filter(
-					(filter) =>
-						filter.value &&
-						(filter.type === "daterange"
-							? isValidDate((filter.value as DateRange).from) &&
-							  isValidDate((filter.value as DateRange).to)
-							: true)
-				)
-				.map((filter) =>
-					filter.type !== "daterange"
-						? `${filter.field}=${filter.value}`
-						: `${filter.field}=${JSON.stringify(filter.value)}`
-				)
-				.join("&")}${filter.id ? "&selectedFilter=" + filter.id : ""}${
-				filter.sort_by ? "&sort_by=" + filter.sort_by : ""
-			}${filter.sort_order ? "&sort_order=" + filter.sort_order : ""}`,
-			{ scroll: false }
-		);
-	}, [filter]);
+		const params = new URLSearchParams();
+
+		filter.filters.forEach((filter) => {
+			if (
+				filter.value &&
+				(filter.type !== "daterange" ||
+					(isValidDate((filter.value as DateRange).from) && isValidDate((filter.value as DateRange).to)))
+			) {
+				params.append(
+					filter.field,
+					filter.type === "daterange" ? JSON.stringify(filter.value) : (filter.value as string)
+				);
+			}
+		});
+
+		if (filter.id) {
+			params.append("selectedFilter", filter.id.toString());
+		}
+
+		if (filter.sort_by) {
+			params.append("sort_by", filter.sort_by);
+		}
+
+		if (filter.sort_order) {
+			params.append("sort_order", filter.sort_order);
+		}
+
+		router.push(`?${params.toString()}`, { scroll: false });
+	}, [filter, router]);
+
 	React.useEffect(() => {
 		if (savedFilterFromURL) {
 			setFilter(savedFilterFromURL);
@@ -333,7 +342,7 @@ export default function StackedList({
 								stroke='currentColor'>
 								<path
 									strokeLinecap='round'
-									stroke-linejoin='round'
+									strokeLinejoin='round'
 									strokeWidth='2'
 									d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
 								/>

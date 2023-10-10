@@ -60,7 +60,7 @@ export default function AutoComplete({
 		<Combobox
 			value={value}
 			onChange={(localValue) => {
-				onChange ? onChange(localValue) : null;
+				onChange ? onChange(localValue ?? "") : null;
 				if (resetOnCreate) {
 					setQuery("");
 				}
