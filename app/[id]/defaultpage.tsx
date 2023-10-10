@@ -4,6 +4,7 @@ import ClientPage from "./_clientPage";
 import { BaseFelmeresData, FelmeresItem } from "../new/_clientPage";
 import { fetchAdatlapDetails } from "@/app/_utils/MiniCRM";
 import EditClientPage from "./edit/clientPage";
+import { notFound } from "next/navigation";
 
 export default async function DefaultPage({ params, edit }: { params: { id: string }; edit: boolean }) {
 	const felmeresId = params.id;
@@ -14,7 +15,10 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 		}
 	)
 		.then((res) => res.json())
-		.catch((err) => console.error(err));
+		.catch((err) => {
+			console.error(err);
+			return [];
+		});
 
 	const felmeres: BaseFelmeresData = await fetch("https://pen.dataupload.xyz/felmeresek/" + felmeresId, {
 		next: { tags: [encodeURIComponent(felmeresId)] },
@@ -36,8 +40,8 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 		);
 	}
 	const question: Question[] = await Promise.all(
-		felmeresQuestions.map(async (field) => {
-			const question = await fetch("https://pen.dataupload.xyz/questions/" + field.question, {
+		Array.from(new Set(felmeresQuestions.map((field) => field.question))).map(async (questionId) => {
+			const question = await fetch("https://pen.dataupload.xyz/questions/" + questionId, {
 				next: { tags: [encodeURIComponent(felmeresId)] },
 			})
 				.then((res) => res.json())
@@ -55,6 +59,9 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 			  }
 			: { ...field }
 	);
+	if (!felmeres || !felmeres.adatlap_id) {
+		notFound();
+	}
 
 	const adatlap = await fetchAdatlapDetails(felmeres.adatlap_id.toString());
 

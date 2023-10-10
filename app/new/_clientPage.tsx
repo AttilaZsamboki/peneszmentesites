@@ -1,5 +1,4 @@
 "use client";
-import { Tooltip } from "@material-tailwind/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import React from "react";
@@ -24,8 +23,10 @@ import { Checkmark } from "@/components/check";
 import { isJSONParsable } from "../[id]/_clientPage";
 import _ from "lodash";
 import { ToastAction } from "@/components/ui/toast";
-import { IterationCw } from "lucide-react";
+import { CornerUpLeft, IterationCw } from "lucide-react";
 import { QuestionPage } from "../../components/QuestionPage";
+import { TooltipTrigger, Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+import Link from "next/link";
 
 export interface ProductTemplate {
 	product: number;
@@ -194,14 +195,27 @@ export default function Page({
 		fetchQuestions();
 	}, [items]);
 
-	const CreateFelmeres = async () => {
+	const CreateFelmeres = async (sendOffer: boolean = true) => {
 		const start = performance.now();
 		const percent = (num: number) => Math.floor((num / 3400) * 100);
-		const updateStatus = (num: number) => {
+		const updateStatus = (num: number, id?: number) => {
 			toast({
-				title: "Felmérés létrehozása",
+				title: percent(num) === 100 ? "Felmérés létrehozva" : "Felmérés létrehozása",
 				description:
-					percent(num) === 100 ? "Felmérés sikeresen létrehozva!" : "Felmérés létrehozása folyamatban...",
+					percent(num) === 100 ? (
+						isUpdate && isEdit ? (
+							<div>Felmérés módosítva</div>
+						) : (
+							<Link
+								href={"/" + id}
+								className='flex flex-row gap-2 items-center justify-start cursor-pointer pt-2'>
+								<CornerUpLeft className='w-4 h-4 text-gray-800' />
+								<div className='font-bold text-xs text-gray-700'>Megnyitás</div>
+							</Link>
+						)
+					) : (
+						"Felmérés létrehozása folyamatban..."
+					),
 				duration: 5000,
 				action: percent(num) === 100 ? <Checkmark width={50} height={50} /> : <div>{percent(num)}%</div>,
 			});
@@ -224,20 +238,37 @@ export default function Page({
 			("0" + date.getMinutes()).slice(-2) +
 			":" +
 			("0" + date.getSeconds()).slice(-2);
-		const res = await fetch("https://pen.dataupload.xyz/felmeresek/", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({ ...felmeres, created_at: formattedDate }),
-		});
+		const isUpdate = editFelmeres && editFelmeres.status === "DRAFT";
+		const res = isUpdate
+			? !sendOffer
+				? null
+				: await fetch("https://pen.dataupload.xyz/felmeresek/" + editFelmeres!.id + "/", {
+						method: "PATCH",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							status: "IN_PROGRESS",
+						}),
+				  })
+			: await fetch("https://pen.dataupload.xyz/felmeresek/", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						...felmeres,
+						created_at: formattedDate,
+						status: sendOffer ? "IN_PROGRESS" : felmeres.status,
+					}),
+			  });
 		updateStatus(57);
 		const createFelmeres = performance.now();
 		console.log("Felmérés alapadatok mentése: " + (createFelmeres - start) + "ms");
 
-		if (res.ok) {
+		if (!res || res.ok) {
 			// Tételek mentése
-			const felmeresResponseData: BaseFelmeresData = await res.json();
+			const felmeresResponseData: BaseFelmeresData = !res ? editFelmeres : await res.json();
 			await fetch("https://pen.dataupload.xyz/felmeres_items/", {
 				method: "POST",
 				headers: {
@@ -246,12 +277,12 @@ export default function Page({
 				body: JSON.stringify(
 					submitItems.map((item) => ({
 						...item,
-						create_name: item.product ? null : item.name,
 						adatlap: felmeresResponseData.id,
 						netPrice: item.netPrice,
 					}))
 				),
 			});
+
 			updateStatus(196);
 			const saveOfferItems = performance.now();
 			console.log("Tételek mentése: " + (saveOfferItems - start) + "ms");
@@ -259,17 +290,20 @@ export default function Page({
 			// Kérdések mentése
 			let status = 1;
 			data.filter((question) => question.value).map(async (question) => {
-				const resQuestions = await fetch("https://pen.dataupload.xyz/felmeres_questions/", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						...question,
-						adatlap: felmeresResponseData.id,
-						value: Array.isArray(question.value) ? JSON.stringify(question.value) : question.value,
-					}),
-				});
+				const resQuestions = await fetch(
+					"https://pen.dataupload.xyz/felmeres_questions/" + (question.id ? question.id + "/" : ""),
+					{
+						method: question.id ? "PUT" : "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							...question,
+							adatlap: felmeresResponseData.id,
+							value: Array.isArray(question.value) ? JSON.stringify(question.value) : question.value,
+						}),
+					}
+				);
 				if (!resQuestions.ok) {
 					status = 0;
 				}
@@ -298,7 +332,8 @@ export default function Page({
 								adatlap: null,
 							}))
 					  )
-					: true)
+					: true) &&
+				sendOffer
 			) {
 				// XML string összeállítása
 				const template = templates.find((template) => template.id === felmeres.template);
@@ -358,7 +393,7 @@ export default function Page({
 					return todo["Type"] === 225 && todo["Status"] === "Open";
 				};
 
-				if (isEdit) {
+				if (isEdit && editFelmeres!.status !== "DRAFT") {
 					// Régi ajánlat stornózása
 					const cancelOffer = async () => {
 						const resp = await fetch("https://pen.dataupload.xyz/cancel_offer/", {
@@ -421,8 +456,8 @@ export default function Page({
 					router.push("/");
 				}
 			}
-			updateStatus(3400);
-			router.push("/");
+			updateStatus(3400, felmeresResponseData.id);
+			isEdit && isUpdate ? router.push("/" + felmeresResponseData.id) : router.push("/");
 		}
 	};
 
@@ -466,6 +501,11 @@ export default function Page({
 	const submitItems = [
 		...items,
 		...otherItems.map((item) => ({
+			id: editFelmeresItems
+				? editFelmeresItems.find((item2) => item2.name === item.name)
+					? editFelmeresItems.find((item2) => item2.name === item.name)!.id
+					: null
+				: null,
 			name: item.name,
 			place: false,
 			placeOptions: [],
@@ -478,6 +518,11 @@ export default function Page({
 			valueType: item.type,
 		})),
 		{
+			id: editFelmeresItems
+				? editFelmeresItems.find((item) => item.type === "Discount")
+					? editFelmeresItems.find((item) => item.type === "Discount")!.id
+					: null
+				: null,
 			name: "Kedvezmény",
 			place: false,
 			placeOptions: [],
@@ -555,12 +600,34 @@ export default function Page({
 									</Button>
 								)}
 								{numPages === page + 1 ? (
-									<Button
-										className='bg-green-500 hover:bg-green-500/90'
-										onClick={CreateFelmeres}
-										disabled={isDisabled[section === "Fix kérdések" ? "Fix" : section]}>
-										Beküldés
-									</Button>
+									<div className='flex flex-row px-4 items-center justify-center gap-3'>
+										<Button
+											className='bg-green-500 hover:bg-green-500/90'
+											color='green'
+											onClick={() => CreateFelmeres()}
+											disabled={isDisabled[section === "Fix kérdések" ? "Fix" : section]}>
+											Beküldés
+										</Button>
+										<TooltipProvider>
+											<Tooltip>
+												<TooltipTrigger asChild>
+													<Button
+														onClick={() => CreateFelmeres(false)}
+														disabled={
+															isDisabled[section === "Fix kérdések" ? "Fix" : section]
+														}>
+														Mentés
+													</Button>
+												</TooltipTrigger>
+												<TooltipContent>
+													<p>
+														Ez az opció nem küldi el az ajánlatot, még lehet változtatni
+														rajta
+													</p>
+												</TooltipContent>
+											</Tooltip>
+										</TooltipProvider>
+									</div>
 								) : (
 									<Button
 										onClick={() => {
@@ -695,11 +762,18 @@ export function QuestionTemplate({
 					{title}
 				</label>
 				{mandatory ? (
-					<Tooltip content='Kötelező'>
-						<span className='font-bold text-lg ml-1'>
-							<ExclamationCircleIcon className='w-4 h-4' />
-						</span>
-					</Tooltip>
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<span className='font-bold text-lg ml-1'>
+									<ExclamationCircleIcon className='w-4 h-4' />
+								</span>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Kötelező</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
 				) : null}
 			</div>
 

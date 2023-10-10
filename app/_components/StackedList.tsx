@@ -172,7 +172,7 @@ export default function StackedList({
 		type: "",
 		id: searchParams.get("selectedFilter") ? parseInt(searchParams.get("selectedFilter") ?? "") : 0,
 		sort_by: searchParams.get("sort_by") ?? "id",
-		sort_order: (searchParams.get("sort_order") as "asc" | "desc") ?? "asc",
+		sort_order: (searchParams.get("sort_order") as "asc" | "desc") ?? "desc",
 	});
 	const search: FilterItem = filter.filters.find((filter) => filter.field === "filter")!;
 
@@ -864,7 +864,7 @@ function FiltersComponent({
 							type: "",
 							id: 0,
 							sort_by: "",
-							sort_order: "asc",
+							sort_order: "desc",
 						}));
 					}}
 					indicatorProps={{

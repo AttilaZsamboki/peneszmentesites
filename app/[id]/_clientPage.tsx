@@ -24,20 +24,12 @@ import { statusMap } from "@/app/_utils/utils";
 import { toast } from "@/components/ui/use-toast";
 import useBreakpointValue from "../_components/useBreakpoint";
 import { Separator } from "@/components/ui/separator";
-import {
-	DropdownMenuContent,
-	DropdownMenuLabel,
-	DropdownMenuRadioGroup,
-	DropdownMenuRadioItem,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-	DropdownMenu,
-} from "@/components/ui/dropdown-menu";
-import { Check, FileEdit, IterationCw, X } from "lucide-react";
+import { Check, FileEdit, IterationCw, Lock, X } from "lucide-react";
 import Link from "next/link";
 import { Page2 } from "../new/Page2";
 import _ from "lodash";
 import { ToastAction } from "@/components/ui/toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function isJSONParsable(str: string) {
 	try {
@@ -192,8 +184,6 @@ export default function ClientPage({
 		});
 		if (response.ok) {
 			setFelmeres((prev) => ({ ...prev, status } as BaseFelmeresData));
-			await fetch("/api/revalidate?tag=" + encodeURIComponent(felmeresId));
-			await fetch("/api/revalidate?tag=felmeresek");
 		}
 	};
 	const handleChangeEditing = () => {
@@ -258,28 +248,24 @@ export default function ClientPage({
 								<div className='flex gap-5 flex-row items-center justify-between w-full flex-wrap'>
 									<div className='flex flex-row items-center gap-5'>
 										<CardTitle>{adatlap.Name}</CardTitle>
-										<DropdownMenu>
-											<DropdownMenuTrigger asChild>
+										<div className='flex flex-row items-center gap-2 justify-center'>
+											<Button
+												color={statusMap[felmeresStatus].color}
+												className='uppercase font-semibold w-32 cursor-default'>
+												{statusMap[felmeresStatus].name}
+											</Button>
+											{felmeresStatus === "IN_PROGRESS" ? (
 												<Button
-													color={statusMap[felmeresStatus].color}
-													className='uppercase font-semibold w-32'>
-													{statusMap[felmeresStatus].name}
+													onClick={() => {
+														changeStatus("COMPLETED");
+													}}
+													size='icon'
+													variant='outline'
+													className='hover:border-green-700 hover:bg-green-100 hover:border-2 hover:text-green-700'>
+													<Check className='h-5 w-5' />
 												</Button>
-											</DropdownMenuTrigger>
-											<DropdownMenuContent className='w-56'>
-												<DropdownMenuLabel>Felmérés státusza</DropdownMenuLabel>
-												<DropdownMenuSeparator />
-												<DropdownMenuRadioGroup
-													value={felmeresStatus}
-													onValueChange={changeStatus}>
-													{Object.entries(statusMap).map(([key, value]) => (
-														<DropdownMenuRadioItem key={key} value={key}>
-															{value.name}
-														</DropdownMenuRadioItem>
-													))}
-												</DropdownMenuRadioGroup>
-											</DropdownMenuContent>
-										</DropdownMenu>
+											) : null}
+										</div>
 									</div>
 									{deviceSize === "sm" ? <Separator /> : null}
 									<div className='flex w-full lg:w-1/4 lg:justify-normal justify-center h-5 items-center space-x-4 lg:text-md lg:font-medium text-sm'>
@@ -310,7 +296,10 @@ export default function ClientPage({
 											</div>
 										</>
 									) : selectedSection === "Tételek" ? (
-										<EditButton href={`/${felmeresId}/edit`} />
+										<EditButton
+											href={`/${felmeresId}/edit`}
+											disabled={felmeresStatus === "COMPLETED"}
+										/>
 									) : (
 										<EditButton onClick={handleChangeEditing} />
 									)}
@@ -415,8 +404,29 @@ export default function ClientPage({
 	);
 }
 
-function EditButton({ onClick, href }: { onClick?: () => void; href?: string }) {
-	if (href) {
+function EditButton({ onClick, href, disabled }: { onClick?: () => void; href?: string; disabled?: boolean }) {
+	if (disabled) {
+		return (
+			<TooltipProvider>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<div className='w-full lg:w-fit lg:flex-none flex flex-row items-center gap-4'>
+							<Button
+								variant='outline'
+								className='flex flex-row items-center w-full'
+								onClick={onClick}
+								disabled>
+								<Lock />
+							</Button>
+						</div>
+					</TooltipTrigger>
+					<TooltipContent>
+						<p>Már el lett fogadva az ajánlat/megrendelés, nem lehet a tételeket változtatni</p>
+					</TooltipContent>
+				</Tooltip>
+			</TooltipProvider>
+		);
+	} else if (href) {
 		return (
 			<div className='w-full lg:w-fit lg:flex-none flex flex-row items-center gap-4'>
 				<Link href={href} className='flex flex-row items-center w-full'>
