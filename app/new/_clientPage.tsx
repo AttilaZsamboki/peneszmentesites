@@ -703,7 +703,7 @@ function PageChooser({
 					felmeres={felmeres}
 					items={items}
 					setItems={setItems}
-					templates={templates}
+					originalTemplates={templates}
 					setFelmeres={setFelmeres}
 					productAttributes={productAttributes}
 					otherItems={otherItems}

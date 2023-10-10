@@ -9,32 +9,64 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { DropdownMenuGroup } from "@radix-ui/react-dropdown-menu";
+import React from "react";
+import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
+import { useHotkeys } from "react-hotkeys-hook";
 
 export default function DropdownMenu({
-	children,
+	children = <EllipsisVerticalIcon className='w-5 h-5' />,
 	onDelete,
 	onSave,
 	onDuplicate,
 	onEdit,
+	dropdownMenuItems,
 }: {
-	children: React.ReactNode;
-	onDelete: () => void;
-	onSave: () => void;
+	children?: React.ReactNode;
+	onDelete?: () => void;
+	onSave?: () => void;
 	onDuplicate?: () => void;
 	onEdit?: () => void;
+	dropdownMenuItems?: { value: React.ReactNode; onClick: () => void; icon?: React.ReactNode; shortcut?: string }[];
 }) {
+	function HotkeyItem({ item }: { item: { value: React.ReactNode; onClick: () => void; shortcut?: string } }) {
+		useHotkeys(item.shortcut ?? "", item.onClick);
+		return null; // This component doesn't render anything
+	}
+
+	// In your DropdownMenu component
+
 	return (
 		<Dropdown>
 			<DropdownMenuTrigger>{children}</DropdownMenuTrigger>
 			<DropdownMenuContent className='w-56'>
 				<DropdownMenuGroup>
-					<DropdownMenuItem onClick={onSave}>
-						<div className='flex flex-row'>
-							<BookmarkSquareIcon className='mr-2 h-5 w-5' aria-hidden='true' />
-							Mentés
-						</div>
-						<DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-					</DropdownMenuItem>
+					{onSave ? (
+						<DropdownMenuItem onClick={onSave}>
+							<div className='flex flex-row'>
+								<BookmarkSquareIcon className='mr-2 h-5 w-5' aria-hidden='true' />
+								Mentés
+							</div>
+							<DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+						</DropdownMenuItem>
+					) : null}
+					{dropdownMenuItems ? (
+						dropdownMenuItems.map((item) => (
+							<DropdownMenuItem key={item.shortcut} onClick={item.onClick}>
+								<div className='flex flex-row'>
+									{item.icon ? item.icon : null}
+									{item.value}
+								</div>
+								{item.shortcut ? (
+									<DropdownMenuShortcut className='uppercase'>{item.shortcut}</DropdownMenuShortcut>
+								) : null}
+								{dropdownMenuItems?.map((item, index) => (
+									<HotkeyItem key={index} item={item} />
+								))}
+							</DropdownMenuItem>
+						))
+					) : (
+						<></>
+					)}
 					{onEdit ? (
 						<DropdownMenuItem onClick={onEdit}>
 							<PencilIcon className='mr-2 h-5 w-5' aria-hidden='true' />
@@ -49,11 +81,15 @@ export default function DropdownMenu({
 							Másolás
 						</DropdownMenuItem>
 					) : null}
-					<DropdownMenuSeparator />
-					<DropdownMenuItem onClick={onDelete}>
-						<TrashIcon className='w-5 h-5 mr-2 text-red-900' />
-						Törlés
-					</DropdownMenuItem>
+					{onDelete ? (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem onClick={onDelete}>
+								<TrashIcon className='w-5 h-5 mr-2 text-red-900' />
+								Törlés
+							</DropdownMenuItem>
+						</>
+					) : null}
 				</DropdownMenuGroup>
 			</DropdownMenuContent>
 		</Dropdown>

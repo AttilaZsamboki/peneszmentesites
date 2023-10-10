@@ -14,6 +14,7 @@ import BaseComponentV2 from "../_components/BaseComponentV2";
 import CustomDialog from "../_components/CustomDialog";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
+import { createTemplate } from "../_utils/fetchers";
 
 export default function Page({ templates, products }: { templates: Template[]; products: Product[] }) {
 	const [template, setTemplate] = React.useState<Template>({ description: "", name: "", type: "", id: 0 });
@@ -35,40 +36,18 @@ export default function Page({ templates, products }: { templates: Template[]; p
 		}
 	}, [template]);
 
-	const createTemplate = async () => {
-		const templateResponse = await fetch("https://pen.dataupload.xyz/templates/", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
+	const createTemplateLocal = async () => {
+		const templateResponseData = await createTemplate(items, template);
+		setUpToDateTemplates([
+			...upToDateTemplates,
+			{
+				...templateResponseData,
+				firstProduct: products.find((product) => product.id.toString() === items[0])?.sku,
+				jsonProducts: JSON.stringify(items),
 			},
-			body: JSON.stringify(template),
-		});
-		if (templateResponse.ok) {
-			const templateResponseData = await templateResponse.json();
-			await Promise.all(
-				items.map(
-					async (item) =>
-						await fetch("https://pen.dataupload.xyz/product_templates/", {
-							method: "POST",
-							headers: {
-								"Content-Type": "application/json",
-							},
-							body: JSON.stringify({ template_id: templateResponseData.id, product_id: parseInt(item) }),
-						})
-				)
-			);
-			setUpToDateTemplates([
-				...upToDateTemplates,
-				{
-					...templateResponseData,
-					firstProduct: products.find((product) => product.id.toString() === items[0])?.sku,
-					jsonProducts: JSON.stringify(items),
-				},
-			]);
-			setItems([]);
-			resetTemplate();
-			await fetch("/api/revalidate?tag=templates");
-		}
+		]);
+		setItems([]);
+		resetTemplate();
 	};
 	const deleteTemplate = async () => {
 		const response = await fetch(`https://pen.dataupload.xyz/templates/${template.id}/`, {
@@ -109,6 +88,12 @@ export default function Page({ templates, products }: { templates: Template[]; p
 				return newArr;
 			});
 		}
+	};
+	const onClickSetItems = (e: string) => {
+		setItems((prevItems) => [...prevItems, e]);
+	};
+	const onClickDeleteItem = (item: string) => {
+		setItems((prevItems) => prevItems.filter((i) => i !== item));
 	};
 
 	return (
@@ -165,14 +150,15 @@ export default function Page({ templates, products }: { templates: Template[]; p
 						: undefined
 				}
 				disabledSubmit={!template.name || !template.type || !template.description || !items.length}
-				onSave={!isNew ? updateTemplate : createTemplate}
+				onSave={!isNew ? updateTemplate : createTemplateLocal}
 				onCancel={resetTemplate}>
 				<Form
 					items={items}
 					products={products}
-					setItems={setItems}
+					onClickAddItem={onClickSetItems}
 					setTemplate={setTemplate}
 					template={template}
+					onClickDeleteItem={onClickDeleteItem}
 				/>
 			</CustomDialog>
 		</>
@@ -183,18 +169,20 @@ export default function Page({ templates, products }: { templates: Template[]; p
 	}
 }
 
-function Form({
+export function Form({
 	template,
 	setTemplate,
 	products,
 	items,
-	setItems,
+	onClickAddItem,
+	onClickDeleteItem,
 }: {
 	template: Template;
 	setTemplate: React.Dispatch<React.SetStateAction<Template>>;
 	products: Product[];
 	items: string[];
-	setItems: React.Dispatch<React.SetStateAction<string[]>>;
+	onClickAddItem: (e: string) => void;
+	onClickDeleteItem: (e: string) => void;
 }) {
 	return (
 		<div className='flex flex-col w-full gap-5 h-full overflow-y-scroll px-3'>
@@ -235,7 +223,7 @@ function Form({
 								label: product.sku + " - " + product.name,
 								value: product.id.toString(),
 							}))}
-						onChange={(e) => setItems([...items, e])}
+						onChange={onClickAddItem}
 						value=''
 					/>
 				</div>
@@ -248,9 +236,7 @@ function Form({
 								{products.find((product) => product.id.toString() === item)?.sku} -{" "}
 								{products.find((product) => product.id.toString() === item)?.name}
 							</div>
-							<Button
-								variant='destructive'
-								onClick={() => setItems([...items.filter((i) => i !== item)])}>
+							<Button variant='destructive' onClick={() => onClickDeleteItem(item)}>
 								<XMarkIcon className='w-5 h-5 text-white' />
 							</Button>
 						</div>
