@@ -11,7 +11,7 @@ import type { Metadata } from "next";
 
 import { Analytics } from "@vercel/analytics/react";
 
-export const fetchCache = "default-no-store";
+export const fetchCache = "force-no-store";
 
 export const metadata: Metadata = {
 	title: "Penészmentesítés",

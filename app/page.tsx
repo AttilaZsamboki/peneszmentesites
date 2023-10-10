@@ -30,7 +30,13 @@ export interface FelmeresQuestion {
 }
 
 export default async function Home() {
-	const data = await fetch("https://pen.dataupload.xyz/felmeresek/");
+	const data = await fetch("https://pen.dataupload.xyz/felmeresek/", {
+		method: "GET",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		cache: "no-cache",
+	});
 	if (data.ok) {
 		const felmeresek: BaseFelmeresData[] = await data.json().catch((err) => console.log(err));
 		const adatlapIds = Array.from(new Set(felmeresek.map((felmeres) => felmeres.adatlap_id.toString())));
@@ -72,7 +78,10 @@ export default async function Home() {
 				} ${adatlap ? adatlap.Orszag : ""}`,
 				"Felmérés típusa": felmeres.type,
 				"Státusz": statusMap[felmeres.status ? felmeres.status : "DRAFT"],
-				"Felmérés neve": (adatlap ? adatlap.Name + " - " : "") + (template ? template.name : ""),
+				"Felmérés neve":
+					(adatlap ? adatlap.Name : "") +
+					(adatlap && template ? " - " : "") +
+					(template ? template.name : ""),
 				"Felmérő": adatlap ? adatlap.Felmero2 : "",
 				"Ingatla képe": adatlap ? adatlap.IngatlanKepe : "",
 				"created_at": formattedDate,

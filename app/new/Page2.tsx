@@ -19,12 +19,16 @@ import {
 	FelmeresItem,
 	OtherFelmeresItem,
 	ProductTemplate,
+	QuestionTemplate,
 	hufFormatter,
 	numberFormatter,
 } from "./_clientPage";
+import { Template } from "../templates/page";
 
 export function Page2({
 	felmeres,
+	setFelmeres,
+	templates,
 	items,
 	setItems,
 	products,
@@ -36,6 +40,8 @@ export function Page2({
 	readonly,
 }: {
 	felmeres: BaseFelmeresData;
+	setFelmeres?: React.Dispatch<React.SetStateAction<BaseFelmeresData>>;
+	templates?: Template[];
 	items: FelmeresItem[];
 	setItems?: React.Dispatch<React.SetStateAction<FelmeresItem[]>>;
 	products?: Product[];
@@ -52,21 +58,27 @@ export function Page2({
 	const [isEditingItems, setIsEditingItems] = React.useState(false);
 	const [isEditingOtherItems, setIsEditingOtherItems] = React.useState(false);
 
-	const [itemsTableRef] = useAutoAnimate({
-		easing: "ease-in-out",
-		disrespectUserMotionPreference: false,
-		duration: 300,
-	});
 	const [otherItemsTableRef] = useAutoAnimate();
 
 	React.useEffect(() => {
-		if (items.length === 0) {
-			const fetchData = async () => {
-				const templateId = felmeres.template;
-				const productTemplateRes = await fetch("https://pen.dataupload.xyz/product_templates/" + templateId);
-				if (productTemplateRes.ok) {
-					const productTemplates: ProductTemplate[] = await productTemplateRes.json();
-					productTemplates.map(async (productTemplate) => {
+		const fetchData = async () => {
+			if (!setItems) return;
+			const templateId = felmeres.template;
+			const productTemplateRes = await fetch("https://pen.dataupload.xyz/product_templates/" + templateId);
+			if (productTemplateRes.ok) {
+				const productTemplates: ProductTemplate[] = await productTemplateRes.json();
+				productTemplates
+					.filter(
+						(productTemplate) =>
+							!items
+								.filter(
+									(item) =>
+										item.inputValues.map((value) => value.ammount).reduce((a, b) => a + b, 0) !== 0
+								)
+								.map((item) => item.product)
+								.includes(productTemplate.product)
+					)
+					.map(async (productTemplate) => {
 						const productResp = await fetch(
 							"https://pen.dataupload.xyz/products/" + productTemplate.product
 						);
@@ -77,9 +89,8 @@ export function Page2({
 							);
 							if (productAttributeResp.ok) {
 								const productAttributeData = await productAttributeResp.json().then((data) => data[0]);
-								if (!setItems) return;
 								setItems((prevItems) => [
-									...prevItems.filter((item) => item.product !== productTemplate.product),
+									...prevItems,
 									{
 										product: productTemplate.product,
 										name: productData.name,
@@ -106,16 +117,16 @@ export function Page2({
 										attributeId: productAttributeData ? productAttributeData.id : 0,
 										type: "Item",
 										valueType: "fixed",
+										source: "Template",
 									},
 								]);
 							}
 						}
 					});
-				}
-			};
-			fetchData();
-		}
-	}, []);
+			}
+		};
+		fetchData();
+	}, [felmeres.template]);
 
 	const TABLE_HEAD_ITEMS = ["Név", "Darab + Hely", "Nettó egységár", "Nettó összesen"];
 	const TABLE_HEAD_OTHER = ["Név", "Nettó egységár", "Nettó összesen"];
@@ -162,6 +173,52 @@ export function Page2({
 
 	return (
 		<div>
+			<div className='flex flex-row items-center gap-2'>
+				{!readonly ? (
+					<>
+						<QuestionTemplate title='Milyen rendszert tervezel?'>
+							<AutoComplete
+								inputClassName='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
+								options={[
+									"Helyi elszívós rendszer",
+									"Központi ventillátoros",
+									"Passzív rendszer",
+									"Hővisszanyerős",
+								].map((option) => ({
+									label: option,
+									value: option,
+								}))}
+								value={felmeres.type}
+								onChange={(e) => (setFelmeres ? setFelmeres({ ...felmeres, type: e }) : null)}
+							/>
+						</QuestionTemplate>
+						<QuestionTemplate title='Sablon'>
+							<AutoComplete
+								inputClassName='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
+								options={templates!
+									.filter((template) => template.type === felmeres.type)
+									.map((template) => ({
+										label: template.name,
+										value: template.id.toString(),
+									}))}
+								onChange={(e) => {
+									setFelmeres
+										? setFelmeres({
+												...felmeres,
+												template: templates!.find((template) => template.id === parseInt(e))!
+													? templates!.find((template) => template.id === parseInt(e))!.id
+													: 0,
+										  })
+										: null;
+									if (!setItems) return;
+									setItems((prev) => prev.filter((item) => item.source !== "Template"));
+								}}
+								value={templates!.find((template) => template.id === felmeres.template)?.name || ""}
+							/>
+						</QuestionTemplate>
+					</>
+				) : null}
+			</div>
 			<Card className='my-5'>
 				<div className='w-full lg:overflow-hidden overflow-x-scroll'>
 					<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
@@ -187,7 +244,7 @@ export function Page2({
 								) : null}
 							</tr>
 						</thead>
-						<tbody ref={itemsTableRef}>
+						<tbody>
 							{items
 								.sort((a, b) => a.product - b.product)
 								.map(
@@ -513,6 +570,8 @@ export function Page2({
 																},
 															],
 															netPrice: product.price_list_alapertelmezett_net_price_huf,
+															source: "Manual",
+															type: "Item",
 															placeOptions: productAttribute
 																? JSON.parse(
 																		(

@@ -55,6 +55,7 @@ export interface FelmeresItem {
 	attributeId: number;
 	type: "Item" | "Fee" | "Discount";
 	valueType: "percent" | "fixed";
+	source: "Manual" | "Template";
 }
 
 export const hufFormatter = new Intl.NumberFormat("hu-HU", {
@@ -462,7 +463,7 @@ export default function Page({
 	};
 
 	const isDisabled = {
-		Alapadatok: !felmeres.adatlap_id || !felmeres.type || !felmeres.template,
+		Alapadatok: !felmeres.adatlap_id,
 		Tételek:
 			!items
 				.map((item) => item.inputValues.map((value) => value.ammount).every((value) => value > 0))
@@ -692,9 +693,7 @@ function PageChooser({
 
 	const pageMap: PageMap[] = [
 		{
-			component: (
-				<Page1 felmeres={felmeres} setFelmeres={setFelmeres} adatlapok={adatlapok} templates={templates} />
-			),
+			component: <Page1 felmeres={felmeres} setFelmeres={setFelmeres} adatlapok={adatlapok} />,
 			title: "Alapadatok",
 		},
 		{
@@ -704,6 +703,8 @@ function PageChooser({
 					felmeres={felmeres}
 					items={items}
 					setItems={setItems}
+					templates={templates}
+					setFelmeres={setFelmeres}
 					productAttributes={productAttributes}
 					otherItems={otherItems}
 					setOtherItems={setOtherItems}
@@ -789,12 +790,10 @@ export function QuestionTemplate({
 
 function Page1({
 	adatlapok,
-	templates,
 	felmeres,
 	setFelmeres,
 }: {
 	adatlapok: AdatlapData[];
-	templates: Template[];
 	felmeres: BaseFelmeresData;
 	setFelmeres: React.Dispatch<React.SetStateAction<BaseFelmeresData>>;
 }) {
@@ -822,46 +821,6 @@ function Page1({
 					}
 				/>
 			</QuestionTemplate>
-			{felmeres.adatlap_id ? (
-				<QuestionTemplate title='Milyen rendszert tervezel?'>
-					<AutoComplete
-						inputClassName='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
-						options={[
-							"Helyi elszívós rendszer",
-							"Központi ventillátoros",
-							"Passzív rendszer",
-							"Hővisszanyerős",
-						].map((option) => ({
-							label: option,
-							value: option,
-						}))}
-						onChange={(e) => setFelmeres({ ...felmeres, type: e })}
-						value={felmeres.type}
-					/>
-				</QuestionTemplate>
-			) : null}
-			{felmeres.type ? (
-				<QuestionTemplate title='Sablon'>
-					<AutoComplete
-						inputClassName='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
-						options={templates
-							.filter((template) => template.type === felmeres.type)
-							.map((template) => ({
-								label: template.name,
-								value: template.id.toString(),
-							}))}
-						onChange={(e) => {
-							setFelmeres({
-								...felmeres,
-								template: templates.find((template) => template.id === parseInt(e))!
-									? templates.find((template) => template.id === parseInt(e))!.id
-									: 0,
-							});
-						}}
-						value={templates.find((template) => template.id === felmeres.template)?.name || ""}
-					/>
-				</QuestionTemplate>
-			) : null}
 		</div>
 	);
 }

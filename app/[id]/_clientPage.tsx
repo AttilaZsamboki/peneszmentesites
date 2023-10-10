@@ -270,10 +270,18 @@ export default function ClientPage({
 									{deviceSize === "sm" ? <Separator /> : null}
 									<div className='flex w-full lg:w-1/4 lg:justify-normal justify-center h-5 items-center space-x-4 lg:text-md lg:font-medium text-sm'>
 										<div>{adatlap.Felmero2 ?? ""}</div>
-										<Separator orientation='vertical' />
-										<div>{felmeres.type}</div>
-										<Separator orientation='vertical' />
-										<div>{template.name}</div>
+										{felmeres.type ? (
+											<>
+												<Separator orientation='vertical' />
+												<div>{felmeres.type}</div>
+											</>
+										) : null}
+										{template.name ? (
+											<>
+												<Separator orientation='vertical' />
+												<div>{template.name}</div>
+											</>
+										) : null}
 									</div>
 									{deviceSize === "sm" ? <Separator /> : null}
 									{isEditing ? (
