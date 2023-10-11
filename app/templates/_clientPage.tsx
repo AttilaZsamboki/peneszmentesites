@@ -14,7 +14,7 @@ import BaseComponentV2 from "../_components/BaseComponentV2";
 import CustomDialog from "../_components/CustomDialog";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
-import { createTemplate } from "../_utils/fetchers";
+import { createTemplate, updateTemplate } from "@/lib/fetchers";
 
 export default function Page({ templates, products }: { templates: Template[]; products: Product[] }) {
 	const [template, setTemplate] = React.useState<Template>({ description: "", name: "", type: "", id: 0 });
@@ -59,22 +59,8 @@ export default function Page({ templates, products }: { templates: Template[]; p
 			await fetch("/api/revalidate?tag=templates");
 		}
 	};
-	const updateTemplate = async () => {
-		const response = await fetch(`https://pen.dataupload.xyz/templates/${template.id}/`, {
-			method: "PUT",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify(template),
-		});
-
-		await fetch(`https://pen.dataupload.xyz/product_templates/?template_id=${template.id}`, {
-			method: "PUT",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify(items),
-		});
+	const updateTemplateLocal = async () => {
+		const response = await updateTemplate(template, items);
 		if (response.ok) {
 			await fetch("/api/revalidate?tag=templates");
 			setUpToDateTemplates((prev) => {
@@ -114,6 +100,7 @@ export default function Page({ templates, products }: { templates: Template[]; p
 					{ field: "type", label: "Típus", type: "select" },
 					{ field: "description", label: "Leírás", type: "select" },
 					{ field: "jsonProducts", label: "Termék", type: "text" },
+					{ field: "id", label: "Azonosító", type: "select" },
 				]}
 				title='Sablonok'
 				onCreateNew={() => {
@@ -150,7 +137,7 @@ export default function Page({ templates, products }: { templates: Template[]; p
 						: undefined
 				}
 				disabledSubmit={!template.name || !template.type || !template.description || !items.length}
-				onSave={!isNew ? updateTemplate : createTemplateLocal}
+				onSave={!isNew ? updateTemplateLocal : createTemplateLocal}
 				onCancel={resetTemplate}>
 				<Form
 					items={items}

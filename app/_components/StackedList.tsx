@@ -769,6 +769,7 @@ function FiltersComponent({
 				});
 				return;
 			}
+
 			await fetch(`https://pen.dataupload.xyz/filters/${data.id}`, {
 				method: "DELETE",
 			});
@@ -795,39 +796,7 @@ function FiltersComponent({
 		const handleKeyDown = async (event: KeyboardEvent) => {
 			if (event.ctrlKey && event.key === "s") {
 				event.preventDefault(); // Prevents the browser's default save action
-				if (savedFilters.length !== 0) {
-					if (filter) {
-						const resps = await Promise.all(
-							filter.filters.map(async (item) => {
-								const savedFilter = savedFilters.find((savedFilter) => savedFilter.id === filter.id);
-								if (savedFilter) {
-									return await onSaveFilter(
-										!deepEqual(
-											item.value,
-											savedFilter.filters.find((fItem) => fItem.id === item.id)
-										),
-										item,
-										filter.id
-									);
-								}
-							})
-						);
-						if (resps.every((item) => item === true)) {
-							toast({
-								title: "Sikeres mentés",
-								description: "A szűrő sikeresen el lett mentve",
-							});
-							setSavedFilters((prev) =>
-								prev.map((item) => {
-									if (item.id === filter.id) {
-										return filter;
-									}
-									return item;
-								})
-							);
-						}
-					}
-				}
+				await onSaveFilter();
 			}
 		};
 
@@ -927,24 +896,7 @@ function FiltersComponent({
 											}
 										}}
 										onSave={async () => {
-											const resps = await Promise.all(
-												filter.filters.map(
-													async (f) => await onSaveFilter(isNotEqual, f, filter.id)
-												)
-											);
-
-											if (resps.every((item) => item === true)) {
-												toast({
-													title: "Sikeres mentés",
-													description: "A szűrő sikeresen el lett mentve",
-												});
-												return;
-											}
-											toast({
-												title: "Hiba",
-												description: `Hiba történt a szűrő mentése közben`,
-												variant: "destructive",
-											});
+											await onSaveFilter();
 										}}>
 										<EllipsisVerticalIcon className='w-5 h-5' />
 									</Menu>
@@ -968,28 +920,58 @@ function FiltersComponent({
 		</div>
 	);
 
-	async function onSaveFilter(isNotEqual: boolean, filter: FilterItem, filterId: number) {
-		if (isNotEqual) {
-			const resp = await fetch(`https://pen.dataupload.xyz/filter_items/${filter.id}/`, {
-				method: "PUT",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					...filter,
-					filter: filterId,
-					value: filter.type === "daterange" ? JSON.stringify(filter.value) : filter.value,
-				}),
-			});
-			if (resp.ok) {
-				return true;
+	async function onSaveFilter() {
+		if (savedFilters.length !== 0) {
+			if (filter) {
+				const resps = await Promise.all(
+					filter.filters.map(async (item) => {
+						const savedFilter = savedFilters.find((savedFilter) => savedFilter.id === filter.id);
+
+						if (savedFilter) {
+							const isNotEqual = !deepEqual(
+								item.value,
+								savedFilter.filters.find((fItem) => fItem.id === item.id)?.value
+							);
+							if (isNotEqual) {
+								const resp = await fetch(`https://pen.dataupload.xyz/filter_items/${item.id}/`, {
+									method: "PUT",
+									headers: {
+										"Content-Type": "application/json",
+									},
+									body: JSON.stringify({
+										...item,
+										filter: filter.id,
+										value: item.type === "daterange" ? JSON.stringify(item.id) : item.value,
+									}),
+								});
+								if (resp.ok) {
+									return true;
+								}
+								return false;
+							}
+						}
+					})
+				);
+				if (resps.every((item) => typeof item === "undefined")) {
+					toast({
+						title: "Nincs változás",
+						description: "Nem történt változás a szűrőben",
+					});
+				} else if (resps.filter((item) => typeof item !== "undefined").every((item) => item === true)) {
+					toast({
+						title: "Sikeres mentés",
+						description: "A szűrő sikeresen el lett mentve",
+					});
+					setSavedFilters((prev) =>
+						prev.map((item) => {
+							if (item.id === filter.id) {
+								return filter;
+							}
+							return item;
+						})
+					);
+				}
 			}
-			return false;
-		} else {
-			toast({
-				title: "Nincs változás",
-				description: "Nem történt változás a szűrőben",
-			});
 		}
 	}
 }

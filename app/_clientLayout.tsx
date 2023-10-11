@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import CircularProgressBar from "./_components/CircularProgressBar";
 import { Toaster } from "@/components/ui/toaster";
-import { Tab, Tabs, TabsHeader } from "@material-tailwind/react";
 import { ChevronDown, Menu, Search } from "lucide-react";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Separator } from "@/components/ui/separator";

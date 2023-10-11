@@ -40,20 +40,6 @@ export default function DropdownMenu({
 				item.onClick();
 			}
 		});
-		// switch (handler.keys?.join("")) {
-		// 	case "a":
-		// 		alert("You pressed ctrl+a!");
-		// 		break;
-		// 	case "b":
-		// 		alert("You pressed ctrl+b!");
-		// 		break;
-		// 	case "r":
-		// 		alert("You pressed r!");
-		// 		break;
-		// 	case "f":
-		// 		alert("You pressed f!");
-		// 		break;
-		// }
 	});
 
 	return (

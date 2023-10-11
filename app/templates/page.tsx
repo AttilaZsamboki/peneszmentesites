@@ -34,6 +34,7 @@ export default async function Page() {
 			templates={
 				templates.map((template) => ({
 					...template,
+					id: template.id.toString(),
 					firstProduct: template.items ? template.items[0]?.sku : "",
 					jsonProducts: JSON.stringify(template.items),
 				})) as unknown as Template[]

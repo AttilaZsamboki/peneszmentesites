@@ -26,11 +26,13 @@ import {
 import { Template } from "../templates/page";
 import DropdownMenu from "../_components/Menu";
 import { Button } from "@/components/ui/button";
-import { Plus, Save, SaveAll } from "lucide-react";
+import { Check, Plus, Save, SaveAll } from "lucide-react";
 import CustomDialog from "../_components/CustomDialog";
-import { createTemplate } from "../_utils/fetchers";
+import { createTemplate, updateTemplate } from "../../lib/fetchers";
 import { Form } from "../templates/_clientPage";
 import { toast } from "@/components/ui/use-toast";
+import Link from "next/link";
+import { OpenCreatedToast } from "@/components/toasts";
 
 export function Page2({
 	felmeres,
@@ -74,6 +76,11 @@ export function Page2({
 		}
 	);
 	const [openTemplateDialog, setOpenTemplateDialog] = React.useState(false);
+	const [isEditableDescription, setIsEditableDescription] = React.useState(false);
+	const [description, setDescription] = React.useState(
+		felmeres.template === selectedTemplate.id ? selectedTemplate.description : ""
+	);
+	console.log(description);
 
 	const [otherItemsTableRef] = useAutoAnimate();
 
@@ -194,6 +201,26 @@ export function Page2({
 		setItems((prev) => prev.filter((item) => item.source !== "Template"));
 		await fetchTemplateItems(newFelmeres);
 	};
+	const saveTemplate = async () => {
+		const response = await updateTemplate(
+			selectedTemplate,
+			items.map((item) => item.product.toString())
+		);
+		if (response.ok) {
+			toast({
+				title: "Sablon sikeresen frissítve",
+				action: <Check className='w-5 h-5 text-green-700' />,
+				duration: 1000,
+			});
+			return;
+		}
+		toast({
+			title: "Sablon frissítése sikertelen",
+			description: "Kérlek próbáld újra később",
+			variant: "destructive",
+			duration: 2000,
+		});
+	};
 
 	return (
 		<>
@@ -219,6 +246,12 @@ export function Page2({
 						setFelmeres((prev) => ({ ...prev, template: jsonResp.id }));
 						setSelectedTemplate((prev) => ({ ...prev, id: jsonResp.id }));
 						setTemplates((prev) => [...prev, jsonResp]);
+						toast({
+							title: "Sablon sikeresen létrehozva",
+							description: (
+								<OpenCreatedToast path={"/templates"} query={{ id: jsonResp.id }} inNewTab={true} />
+							),
+						});
 					}}>
 					<Form
 						items={items.map((item) => (item.product ?? 0).toString())}
@@ -307,13 +340,7 @@ export function Page2({
 										dropdownMenuItems={[
 											{
 												value: "Mentés",
-												onClick: () => {
-													toast({
-														title: "Még nem elérhető a funkció",
-														description:
-															"Sajnos még nem lehet menteni meglétező sablont, de dolgozunk rajta!",
-													});
-												},
+												onClick: saveTemplate,
 												icon: <Save className='w-5 h-5 mr-2' />,
 												shortcut: "ctrl+shift+s",
 											},
@@ -328,7 +355,43 @@ export function Page2({
 								) : null}
 							</div>
 						</div>
-						<div className='font-bold'>
+
+						<div
+							className='font-bold'
+							contentEditable={isEditableDescription}
+							onClick={() => setIsEditableDescription(true)}
+							onBlur={() => {
+								setIsEditableDescription(false);
+								setTimeout(async () => {
+									const resp = await fetch(
+										"https://pen.dataupload.xyz/templates/" + selectedTemplate.id + "/",
+										{
+											method: "PATCH",
+											headers: {
+												"Content-Type": "application/json",
+											},
+											body: JSON.stringify({
+												description: description,
+											}),
+										}
+									);
+									if (resp.ok) {
+										toast({
+											title: "Leírás sikeresen frissítve",
+											action: <Check className='w-5 h-5 text-green-700' />,
+											duration: 1000,
+										});
+										return;
+									}
+									toast({
+										title: "Leírás frissítése sikertelen",
+										description: "Kérlek próbáld újra később",
+										variant: "destructive",
+										duration: 2000,
+									});
+								}, 1000);
+							}}
+							onInput={(e) => setDescription(e.currentTarget.textContent ?? "")}>
 							{felmeres.template === selectedTemplate.id ? selectedTemplate.description : ""}
 						</div>
 					</div>

@@ -33,9 +33,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# Sentry Auth Token
-.sentryclirc
-
-# Sentry Auth Token
-.sentryclirc

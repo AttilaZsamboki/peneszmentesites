@@ -1,4 +1,4 @@
-import { Template } from "../templates/page";
+import { Template } from "../app/templates/page";
 
 export const createTemplate = async (items: string[], template: Template) => {
 	const templateResponse = await fetch("https://pen.dataupload.xyz/templates/", {
@@ -24,4 +24,23 @@ export const createTemplate = async (items: string[], template: Template) => {
 		);
 		return templateResponseData;
 	}
+};
+
+export const updateTemplate = async (template: Template, items: string[]) => {
+	const response = await fetch(`https://pen.dataupload.xyz/templates/${template.id}/`, {
+		method: "PUT",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(template),
+	});
+
+	await fetch(`https://pen.dataupload.xyz/product_templates/?template_id=${template.id}`, {
+		method: "PUT",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify(items),
+	});
+	return response;
 };
