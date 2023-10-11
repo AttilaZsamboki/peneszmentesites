@@ -57,7 +57,7 @@ export default function ClientPage({
 						setAttributeData({
 							place_options: [],
 							product: productData.id,
-							place: false,
+							place: true,
 						});
 					}
 				}

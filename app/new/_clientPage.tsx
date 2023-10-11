@@ -469,13 +469,7 @@ export default function Page({
 		Tételek:
 			!items
 				.map((item) => item.inputValues.map((value) => value.ammount).every((value) => value > 0))
-				.every((value) => value === true) ||
-			!items.length ||
-			!items
-				.map((item) =>
-					item.place ? item.inputValues.map((value) => value.value).every((value) => value !== "") : true
-				)
-				.every((value) => value === true),
+				.every((value) => value === true) || !items.length,
 		...Object.assign(
 			{},
 			...Array.from(new Set(data.map((field) => field.section))).map((sect) => ({

@@ -31,7 +31,6 @@ import CustomDialog from "../_components/CustomDialog";
 import { createTemplate, updateTemplate } from "../../lib/fetchers";
 import { Form } from "../templates/_clientPage";
 import { toast } from "@/components/ui/use-toast";
-import Link from "next/link";
 import { OpenCreatedToast } from "@/components/toasts";
 
 export function Page2({
@@ -114,7 +113,7 @@ export function Page2({
 								{
 									product: productTemplate.product,
 									name: productData.name,
-									place: productAttributeData ? productAttributeData.place : false,
+									place: productAttributeData ? productAttributeData.place : true,
 									placeOptions: productAttributeData
 										? isJSONParsable(
 												productAttributeData.place_options.replace(
@@ -164,28 +163,57 @@ export function Page2({
 				  (item.value / 100)
 		)
 		.reduce((a, b) => a + b, 0);
-	const createNewPlaceOption = async (option: string, id: number) => {
-		const resp = await fetch("https://pen.dataupload.xyz/product_attributes/" + id + "/", {
-			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				place_options: JSON.stringify([...items.find((item) => item.attributeId === id)!.placeOptions, option])
-					.replace("[", "{")
-					.replace("]", "}"),
-			}),
-		});
-		if (resp.ok) {
-			if (!setItems) return;
-			setItems((prev) => [
-				...prev.filter((item) => item.attributeId !== id),
-				{
-					...prev.find((item) => item.attributeId === id),
-					placeOptions: [...prev.find((item) => item.attributeId === id)!.placeOptions, option],
-				} as FelmeresItem,
-			]);
-			await fetch("/api/revalidate?tag=product-attributes");
+	const createNewPlaceOption = async (option: string, id: number, productId: number) => {
+		console.log(id);
+		if (id) {
+			const resp = await fetch("https://pen.dataupload.xyz/product_attributes/" + id + "/", {
+				method: "PATCH",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					place_options: JSON.stringify([
+						...items.find((item) => item.attributeId === id)!.placeOptions,
+						option,
+					])
+						.replace("[", "{")
+						.replace("]", "}"),
+				}),
+			});
+			if (resp.ok) {
+				if (!setItems) return;
+				setItems((prev) => [
+					...prev.filter((item) => item.attributeId !== id),
+					{
+						...prev.find((item) => item.attributeId === id),
+						placeOptions: [...prev.find((item) => item.attributeId === id)!.placeOptions, option],
+					} as FelmeresItem,
+				]);
+			}
+		} else {
+			const resp = await fetch("https://pen.dataupload.xyz/product_attributes", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					product: items.find((item) => item.product === productId)!.product,
+					place: true,
+					place_options: JSON.stringify([option]).replace("[", "{").replace("]", "}"),
+				}),
+			});
+			if (resp.ok) {
+				if (!setItems) return;
+				const data = await resp.json();
+				setItems((prev) => [
+					...prev.filter((item) => item.product !== productId),
+					{
+						...prev.find((item) => item.product === productId),
+						attributeId: data.id,
+						placeOptions: [...prev.find((item) => item.product === productId)!.placeOptions, option],
+					} as FelmeresItem,
+				]);
+			}
 		}
 	};
 	const onSelectTemplate = async () => {
@@ -444,6 +472,7 @@ export function Page2({
 												netPrice,
 												sku,
 												attributeId,
+												product,
 											},
 											index
 										) => {
@@ -555,7 +584,8 @@ export function Page2({
 																								) {
 																									createNewPlaceOption(
 																										e,
-																										attributeId
+																										attributeId,
+																										product
 																									);
 																								}
 																								if (!setItems) return;
@@ -760,7 +790,7 @@ export function Page2({
 																sku: product.sku,
 																place: productAttribute
 																	? productAttribute!.place
-																	: false,
+																	: true,
 																inputValues: [
 																	{
 																		value: "",
