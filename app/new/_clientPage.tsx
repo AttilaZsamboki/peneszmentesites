@@ -315,8 +315,10 @@ export default function Page({
 
 			// MiniCRM ajánlat létrehozása
 			if (
+				// Nem failelt a kérdések mentése
 				status === 1 &&
-				(isEdit
+				// Ha módosítod akkor változott-e valami a tételek közül vagy küldeni akarod-e az ajánlatot
+				((isEdit
 					? !_.isEqual(
 							editFelmeresItems?.map((item) => ({
 								...item,
@@ -333,8 +335,8 @@ export default function Page({
 								adatlap: null,
 							}))
 					  )
-					: true) &&
-				sendOffer
+					: true) ||
+					sendOffer)
 			) {
 				// XML string összeállítása
 				const template = templates.find((template) => template.id === felmeres.template);
@@ -557,6 +559,27 @@ export default function Page({
 		)
 		.reduce((a, b) => a + b, 0);
 
+	console.log(
+		_.isEqual(
+			editFelmeresItems?.map((item) => ({
+				...item,
+				id: 0,
+				inputValues: item.inputValues.map((value) => value.ammount),
+				sku: item.sku ? item.sku : null,
+				source: "",
+				adatlap: null,
+			})),
+			submitItems.map((item) => ({
+				...item,
+				id: 0,
+				inputValues: item.inputValues.map((value) => value.ammount),
+				sku: item.sku ? item.sku : null,
+				source: "",
+				adatlap: null,
+			}))
+		)
+	);
+
 	return (
 		<div className='w-full overflow-y-scroll h-[100dvh] pb-0 mb-0 lg:pb-10 lg:mb-10'>
 			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-0 lg:mt-2'>
@@ -602,13 +625,32 @@ export default function Page({
 								)}
 								{numPages === page + 1 ? (
 									<div className='flex flex-row px-4 items-center justify-center gap-3'>
-										<Button
-											className='bg-green-500 hover:bg-green-500/90'
-											color='green'
-											onClick={() => CreateFelmeres()}
-											disabled={isDisabled[section === "Fix kérdések" ? "Fix" : section]}>
-											Beküldés
-										</Button>
+										{_.isEqual(
+											editFelmeresItems?.map((item) => ({
+												...item,
+												id: 0,
+												inputValues: item.inputValues.map((value) => value.ammount),
+												sku: item.sku ? item.sku : null,
+												source: "",
+												adatlap: null,
+											})),
+											submitItems.map((item) => ({
+												...item,
+												id: 0,
+												inputValues: item.inputValues.map((value) => value.ammount),
+												source: "",
+												sku: item.sku ? item.sku : null,
+												adatlap: null,
+											}))
+										) && felmeres.status !== "DRAFT" ? null : (
+											<Button
+												className='bg-green-500 hover:bg-green-500/90'
+												color='green'
+												onClick={() => CreateFelmeres()}
+												disabled={isDisabled[section === "Fix kérdések" ? "Fix" : section]}>
+												Beküldés
+											</Button>
+										)}
 										<TooltipProvider>
 											<Tooltip>
 												<TooltipTrigger asChild>

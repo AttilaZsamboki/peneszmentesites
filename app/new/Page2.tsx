@@ -80,7 +80,6 @@ export function Page2({
 	const [description, setDescription] = React.useState(
 		felmeres.template === selectedTemplate.id ? selectedTemplate.description : ""
 	);
-	console.log(description);
 
 	const [otherItemsTableRef] = useAutoAnimate();
 

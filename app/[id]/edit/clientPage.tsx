@@ -42,7 +42,6 @@ export default async function Page({
 	})
 		.then((response) => response.json())
 		.catch((error) => console.error("error", error));
-	console.log(felmeresItems);
 
 	return (
 		<ClientPage
