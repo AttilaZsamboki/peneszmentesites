@@ -27,7 +27,7 @@ export default async function ProductsFetch({ searchParams }: { searchParams: { 
 
 	const data: { count: number; results: Product[] } = await fetch(
 		`https://pen.dataupload.xyz/products${Object.entries(searchParams)
-			.filter(([key, value]) => key !== "selectedFilter")
+			.filter(([key, value]) => key !== "selectedFilter" && key !== "sort_by" && key !== "sort_order")
 			.map(([key, value]: string[], index) => `${index === 0 ? "?" : ""}${key}=${value}`)
 			.join("&")}`,
 		{
