@@ -232,7 +232,7 @@ export async function assembleOfferXML(
 <Projects>
     <Project Id="${randomId}">
         <StatusId>3099</StatusId>
-        <Name>${adatlap.Name} - ${templateName}</Name>
+        <Name>${adatlap.Name} - ${templateName ?? "Egyéni"}</Name>
         <ContactId>${contactData.Id}</ContactId>
         <UserId>${userId}</UserId>
         <CategoryId>32</CategoryId>
