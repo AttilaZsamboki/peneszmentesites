@@ -1198,36 +1198,66 @@ export function Page2({
 										</td>
 										<td></td>
 										<td></td>
-										<td className='p-4 border-b pr-8 border-blue-gray-50 w-40'>
-											<div className='relative'>
+										<td className='p-4 border-b pr-8 border-blue-gray-50 w-60'>
+											<div className=''>
 												{readonly ? (
-													<Typography
-														variant='small'
-														color='blue-gray'
-														className='font-normal max-w-[30rem]'>
-														{discount}
-														<span className='font-extralight text-gray-500 pl-1'>%</span>
-													</Typography>
-												) : (
-													<>
-														<Input
-															variant='simple'
-															value={discount}
-															onChange={(e) => {
-																if (!setDiscount) return;
-																setDiscount(
-																	parseInt(e.target.value.replace(/\D/g, "")) <= 100
-																		? parseInt(e.target.value.replace(/\D/g, ""))
-																		: 0
-																);
-															}}
-														/>
+													<div className='font-extralight text-gray-500 flex flex-row items-center gap-2'>
 														<Typography
 															variant='small'
-															className={`font-extralight text-gray-500 absolute right-2 top-2 max-w-[30rem]`}>
-															%
+															color='blue-gray'
+															className='font-normal max-w-[30rem]'>
+															{discount}
+															<span className='font-extralight text-gray-500 pl-1'>
+																%
+															</span>
 														</Typography>
-													</>
+														<Typography
+															variant='small'
+															className={`font-extralight text-gray-500 `}>
+															(
+															{hufFormatter.format(
+																otherItemsNetTotal * 1.27 +
+																	netTotal * 1.27 * (discount / 100)
+															)}
+															)
+														</Typography>
+													</div>
+												) : (
+													<div className='font-extralight text-gray-500 flex flex-row items-center gap-2'>
+														<div className='relative'>
+															<Input
+																variant='simple'
+																value={discount}
+																onChange={(e) => {
+																	if (!setDiscount) return;
+																	setDiscount(
+																		parseInt(e.target.value.replace(/\D/g, "")) <=
+																			100
+																			? parseInt(
+																					e.target.value.replace(/\D/g, "")
+																			  )
+																			: 0
+																	);
+																}}
+															/>
+															<Typography
+																variant='small'
+																className={`font-extralight text-gray-500 absolute right-2 top-2 `}>
+																%
+															</Typography>
+														</div>
+
+														<Typography
+															variant='small'
+															className={`font-extralight text-gray-500 `}>
+															(
+															{hufFormatter.format(
+																otherItemsNetTotal * 1.27 +
+																	netTotal * 1.27 * (discount / 100)
+															)}
+															)
+														</Typography>
+													</div>
 												)}
 											</div>
 										</td>
