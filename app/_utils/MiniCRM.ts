@@ -232,7 +232,7 @@ export async function assembleOfferXML(
 <Projects>
     <Project Id="${randomId}">
         <StatusId>3099</StatusId>
-        <Name>${adatlap.Name} - ${templateName ?? "Egyéni"}</Name>
+        <Name>${adatlap.Name} - ${templateName ? templateName : "Egyéni"}</Name>
         <ContactId>${contactData.Id}</ContactId>
         <UserId>${userId}</UserId>
         <CategoryId>32</CategoryId>
@@ -247,7 +247,7 @@ export async function assembleOfferXML(
         </Contacts>
         <Offers>
             <Offer Id="${randomId}">
-                <Number>${adatlap.Name} - ${templateName}</Number>
+                <Number>${adatlap.Name} - ${templateName ? templateName : "Egyéni"}</Number>
                 <CurrencyCode>HUF</CurrencyCode>
 				<Subject>${subject}</Subject>
                 <Performance>${date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()}</Performance>
