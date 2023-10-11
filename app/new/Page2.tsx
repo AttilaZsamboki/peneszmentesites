@@ -1207,9 +1207,7 @@ export function Page2({
 															color='blue-gray'
 															className='font-normal max-w-[30rem]'>
 															{discount}
-															<span className='font-extralight text-gray-500 pl-1'>
-																%
-															</span>
+															<span>%</span>
 														</Typography>
 														<Typography
 															variant='small'
