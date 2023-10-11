@@ -335,24 +335,35 @@ export function Page2({
 									<Button size='icon' variant='outline' onClick={onSelectTemplate}>
 										<Plus className='w-4 h-4 text-gray-700' />
 									</Button>
-								) : felmeres.template ? (
+								) : (
 									<DropdownMenu
-										dropdownMenuItems={[
-											{
-												value: "Mentés",
-												onClick: saveTemplate,
-												icon: <Save className='w-5 h-5 mr-2' />,
-												shortcut: "ctrl+shift+s",
-											},
-											{
-												value: "Mentés másként",
-												onClick: () => setOpenTemplateDialog(true),
-												icon: <SaveAll className='w-5 h-5 mr-2' />,
-												shortcut: "f4",
-											},
-										]}
+										dropdownMenuItems={
+											felmeres.template
+												? [
+														{
+															value: "Mentés",
+															onClick: saveTemplate,
+															icon: <Save className='w-5 h-5 mr-2' />,
+															shortcut: "ctrl+shift+s",
+														},
+														{
+															value: "Mentés másként",
+															onClick: () => setOpenTemplateDialog(true),
+															icon: <SaveAll className='w-5 h-5 mr-2' />,
+															shortcut: "f4",
+														},
+												  ]
+												: [
+														{
+															value: "Mentés mint új sablon",
+															onClick: () => setOpenTemplateDialog(true),
+															icon: <SaveAll className='w-5 h-5 mr-2' />,
+															shortcut: "f4",
+														},
+												  ]
+										}
 									/>
-								) : null}
+								)}
 							</div>
 						</div>
 
