@@ -3,6 +3,7 @@ import { Product } from "../products/page";
 import { Question } from "../questions/page";
 
 import React from "react";
+import { useHotkeys } from "react-hotkeys-hook";
 
 export const typeMap = {
 	TEXT: "Szöveg",

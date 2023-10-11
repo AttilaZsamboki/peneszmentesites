@@ -28,12 +28,33 @@ export default function DropdownMenu({
 	onEdit?: () => void;
 	dropdownMenuItems?: { value: React.ReactNode; onClick: () => void; icon?: React.ReactNode; shortcut?: string }[];
 }) {
-	function HotkeyItem({ item }: { item: { value: React.ReactNode; onClick: () => void; shortcut?: string } }) {
-		useHotkeys(item.shortcut ?? "", item.onClick);
-		return null; // This component doesn't render anything
-	}
-
-	// In your DropdownMenu component
+	useHotkeys(dropdownMenuItems ? dropdownMenuItems.map((item) => item.shortcut ?? "") : [], (_, handler) => {
+		if (!dropdownMenuItems) return;
+		const keyShortCuts =
+			(handler.ctrl ? "ctrl+" : "") +
+			(handler.alt ? "alt+" : "") +
+			(handler.shift ? "shift+" : "") +
+			handler.keys?.join("");
+		dropdownMenuItems!.forEach((item) => {
+			if (item.shortcut === keyShortCuts) {
+				item.onClick();
+			}
+		});
+		// switch (handler.keys?.join("")) {
+		// 	case "a":
+		// 		alert("You pressed ctrl+a!");
+		// 		break;
+		// 	case "b":
+		// 		alert("You pressed ctrl+b!");
+		// 		break;
+		// 	case "r":
+		// 		alert("You pressed r!");
+		// 		break;
+		// 	case "f":
+		// 		alert("You pressed f!");
+		// 		break;
+		// }
+	});
 
 	return (
 		<Dropdown>
@@ -57,11 +78,12 @@ export default function DropdownMenu({
 									{item.value}
 								</div>
 								{item.shortcut ? (
-									<DropdownMenuShortcut className='uppercase'>{item.shortcut}</DropdownMenuShortcut>
+									<>
+										<DropdownMenuShortcut className='uppercase'>
+											{item.shortcut}
+										</DropdownMenuShortcut>
+									</>
 								) : null}
-								{dropdownMenuItems?.map((item, index) => (
-									<HotkeyItem key={index} item={item} />
-								))}
 							</DropdownMenuItem>
 						))
 					) : (
