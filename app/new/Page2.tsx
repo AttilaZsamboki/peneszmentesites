@@ -1243,8 +1243,8 @@ export function Page2({
 															className={`font-extralight text-gray-500 `}>
 															(
 															{hufFormatter.format(
-																otherItemsNetTotal * 1.27 +
-																	netTotal * 1.27 * (discount / 100)
+																(otherItemsNetTotal * 1.27 + netTotal * 1.27) *
+																	(discount / 100)
 															)}
 															)
 														</Typography>
@@ -1279,8 +1279,8 @@ export function Page2({
 															className={`font-extralight text-gray-500 `}>
 															(
 															{hufFormatter.format(
-																otherItemsNetTotal * 1.27 +
-																	netTotal * 1.27 * (discount / 100)
+																(otherItemsNetTotal * 1.27 + netTotal * 1.27) *
+																	(discount / 100)
 															)}
 															)
 														</Typography>
