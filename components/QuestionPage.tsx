@@ -237,7 +237,6 @@ function FieldCreate({
 					/>
 				) : null}
 				<FileUpload
-					route={`/api/save-image`}
 					onUpload={(file) =>
 						setGlobalData((prev) =>
 							prev.map((felmeres) =>

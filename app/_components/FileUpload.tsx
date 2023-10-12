@@ -4,7 +4,7 @@ import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orien
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 
-export default function FileUpload({ route, onUpload }: { route: string; onUpload?: (file: any) => void }) {
+export default function FileUpload({ onUpload }: { onUpload?: (file: any) => void }) {
 	return (
 		<FilePond
 			allowMultiple={true}
@@ -15,7 +15,12 @@ export default function FileUpload({ route, onUpload }: { route: string; onUploa
 				}
 				onUpload ? onUpload(file) : {};
 			}}
-			server={route}
+			server={{
+				url: "https://pen.dataupload.xyz/save-image/",
+				headers: {
+					Authorization: "Bearer your_token", // if you have any headers
+				},
+			}}
 			allowReorder={true}
 			allowProcess={true}
 			allowBrowse={true}

@@ -164,7 +164,6 @@ export function Page2({
 		)
 		.reduce((a, b) => a + b, 0);
 	const createNewPlaceOption = async (option: string, id: number, productId: number) => {
-		console.log(id);
 		if (id) {
 			const resp = await fetch("https://pen.dataupload.xyz/product_attributes/" + id + "/", {
 				method: "PATCH",
