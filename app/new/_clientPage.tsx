@@ -148,6 +148,18 @@ export default function Page({
 						type: "fixed",
 						id: 1,
 					},
+					{
+						name: "Kiszállási díj",
+						value: 0,
+						type: "fixed",
+						id: 2,
+					},
+					{
+						name: "Jóváírás",
+						value: -20000,
+						type: "fixed",
+						id: 3,
+					},
 			  ]
 	);
 	const [discount, setDiscount] = React.useState(

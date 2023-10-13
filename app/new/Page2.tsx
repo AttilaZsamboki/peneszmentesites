@@ -943,7 +943,7 @@ export function Page2({
 																					value: e.target.value
 																						? parseInt(
 																								e.target.value.replace(
-																									/\D/g,
+																									/[^\d-]/g,
 																									""
 																								)
 																						  )
