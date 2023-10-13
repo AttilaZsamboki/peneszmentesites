@@ -164,6 +164,7 @@ export function Page2({
 		)
 		.reduce((a, b) => a + b, 0);
 	const createNewPlaceOption = async (option: string, id: number, productId: number) => {
+		if (!option || !setItems) return;
 		if (id) {
 			const resp = await fetch("https://pen.dataupload.xyz/product_attributes/" + id + "/", {
 				method: "PATCH",
@@ -180,14 +181,19 @@ export function Page2({
 				}),
 			});
 			if (resp.ok) {
-				if (!setItems) return;
-				setItems((prev) => [
-					...prev.filter((item) => item.attributeId !== id),
-					{
+				setItems((prev) => {
+					console.log({
 						...prev.find((item) => item.attributeId === id),
 						placeOptions: [...prev.find((item) => item.attributeId === id)!.placeOptions, option],
-					} as FelmeresItem,
-				]);
+					});
+					return [
+						...prev.filter((item) => item.attributeId !== id),
+						{
+							...prev.find((item) => item.attributeId === id),
+							placeOptions: [...prev.find((item) => item.attributeId === id)!.placeOptions, option],
+						} as FelmeresItem,
+					];
+				});
 			}
 		} else {
 			const resp = await fetch("https://pen.dataupload.xyz/product_attributes", {
@@ -202,8 +208,8 @@ export function Page2({
 				}),
 			});
 			if (resp.ok) {
-				if (!setItems) return;
 				const data = await resp.json();
+				console.log(data.id);
 				setItems((prev) => [
 					...prev.filter((item) => item.product !== productId),
 					{
@@ -779,6 +785,7 @@ export function Page2({
 														const productAttribute = productAttributes.find(
 															(attribute) => attribute.product === parseInt(value)
 														);
+														if (!product) return;
 														setItems((prev) => [
 															...prev.filter((item) => item.product.toString() !== value),
 															{
@@ -801,6 +808,9 @@ export function Page2({
 																	product.price_list_alapertelmezett_net_price_huf,
 																source: "Manual",
 																type: "Item",
+																attributeId: productAttribute
+																	? productAttribute!.id ?? 0
+																	: 0,
 																placeOptions: productAttribute
 																	? JSON.parse(
 																			(
