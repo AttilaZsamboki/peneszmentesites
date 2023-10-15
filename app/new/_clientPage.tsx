@@ -55,7 +55,7 @@ export interface FelmeresItem {
 	adatlap: number;
 	sku: string;
 	attributeId: number;
-	type: "Item" | "Fee" | "Discount";
+	type: "Item" | "Fee" | "Discount" | "Other Material";
 	valueType: "percent" | "fixed";
 	source: "Manual" | "Template";
 }
@@ -115,7 +115,9 @@ export default function Page({
 			  }
 	);
 	const [items, setItems] = React.useState<FelmeresItem[]>(
-		editFelmeresItems ? editFelmeresItems.filter((item) => item.type === "Item") : []
+		editFelmeresItems
+			? editFelmeresItems.filter((item) => item.type === "Item" || item.type === "Other Material")
+			: []
 	);
 	const [numPages, setNumPages] = React.useState(0);
 	const router = useRouter();
@@ -145,13 +147,6 @@ export default function Page({
 						type: "percent",
 						id: 0,
 					},
-					{
-						name: "Egyéb szerelési segédanyagok",
-						value: 0,
-						type: "fixed",
-						id: 1,
-					},
-
 					{
 						name: "Jóváírás",
 						value: -20000,
@@ -198,7 +193,6 @@ export default function Page({
 							}
 						})
 					);
-					console.log(data);
 					if (!data.includes("Form")) {
 						setQuestions((prev) => [
 							...prev,
@@ -230,7 +224,7 @@ export default function Page({
 		fetchQuestions();
 	}, [items]);
 	React.useEffect(() => {
-		if (felmeres.adatlap_id) {
+		if (felmeres.adatlap_id && !editFelmeresItems) {
 			const fetchAdatlapData = async () => {
 				const data: AdatlapDetails = await fetchMiniCRM("Project", felmeres.adatlap_id.toString(), "GET");
 				setOtherItems((prev) => [
@@ -423,28 +417,40 @@ export default function Page({
 					adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)
 						? adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)!.ContactId.toString()
 						: "",
-					submitItems.map((item) => ({
-						...item,
-						netPrice:
-							item.valueType === "percent"
-								? item.type === "Fee"
-									? submitItems
-											.map((sumItem) =>
-												sumItem.type === "Item" ||
-												(item.type === "Fee" && sumItem.name !== item.name)
-													? sumItem.netPrice *
-													  sumItem.inputValues
-															.map((value) => value.ammount)
-															.reduce((a, b) => a + b, 0)
-													: 0
-											)
-											.reduce((a, b) => a + b, 0) *
-									  (item.netPrice / 100)
-									: item.type === "Discount"
-									? -((otherItemsNetTotal + netTotal) * (item.netPrice / 100))
-									: item.netPrice
-								: item.netPrice,
-					})),
+					[
+						...submitItems
+							.filter((item) => item.type !== "Other Material")
+							.map((item) => ({
+								...item,
+								netPrice:
+									item.valueType === "percent"
+										? item.type === "Fee"
+											? submitItems
+													.map((sumItem) =>
+														sumItem.type === "Item" ||
+														(item.type === "Fee" && sumItem.name !== item.name)
+															? sumItem.netPrice *
+															  sumItem.inputValues
+																	.map((value) => value.ammount)
+																	.reduce((a, b) => a + b, 0)
+															: 0
+													)
+													.reduce((a, b) => a + b, 0) *
+											  (item.netPrice / 100)
+											: item.type === "Discount"
+											? -((otherItemsNetTotal + netTotal) * (item.netPrice / 100))
+											: item.netPrice
+										: item.netPrice,
+							})),
+						{
+							netPrice: items
+								.filter((item) => item.type === "Other Material")
+								.map((item) => item.netPrice * item.inputValues.reduce((a, b) => a + b.ammount, 0))
+								.reduce((a, b) => a + b, 0),
+							name: "Egyéb szerelési segédanyagok",
+							inputValues: [{ ammount: 1, id: 0, value: "" }],
+						} as unknown as FelmeresItem,
+					],
 
 					felmeres.adatlap_id.toString(),
 					template?.description,
@@ -609,6 +615,7 @@ export default function Page({
 			valueType: "percent",
 		},
 	] as FelmeresItem[];
+
 	const onPageChange = (page: number) => {
 		if (page === 0) {
 			setItems([]);

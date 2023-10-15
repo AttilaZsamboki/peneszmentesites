@@ -95,7 +95,7 @@ export default function ClientPage({
 				<Page2
 					felmeres={felmeres}
 					readonly={true}
-					items={felmeresItems.filter((item) => item.type === "Item")}
+					items={felmeresItems.filter((item) => item.type === "Item" || item.type === "Other Material")}
 					otherItems={felmeresItems
 						.filter((item) => item.type === "Fee")
 						.map((item) => ({

@@ -63,9 +63,11 @@ export function Page2({
 	readonly?: boolean;
 }) {
 	const [isAddingNewItem, setIsAddingNewItem] = React.useState(false);
+	const [isAddingNewOtherMaterial, setIsAddingNewOtherMaterial] = React.useState(false);
 	const [isAddingNewOtherItem, setIsAddingNewOtherItem] = React.useState(false);
 	const [newOtherItem, setNewOtherItem] = React.useState<OtherFelmeresItem>();
 	const [isEditingItems, setIsEditingItems] = React.useState(false);
+	const [isEditingOtherMaterials, setIsEditingOtherMaterials] = React.useState(false);
 	const [isEditingOtherItems, setIsEditingOtherItems] = React.useState(false);
 	const [templates, setTemplates] = React.useState<Template[]>(originalTemplates ?? []);
 	const [selectedTemplate, setSelectedTemplate] = React.useState<Template>(
@@ -83,6 +85,7 @@ export function Page2({
 	);
 
 	const [otherItemsTableRef] = useAutoAnimate();
+	const [otherMaterialTableRef] = useAutoAnimate();
 
 	const fetchTemplateItems = async (felmeres: BaseFelmeresData) => {
 		if (!setItems) return;
@@ -149,16 +152,20 @@ export function Page2({
 
 	const TABLE_HEAD_ITEMS = ["Név", "Darab + Hely", "Nettó egységár", "Nettó összesen"];
 	const TABLE_HEAD_OTHER = ["Név", "Nettó egységár", "Nettó összesen"];
+	const TABLE_HEAD_OTHER_MATERIAL = ["Név", "Darab", "Nettó egységár", "Nettó összesen"];
 
-	const netTotal = items
-		.map(({ inputValues, netPrice }) => netPrice * inputValues.reduce((a, b) => a + b.ammount, 0))
-		.reduce((a, b) => a + b, 0);
+	const netTotal = (type?: "Other Material" | "Item") => {
+		return items
+			.filter((item) => (type ? item.type === type : true))
+			.map(({ inputValues, netPrice }) => netPrice * inputValues.reduce((a, b) => a + b.ammount, 0))
+			.reduce((a, b) => a + b, 0);
+	};
 	const otherItemsNetTotal = otherItems
 		.filter((item) => !isNaN(item.value))
 		.map((item) =>
 			item.type === "fixed"
 				? item.value
-				: (netTotal +
+				: (netTotal() +
 						otherItems
 							.filter((item) => item.type !== "percent" && !isNaN(item.value))
 							.reduce((a, b) => a + b.value, 0)) *
@@ -463,6 +470,7 @@ export function Page2({
 							</thead>
 							<tbody>
 								{items
+									.filter((item) => item.type === "Item")
 									.sort((a, b) => a.product - b.product)
 									.map(
 										(
@@ -525,10 +533,14 @@ export function Page2({
 																							...items.filter(
 																								(i) =>
 																									i.product !==
-																									items[index].product
+																									product
 																							),
 																							{
-																								...items[index],
+																								...items.find(
+																									(i) =>
+																										i.product ===
+																										product
+																								)!,
 																								inputValues: [
 																									...inputValues.filter(
 																										(value) =>
@@ -595,11 +607,14 @@ export function Page2({
 																									...items.filter(
 																										(item) =>
 																											item.product !==
-																											items[index]
-																												.product
+																											product
 																									),
 																									{
-																										...items[index],
+																										...items.find(
+																											(item) =>
+																												item.product ===
+																												product
+																										)!,
 																										inputValues: [
 																											...inputValues.filter(
 																												(
@@ -672,11 +687,14 @@ export function Page2({
 																								...items.filter(
 																									(item) =>
 																										item.product !==
-																										items[index]
-																											.product
+																										product
 																								),
 																								{
-																									...items[index],
+																									...items.find(
+																										(item) =>
+																											item.product ===
+																											product
+																									)!,
 																									inputValues: [
 																										...inputValues.filter(
 																											(value) =>
@@ -853,7 +871,7 @@ export function Page2({
 											variant='small'
 											color='blue-gray'
 											className='font-normal leading-none opacity-70'>
-											{hufFormatter.format(netTotal)}
+											{hufFormatter.format(netTotal("Item"))}
 										</Typography>
 									</td>
 									{readonly ? null : (
@@ -980,7 +998,7 @@ export function Page2({
 																? isNaN(item.value)
 																	? 0
 																	: item.value
-																: ((netTotal +
+																: ((netTotal() +
 																		otherItems
 																			.filter(
 																				(item) =>
@@ -1113,6 +1131,277 @@ export function Page2({
 						</div>
 					</Card>
 				</div>
+				{/* other material */}
+				<div className='mt-8'>
+					<Heading title='Egyéb szerelési segédanyagok' variant='h5' marginY='lg:my-4' border={false} />
+					<Card className='my-5'>
+						<div className='w-full lg:overflow-hidden overflow-x-scroll'>
+							<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
+								<thead>
+									<tr>
+										{TABLE_HEAD_OTHER_MATERIAL.map((head) => (
+											<th
+												key={head}
+												className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal leading-none opacity-70'>
+													{head}
+												</Typography>
+											</th>
+										))}
+										{!readonly ? (
+											<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+												<PencilSquareIcon
+													className='w-5 h-5 cursor-pointer'
+													onClick={() => setIsEditingOtherMaterials(!isEditingOtherMaterials)}
+												/>
+											</th>
+										) : null}
+									</tr>
+								</thead>
+								<tbody>
+									{items
+										.filter((item) => item.type === "Other Material")
+										.sort((a, b) => a.product - b.product)
+										.map(({ name, inputValues, netPrice, sku, product }, index) => {
+											const classes = "p-4";
+
+											return (
+												<tr key={name} className='border-b border-blue-gray-50'>
+													<td className={classes}>
+														<Typography
+															variant='small'
+															color='blue-gray'
+															className='font-normal max-w-[30rem]'>
+															<span className='font-bold'>{sku}</span> - {name}
+														</Typography>
+													</td>
+													{inputValues
+														.sort((a, b) => a.id - b.id)
+														.map((inputValue) => (
+															<div
+																key={inputValue.id}
+																className='flex flex-row items-center'>
+																<td className={classes}>
+																	{readonly ? (
+																		<Typography
+																			variant='small'
+																			color='blue-gray'
+																			className='font-normal w-80 flex flex-row gap-4 '>
+																			<span className='break-keep '>
+																				{inputValue.ammount} darab
+																			</span>
+																		</Typography>
+																	) : (
+																		<Counter
+																			maxWidth='max-w-[10rem]'
+																			value={inputValue.ammount}
+																			onChange={(value) => {
+																				!setItems
+																					? null
+																					: setItems([
+																							...items.filter(
+																								(i) =>
+																									i.product !==
+																									product
+																							),
+																							{
+																								...items.find(
+																									(i) =>
+																										i.product ===
+																										product
+																								)!,
+																								inputValues: [
+																									...inputValues.filter(
+																										(value) =>
+																											value.id !==
+																											inputValue.id
+																									),
+																									{
+																										...inputValue,
+																										ammount: value,
+																									},
+																								],
+																							},
+																					  ]);
+																			}}
+																		/>
+																	)}
+																</td>
+															</div>
+														))}
+													<td className={classes}>
+														<Typography
+															variant='small'
+															color='blue-gray'
+															className='font-normal max-w-[30rem]'>
+															{hufFormatter.format(netPrice)}
+														</Typography>
+													</td>
+													<td className={classes}>
+														<Typography
+															variant='small'
+															color='blue-gray'
+															className='font-normal max-w-[30rem]'>
+															{hufFormatter.format(
+																netPrice *
+																	inputValues.reduce((a, b) => a + b.ammount, 0)
+															)}
+														</Typography>
+													</td>
+													{!readonly ? (
+														<td className={classes}>
+															{isEditingOtherMaterials ? (
+																<MinusCircleIcon
+																	className='w-7 h-7 text-red-600 cursor-pointer'
+																	onClick={() =>
+																		!setItems
+																			? null
+																			: setItems((prev) =>
+																					prev.filter(
+																						(item) => item.name !== name
+																					)
+																			  )
+																	}
+																/>
+															) : null}
+														</td>
+													) : null}
+												</tr>
+											);
+										})}
+									<tr>
+										{!isEditingOtherMaterials ? null : !isAddingNewOtherMaterial ? (
+											<>
+												<td></td>
+												<td></td>
+												<td></td>
+												<td></td>
+												<td className='p-4 border-b border-blue-gray-50'>
+													<PlusCircleIcon
+														className='w-7 h-7 text-green-600 cursor-pointer'
+														onClick={() => {
+															setIsAddingNewOtherMaterial(true);
+														}}
+													/>
+												</td>
+											</>
+										) : (
+											<>
+												<td className='p-4 border-b border-blue-gray-50'>
+													<AutoComplete
+														options={
+															!products
+																? []
+																: products
+																		.filter(
+																			(product) =>
+																				!items
+
+																					.map((item) => item.product)
+																					.includes(product.id)
+																		)
+																		.map((product) => ({
+																			label: product.sku + " - " + product.name,
+																			value: product.id.toString(),
+																		}))
+														}
+														value={items.find((item) => item.product === 0)?.name || ""}
+														onChange={(value) => {
+															if (!setItems || !products || !productAttributes) return;
+															const product = products.find(
+																(product) => product.id === parseInt(value)
+															)!;
+															const productAttribute = productAttributes.find(
+																(attribute) => attribute.product === parseInt(value)
+															);
+															if (!product) return;
+															setItems((prev) => [
+																...prev.filter(
+																	(item) => item.product.toString() !== value
+																),
+																{
+																	...prev[prev.length - 1],
+																	adatlap: felmeres.adatlap_id,
+																	product: parseInt(value),
+																	name: product.name,
+																	sku: product.sku,
+																	place: productAttribute
+																		? productAttribute!.place
+																		: true,
+																	inputValues: [
+																		{
+																			value: "",
+																			id: 0,
+																			ammount: 0,
+																		},
+																	],
+																	netPrice:
+																		product.price_list_alapertelmezett_net_price_huf,
+																	source: "Manual",
+																	type: "Other Material",
+																	attributeId: productAttribute
+																		? productAttribute!.id ?? 0
+																		: 0,
+																	placeOptions: productAttribute
+																		? JSON.parse(
+																				(
+																					productAttribute!
+																						.place_options as unknown as string
+																				).replace(/'/g, '"')
+																		  )
+																		: [],
+																},
+															]);
+														}}
+													/>
+												</td>
+												<td className='p-4 border-b border-blue-gray-50'></td>
+												<td className='p-4 border-b border-blue-gray-50'></td>
+												<td className='p-4 border-b border-blue-gray-50'></td>
+												<td className='p-4 border-b border-blue-gray-50'>
+													<CheckCircleIcon
+														className='w-7 h-7 text-green-600 cursor-pointer'
+														onClick={() => setIsAddingNewOtherMaterial(false)}
+													/>
+												</td>
+											</>
+										)}
+									</tr>
+								</tbody>
+								<tfoot className='bg-gray'>
+									<tr>
+										<td
+											className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'
+											style={{ borderTopWidth: 0 }}>
+											<Typography
+												variant='small'
+												color='blue-gray'
+												className='font-normal leading-none opacity-70'>
+												Össz:
+											</Typography>
+										</td>
+										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
+										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
+										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+											<Typography
+												variant='small'
+												color='blue-gray'
+												className='font-normal leading-none opacity-70'>
+												{hufFormatter.format(netTotal("Other Material"))}
+											</Typography>
+										</td>
+										{readonly ? null : (
+											<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
+										)}
+									</tr>
+								</tfoot>
+							</table>
+						</div>
+					</Card>
+				</div>
 				<div className='mt-8'>
 					<Heading title='Összesítés' variant='h5' marginY='lg:my-4' border={false} />
 					<Card>
@@ -1169,7 +1458,7 @@ export function Page2({
 												variant='small'
 												color='blue-gray'
 												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(netTotal)}
+												{hufFormatter.format(netTotal("Item"))}
 											</Typography>
 										</td>
 										<td className='p-4 border-b border-blue-gray-50'>
@@ -1177,7 +1466,7 @@ export function Page2({
 												variant='small'
 												color='blue-gray'
 												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(netTotal * 0.27)}
+												{hufFormatter.format(netTotal("Item") * 0.27)}
 											</Typography>
 										</td>
 										<td className='p-4 border-b border-blue-gray-50'>
@@ -1185,7 +1474,7 @@ export function Page2({
 												variant='small'
 												color='blue-gray'
 												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(netTotal * 1.27)}
+												{hufFormatter.format(netTotal("Item") * 1.27)}
 											</Typography>
 										</td>
 									</tr>
@@ -1229,6 +1518,40 @@ export function Page2({
 												variant='small'
 												color='blue-gray'
 												className='font-normal max-w-[30rem]'>
+												Egyéb szerelési segédanyagok
+											</Typography>
+										</td>
+										<td className='p-4 border-b border-blue-gray-50'>
+											<Typography
+												variant='small'
+												color='blue-gray'
+												className='font-normal max-w-[30rem]'>
+												{hufFormatter.format(netTotal("Other Material"))}
+											</Typography>
+										</td>
+										<td className='p-4 border-b border-blue-gray-50'>
+											<Typography
+												variant='small'
+												color='blue-gray'
+												className='font-normal max-w-[30rem]'>
+												{hufFormatter.format(netTotal("Other Material") * 0.27)}
+											</Typography>
+										</td>
+										<td className='p-4 border-b border-blue-gray-50'>
+											<Typography
+												variant='small'
+												color='blue-gray'
+												className='font-normal max-w-[30rem]'>
+												{hufFormatter.format(netTotal("Other Material") * 1.27)}
+											</Typography>
+										</td>
+									</tr>
+									<tr>
+										<td className='p-4 border-b border-blue-gray-50'>
+											<Typography
+												variant='small'
+												color='blue-gray'
+												className='font-normal max-w-[30rem]'>
 												Kedvezmény
 											</Typography>
 										</td>
@@ -1250,7 +1573,7 @@ export function Page2({
 															className={`font-extralight text-gray-500 `}>
 															(
 															{hufFormatter.format(
-																(otherItemsNetTotal * 1.27 + netTotal * 1.27) *
+																(otherItemsNetTotal * 1.27 + netTotal() * 1.27) *
 																	(discount / 100)
 															)}
 															)
@@ -1286,7 +1609,7 @@ export function Page2({
 															className={`font-extralight text-gray-500 `}>
 															(
 															{hufFormatter.format(
-																(otherItemsNetTotal * 1.27 + netTotal * 1.27) *
+																(otherItemsNetTotal * 1.27 + netTotal() * 1.27) *
 																	(discount / 100)
 															)}
 															)
@@ -1312,7 +1635,7 @@ export function Page2({
 												variant='small'
 												color='blue-gray'
 												className='font-normal leading-none opacity-70'>
-												{hufFormatter.format(otherItemsNetTotal + netTotal)}
+												{hufFormatter.format(otherItemsNetTotal + netTotal())}
 											</Typography>
 										</td>
 										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
@@ -1320,7 +1643,7 @@ export function Page2({
 												variant='small'
 												color='blue-gray'
 												className='font-normal leading-none opacity-70'>
-												{hufFormatter.format(otherItemsNetTotal * 0.27 + netTotal * 0.27)}
+												{hufFormatter.format(otherItemsNetTotal * 0.27 + netTotal() * 0.27)}
 											</Typography>
 										</td>
 										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
@@ -1330,8 +1653,9 @@ export function Page2({
 												className='font-normal leading-none opacity-70'>
 												{hufFormatter.format(
 													otherItemsNetTotal * 1.27 +
-														netTotal * 1.27 -
-														((otherItemsNetTotal * 1.27 + netTotal * 1.27) * discount) / 100
+														netTotal() * 1.27 -
+														((otherItemsNetTotal * 1.27 + netTotal() * 1.27) * discount) /
+															100
 												)}
 											</Typography>
 										</td>
