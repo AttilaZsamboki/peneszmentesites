@@ -142,6 +142,7 @@ export function Page2({
 									type: "Item",
 									valueType: "fixed",
 									source: "Template",
+									category: productData.category,
 								},
 							]);
 						}
@@ -310,6 +311,7 @@ export function Page2({
 									type: "Item",
 									valueType: "fixed",
 									source: "Template",
+									category: "",
 								},
 							]);
 						}}
@@ -980,7 +982,7 @@ export function Page2({
 																	<Typography
 																		variant='small'
 																		className={`font-extralight text-gray-500 absolute top-2
-																	} right-2 max-w-[30rem]`}>
+																		} right-2 max-w-[30rem]`}>
 																		{item.type === "percent" ? "%" : "Ft"}
 																	</Typography>
 																</>
@@ -1161,11 +1163,15 @@ export function Page2({
 										) : null}
 									</tr>
 								</thead>
-								<tbody>
+								<tbody ref={otherMaterialTableRef}>
 									{items
-										.filter((item) => item.type === "Other Material")
+										.filter(
+											(item) =>
+												item.type === "Other Material" &&
+												item.category === "Egyéb szerelési anyag"
+										)
 										.sort((a, b) => a.product - b.product)
-										.map(({ name, inputValues, netPrice, sku, product }, index) => {
+										.map(({ name, inputValues, netPrice, sku, product }) => {
 											const classes = "p-4";
 
 											return (
@@ -1302,6 +1308,11 @@ export function Page2({
 
 																					.map((item) => item.product)
 																					.includes(product.id)
+																		)
+																		.filter(
+																			(item) =>
+																				item.category ===
+																				"Egyéb szerelési anyag"
 																		)
 																		.map((product) => ({
 																			label: product.sku + " - " + product.name,

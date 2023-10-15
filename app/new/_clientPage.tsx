@@ -58,6 +58,7 @@ export interface FelmeresItem {
 	type: "Item" | "Fee" | "Discount" | "Other Material";
 	valueType: "percent" | "fixed";
 	source: "Manual" | "Template";
+	category: string;
 }
 
 export const hufFormatter = new Intl.NumberFormat("hu-HU", {
