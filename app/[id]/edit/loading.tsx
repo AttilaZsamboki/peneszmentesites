@@ -1,6 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Typography } from "@material-tailwind/react";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import Skeleton from "react-loading-skeleton";
 
 export default function EditLoading() {
@@ -257,6 +258,12 @@ export default function EditLoading() {
 											</table>
 										</div>
 									</div>
+								</div>
+
+								<div className='mt-8'>
+									<Label htmlFor='description'>Megjegyzés</Label>
+									<Textarea id='description' disabled={true} />
+									<p className='text-sm text-muted-foreground'>A szöveg rákerül az ajánlatra</p>
 								</div>
 							</div>
 							<div className='flex flex-row justify-end gap-3 py-4'>

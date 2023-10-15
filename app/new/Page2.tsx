@@ -32,6 +32,8 @@ import { createTemplate, updateTemplate } from "../../lib/fetchers";
 import { Form } from "../templates/_clientPage";
 import { toast } from "@/components/ui/use-toast";
 import { OpenCreatedToast } from "@/components/toasts";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 export function Page2({
 	felmeres,
@@ -1338,6 +1340,18 @@ export function Page2({
 							</table>
 						</div>
 					</Card>
+				</div>
+				<div className='mt-8'>
+					<Label htmlFor='description'>Megjegyzés</Label>
+					<Textarea
+						id='description'
+						onChange={(e) =>
+							setFelmeres ? setFelmeres((prev) => ({ ...prev, description: e.target.value })) : null
+						}
+						disabled={readonly}
+						value={felmeres.description || ""}
+					/>
+					<p className='text-sm text-muted-foreground'>A szöveg rákerül az ajánlatra</p>
 				</div>
 			</div>
 		</>

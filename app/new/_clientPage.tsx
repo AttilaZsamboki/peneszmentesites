@@ -40,6 +40,7 @@ export interface BaseFelmeresData {
 	template: number;
 	status: "DRAFT" | "IN_PROGRESS" | "COMPLETED" | undefined;
 	created_at: string;
+	description: string;
 }
 
 export interface FelmeresItem {
@@ -109,6 +110,7 @@ export default function Page({
 					template: 0,
 					status: "DRAFT",
 					created_at: "",
+					description: "",
 			  }
 	);
 	const [items, setItems] = React.useState<FelmeresItem[]>(
@@ -396,7 +398,8 @@ export default function Page({
 					felmeres.adatlap_id.toString(),
 					template?.description,
 					template?.name,
-					felmeresResponseData.id
+					felmeresResponseData.id,
+					felmeres.description
 				);
 				updateStatus(2035);
 				const createXmlString = performance.now();
