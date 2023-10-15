@@ -446,7 +446,7 @@ export function Page2({
 					</div>
 				) : null}
 				<Card className='my-5'>
-					<div className='w-full overflow-x-scroll'>
+					<div className='w-full overflow-x-auto rounded-md'>
 						<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
 							<thead>
 								<tr>
@@ -888,7 +888,7 @@ export function Page2({
 				<div className='mt-8'>
 					<Heading title='Egyéb' variant='h5' marginY='lg:my-4' border={false} />
 					<Card>
-						<div className='w-full lg:overflow-hidden overflow-x-scroll'>
+						<div className='w-full lg:overflow-hidden overflow-x-scroll rounded-md'>
 							<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
 								<thead>
 									<tr>
@@ -1137,7 +1137,7 @@ export function Page2({
 				<div className='mt-8'>
 					<Heading title='Egyéb szerelési segédanyagok' variant='h5' marginY='lg:my-4' border={false} />
 					<Card className='my-5'>
-						<div className='w-full lg:overflow-hidden overflow-x-scroll'>
+						<div className='w-full lg:overflow-hidden overflow-x-scroll rounded-md'>
 							<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
 								<thead>
 									<tr>
@@ -1416,7 +1416,7 @@ export function Page2({
 				<div className='mt-8'>
 					<Heading title='Összesítés' variant='h5' marginY='lg:my-4' border={false} />
 					<Card>
-						<div className='w-full lg:overflow-hidden overflow-x-scroll'>
+						<div className='w-full lg:overflow-hidden overflow-x-scroll rounded-md'>
 							<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
 								<thead>
 									<tr>
