@@ -182,10 +182,6 @@ export function Page2({
 			});
 			if (resp.ok) {
 				setItems((prev) => {
-					console.log({
-						...prev.find((item) => item.attributeId === id),
-						placeOptions: [...prev.find((item) => item.attributeId === id)!.placeOptions, option],
-					});
 					return [
 						...prev.filter((item) => item.attributeId !== id),
 						{
@@ -209,7 +205,6 @@ export function Page2({
 			});
 			if (resp.ok) {
 				const data = await resp.json();
-				console.log(data.id);
 				setItems((prev) => [
 					...prev.filter((item) => item.product !== productId),
 					{

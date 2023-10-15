@@ -41,10 +41,18 @@ export default async function Page() {
 		.then((result: Adatlap) => Object.values(result.Results).filter((adatlap) => adatlap.Deleted === 0));
 	const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates")
 		.then((response) => response.json())
-		.catch((error) => console.error("error", error));
+		.catch((error) => {
+			console.error("error", error);
+			return [];
+		});
 	const products: Product[] = await fetch("https://pen.dataupload.xyz/products?all=true", {
 		next: { tags: ["products"] },
-	}).then((response) => response.json());
+	})
+		.then((response) => response.json())
+		.catch((error) => {
+			console.error("error", error);
+			return [];
+		});
 	const productAttributes: ProductAttributes[] = await fetch("https://pen.dataupload.xyz/product_attributes", {
 		next: { tags: ["product-attributes"] },
 	})

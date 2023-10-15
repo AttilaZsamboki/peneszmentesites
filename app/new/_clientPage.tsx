@@ -13,7 +13,7 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import { useRouter } from "next/navigation";
 import { ProductAttributes } from "@/app/products/_clientPage";
-import { ToDo, assembleOfferXML, fetchMiniCRM, list_to_dos } from "@/app/_utils/MiniCRM";
+import { AdatlapDetails, ToDo, assembleOfferXML, fetchMiniCRM, list_to_dos } from "@/app/_utils/MiniCRM";
 import { useSearchParams } from "next/navigation";
 import { useGlobalState } from "@/app/_clientLayout";
 
@@ -148,12 +148,7 @@ export default function Page({
 						type: "fixed",
 						id: 1,
 					},
-					{
-						name: "Kiszállási díj",
-						value: 0,
-						type: "fixed",
-						id: 2,
-					},
+
 					{
 						name: "Jóváírás",
 						value: -20000,
@@ -207,6 +202,23 @@ export default function Page({
 		};
 		fetchQuestions();
 	}, [items]);
+	React.useEffect(() => {
+		if (felmeres.adatlap_id) {
+			const fetchAdatlapData = async () => {
+				const data: AdatlapDetails = await fetchMiniCRM("Project", felmeres.adatlap_id.toString(), "GET");
+				setOtherItems((prev) => [
+					...prev.filter((item) => item.id !== 2),
+					{
+						name: "Kiszállási díj",
+						value: data.FelmeresiDij,
+						type: "fixed",
+						id: 2,
+					},
+				]);
+			};
+			fetchAdatlapData();
+		}
+	}, [felmeres.adatlap_id]);
 
 	const CreateFelmeres = async (sendOffer: boolean = true) => {
 		const start = performance.now();
