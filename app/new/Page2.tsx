@@ -446,7 +446,7 @@ export function Page2({
 					</div>
 				) : null}
 				<Card className='my-5'>
-					<div className='w-full lg:overflow-hidden overflow-x-scroll'>
+					<div className='w-full overflow-x-scroll'>
 						<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
 							<thead>
 								<tr>
