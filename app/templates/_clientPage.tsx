@@ -34,7 +34,7 @@ export default function Page({ templates, products }: { templates: Template[]; p
 			};
 			fetchItems();
 		}
-	}, [template]);
+	}, [template.id]);
 
 	const createTemplateLocal = async () => {
 		const templateResponseData = await createTemplate(items, template);
@@ -175,7 +175,10 @@ export function Form({
 		<div className='flex flex-col w-full gap-5 h-full overflow-y-scroll px-3'>
 			<div>
 				<div>Név</div>
-				<Input value={template.name} onChange={(e) => setTemplate({ ...template, name: e.target.value })} />
+				<Input
+					value={template.name}
+					onChange={(e) => setTemplate((prev) => ({ ...prev, name: e.target.value }))}
+				/>
 			</div>
 			<div>
 				<div>Típus</div>
@@ -189,13 +192,16 @@ export function Form({
 						label: type,
 						value: type,
 					}))}
-					onChange={(e) => setTemplate({ ...template, type: e })}
+					onChange={(e) => setTemplate((prev) => ({ ...prev, type: e }))}
 					value={template.type}
 				/>
 			</div>
 			<div>
 				<div>Leírás</div>
-				<Textarea value={template.description} onChange={(e) => setTemplate({ ...template, description: e })} />
+				<Textarea
+					value={template.description}
+					onChange={(e) => setTemplate((prev) => ({ ...prev, description: e }))}
+				/>
 			</div>
 			<div>
 				<div className='-mt-10'>
