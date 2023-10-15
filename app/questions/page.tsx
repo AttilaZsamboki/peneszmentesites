@@ -14,6 +14,8 @@ export interface Question {
 	mandatory: boolean;
 	description: string;
 	product?: number;
+	created_from?: string;
+	is_created?: boolean;
 }
 
 export interface QuestionProducts {

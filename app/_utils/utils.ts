@@ -3,7 +3,6 @@ import { Product } from "../products/page";
 import { Question } from "../questions/page";
 
 import React from "react";
-import { useHotkeys } from "react-hotkeys-hook";
 
 export const typeMap = {
 	TEXT: "Szöveg",
@@ -20,6 +19,7 @@ export const statusMap: { [key: string]: { name: string; color: ButtonProps["col
 	DRAFT: { name: "Vázlat", color: "gray", className: "bg-gray-900/10 text-gray-900" },
 	IN_PROGRESS: { name: "Folyamatban", color: "yellow", className: "bg-yellow-500/20 text-yellow-900" },
 	COMPLETED: { name: "Kész", color: "green", className: "bg-green-500/20 text-green-900" },
+	CANCELLED: { name: "Sztornó", color: "red", className: "bg-red-500/20 text-red-900" },
 };
 
 export function getFirstProduct(question: Question): (value: Product, index: number, obj: Product[]) => unknown {

@@ -27,6 +27,7 @@ import { CornerUpLeft, IterationCw } from "lucide-react";
 import { QuestionPage } from "../../components/QuestionPage";
 import { TooltipTrigger, Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import Link from "next/link";
+import { v4 as uuidv4 } from "uuid";
 
 export interface ProductTemplate {
 	product: number;
@@ -178,19 +179,43 @@ export default function Page({
 				const res = await fetch("https://pen.dataupload.xyz/question_products?product=" + item.product);
 				if (res.ok) {
 					const questionProducts: { question: number; product: number }[] = await res.json();
-					questionProducts.map(async (questionProduct) => {
-						const data = await fetch("https://pen.dataupload.xyz/questions/" + questionProduct.question);
-						if (data.ok) {
-							const question: Question = await data.json();
-							setQuestions((prev) => [
-								...prev.filter(
-									(question) =>
-										question.id !== questionProduct.question || question.product !== item.product
-								),
-								{ ...question, product: item.product },
-							]);
-						}
-					});
+					const data = await Promise.all(
+						questionProducts.map(async (questionProduct) => {
+							const data = await fetch(
+								"https://pen.dataupload.xyz/questions/" + questionProduct.question
+							);
+							if (data.ok) {
+								const question: Question = await data.json();
+								setQuestions((prev) => [
+									...prev.filter(
+										(question) =>
+											question.id !== questionProduct.question ||
+											question.product !== item.product
+									),
+									{ ...question, product: item.product },
+								]);
+								return question.created_from;
+							}
+						})
+					);
+					console.log(data);
+					if (!data.includes("Form")) {
+						setQuestions((prev) => [
+							...prev,
+							{
+								id: Math.random() * 100000000000000000,
+								question: "Leírás",
+								type: "TEXT",
+								options: [],
+								connection: "Termék",
+								product: item.product,
+								mandatory: false,
+								description: "",
+								created_from: "Form",
+								is_created: false,
+							},
+						]);
+					}
 				}
 			});
 			const res = await fetch("https://pen.dataupload.xyz/questions?connection=Fix");
@@ -317,6 +342,30 @@ export default function Page({
 			// Kérdések mentése
 			let status = 1;
 			data.filter((question) => question.value).map(async (question) => {
+				const originaQuestion = questions.find((q) => q.id === question.question);
+				let question_id = question.question;
+				if (originaQuestion?.created_from === "Form" && !originaQuestion.is_created) {
+					const resp = await fetch("https://pen.dataupload.xyz/questions/", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({ ...originaQuestion, id: null }),
+					});
+					if (resp.ok) {
+						question_id = (await resp.json()).id;
+						await fetch("https://pen.dataupload.xyz/question_products/", {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+							},
+							body: JSON.stringify({
+								question_id: question_id,
+								product_id: originaQuestion.product,
+							}),
+						});
+					}
+				}
 				const resQuestions = await fetch(
 					"https://pen.dataupload.xyz/felmeres_questions/" + (question.id ? question.id + "/" : ""),
 					{
@@ -328,6 +377,7 @@ export default function Page({
 							...question,
 							adatlap: felmeresResponseData.id,
 							value: Array.isArray(question.value) ? JSON.stringify(question.value) : question.value,
+							question: question_id,
 						}),
 					}
 				);
@@ -335,6 +385,7 @@ export default function Page({
 					status = 0;
 				}
 			});
+
 			updateStatus(203);
 			const createQuestions = performance.now();
 			console.log("Kérdések létrehozása: " + (createQuestions - start) + "ms");
@@ -432,7 +483,6 @@ export default function Page({
 								"Content-Type": "application/json",
 							},
 							body: JSON.stringify({
-								// adatlap_id: felmeresResponseData.id,
 								adatlap_id: felmeres.id.toString(),
 							}),
 						});
@@ -579,27 +629,6 @@ export default function Page({
 				  (item.value / 100)
 		)
 		.reduce((a, b) => a + b, 0);
-
-	console.log(
-		_.isEqual(
-			editFelmeresItems?.map((item) => ({
-				...item,
-				id: 0,
-				inputValues: item.inputValues.map((value) => value.ammount),
-				sku: item.sku ? item.sku : null,
-				source: "",
-				adatlap: null,
-			})),
-			submitItems.map((item) => ({
-				...item,
-				id: 0,
-				inputValues: item.inputValues.map((value) => value.ammount),
-				sku: item.sku ? item.sku : null,
-				source: "",
-				adatlap: null,
-			}))
-		)
-	);
 
 	return (
 		<div className='w-full overflow-y-scroll h-[100dvh] pb-0 mb-0 lg:pb-10 lg:mb-10'>
