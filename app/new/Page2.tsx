@@ -34,6 +34,7 @@ import { toast } from "@/components/ui/use-toast";
 import { OpenCreatedToast } from "@/components/toasts";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { calculatePercentageValue } from "@/lib/utils";
 
 export function Page2({
 	felmeres,
@@ -886,7 +887,7 @@ export function Page2({
 				</Card>
 				{/* other items */}
 				<div className='mt-8'>
-					<Heading title='Egyéb' variant='h5' marginY='lg:my-4' border={false} />
+					<Heading title='Díjak' variant='h5' marginY='lg:my-4' border={false} />
 					<Card>
 						<div className='w-full lg:overflow-hidden overflow-x-scroll rounded-md'>
 							<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
@@ -1000,16 +1001,11 @@ export function Page2({
 																? isNaN(item.value)
 																	? 0
 																	: item.value
-																: ((netTotal() +
-																		otherItems
-																			.filter(
-																				(item) =>
-																					item.type !== "percent" &&
-																					!isNaN(item.value)
-																			)
-																			.reduce((a, b) => a + b.value, 0)) *
-																		item.value) /
-																		100
+																: calculatePercentageValue(
+																		netTotal(),
+																		otherItems,
+																		item.value
+																  )
 														)}
 													</Typography>
 												</td>
@@ -1135,7 +1131,7 @@ export function Page2({
 				</div>
 				{/* other material */}
 				<div className='mt-8'>
-					<Heading title='Egyéb szerelési segédanyagok' variant='h5' marginY='lg:my-4' border={false} />
+					<Heading title='Szerelési segédanyagok' variant='h5' marginY='lg:my-4' border={false} />
 					<Card className='my-5'>
 						<div className='w-full lg:overflow-hidden overflow-x-scroll rounded-md'>
 							<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
@@ -1165,11 +1161,7 @@ export function Page2({
 								</thead>
 								<tbody ref={otherMaterialTableRef}>
 									{items
-										.filter(
-											(item) =>
-												item.type === "Other Material" &&
-												item.category === "Egyéb szerelési anyag"
-										)
+										.filter((item) => item.type === "Other Material")
 										.sort((a, b) => a.product - b.product)
 										.map(({ name, inputValues, netPrice, sku, product }) => {
 											const classes = "p-4";

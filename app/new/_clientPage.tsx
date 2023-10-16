@@ -28,7 +28,7 @@ import { QuestionPage } from "../../components/QuestionPage";
 import { TooltipTrigger, Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import Link from "next/link";
 import { FelmeresStatus, useCreateQueryString } from "../_utils/utils";
-import { revalidatePath } from "next/cache";
+import { calculatePercentageValue } from "@/lib/utils";
 
 export interface ProductTemplate {
 	product: number;
@@ -441,18 +441,7 @@ export default function Page({
 								netPrice:
 									item.valueType === "percent"
 										? item.type === "Fee"
-											? submitItems
-													.map((sumItem) =>
-														sumItem.type === "Item" ||
-														(item.type === "Fee" && sumItem.name !== item.name)
-															? sumItem.netPrice *
-															  sumItem.inputValues
-																	.map((value) => value.ammount)
-																	.reduce((a, b) => a + b, 0)
-															: 0
-													)
-													.reduce((a, b) => a + b, 0) *
-											  (item.netPrice / 100)
+											? calculatePercentageValue(netTotal, otherItems, item.netPrice)
 											: item.type === "Discount"
 											? -((otherItemsNetTotal + netTotal) * (item.netPrice / 100))
 											: item.netPrice
