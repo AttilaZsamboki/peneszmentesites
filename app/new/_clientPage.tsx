@@ -29,6 +29,7 @@ import { TooltipTrigger, Tooltip, TooltipContent, TooltipProvider } from "@/comp
 import Link from "next/link";
 import { FelmeresStatus, useCreateQueryString } from "../_utils/utils";
 import { calculatePercentageValue } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
 
 export interface ProductTemplate {
 	product: number;
@@ -662,6 +663,7 @@ export default function Page({
 						<CardHeader>
 							<CardTitle>{section}</CardTitle>
 						</CardHeader>
+						<Separator className='mb-4' />
 						<CardContent className={`${page !== 1 ? "p-8" : null} transform`}>
 							<PageChooser
 								setOtherItems={setOtherItems}
@@ -825,7 +827,7 @@ function PageChooser({
 					setDiscount={setDiscount}
 				/>
 			),
-			title: "Tételek",
+			title: adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)?.Name ?? "",
 		},
 		...Array.from(new Set(questions.map((question) => question.product))).map((product) => {
 			const sectionName = items.find((item) => item.product === product)

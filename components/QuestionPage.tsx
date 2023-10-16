@@ -29,7 +29,6 @@ export function QuestionPage({
 		<div className='flex flex-col gap-10'>
 			{questions.map((question, index) => (
 				<>
-					{index === 0 ? <Separator /> : null}
 					<QuestionTemplate
 						key={question.id}
 						title={question.question}

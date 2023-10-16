@@ -105,7 +105,7 @@ function Navbar({ routes }: { routes: Route[] }) {
 	const deviceSize = useBreakpointValue();
 	const router = usePathname().split("?")[0];
 	const [open, setOpen] = React.useState("");
-	const [openNav, setOpenNav] = React.useState(false);
+	const [openNav, setOpenNav] = React.useState(deviceSize === "sm" ? false : true);
 	const [ref] = useAutoAnimate<HTMLDivElement>();
 
 	const handleSetOpen = (route: string) => {
