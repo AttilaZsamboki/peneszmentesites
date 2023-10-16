@@ -105,13 +105,16 @@ function Navbar({ routes }: { routes: Route[] }) {
 	const deviceSize = useBreakpointValue();
 	const router = usePathname().split("?")[0];
 	const [open, setOpen] = React.useState("");
-	const [openNav, setOpenNav] = React.useState(deviceSize === "sm" ? false : true);
+	const [openNav, setOpenNav] = React.useState(false);
 	const [ref] = useAutoAnimate<HTMLDivElement>();
+
+	React.useEffect(() => {
+		setOpenNav(deviceSize !== "sm");
+	}, [deviceSize]);
 
 	const handleSetOpen = (route: string) => {
 		setOpen((prev) => (prev === route ? "" : route));
 	};
-
 	const routerParts = router.split("/");
 	const routerBasePath = isNaN(Number(routerParts[1])) ? routerParts[1] : routerParts[0]; // Check if the base path is an integer
 	const activeRoute: any = routes.find(
