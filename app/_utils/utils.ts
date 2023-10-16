@@ -15,12 +15,15 @@ export const typeMap = {
 	FILE_UPLOAD: "Fájlfeltöltés",
 };
 
-export const statusMap: { [key: string]: { name: string; color: ButtonProps["color"]; className?: string } } = {
-	DRAFT: { name: "Vázlat", color: "gray", className: "bg-gray-900/10 text-gray-900" },
-	IN_PROGRESS: { name: "Folyamatban", color: "yellow", className: "bg-yellow-500/20 text-yellow-900" },
-	COMPLETED: { name: "Kész", color: "green", className: "bg-green-500/20 text-green-900" },
-	CANCELLED: { name: "Sztornó", color: "red", className: "bg-red-500/20 text-red-900" },
-};
+export type FelmeresStatus = "DRAFT" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+
+export const statusMap: { [key in FelmeresStatus]: { name: string; color: ButtonProps["color"]; className?: string } } =
+	{
+		DRAFT: { name: "Vázlat", color: "gray", className: "bg-gray-900/10 text-gray-900" },
+		IN_PROGRESS: { name: "Folyamatban", color: "yellow", className: "bg-yellow-500/20 text-yellow-900" },
+		COMPLETED: { name: "Kész", color: "green", className: "bg-green-500/20 text-green-900" },
+		CANCELLED: { name: "Sztornó", color: "red", className: "bg-red-500/20 text-red-900" },
+	};
 
 export function getFirstProduct(question: Question): (value: Product, index: number, obj: Product[]) => unknown {
 	return (product) => product.id === (question.products ? question.products[0] : 0);

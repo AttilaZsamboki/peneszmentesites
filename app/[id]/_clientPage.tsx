@@ -306,7 +306,7 @@ export default function ClientPage({
 									) : selectedSection === "Tételek" ? (
 										<EditButton
 											href={`/${felmeresId}/edit`}
-											disabled={felmeresStatus === "COMPLETED"}
+											disabled={felmeresStatus === "COMPLETED" || felmeresStatus === "CANCELLED"}
 										/>
 									) : (
 										<EditButton onClick={handleChangeEditing} />

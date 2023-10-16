@@ -27,8 +27,8 @@ import { CornerUpLeft, IterationCw } from "lucide-react";
 import { QuestionPage } from "../../components/QuestionPage";
 import { TooltipTrigger, Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import Link from "next/link";
-import { v4 as uuidv4 } from "uuid";
-import { useCreateQueryString } from "../_utils/utils";
+import { FelmeresStatus, useCreateQueryString } from "../_utils/utils";
+import { revalidatePath } from "next/cache";
 
 export interface ProductTemplate {
 	product: number;
@@ -40,7 +40,7 @@ export interface BaseFelmeresData {
 	adatlap_id: number;
 	type: string;
 	template: number;
-	status: "DRAFT" | "IN_PROGRESS" | "COMPLETED" | undefined;
+	status: FelmeresStatus;
 	created_at: string;
 	description: string;
 }
@@ -293,10 +293,10 @@ export default function Page({
 			":" +
 			("0" + date.getSeconds()).slice(-2);
 		const isUpdate = editFelmeres && editFelmeres.status === "DRAFT";
-		const res = isUpdate
-			? !sendOffer
-				? null
-				: await fetch("https://pen.dataupload.xyz/felmeresek/" + editFelmeres!.id + "/", {
+		const fetchFelmeres = async () => {
+			if (isUpdate) {
+				if (sendOffer) {
+					const resp = await fetch("https://pen.dataupload.xyz/felmeresek/" + editFelmeres!.id + "/", {
 						method: "PATCH",
 						headers: {
 							"Content-Type": "application/json",
@@ -304,8 +304,12 @@ export default function Page({
 						body: JSON.stringify({
 							status: "IN_PROGRESS",
 						}),
-				  })
-			: await fetch("https://pen.dataupload.xyz/felmeresek/", {
+					});
+					await fetch("/api/revalidate?tag=" + editFelmeres!.id);
+					return resp;
+				}
+			} else {
+				return await fetch("https://pen.dataupload.xyz/felmeresek/", {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
@@ -315,7 +319,10 @@ export default function Page({
 						created_at: formattedDate,
 						status: sendOffer ? "IN_PROGRESS" : felmeres.status,
 					}),
-			  });
+				});
+			}
+		};
+		const res = await fetchFelmeres();
 		updateStatus(57);
 		const createFelmeres = performance.now();
 		console.log("Felmérés alapadatok mentése: " + (createFelmeres - start) + "ms");
@@ -323,6 +330,7 @@ export default function Page({
 		if (!res || res.ok) {
 			// Tételek mentése
 			const felmeresResponseData: BaseFelmeresData = !res ? editFelmeres : await res.json();
+			// felmérés cache frissítése
 			await fetch("https://pen.dataupload.xyz/felmeres_items/", {
 				method: "POST",
 				headers: {
@@ -398,7 +406,7 @@ export default function Page({
 				// Nem failelt a kérdések mentése
 				status === 1 &&
 				// Ha módosítod akkor változott-e valami a tételek közül vagy küldeni akarod-e az ajánlatot
-				((isEdit
+				(isEdit
 					? !_.isEqual(
 							editFelmeresItems?.map((item) => ({
 								...item,
@@ -414,9 +422,8 @@ export default function Page({
 								sku: item.sku ? item.sku : null,
 								adatlap: null,
 							}))
-					  )
-					: true) ||
-					sendOffer)
+					  ) || sendOffer
+					: sendOffer)
 			) {
 				// XML string összeállítása
 				const template = templates.find((template) => template.id === felmeres.template);
@@ -539,6 +546,8 @@ export default function Page({
 						return;
 					}
 					updateStatus(3400);
+					await fetch("/api/revalidate?tag=" + felmeres.id);
+					await fetch("/api/revalidate?path=/");
 					router.push("/");
 				} else {
 					const todo = await list_to_dos(felmeres.adatlap_id.toString(), todo_criteria);
@@ -548,11 +557,18 @@ export default function Page({
 					const closeTodo = performance.now();
 					console.log("ToDo lezárása: " + (closeTodo - start) + "ms");
 					updateStatus(3400);
+					await fetch("/api/revalidate?path=/" + felmeres.id);
 					router.push("/");
 				}
 			}
 			updateStatus(3400, felmeresResponseData.id);
-			isEdit && isUpdate ? router.push("/" + felmeresResponseData.id) : router.push("/");
+			if (isEdit && isUpdate) {
+				await fetch("/api/revalidate?path=/" + felmeres.id);
+				router.push("/" + felmeresResponseData.id);
+			} else {
+				await fetch("/api/revalidate?path=/");
+				router.push("/");
+			}
 		}
 	};
 

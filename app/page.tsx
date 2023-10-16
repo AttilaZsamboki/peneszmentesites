@@ -35,7 +35,6 @@ export default async function Home() {
 		headers: {
 			"Content-Type": "application/json",
 		},
-		cache: "no-cache",
 	});
 	if (data.ok) {
 		const felmeresek: BaseFelmeresData[] = await data.json().catch((err) => console.log(err));
