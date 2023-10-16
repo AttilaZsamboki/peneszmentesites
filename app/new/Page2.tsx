@@ -142,7 +142,7 @@ export function Page2({
 									type: "Item",
 									valueType: "fixed",
 									source: "Template",
-									category: productData.category,
+									category: productData.category ?? "",
 								},
 							]);
 						}
