@@ -829,26 +829,29 @@ function PageChooser({
 			),
 			title: adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)?.Name ?? "",
 		},
-		...Array.from(new Set(questions.map((question) => question.product))).map((product) => {
-			const sectionName = items.find((item) => item.product === product)
-				? items.find((item) => item.product === product)!.sku +
-				  " - " +
-				  items.find((item) => item.product === product)!.name
-				: "";
-			return {
-				component: (
-					<QuestionPage
-						globalData={globalData}
-						product={sectionName || ""}
-						adatlap_id={felmeres.adatlap_id}
-						questions={questions.filter((question) => question.product === product)}
-						setData={setData}
-					/>
-				),
-				title: sectionName || "Fix kérdések",
-			};
-		}),
+		...Array.from(new Set(questions.map((question) => question.product)))
+			.sort((a, b) => Number(a === undefined) - Number(b === undefined))
+			.map((product) => {
+				const sectionName = items.find((item) => item.product === product)
+					? items.find((item) => item.product === product)!.sku +
+					  " - " +
+					  items.find((item) => item.product === product)!.name
+					: "";
+				return {
+					component: (
+						<QuestionPage
+							globalData={globalData}
+							product={sectionName || ""}
+							adatlap_id={felmeres.adatlap_id}
+							questions={questions.filter((question) => question.product === product)}
+							setData={setData}
+						/>
+					),
+					title: sectionName || "Fix kérdések",
+				};
+			}),
 	];
+	console.log(pageMap.map((page) => page.title));
 
 	React.useEffect(() => {
 		setNumPages(pageMap.length);
