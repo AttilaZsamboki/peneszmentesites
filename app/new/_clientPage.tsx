@@ -1,7 +1,7 @@
 "use client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import React from "react";
+import React, { use } from "react";
 import { FelmeresQuestion } from "../page";
 import { AdatlapData } from "./page";
 import AutoComplete from "@/app/_components/AutoComplete";
@@ -28,6 +28,7 @@ import { QuestionPage } from "../../components/QuestionPage";
 import { TooltipTrigger, Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import Link from "next/link";
 import { v4 as uuidv4 } from "uuid";
+import { useCreateQueryString } from "../_utils/utils";
 
 export interface ProductTemplate {
 	product: number;
@@ -100,7 +101,7 @@ export default function Page({
 }) {
 	const { setProgress } = useGlobalState();
 	const searchParams = useSearchParams();
-	const [page, setPage] = React.useState(startPage ? startPage : 0);
+	const [page, setPage] = React.useState(startPage ? startPage : parseInt(searchParams.get("page") ?? "0"));
 	const [section, setSection] = React.useState("Alapadatok");
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>(
 		editFelmeres
@@ -164,7 +165,13 @@ export default function Page({
 			: 0
 	);
 	const { toast } = useToast();
+	const createQueryString = useCreateQueryString(searchParams);
 
+	React.useEffect(() => {
+		if (page < 2) {
+			router.push("?" + createQueryString([{ name: "page", value: page.toString() }]));
+		}
+	}, [page]);
 	React.useEffect(() => {
 		const fetchQuestions = async () => {
 			setQuestions((prev) => prev.filter((question) => items.map((item) => item.product).includes(question.id)));
@@ -898,6 +905,8 @@ function Page1({
 	felmeres: BaseFelmeresData;
 	setFelmeres: React.Dispatch<React.SetStateAction<BaseFelmeresData>>;
 }) {
+	const router = useRouter();
+	const createQueryString = useCreateQueryString(useSearchParams());
 	return (
 		<div className='flex flex-col items-center gap-5'>
 			<QuestionTemplate title='Adatlap'>
@@ -914,6 +923,7 @@ function Page1({
 								? adatlapok.find((adatlap) => adatlap.Id === parseInt(e))!.Id
 								: 0,
 						});
+						router.push("?" + createQueryString([{ name: "adatlap_id", value: e }]));
 					}}
 					value={
 						adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)
