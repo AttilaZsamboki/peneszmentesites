@@ -65,7 +65,7 @@ export default function AutoComplete({
 					setQuery("");
 				}
 			}}>
-			<div className={`relative w-full ${className}`}>
+			<div className={`relative w-full ${className} z-[1000]`}>
 				<div className='rounded-md'>
 					{create ? (
 						<Combobox.Input

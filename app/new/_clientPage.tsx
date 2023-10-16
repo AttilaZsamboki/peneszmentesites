@@ -326,6 +326,7 @@ export default function Page({
 						...item,
 						adatlap: felmeresResponseData.id,
 						netPrice: item.netPrice,
+						id: sendOffer ? null : item.id,
 					}))
 				),
 			});
