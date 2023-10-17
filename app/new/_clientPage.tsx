@@ -318,7 +318,7 @@ export default function Page({
 			":" +
 			("0" + date.getSeconds()).slice(-2);
 		const fetchFelmeres = async () => {
-			if (createType === "DRAFT UPDATE") {
+			if (createType === "DRAFT UPDATE" || createType === "UPDATE") {
 				if (sendOffer) {
 					const resp = await fetch("https://pen.dataupload.xyz/felmeresek/" + editFelmeres!.id + "/", {
 						method: "PATCH",
@@ -735,25 +735,44 @@ export default function Page({
 												Beküldés
 											</Button>
 										)}
-										<TooltipProvider>
-											<Tooltip>
-												<TooltipTrigger asChild>
-													<Button
-														onClick={() => CreateFelmeres(false)}
-														disabled={
-															isDisabled[section === "Fix kérdések" ? "Fix" : section]
-														}>
-														Mentés
-													</Button>
-												</TooltipTrigger>
-												<TooltipContent>
-													<p>
-														Ez az opció nem küldi el az ajánlatot, még lehet változtatni
-														rajta
-													</p>
-												</TooltipContent>
-											</Tooltip>
-										</TooltipProvider>
+										{!_.isEqual(
+											editFelmeresItems?.map((item) => ({
+												...item,
+												id: 0,
+												inputValues: item.inputValues.map((value) => value.ammount),
+												sku: item.sku ? item.sku : null,
+												source: "",
+												adatlap: null,
+											})),
+											submitItems.map((item) => ({
+												...item,
+												id: 0,
+												inputValues: item.inputValues.map((value) => value.ammount),
+												source: "",
+												sku: item.sku ? item.sku : null,
+												adatlap: null,
+											}))
+										) && felmeres.status !== "DRAFT" ? null : (
+											<TooltipProvider>
+												<Tooltip>
+													<TooltipTrigger asChild>
+														<Button
+															onClick={() => CreateFelmeres(false)}
+															disabled={
+																isDisabled[section === "Fix kérdések" ? "Fix" : section]
+															}>
+															Mentés
+														</Button>
+													</TooltipTrigger>
+													<TooltipContent>
+														<p>
+															Ez az opció nem küldi el az ajánlatot, még lehet változtatni
+															rajta
+														</p>
+													</TooltipContent>
+												</Tooltip>
+											</TooltipProvider>
+										)}
 									</div>
 								) : (
 									<Button
