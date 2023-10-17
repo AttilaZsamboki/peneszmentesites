@@ -176,7 +176,7 @@ function FieldCreate({
 					label: option,
 					value: option,
 				}))}
-				onChange={setterSingle}
+				onSelect={setterSingle}
 				value={felmeres?.value as string}
 			/>
 		);

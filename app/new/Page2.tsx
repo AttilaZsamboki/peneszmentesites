@@ -260,6 +260,7 @@ export function Page2({
 		});
 	};
 
+	console.log(felmeres);
 	return (
 		<>
 			{openTemplateDialog ? (
@@ -333,7 +334,6 @@ export function Page2({
 							<div className='flex flex-row items-center gap-2'>
 								<QuestionTemplate title='Milyen rendszert tervezel?'>
 									<AutoComplete
-										inputClassName='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
 										options={[
 											"Helyi elszívós rendszer",
 											"Központi ventillátoros",
@@ -344,19 +344,27 @@ export function Page2({
 											value: option,
 										}))}
 										value={felmeres.type}
-										onChange={(e) => (setFelmeres ? setFelmeres({ ...felmeres, type: e }) : null)}
+										onSelect={(e) => {
+											setFelmeres ? setFelmeres({ ...felmeres, type: e, template: 0 }) : null;
+											setSelectedTemplate({
+												description: "",
+												name: "",
+												type: "",
+												id: 0,
+											});
+										}}
 									/>
 								</QuestionTemplate>
 								<QuestionTemplate title='Sablon'>
 									<AutoComplete
-										inputClassName='flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'
+										width='300px'
 										options={templates!
 											.filter((template) => template.type === felmeres.type)
 											.map((template) => ({
 												label: template.name,
 												value: template.id.toString(),
 											}))}
-										onChange={(e) => {
+										onSelect={(e) => {
 											if (templates) {
 												if (templates.find((template) => template.id.toString() === e)) {
 													setSelectedTemplate(
@@ -573,28 +581,15 @@ export function Page2({
 																				{readonly ? null : (
 																					<>
 																						<AutoComplete
-																							options={place_options
-																								.filter(
-																									(option) =>
-																										!inputValues
-																											.map(
-																												(
-																													value
-																												) =>
-																													value.value
-																											)
-																											.includes(
-																												option
-																											)
-																								)
-																								.map((option) => ({
+																							options={place_options.map(
+																								(option) => ({
 																									label: option,
 																									value: option,
-																								}))}
+																								})
+																							)}
 																							value={inputValue.value}
 																							create={true}
-																							resetOnCreate={false}
-																							onChange={(e) => {
+																							onSelect={(e) => {
 																								if (
 																									!place_options.includes(
 																										e
@@ -780,6 +775,7 @@ export function Page2({
 										<>
 											<td className='p-4 border-b border-blue-gray-50'>
 												<AutoComplete
+													width='500px'
 													options={
 														!products
 															? []
@@ -796,7 +792,7 @@ export function Page2({
 																	}))
 													}
 													value={items.find((item) => item.product === 0)?.name || ""}
-													onChange={(value) => {
+													onSelect={(value) => {
 														if (!setItems || !products || !productAttributes) return;
 														const product = products.find(
 															(product) => product.id === parseInt(value)
@@ -1291,6 +1287,8 @@ export function Page2({
 											<>
 												<td className='p-4 border-b border-blue-gray-50'>
 													<AutoComplete
+														side='bottom'
+														width='300px'
 														options={
 															!products
 																? []
@@ -1313,7 +1311,7 @@ export function Page2({
 																		}))
 														}
 														value={items.find((item) => item.product === 0)?.name || ""}
-														onChange={(value) => {
+														onSelect={(value) => {
 															if (!setItems || !products || !productAttributes) return;
 															const product = products.find(
 																(product) => product.id === parseInt(value)

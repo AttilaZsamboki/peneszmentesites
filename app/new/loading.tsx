@@ -1,5 +1,6 @@
 "use client";
 
+import { Separator } from "@/components/ui/separator";
 import Skeleton from "react-loading-skeleton";
 
 export default function Loading() {
@@ -10,6 +11,7 @@ export default function Loading() {
 					<div className='flex flex-col space-y-1.5 p-6'>
 						<h3 className='text-2xl font-semibold leading-none tracking-tight'>Alapadatok</h3>
 					</div>
+					<Separator className='mb-4' />
 					<div className='p-8 transform'>
 						<div className='flex flex-col items-center gap-5'>
 							<div className='space-y-2'>

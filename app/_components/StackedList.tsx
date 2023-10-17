@@ -457,8 +457,7 @@ export default function StackedList({
 															filter.filters.find((item) => item.field === filter.sort_by)
 																?.label
 														}
-														optionDisplayDirection='top'
-														onChange={(value) => {
+														onSelect={(value) => {
 															setFilter((prev) => ({
 																...prev,
 																sort_by: value,
@@ -478,8 +477,8 @@ export default function StackedList({
 															{ label: "Csökkenő", value: "desc" },
 														]}
 														value={filter.sort_order === "asc" ? "Növekvő" : "Csökkenő"}
-														emptyOption={false}
-														onChange={(value) => {
+														deselectable={false}
+														onSelect={(value) => {
 															setFilter((prev) => ({
 																...prev,
 																sort_order: value as "asc" | "desc",
@@ -1014,10 +1013,9 @@ function InputOptionChooser({
 						? (value as unknown as string)
 						: ""
 				}
-				onChange={onChange}
+				onSelect={onChange}
 				options={options ? options : []}
-				showOptions={pagination ? (value ? (value as string).length > 3 : false) : true}
-				updateOnQueryChange={pagination}
+				onChange={onChange}
 			/>
 		);
 	} else if (type === "daterange") {

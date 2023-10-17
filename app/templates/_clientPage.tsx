@@ -205,18 +205,18 @@ export function Form({
 			</div>
 			<div>
 				<div className='-mt-10'>
-					<Heading title='Tételek' variant='h4' />
+					<Heading title='Tételek' variant='h4' border={false} />
 				</div>
 				<div className='relative bottom-10'>
 					<AutoComplete
-						optionDisplayDirection='top'
+						side='right'
 						options={products
 							.filter((product) => !items.map((item) => item).includes(product.id.toString()))
 							.map((product) => ({
 								label: product.sku + " - " + product.name,
 								value: product.id.toString(),
 							}))}
-						onChange={onClickAddItem}
+						onSelect={onClickAddItem}
 						value=''
 					/>
 				</div>

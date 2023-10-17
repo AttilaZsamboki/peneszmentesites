@@ -1,158 +1,116 @@
 "use client";
-import { Fragment, useState } from "react";
-import { Combobox, Transition } from "@headlessui/react";
-import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import React from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Check, ChevronsUpDown, Plus, X } from "lucide-react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 export default function AutoComplete({
 	options,
 	value,
+	onSelect,
 	onChange,
-	optionDisplayDirection = "bottom",
 	create = false,
-	resetOnCreate = true,
-	emptyOption = true,
-	showOptions = true,
-	inputClassName,
-	className,
-	updateOnQueryChange = false,
+	deselectable = true,
+	width = "200px",
+	side,
 }: {
 	options: { label: string; value: string }[];
 	value?: string;
+	onSelect?: (value: string) => void;
 	onChange?: (value: string) => void;
-	optionDisplayDirection?: "top" | "bottom";
 	create?: boolean;
-	resetOnCreate?: boolean;
-	emptyOption?: boolean;
-	showOptions?: boolean;
-	inputClassName?: string;
-	className?: string;
-	updateOnQueryChange?: boolean;
+	deselectable?: boolean;
+	width?: string;
+	side?: "left" | "right" | "top" | "bottom";
 }) {
-	const [query, setQuery] = useState("");
-
-	const filteredOptions = emptyOption
-		? [
-				{ label: "", value: "" },
-				...(query === ""
-					? options
-					: options.filter((option) =>
-							query
-								.split(" ")
-								.map((searchWord: string) =>
-									JSON.stringify(option).toLowerCase().includes(searchWord.toLowerCase())
-								)
-								.every((item: boolean) => item === true)
-					  )),
-		  ]
-		: query === ""
-		? options
-		: options.filter((option) =>
-				query
-					.split(" ")
-					.map((searchWord: string) =>
-						JSON.stringify(option).toLowerCase().includes(searchWord.toLowerCase())
-					)
-					.every((item: boolean) => item === true)
-		  );
+	const [open, setOpen] = React.useState(false);
+	const [inputValue, setInputValue] = React.useState("");
 
 	return (
-		<Combobox
-			value={value}
-			onChange={(localValue) => {
-				onChange ? onChange(localValue ?? "") : null;
-				if (resetOnCreate) {
-					setQuery("");
-				}
-			}}>
-			<div className={`relative w-full ${className} z-[1000]`}>
-				<div className='rounded-md'>
-					{create ? (
-						<Combobox.Input
-							className={`w-full border rounded-md py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none ${inputClassName}`}
-							value={resetOnCreate ? query : undefined}
-							onChange={(event) => {
-								setQuery(event.target.value);
-							}}
-						/>
-					) : (
-						<Combobox.Input
-							className={`w-full border rounded-md py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0 focus:outline-none ${inputClassName}`}
-							onChange={(event) => {
-								setQuery(event.target.value);
-								onChange && updateOnQueryChange ? onChange(event.target.value) : null;
-							}}
-						/>
-					)}
-					<Combobox.Button className='absolute inset-y-0 right-0 flex items-center pr-2'>
-						<ChevronUpDownIcon className='h-5 w-5 text-gray-400' aria-hidden='true' />
-					</Combobox.Button>
-				</div>
-				{showOptions ? (
-					<Transition
-						as={Fragment}
-						leave='transition ease-in duration-100'
-						leaveFrom='opacity-100'
-						leaveTo='opacity-0'
-						afterLeave={() => setQuery("")}>
-						<Combobox.Options
-							className={`absolute ${
-								optionDisplayDirection === "top" ? "bottom-full" : ""
-							} mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm`}>
-							{create
-								? query.length > 0 && (
-										<Combobox.Option
-											className={({ active }) =>
-												`relative cursor-default select-none py-2 pl-10 z-50 pr-4 ${
-													active ? "bg-secondary" : "text-gray-900 bg-white"
-												}`
-											}
-											value={query}>
-											Létrehozás &ldquo;{query}&rdquo;
-										</Combobox.Option>
-								  )
-								: null}
-							{filteredOptions.length === 0 && query !== "" ? (
-								<div className='relative cursor-default select-none py-2 px-4 text-gray-700 z-50'>
-									Nincs ilyen
-								</div>
-							) : (
-								filteredOptions.map((option) => (
-									<Combobox.Option
-										key={option.value}
-										className={({ active }) =>
-											`relative cursor-default select-none py-2 pl-10 z-50 pr-4 ${
-												active ? "bg-secondary" : "text-gray-900 bg-white"
-											}`
-										}
-										value={option.value}>
-										{({ selected, active }) => (
-											<>
-												<span
-													className={`block truncate z-50${
-														selected ? "font-medium" : "font-normal "
-													}`}>
-													{option.label}
-												</span>
-												{selected ? (
-													<span
-														className={`absolute inset-y-0 left-0 flex items-center pl-3 z-50 ${
-															active
-																? ""
-																: "text-gradient-to-tr from-gray-900 to-gray-800"
-														}`}>
-														<CheckIcon className='h-5 w-5' aria-hidden='true' />
-													</span>
-												) : null}
-											</>
-										)}
-									</Combobox.Option>
-								))
-							)}
-						</Combobox.Options>
-					</Transition>
-				) : null}
-			</div>
-		</Combobox>
+		<Popover open={open} onOpenChange={setOpen}>
+			<PopoverTrigger asChild>
+				<Button
+					variant='outline'
+					role='combobox'
+					aria-expanded={open}
+					style={{ width: width }}
+					className='justify-between'>
+					{value ? options.find((option) => option.label === value)?.label : "Keress.."}
+					<div className='flex items-center'>
+						{value && deselectable && (
+							<X
+								className='mr-2 h-4 w-4 shrink-0 opacity-50 cursor-pointer'
+								onClick={(e) => {
+									e.stopPropagation();
+									onSelect && onSelect("");
+								}}
+							/>
+						)}
+						<ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+					</div>
+				</Button>
+			</PopoverTrigger>
+			<PopoverContent side={side} style={{ width: width }} className='p-0'>
+				<Command
+					onChange={(e) => {
+						setInputValue((e.target as unknown as { value: string }).value);
+					}}
+					filter={(value, search) => {
+						return search
+							.toLowerCase()
+							.split(" ")
+							.map((search) =>
+								options
+									.find((option) => option.value.toLowerCase() === value)
+									?.label.toLowerCase()
+									.includes(search)
+							)
+							.every((value) => value)
+							? 1
+							: 0;
+					}}>
+					<CommandInput
+						onValueChange={(value) => (onChange ? onChange(value) : null)}
+						placeholder='Keress valamit...'
+					/>
+					<CommandEmpty>
+						{create && inputValue ? (
+							<div className='flex flex-row justify-between items-center px-4'>
+								<div>Létrehozás &ldquo;{inputValue}&rdquo;</div>
+								<Button
+									onClick={() => {
+										onSelect ? onSelect(inputValue) : null;
+										setOpen(false);
+									}}
+									size='icon'
+									variant='outline'>
+									<Plus className='h-4 w-4' />
+								</Button>
+							</div>
+						) : (
+							"Nincs találat"
+						)}
+					</CommandEmpty>
+					<CommandGroup>
+						{options.map((option) => (
+							<CommandItem
+								key={option.value}
+								value={option.value}
+								onSelect={() => {
+									onSelect ? onSelect(option.value) : null;
+									setOpen(false);
+								}}>
+								<Check
+									className={cn("mr-2 h-4 w-4", value === option.label ? "opacity-100" : "opacity-0")}
+								/>
+								{option.label}
+							</CommandItem>
+						))}
+					</CommandGroup>
+				</Command>
+			</PopoverContent>
+		</Popover>
 	);
 }

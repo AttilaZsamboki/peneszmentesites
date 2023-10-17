@@ -272,14 +272,14 @@ function QuestionForm({
 			</FormField>
 			<FormField title='Kapcsolat'>
 				<AutoComplete
-					onChange={(e) => setQuestion((prev) => ({ ...prev, connection: (e as "Fix" | "Termék") ?? "" }))}
+					onSelect={(e) => setQuestion((prev) => ({ ...prev, connection: (e as "Fix" | "Termék") ?? "" }))}
 					options={["Termék", "Fix"].map((option) => ({ label: option, value: option }))}
 					value={question.connection}
 				/>
 			</FormField>
 			<FormField title='Típus'>
 				<AutoComplete
-					onChange={(e) => {
+					onSelect={(e) => {
 						setQuestion((prev) => ({ ...prev, type: e }));
 					}}
 					options={Object.keys(typeMap).map((key) => ({

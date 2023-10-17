@@ -23,7 +23,6 @@ export default function FormList({
 	itemHref,
 	optionDisplayDirection = "bottom",
 	emptyOption,
-	showOptions = true,
 }: {
 	title: string;
 	onAddNewItem?: (value: string) => void;
@@ -36,19 +35,17 @@ export default function FormList({
 	itemHref?: (item: string) => any;
 	optionDisplayDirection?: "top" | "bottom";
 	emptyOption?: boolean;
-	showOptions?: boolean;
 }) {
 	return (
 		<div className={`pt-2 mt-1`}>
 			<Heading border={false} title={title} variant='h5' />
 			<AutoComplete
-				onChange={(value) => (onAddNewItem ? onAddNewItem(value) : {})}
+				onSelect={(value) => (onAddNewItem ? onAddNewItem(value) : {})}
 				value={value}
-				optionDisplayDirection={optionDisplayDirection}
+				side={optionDisplayDirection}
 				create={create}
 				options={options}
-				emptyOption={emptyOption}
-				showOptions={showOptions}
+				deselectable={emptyOption}
 			/>
 			<div className='flex flex-col gap-5 pt-6'>
 				{accordion ? (
