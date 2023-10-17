@@ -93,7 +93,7 @@ export default function AutoComplete({
 							"Nincs találat"
 						)}
 					</CommandEmpty>
-					<CommandGroup>
+					<CommandGroup className='h-60 overflow-y-scroll'>
 						{options.map((option) => (
 							<CommandItem
 								key={option.value}

@@ -258,7 +258,7 @@ export default function Page({
 				title: percent(num) === 100 ? "Felmérés létrehozva" : "Felmérés létrehozása",
 				description:
 					percent(num) === 100 ? (
-						isUpdate && isEdit ? (
+						createType === "DRAFT UPDATE" ? (
 							<div>Felmérés módosítva</div>
 						) : (
 							<Link
@@ -278,7 +278,31 @@ export default function Page({
 		};
 		updateStatus(1);
 
-		// Felmérés alapadatok mentése
+		let createType: "CREATE" | "CREATE NEW OFFER" | "CANCEL AND CREATE NEW OFFER" | "DRAFT UPDATE" | "UPDATE" =
+			"CREATE";
+		// ha a beküldés gombra kattintasz
+		if (sendOffer) {
+			if (felmeres.status === "DRAFT") {
+				// ha nem létezik még ajánlat
+				createType = "CREATE NEW OFFER";
+			} else {
+				createType = "CANCEL AND CREATE NEW OFFER";
+			}
+			// ha a mentés gombra kattintasz és nem létezik még ajánlat
+		} else if (felmeres.status === "DRAFT") {
+			// ha létezik már felmérés
+			if (isEdit) {
+				createType = "DRAFT UPDATE";
+			} else {
+				// ha nem létezik még felmérés
+				createType = "CREATE";
+			}
+		} else {
+			// ha a mentés gombra kattintasz és létezik már ajánlat
+			createType = "UPDATE";
+		}
+
+		// Felmérés alapadatok mentése //
 		let date = new Date();
 		date.setHours(date.getHours() + 4);
 		let formattedDate =
@@ -293,9 +317,8 @@ export default function Page({
 			("0" + date.getMinutes()).slice(-2) +
 			":" +
 			("0" + date.getSeconds()).slice(-2);
-		const isUpdate = editFelmeres && editFelmeres.status === "DRAFT";
 		const fetchFelmeres = async () => {
-			if (isUpdate) {
+			if (createType === "DRAFT UPDATE") {
 				if (sendOffer) {
 					const resp = await fetch("https://pen.dataupload.xyz/felmeresek/" + editFelmeres!.id + "/", {
 						method: "PATCH",
@@ -327,31 +350,35 @@ export default function Page({
 		updateStatus(57);
 		const createFelmeres = performance.now();
 		console.log("Felmérés alapadatok mentése: " + (createFelmeres - start) + "ms");
+		// -- END -- //
 
+		// Ha sikeresen ell lettek mentve a felmérés alapadatai
 		if (!res || res.ok) {
-			// Tételek mentése
+			// Tételek mentése //
 			const felmeresResponseData: BaseFelmeresData = !res ? editFelmeres : await res.json();
-			// felmérés cache frissítése
-			await fetch("https://pen.dataupload.xyz/felmeres_items/", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(
-					submitItems.map((item) => ({
-						...item,
-						adatlap: felmeresResponseData.id,
-						netPrice: item.netPrice,
-						id: sendOffer ? null : item.id,
-					}))
-				),
-			});
-
+			if (createType !== "UPDATE") {
+				await fetch("https://pen.dataupload.xyz/felmeres_items/", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify(
+						submitItems.map((item) => ({
+							...item,
+							adatlap: felmeresResponseData.id,
+							netPrice: item.netPrice,
+							// ez annyit jelent hogy ha null az id akkor létrehozza az adatbázisban egyébként frissíti a meglévő tételeket
+							id: createType === "DRAFT UPDATE" ? item.id : null,
+						}))
+					),
+				});
+			}
 			updateStatus(196);
 			const saveOfferItems = performance.now();
 			console.log("Tételek mentése: " + (saveOfferItems - start) + "ms");
+			// -- END -- //
 
-			// Kérdések mentése
+			// Kérdések mentése //
 			let status = 1;
 			data.filter((question) => question.value).map(async (question) => {
 				const originaQuestion = questions.find((q) => q.id === question.question);
@@ -397,34 +424,16 @@ export default function Page({
 					status = 0;
 				}
 			});
-
 			updateStatus(203);
 			const createQuestions = performance.now();
 			console.log("Kérdések létrehozása: " + (createQuestions - start) + "ms");
+			// -- END -- //
 
-			// MiniCRM ajánlat létrehozása
+			// MiniCRM ajánlat létrehozása //
 			if (
 				// Nem failelt a kérdések mentése
 				status === 1 &&
-				// Ha módosítod akkor változott-e valami a tételek közül vagy küldeni akarod-e az ajánlatot
-				(isEdit
-					? !_.isEqual(
-							editFelmeresItems?.map((item) => ({
-								...item,
-								id: 0,
-								inputValues: item.inputValues.map((value) => value.ammount),
-								sku: item.sku ? item.sku : null,
-								adatlap: null,
-							})),
-							submitItems.map((item) => ({
-								...item,
-								id: 0,
-								inputValues: item.inputValues.map((value) => value.ammount),
-								sku: item.sku ? item.sku : null,
-								adatlap: null,
-							}))
-					  ) || sendOffer
-					: sendOffer)
+				(createType === "CANCEL AND CREATE NEW OFFER" || createType === "CREATE NEW OFFER")
 			) {
 				// XML string összeállítása
 				const template = templates.find((template) => template.id === felmeres.template);
@@ -467,8 +476,9 @@ export default function Page({
 				updateStatus(2035);
 				const createXmlString = performance.now();
 				console.log("Ajánlat létrehozása: " + (createXmlString - start) + "ms");
+				// -- END -- //
 
-				// MiniCRM ajánlat létrehozása
+				// MiniCRM ajánlat létrehozása //
 				await fetch(`/api/minicrm-proxy/${felmeres.adatlap_id}?endpoint=Project`, {
 					method: "PUT",
 					headers: {
@@ -482,12 +492,10 @@ export default function Page({
 				updateStatus(2961);
 				const createOffer = performance.now();
 				console.log("Ajánlat létrehozása: " + (createOffer - start) + "ms");
-				const todo_criteria = (todo: ToDo) => {
-					return todo["Type"] === 225 && todo["Status"] === "Open";
-				};
+				// -- END -- //
 
-				if (isEdit && editFelmeres!.status !== "DRAFT") {
-					// Régi ajánlat stornózása
+				// Régi ajánlat stornózása
+				if (createType === "CANCEL AND CREATE NEW OFFER") {
 					const cancelOffer = async () => {
 						const resp = await fetch("https://pen.dataupload.xyz/cancel_offer/", {
 							method: "POST",
@@ -540,6 +548,9 @@ export default function Page({
 					await fetch("/api/revalidate?path=/");
 					router.push("/");
 				} else {
+					const todo_criteria = (todo: ToDo) => {
+						return todo["Type"] === 225 && todo["Status"] === "Open";
+					};
 					const todo = await list_to_dos(felmeres.adatlap_id.toString(), todo_criteria);
 					if (todo.length) {
 						await fetchMiniCRM("ToDo", todo[0].Id.toString(), "PUT", { Status: "Closed" });
@@ -552,7 +563,7 @@ export default function Page({
 				}
 			}
 			updateStatus(3400, felmeresResponseData.id);
-			if (isEdit && isUpdate) {
+			if (createType === "UPDATE") {
 				await fetch("/api/revalidate?path=/" + felmeres.id);
 				router.push("/" + felmeresResponseData.id);
 			} else {
