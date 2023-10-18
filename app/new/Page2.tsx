@@ -12,7 +12,6 @@ import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import Counter from "@/app/_components/Counter";
 import Input from "@/app/_components/Input";
 import { ProductAttributes } from "@/app/products/_clientPage";
-import Select from "@/app/_components/Select";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import {
 	BaseFelmeresData,
@@ -949,7 +948,8 @@ export function Page2({
 																	<Input
 																		variant='simple'
 																		value={
-																			item.type === "percent"
+																			item.type === "percent" ||
+																			item.value === ("-" as unknown as number)
 																				? item.value
 																				: numberFormatter.format(item.value)
 																		}
@@ -966,12 +966,14 @@ export function Page2({
 																							prevItem.id === item.id
 																					)!,
 																					value: e.target.value
-																						? parseInt(
-																								e.target.value.replace(
-																									/[^\d-]/g,
-																									""
-																								)
-																						  )
+																						? e.target.value === "-"
+																							? ("-" as unknown as number)
+																							: parseInt(
+																									e.target.value.replace(
+																										/[^\d-]/g,
+																										""
+																									)
+																							  )
 																						: 0,
 																				},
 																			]);
@@ -1057,20 +1059,26 @@ export function Page2({
 																}));
 															}}
 														/>
-														<Select
+														<AutoComplete
+															width='300px'
 															label='Típus'
-															variant='simple'
-															onChange={(value) =>
+															onSelect={(value) => {
 																setNewOtherItem((prev) => ({
 																	...(prev as OtherFelmeresItem),
 																	type: value as "fixed" | "percent",
-																}))
-															}
+																}));
+															}}
 															options={[
 																{ value: "fixed", label: "Összeg" },
 																{ value: "percent", label: "Százalék" },
 															]}
-															value={newOtherItem?.type || ""}
+															value={
+																newOtherItem
+																	? newOtherItem.type === "fixed"
+																		? "Összeg"
+																		: "Százalék"
+																	: ""
+															}
 														/>
 													</div>
 												</td>

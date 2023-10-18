@@ -15,6 +15,7 @@ export default function AutoComplete({
 	deselectable = true,
 	width = "200px",
 	side,
+	label,
 }: {
 	options: { label: string; value: string }[];
 	value?: string;
@@ -24,6 +25,7 @@ export default function AutoComplete({
 	deselectable?: boolean;
 	width?: string;
 	side?: "left" | "right" | "top" | "bottom";
+	label?: string;
 }) {
 	const [open, setOpen] = React.useState(false);
 	const [inputValue, setInputValue] = React.useState("");
@@ -37,7 +39,7 @@ export default function AutoComplete({
 					aria-expanded={open}
 					style={{ width: width }}
 					className='justify-between'>
-					{value ? options.find((option) => option.label === value)?.label : "Keress.."}
+					{value ? options.find((option) => option.label === value)?.label : label ?? "Keress.."}
 					<div className='flex items-center'>
 						{value && deselectable && (
 							<X
