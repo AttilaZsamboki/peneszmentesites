@@ -184,6 +184,8 @@ export default function ClientPage({
 		});
 		if (response.ok) {
 			setFelmeres((prev) => ({ ...prev, status } as BaseFelmeresData));
+			await fetch("/api/revalidate?tag=" + felmeresId);
+			await fetch("/api/revalidate?path=/")
 		}
 	};
 	const handleChangeEditing = () => {
