@@ -185,7 +185,7 @@ export default function ClientPage({
 		if (response.ok) {
 			setFelmeres((prev) => ({ ...prev, status } as BaseFelmeresData));
 			await fetch("/api/revalidate?tag=" + felmeresId);
-			await fetch("/api/revalidate?path=/")
+			await fetch("/api/revalidate?path=/");
 		}
 	};
 	const handleChangeEditing = () => {
@@ -308,7 +308,13 @@ export default function ClientPage({
 									) : selectedSection === "Tételek" ? (
 										<EditButton
 											href={`/${felmeresId}/edit`}
-											disabled={felmeresStatus === "COMPLETED" || felmeresStatus === "CANCELLED"}
+											disabled={
+												felmeresStatus === "COMPLETED" ||
+												felmeresStatus === "CANCELLED" ||
+												felmeres.offer_status === "Elfogadott ajánlat" ||
+												felmeres.offer_status == "Sikeres megrendelés"
+											}
+											disabledText='Már el lett fogadva az ajánlat, nem lehet a tételeket változtatni'
 										/>
 									) : (
 										<EditButton onClick={handleChangeEditing} />
@@ -414,7 +420,17 @@ export default function ClientPage({
 	);
 }
 
-function EditButton({ onClick, href, disabled }: { onClick?: () => void; href?: string; disabled?: boolean }) {
+function EditButton({
+	onClick,
+	href,
+	disabled,
+	disabledText,
+}: {
+	onClick?: () => void;
+	href?: string;
+	disabled?: boolean;
+	disabledText?: string;
+}) {
 	if (disabled) {
 		return (
 			<TooltipProvider>
@@ -431,7 +447,7 @@ function EditButton({ onClick, href, disabled }: { onClick?: () => void; href?: 
 						</div>
 					</TooltipTrigger>
 					<TooltipContent>
-						<p>Már el lett fogadva az ajánlat/megrendelés, nem lehet a tételeket változtatni</p>
+						<p>{disabledText}</p>
 					</TooltipContent>
 				</Tooltip>
 			</TooltipProvider>

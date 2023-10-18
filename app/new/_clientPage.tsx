@@ -44,6 +44,7 @@ export interface BaseFelmeresData {
 	status: FelmeresStatus;
 	created_at: string;
 	description: string;
+	offer_status?: "Elfogadott ajánlat" | "Sikeres megrendelés" | null;
 }
 
 export interface FelmeresItem {

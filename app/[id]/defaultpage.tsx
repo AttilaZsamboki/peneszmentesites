@@ -24,7 +24,10 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 		next: { tags: [encodeURIComponent(felmeresId)] },
 	})
 		.then((res) => res.json())
-		.catch((err) => console.error(err));
+		.catch((err) => {
+			console.error(err);
+			return {};
+		});
 	const felmeresItems: FelmeresItem[] = await fetch(
 		"https://pen.dataupload.xyz/felmeres_items?adatlap_id=" + felmeresId,
 		{
