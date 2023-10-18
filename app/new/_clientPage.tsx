@@ -450,7 +450,7 @@ export default function Page({
 			if (
 				// Nem failelt a kérdések mentése
 				status === 1 &&
-				(createType === "CANCEL AND CREATE NEW OFFER" || createType === "CREATE NEW OFFER")
+				sendOffer
 			) {
 				// XML string összeállítása
 				const template = templates.find((template) => template.id === felmeres.template);
