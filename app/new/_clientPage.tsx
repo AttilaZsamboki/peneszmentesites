@@ -752,7 +752,17 @@ export default function Page({
 												className='bg-green-500 hover:bg-green-500/90'
 												color='green'
 												onClick={() => CreateFelmeres()}
-												disabled={isDisabled[section === "Fix kérdések" ? "Fix" : section]}>
+												disabled={
+													isDisabled[
+														page === 0
+															? "Alapadatok"
+															: page === 1
+															? "Tételek"
+															: section === "Fix kérdések"
+															? "Fix"
+															: section
+													]
+												}>
 												Beküldés
 											</Button>
 										)}
@@ -780,7 +790,15 @@ export default function Page({
 														<Button
 															onClick={() => CreateFelmeres(false)}
 															disabled={
-																isDisabled[section === "Fix kérdések" ? "Fix" : section]
+																isDisabled[
+																	page === 0
+																		? "Alapadatok"
+																		: page === 1
+																		? "Tételek"
+																		: section === "Fix kérdések"
+																		? "Fix"
+																		: section
+																]
 															}>
 															Mentés
 														</Button>
@@ -800,7 +818,17 @@ export default function Page({
 										onClick={() => {
 											setPage(page + 1);
 										}}
-										disabled={isDisabled[section === "Fix kérdések" ? "Fix" : section]}>
+										disabled={
+											isDisabled[
+												page === 0
+													? "Alapadatok"
+													: page === 1
+													? "Tételek"
+													: section === "Fix kérdések"
+													? "Fix"
+													: section
+											]
+										}>
 										Következő
 									</Button>
 								)}
