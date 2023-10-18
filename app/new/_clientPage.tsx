@@ -566,20 +566,22 @@ export default function Page({
 					router.push("/");
 				}
 
-				// Felmérés ToDo lezárása
-				const todo_criteria = (todo: ToDo) => {
-					return todo["Type"] === 225 && todo["Status"] === "Open";
-				};
-				const todo = await list_to_dos(felmeres.adatlap_id.toString(), todo_criteria);
-				if (todo.length) {
-					await fetchMiniCRM("ToDo", todo[0].Id.toString(), "PUT", { Status: "Closed" });
+				if (sendOffer) {
+					// Felmérés ToDo lezárása
+					const todo_criteria = (todo: ToDo) => {
+						return todo["Type"] === 225 && todo["Status"] === "Open";
+					};
+					const todo = await list_to_dos(felmeres.adatlap_id.toString(), todo_criteria);
+					if (todo.length) {
+						await fetchMiniCRM("ToDo", todo[0].Id.toString(), "PUT", { Status: "Closed" });
+					}
+					const closeTodo = performance.now();
+					console.log("ToDo lezárása: " + (closeTodo - start) + "ms");
+					updateStatus(3400);
+					await fetch("/api/revalidate?path=/" + felmeres.id);
+					router.push("/");
+					// -- END -- //
 				}
-				const closeTodo = performance.now();
-				console.log("ToDo lezárása: " + (closeTodo - start) + "ms");
-				updateStatus(3400);
-				await fetch("/api/revalidate?path=/" + felmeres.id);
-				router.push("/");
-				// -- END -- //
 			}
 			updateStatus(3400, felmeresResponseData.id);
 			if (createType === "UPDATE" || createType === "DRAFT UPDATE") {
