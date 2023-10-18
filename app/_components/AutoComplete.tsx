@@ -39,7 +39,7 @@ export default function AutoComplete({
 					aria-expanded={open}
 					style={{ width: width }}
 					className='justify-between'>
-					{value ? options.find((option) => option.label === value)?.label : label ?? "Keress.."}
+					{value ? options.find((option) => option.label === value)?.label : (label ?? "Keress..")}
 					<div className='flex items-center'>
 						{value && deselectable && (
 							<X

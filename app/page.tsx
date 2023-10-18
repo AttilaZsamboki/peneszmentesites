@@ -31,6 +31,7 @@ export interface FelmeresQuestion {
 
 export default async function Home() {
 	const data = await fetch("https://pen.dataupload.xyz/felmeresek/", {
+		next: { tags: ["felmeresek"] },
 		method: "GET",
 		headers: {
 			"Content-Type": "application/json",

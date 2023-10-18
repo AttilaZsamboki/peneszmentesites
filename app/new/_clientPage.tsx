@@ -351,7 +351,7 @@ export default function Page({
 					return resp;
 				}
 			} else {
-				return await fetch("https://pen.dataupload.xyz/felmeresek/", {
+				const resp = await fetch("https://pen.dataupload.xyz/felmeresek/", {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
@@ -362,6 +362,10 @@ export default function Page({
 						status: sendOffer ? "IN_PROGRESS" : felmeres.status,
 					}),
 				});
+				if (resp.ok) {
+					await fetch("/api/revalidate?tag=felmeresek");
+					return resp;
+				}
 			}
 		};
 		const res = await fetchFelmeres();
@@ -461,30 +465,49 @@ export default function Page({
 					adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)
 						? adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)!.ContactId.toString()
 						: "",
-					[
-						...submitItems
-							.filter((item) => item.type !== "Other Material")
-							.map((item) => ({
-								...item,
-								netPrice:
-									item.valueType === "percent"
-										? item.type === "Fee"
-											? calculatePercentageValue(netTotal, otherItems, item.netPrice)
-											: item.type === "Discount"
-											? -((otherItemsNetTotal + netTotal) * (item.netPrice / 100))
-											: item.netPrice
-										: item.netPrice,
-							})),
-						{
-							netPrice: items
-								.filter((item) => item.type === "Other Material")
-								.map((item) => item.netPrice * item.inputValues.reduce((a, b) => a + b.ammount, 0))
-								.reduce((a, b) => a + b, 0),
-							name: "Egyéb szerelési segédanyagok",
-							inputValues: [{ ammount: 1, id: 0, value: "" }],
-						} as unknown as FelmeresItem,
-					],
-
+					items
+						.filter((item) => item.type === "Other Material")
+						.map((item) => item.netPrice)
+						.reduce((a, b) => a + b, 0) > 0
+						? [
+								...submitItems
+									.filter((item) => item.type !== "Other Material" && item.netPrice)
+									.map((item) => ({
+										...item,
+										netPrice:
+											item.valueType === "percent"
+												? item.type === "Fee"
+													? calculatePercentageValue(netTotal, otherItems, item.netPrice)
+													: item.type === "Discount"
+													? -((otherItemsNetTotal + netTotal) * (item.netPrice / 100))
+													: item.netPrice
+												: item.netPrice,
+									})),
+								{
+									netPrice: items
+										.filter((item) => item.type === "Other Material")
+										.map(
+											(item) =>
+												item.netPrice * item.inputValues.reduce((a, b) => a + b.ammount, 0)
+										)
+										.reduce((a, b) => a + b, 0),
+									name: "Egyéb szerelési segédanyagok",
+									inputValues: [{ ammount: 1, id: 0, value: "" }],
+								} as unknown as FelmeresItem,
+						  ]
+						: submitItems
+								.filter((item) => item.type !== "Other Material" && item.netPrice)
+								.map((item) => ({
+									...item,
+									netPrice:
+										item.valueType === "percent"
+											? item.type === "Fee"
+												? calculatePercentageValue(netTotal, otherItems, item.netPrice)
+												: item.type === "Discount"
+												? -((otherItemsNetTotal + netTotal) * (item.netPrice / 100))
+												: item.netPrice
+											: item.netPrice,
+								})),
 					felmeres.adatlap_id.toString(),
 					template?.description,
 					template?.name,
