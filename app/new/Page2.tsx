@@ -261,7 +261,6 @@ export function Page2({
 		});
 	};
 
-	console.log(felmeres);
 	return (
 		<>
 			{openTemplateDialog ? (
@@ -486,19 +485,16 @@ export function Page2({
 									.filter((item) => item.type === "Item")
 									.sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
 									.map(
-										(
-											{
-												name,
-												place,
-												placeOptions: place_options,
-												inputValues,
-												netPrice,
-												sku,
-												attributeId,
-												product,
-											},
-											index
-										) => {
+										({
+											name,
+											place,
+											placeOptions: place_options,
+											inputValues,
+											netPrice,
+											sku,
+											attributeId,
+											product,
+										}) => {
 											const classes = "p-4";
 
 											return (
@@ -588,6 +584,7 @@ export function Page2({
 																									value: option,
 																								})
 																							)}
+																							width='300px'
 																							value={inputValue.value}
 																							create={true}
 																							onSelect={(e) => {
@@ -645,15 +642,16 @@ export function Page2({
 																													item
 																												) =>
 																													item.product !==
-																													items[
-																														index
-																													]
-																														.product
+																													product
 																											),
 																											{
-																												...items[
-																													index
-																												],
+																												...items.find(
+																													(
+																														item
+																													) =>
+																														item.product ===
+																														product
+																												)!,
 																												inputValues:
 																													[
 																														...inputValues,
