@@ -117,6 +117,7 @@ export function Page2({
 							setItems((prevItems) => [
 								...prevItems,
 								{
+									id: prevItems.length,
 									product: productTemplate.product,
 									name: productData.name,
 									place: productAttributeData ? productAttributeData.place : true,
@@ -483,7 +484,7 @@ export function Page2({
 							<tbody>
 								{items
 									.filter((item) => item.type === "Item")
-									.sort((a, b) => a.product - b.product)
+									.sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
 									.map(
 										(
 											{
@@ -805,6 +806,7 @@ export function Page2({
 															...prev.filter((item) => item.product.toString() !== value),
 															{
 																...prev[prev.length - 1],
+																id: items.length,
 																adatlap: felmeres.adatlap_id,
 																product: parseInt(value),
 																name: product.name,

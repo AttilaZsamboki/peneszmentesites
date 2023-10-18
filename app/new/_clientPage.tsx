@@ -196,7 +196,11 @@ export default function Page({
 											question.id !== questionProduct.question ||
 											question.product !== item.product
 									),
-									{ ...question, product: item.product },
+									{
+										...question,
+										product: item.product,
+										is_created: true,
+									},
 								]);
 								return question.created_from;
 							}
@@ -278,13 +282,22 @@ export default function Page({
 		};
 		updateStatus(1);
 
-		let createType: "CREATE" | "CREATE NEW OFFER" | "CANCEL AND CREATE NEW OFFER" | "DRAFT UPDATE" | "UPDATE" =
-			"CREATE";
+		let createType:
+			| "CREATE"
+			| "CREATE NEW OFFER"
+			| "CANCEL AND CREATE NEW OFFER"
+			| "DRAFT UPDATE"
+			| "UPDATE"
+			| "DRAFT UPDATE AND CREATE NEW OFFER" = "CREATE";
 		// ha a beküldés gombra kattintasz
 		if (sendOffer) {
 			if (felmeres.status === "DRAFT") {
 				// ha nem létezik még ajánlat
-				createType = "CREATE NEW OFFER";
+				if (isEdit) {
+					createType = "DRAFT UPDATE AND CREATE NEW OFFER";
+				} else {
+					createType = "CREATE NEW OFFER";
+				}
 			} else {
 				createType = "CANCEL AND CREATE NEW OFFER";
 			}
@@ -318,7 +331,11 @@ export default function Page({
 			":" +
 			("0" + date.getSeconds()).slice(-2);
 		const fetchFelmeres = async () => {
-			if (createType === "DRAFT UPDATE" || createType === "UPDATE") {
+			if (
+				createType === "DRAFT UPDATE" ||
+				createType === "UPDATE" ||
+				createType === "DRAFT UPDATE AND CREATE NEW OFFER"
+			) {
 				if (sendOffer) {
 					const resp = await fetch("https://pen.dataupload.xyz/felmeresek/" + editFelmeres!.id + "/", {
 						method: "PATCH",
@@ -563,7 +580,7 @@ export default function Page({
 				}
 			}
 			updateStatus(3400, felmeresResponseData.id);
-			if (createType === "UPDATE") {
+			if (createType === "UPDATE" || createType === "DRAFT UPDATE") {
 				await fetch("/api/revalidate?path=/" + felmeres.id);
 				router.push("/" + felmeresResponseData.id);
 			} else {
