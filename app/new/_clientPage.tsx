@@ -1021,10 +1021,12 @@ function Page1({
 		<div className='flex flex-col items-center gap-5'>
 			<QuestionTemplate title='Adatlap'>
 				<AutoComplete
-					options={adatlapok.map((adatlap) => ({
-						label: adatlap.Name,
-						value: adatlap.Id.toString(),
-					}))}
+					options={adatlapok
+						.sort((a, b) => a.Name.localeCompare(b.Name))
+						.map((adatlap) => ({
+							label: adatlap.Name,
+							value: adatlap.Id.toString(),
+						}))}
 					onSelect={(e) => {
 						setFelmeres({
 							...felmeres,
