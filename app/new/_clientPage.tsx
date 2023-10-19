@@ -13,14 +13,15 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
 import { useRouter } from "next/navigation";
 import { ProductAttributes } from "@/app/products/_clientPage";
-import { AdatlapDetails, ToDo, assembleOfferXML, fetchMiniCRM, list_to_dos } from "@/app/_utils/MiniCRM";
+import { ToDo, assembleOfferXML, fetchMiniCRM, list_to_dos } from "@/app/_utils/MiniCRM";
+import { AdatlapDetails } from "../_utils/types";
 import { useSearchParams } from "next/navigation";
 import { useGlobalState } from "@/app/_clientLayout";
 
 import { Page2 } from "./Page2";
 import { useToast } from "@/components/ui/use-toast";
 import { Checkmark } from "@/components/check";
-import { isJSONParsable } from "../[id]/_clientPage";
+import { PageMap, SectionNames, isJSONParsable } from "../[id]/_clientPage";
 import _ from "lodash";
 import { ToastAction } from "@/components/ui/toast";
 import { CornerUpLeft, IterationCw } from "lucide-react";
@@ -633,18 +634,15 @@ export default function Page({
 				.every((value) => value === true) || !items.length,
 		...Object.assign(
 			{},
-			...Array.from(new Set(data.map((field) => field.section))).map((sect) => ({
-				[sect]: !data
+			...Array.from(new Set(data.map((field) => field.product))).map((product) => ({
+				[product ?? ""]: !data
 					.filter((field) =>
 						questions
 							.filter((question) => question.mandatory)
 							.filter((question) =>
 								question.connection === "Termék"
-									? products.find((product) => product.id === question.product)?.sku +
-											" - " +
-											products.find((product) => product.id === question.product)?.name ===
-									  sect
-									: sect === "Fix"
+									? products.find((product) => product.id === question.product)?.id === product
+									: true
 							)
 							.map((question) => question.id)
 							.includes(field.question)
@@ -911,15 +909,11 @@ function PageChooser({
 	discount: number;
 	setDiscount: React.Dispatch<React.SetStateAction<number>>;
 }) {
-	interface PageMap {
-		component: JSX.Element;
-		title: string;
-	}
-
 	const pageMap: PageMap[] = [
 		{
 			component: <Page1 felmeres={felmeres} setFelmeres={setFelmeres} adatlapok={adatlapok} />,
 			title: "Alapadatok",
+			id: "Alapadatok",
 		},
 		{
 			component: (
@@ -938,26 +932,23 @@ function PageChooser({
 				/>
 			),
 			title: adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)?.Name ?? "",
+			id: "Tételek",
 		},
 		...Array.from(new Set(questions.map((question) => question.product)))
 			.sort((a, b) => Number(a === undefined) - Number(b === undefined))
 			.map((product) => {
-				const sectionName = items.find((item) => item.product === product)
-					? items.find((item) => item.product === product)!.sku +
-					  " - " +
-					  items.find((item) => item.product === product)!.name
-					: "";
 				return {
 					component: (
 						<QuestionPage
 							globalData={globalData}
-							product={sectionName || ""}
+							product={product ?? 0}
 							adatlap_id={felmeres.adatlap_id}
 							questions={questions.filter((question) => question.product === product)}
 							setData={setData}
 						/>
 					),
-					title: sectionName || "Fix kérdések",
+					title: products.find((p) => p.id === product)?.sku ?? "Fix kérdések",
+					id: product ?? ("Fix" as SectionNames),
 				};
 			}),
 	];

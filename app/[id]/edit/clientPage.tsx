@@ -9,10 +9,12 @@ export default async function Page({
 	felmeres,
 	felmeresItems,
 	felmeresQuestions,
+	products
 }: {
 	felmeres: BaseFelmeresData;
 	felmeresItems: FelmeresItem[];
 	felmeresQuestions: FelmeresQuestion[];
+	products: Product[];
 }) {
 	var myHeaders = new Headers();
 	myHeaders.append("Authorization", "Basic MTE5OkQwNlBVTE9JM2VUUkJLY2xqQUdRWWJkNEZFcHVWeTFn");
@@ -34,9 +36,7 @@ export default async function Page({
 	const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates")
 		.then((response) => response.json())
 		.catch((error) => console.error("error", error));
-	const products: Product[] = await fetch("https://pen.dataupload.xyz/products?all=true", {
-		next: { tags: ["products"] },
-	}).then((response) => response.json());
+
 	const productAttributes: ProductAttributes[] = await fetch("https://pen.dataupload.xyz/product_attributes", {
 		next: { tags: ["product-attributes"] },
 	})

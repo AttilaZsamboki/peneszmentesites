@@ -16,6 +16,7 @@ export default function AutoComplete({
 	width = "200px",
 	side,
 	label,
+	disabled,
 }: {
 	options: { label: string; value: string }[];
 	value?: string;
@@ -26,13 +27,14 @@ export default function AutoComplete({
 	width?: string;
 	side?: "left" | "right" | "top" | "bottom";
 	label?: string;
+	disabled?: boolean;
 }) {
 	const [open, setOpen] = React.useState(false);
 	const [inputValue, setInputValue] = React.useState("");
 
 	return (
 		<Popover open={open} onOpenChange={setOpen}>
-			<PopoverTrigger asChild>
+			<PopoverTrigger asChild disabled={disabled}>
 				<Button
 					variant='outline'
 					role='combobox'

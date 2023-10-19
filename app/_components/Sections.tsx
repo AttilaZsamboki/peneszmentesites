@@ -19,15 +19,15 @@ function Icon({ open }: { open: boolean }) {
 }
 
 export default function Sections({
-	sectionNames,
+	options,
 	setSelected,
 	filter,
 	setFilter,
 	disabled = false,
 }: {
-	sectionNames: string[];
-	selected: string;
-	setSelected: React.Dispatch<React.SetStateAction<string>>;
+	options: { label: string; value: string | number }[];
+	selected: string | number;
+	setSelected: React.Dispatch<React.SetStateAction<string | number>>;
 	filter: string;
 	setFilter: React.Dispatch<React.SetStateAction<string>>;
 	disabled?: boolean;
@@ -43,20 +43,18 @@ export default function Sections({
 						</div>
 					</AccordionHeader>
 					<AccordionBody>
-						{sectionNames
-							.filter((section) => (filter ? section.toLowerCase().includes(filter.toLowerCase()) : true))
-							.map((section) => (
-								<Tab
-									key={section}
-									onClick={() => {
-										setSelected(section);
-										setFilter("");
-									}}
-									disabled={disabled}
-									value={section}>
-									{section}
-								</Tab>
-							))}
+						{options.map((section) => (
+							<Tab
+								key={section.value}
+								onClick={() => {
+									setSelected(section.value);
+									setFilter("");
+								}}
+								disabled={disabled}
+								value={section.value}>
+								{section.label}
+							</Tab>
+						))}
 					</AccordionBody>
 				</Accordion>
 			</TabsHeader>

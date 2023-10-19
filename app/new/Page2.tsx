@@ -327,72 +327,58 @@ export function Page2({
 					<div className='flex flex-row gap-4 items-center'>
 						<div className='flex flex-row items-center gap-2'>
 							<QuestionTemplate title='Milyen rendszert tervezel?'>
-								{readonly ? (
-									felmeres.type ? (
-										felmeres.type
-									) : (
-										" - "
-									)
-								) : (
-									<AutoComplete
-										options={[
-											"Helyi elszívós rendszer",
-											"Központi ventillátoros",
-											"Passzív rendszer",
-											"Hővisszanyerős",
-										].map((option) => ({
-											label: option,
-											value: option,
-										}))}
-										value={felmeres.type}
-										onSelect={(e) => {
-											setFelmeres ? setFelmeres({ ...felmeres, type: e, template: 0 }) : null;
-											setSelectedTemplate({
-												description: "",
-												name: "",
-												type: "",
-												id: 0,
-											});
-										}}
-									/>
-								)}
+								<AutoComplete
+									disabled={readonly}
+									options={[
+										"Helyi elszívós rendszer",
+										"Központi ventillátoros",
+										"Passzív rendszer",
+										"Hővisszanyerős",
+									].map((option) => ({
+										label: option,
+										value: option,
+									}))}
+									value={felmeres.type}
+									onSelect={(e) => {
+										setFelmeres ? setFelmeres({ ...felmeres, type: e, template: 0 }) : null;
+										setSelectedTemplate({
+											description: "",
+											name: "",
+											type: "",
+											id: 0,
+										});
+									}}
+								/>
 							</QuestionTemplate>
 							<QuestionTemplate title='Sablon'>
-								{readonly ? (
-									felmeres.type ? (
-										felmeres.template
-									) : (
-										" - "
-									)
-								) : (
-									<AutoComplete
-										width='300px'
-										options={templates!
-											.filter((template) => template.type === felmeres.type)
-											.map((template) => ({
-												label: template.name,
-												value: template.id.toString(),
-											}))}
-										onSelect={(e) => {
-											if (templates) {
-												if (templates.find((template) => template.id.toString() === e)) {
-													setSelectedTemplate(
-														templates.find((template) => template.id.toString() === e)!
-													);
-													setFelmeres
-														? setFelmeres((prev) => ({
-																...prev,
-																subject: templates.find(
-																	(template) => template.id.toString() === e
-																)!.description,
-														  }))
-														: null;
-												}
+								<AutoComplete
+									disabled={readonly}
+									width='300px'
+									options={templates!
+										.filter((template) => template.type === felmeres.type)
+										.map((template) => ({
+											label: template.name,
+											value: template.id.toString(),
+										}))}
+									onSelect={(e) => {
+										if (templates) {
+											if (templates.find((template) => template.id.toString() === e)) {
+												setSelectedTemplate(
+													templates.find((template) => template.id.toString() === e)!
+												);
+												setFelmeres
+													? setFelmeres((prev) => ({
+															...prev,
+															subject: templates.find(
+																(template) => template.id.toString() === e
+															)!.description,
+													  }))
+													: null;
 											}
-										}}
-										value={selectedTemplate.name}
-									/>
-								)}
+										}
+									}}
+									value={selectedTemplate.name}
+								/>
 							</QuestionTemplate>
 						</div>
 

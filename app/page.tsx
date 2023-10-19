@@ -4,7 +4,8 @@ import ClientPage from "./_clientPage";
 
 import { BaseFelmeresData } from "./new/_clientPage";
 
-import { fetchAdatlapDetails, AdatlapDetails } from "./_utils/MiniCRM";
+import { fetchAdatlapDetails } from "./_utils/MiniCRM";
+import { AdatlapDetails } from "./_utils/types";
 import { statusMap } from "./_utils/utils";
 
 import { Template } from "./templates/page";
@@ -26,7 +27,7 @@ export interface FelmeresQuestion {
 	adatlap_id: number;
 	question: number;
 	value: string;
-	section: string;
+	product: number | null;
 }
 
 export default async function Home() {

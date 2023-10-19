@@ -19,7 +19,7 @@ export function QuestionPage({
 	product,
 	globalData,
 }: {
-	product: string;
+	product: number | null;
 	questions: Question[];
 	setData: React.Dispatch<React.SetStateAction<FelmeresQuestion[]>>;
 	adatlap_id: number;
@@ -59,7 +59,7 @@ function FieldCreate({
 	setGlobalData: React.Dispatch<React.SetStateAction<FelmeresQuestion[]>>;
 	globalData: FelmeresQuestion[];
 	adatlap_id: number;
-	product?: string;
+	product?: number | null;
 }) {
 	React.useEffect(() => {
 		if (!globalData.find((felmeres) => isTrue(felmeres))) {
@@ -70,7 +70,7 @@ function FieldCreate({
 					id: 0,
 					value: "",
 					question: question.id,
-					section: question.connection === "Fix" ? "Fix" : product || "",
+					product: question.connection === "Fix" ? null : product || 0,
 				},
 			]);
 		}
@@ -79,7 +79,7 @@ function FieldCreate({
 	const isTrue = (felmeres: FelmeresQuestion) => {
 		return (
 			felmeres.question === question.id &&
-			(question.connection === "Fix" ? true : felmeres.section === product && product !== "")
+			(question.connection === "Fix" ? true : felmeres.product === product && product !== 0)
 		);
 	};
 
@@ -244,7 +244,7 @@ function FieldCreate({
 											...felmeres,
 											adatlap_id: adatlap_id,
 											question: question.id,
-											section: felmeres.section,
+											product: felmeres.product,
 											value: [
 												...(felmeres.value as unknown as string[]),
 												"https://felmeres-note-images.s3.eu-central-1.amazonaws.com/" +

@@ -1,6 +1,6 @@
 "use client";
 import { FelmeresQuestion, GridOptions } from "../page";
-import { AdatlapDetails } from "@/app/_utils/MiniCRM";
+import { AdatlapDetails } from "../_utils/types";
 
 import Heading from "../_components/Heading";
 const Sections = React.lazy(() => import("../_components/Sections"));
@@ -30,6 +30,7 @@ import { Page2 } from "../new/Page2";
 import _ from "lodash";
 import { ToastAction } from "@/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Product } from "../products/page";
 
 export function isJSONParsable(str: string) {
 	try {
@@ -45,6 +46,14 @@ export const hufFormatter = new Intl.NumberFormat("hu-HU", {
 	currency: "HUF",
 });
 
+export type SectionNames = "" | "Tételek" | "Alapadatok" | "Fix" | number;
+
+export interface PageMap {
+	component: JSX.Element;
+	title: string;
+	id: SectionNames;
+}
+
 export default function ClientPage({
 	felmeresQuestions,
 	felmeresId,
@@ -53,6 +62,7 @@ export default function ClientPage({
 	adatlap,
 	questions,
 	template,
+	products,
 }: {
 	felmeresQuestions: FelmeresQuestion[];
 	felmeresId: string;
@@ -61,11 +71,8 @@ export default function ClientPage({
 	questions: Question[];
 	adatlap: AdatlapDetails;
 	template: Template;
+	products: Product[];
 }) {
-	interface PageMap {
-		component: JSX.Element;
-		title: string;
-	}
 	const [felmeres, setFelmeres] = React.useState(
 		felmeresNonState
 			? felmeresNonState
@@ -80,14 +87,12 @@ export default function ClientPage({
 		}))
 	);
 	const [filteredData, setFilteredData] = React.useState(
-		felmeresQuestions
-			.filter((field) => field.section === "Tételek")
-			.map((field) => ({
-				...field,
-				value: isJSONParsable(field.value) ? JSON.parse(field.value) : field.value,
-			}))
+		felmeresQuestions.map((field) => ({
+			...field,
+			value: isJSONParsable(field.value) ? JSON.parse(field.value) : field.value,
+		}))
 	);
-	const [selectedSection, setSelectedSection] = React.useState("");
+	const [selectedSection, setSelectedSection] = React.useState<SectionNames>("");
 
 	const sections: PageMap[] = [
 		{
@@ -112,19 +117,20 @@ export default function ClientPage({
 				/>
 			),
 			title: "Tételek",
+			id: "Tételek",
 		},
 		...Array.from(
 			new Set(
 				felmeresQuestions
 					.filter((question) => question.value && question.value !== "")
-					.map((question) => question.section)
+					.map((question) => question.product)
 			)
 		).map((product) => ({
 			component: isEditing ? (
 				<QuestionPage
 					questions={questions.filter((question) =>
 						felmeresQuestions
-							.filter((field) => field.section === product)
+							.filter((field) => field.product === product)
 							.map((field) => field.question)
 							.includes(question.id)
 					)}
@@ -140,7 +146,8 @@ export default function ClientPage({
 			) : (
 				<QuestionPageRead product={product} questions={questions} data={filteredData} key={product} />
 			),
-			title: product,
+			title: products.find((p) => p.id === product)?.sku ?? "Fix kérdések",
+			id: product ?? ("Fix" as SectionNames),
 		})),
 	];
 
@@ -148,10 +155,10 @@ export default function ClientPage({
 	const [isLoading, setIsLoading] = React.useState(true);
 
 	const deviceSize = useBreakpointValue();
-	const [isAll, setIsAll] = React.useState(false);
+	const [isAll, setIsAll] = React.useState(true);
 
 	React.useEffect(() => {
-		setSelectedSection(sections[0].title);
+		setSelectedSection(sections[0].id as SectionNames);
 	}, [isAll]);
 	React.useEffect(() => {
 		setFilteredData(
@@ -162,7 +169,9 @@ export default function ClientPage({
 							?.question.toLowerCase()
 							.includes(filter.toLowerCase()) ||
 					  JSON.stringify(field.value).toLowerCase().includes(filter.toLowerCase())
-					: field.section === selectedSection
+					: selectedSection === "Fix"
+					? !field.product
+					: field.product === selectedSection
 			)
 		);
 	}, [filter, selectedSection]);
@@ -223,7 +232,7 @@ export default function ClientPage({
 		if (status) {
 			setIsEditing(false);
 			setOriginalData((prev) => [
-				...prev.filter((field) => field.section !== filteredData[0].section),
+				...prev.filter((field) => field.product !== filteredData[0].product),
 				...filteredData,
 			]);
 			return;
@@ -339,7 +348,7 @@ export default function ClientPage({
 												</div>
 											);
 									  })
-									: sections.find((section) => section.title === selectedSection)?.component}
+									: sections.find((section) => section.id === selectedSection)?.component}
 							</CardContent>
 						</Card>
 					</div>
@@ -347,44 +356,35 @@ export default function ClientPage({
 				{deviceSize !== "sm" ? (
 					<div className='w-full lg:w-3/12 lg:mr-10 flex justify-center lg:justify-normal lg:items-start items-center lg:px-0 px-3 mt-6'>
 						<div className='w-full sticky top-8 '>
-							<React.Suspense
-								fallback={
-									<Sections
-										sectionNames={sections.map((section) => section.title)}
-										selected={selectedSection}
-										setSelected={setSelectedSection}
-										filter={filter}
-										setFilter={setFilter}
-										disabled={true}
-									/>
-								}>
-								<div className='relative'>
-									<Sections
-										sectionNames={sections.map((section) => section.title)}
-										selected={selectedSection}
-										setSelected={setSelectedSection}
-										filter={filter}
-										setFilter={setFilter}
-										disabled={isLoading}
-									/>
-									{isLoading ? (
-										<div className='absolute top-1/3 left-1/2 h-10 w-10'>
-											<Spinner color='blue-gray' className='w-10 h-10 relative right-4' />
-										</div>
-									) : (
-										<div></div>
-									)}
-								</div>
-							</React.Suspense>
+							<div className='relative'>
+								<Sections
+									options={sections.map((section) => ({ label: section.title, value: section.id }))}
+									selected={selectedSection}
+									setSelected={
+										setSelectedSection as React.Dispatch<React.SetStateAction<string | number>>
+									}
+									filter={filter}
+									setFilter={setFilter}
+									disabled={isLoading}
+								/>
+								{isLoading ? (
+									<div className='absolute top-1/3 left-1/2 h-10 w-10'>
+										<Spinner color='blue-gray' className='w-10 h-10 relative right-4' />
+									</div>
+								) : (
+									<div></div>
+								)}
+							</div>
 							<div className='flex flex-row w-full justify-between bg-white my-5 p-2 px-4 border rounded-md items-center'>
 								<Typography className={`${isLoading ? "text-gray-600" : ""}`} variant='h6'>
 									Minden
 								</Typography>
 								<Checkbox
+									checked={isAll}
 									disabled={isLoading}
 									onCheckedChange={() => {
 										setIsAll(!isAll);
-										setSelectedSection(isAll ? sections[0].title : "");
+										setSelectedSection(isAll ? sections[0].id : "");
 									}}
 								/>
 							</div>
@@ -399,7 +399,7 @@ export default function ClientPage({
 								<TabsHeader
 									key={section.title}
 									className='rounded-none bg-transparent p-0'
-									onClick={() => setSelectedSection(section.title)}
+									onClick={() => setSelectedSection(section.id)}
 									indicatorProps={{
 										className:
 											"bg-transparent border-b-2 border-gray-900 mx-3 shadow-none rounded-none",
@@ -478,12 +478,12 @@ function QuestionPageRead({
 }: {
 	questions: Question[];
 	data: FelmeresQuestion[];
-	product: string;
+	product: number | null;
 }) {
 	return (
 		<div className='flex flex-col gap-10'>
 			{data
-				.filter((d) => d.section === product)
+				.filter((d) => d.product === product)
 				.map((d) => {
 					const question = questions.find((question) => question.id === d.question)!;
 					return (
