@@ -45,6 +45,7 @@ export interface BaseFelmeresData {
 	created_at: string;
 	description: string;
 	offer_status?: "Elfogadott ajánlat" | "Sikeres megrendelés" | null;
+	subject: string;
 }
 
 export interface FelmeresItem {
@@ -116,6 +117,7 @@ export default function Page({
 					status: "DRAFT",
 					created_at: "",
 					description: "",
+					subject: "",
 			  }
 	);
 	const [items, setItems] = React.useState<FelmeresItem[]>(
@@ -152,7 +154,7 @@ export default function Page({
 						id: 0,
 					},
 					{
-						name: "Jóváírás",
+						name: "Jóváírás (helyszíni felmérés díj)",
 						value: -20000,
 						type: "fixed",
 						id: 3,
@@ -509,7 +511,7 @@ export default function Page({
 											: item.netPrice,
 								})),
 					felmeres.adatlap_id.toString(),
-					template?.description,
+					felmeres.subject,
 					template?.name,
 					felmeresResponseData.id,
 					felmeres.description

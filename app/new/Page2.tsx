@@ -79,10 +79,6 @@ export function Page2({
 		}
 	);
 	const [openTemplateDialog, setOpenTemplateDialog] = React.useState(false);
-	const [isEditableDescription, setIsEditableDescription] = React.useState(false);
-	const [description, setDescription] = React.useState(
-		felmeres.template === selectedTemplate.id ? selectedTemplate.description : ""
-	);
 
 	const [otherItemsTableRef] = useAutoAnimate();
 	const [otherMaterialTableRef] = useAutoAnimate();
@@ -327,11 +323,17 @@ export function Page2({
 			) : null}
 			<div>
 				<Heading title='Tételek' variant='h5' marginY='lg:my-4' border={false} />
-				{!readonly ? (
-					<div className='flex flex-row justify-between w-full items-center'>
-						<div className='flex flex-row gap-4 items-center'>
-							<div className='flex flex-row items-center gap-2'>
-								<QuestionTemplate title='Milyen rendszert tervezel?'>
+				<div className='flex flex-row justify-between w-full items-start'>
+					<div className='flex flex-row gap-4 items-center'>
+						<div className='flex flex-row items-center gap-2'>
+							<QuestionTemplate title='Milyen rendszert tervezel?'>
+								{readonly ? (
+									felmeres.type ? (
+										felmeres.type
+									) : (
+										" - "
+									)
+								) : (
 									<AutoComplete
 										options={[
 											"Helyi elszívós rendszer",
@@ -353,8 +355,16 @@ export function Page2({
 											});
 										}}
 									/>
-								</QuestionTemplate>
-								<QuestionTemplate title='Sablon'>
+								)}
+							</QuestionTemplate>
+							<QuestionTemplate title='Sablon'>
+								{readonly ? (
+									felmeres.type ? (
+										felmeres.template
+									) : (
+										" - "
+									)
+								) : (
 									<AutoComplete
 										width='300px'
 										options={templates!
@@ -369,91 +379,113 @@ export function Page2({
 													setSelectedTemplate(
 														templates.find((template) => template.id.toString() === e)!
 													);
+													setFelmeres
+														? setFelmeres((prev) => ({
+																...prev,
+																subject: templates.find(
+																	(template) => template.id.toString() === e
+																)!.description,
+														  }))
+														: null;
 												}
 											}
 										}}
 										value={selectedTemplate.name}
 									/>
-								</QuestionTemplate>
-							</div>
-
-							<div className='mt-3'>
-								{felmeres.template !== selectedTemplate.id ? (
-									<Button size='icon' variant='outline' onClick={onSelectTemplate}>
-										<Plus className='w-4 h-4 text-gray-700' />
-									</Button>
-								) : (
-									<DropdownMenu
-										dropdownMenuItems={
-											felmeres.template
-												? [
-														{
-															value: "Mentés",
-															onClick: saveTemplate,
-															icon: <Save className='w-5 h-5 mr-2' />,
-															shortcut: "ctrl+shift+s",
-														},
-														{
-															value: "Mentés másként",
-															onClick: () => setOpenTemplateDialog(true),
-															icon: <SaveAll className='w-5 h-5 mr-2' />,
-															shortcut: "f4",
-														},
-												  ]
-												: [
-														{
-															value: "Mentés mint új sablon",
-															onClick: () => setOpenTemplateDialog(true),
-															icon: <SaveAll className='w-5 h-5 mr-2' />,
-															shortcut: "f4",
-														},
-												  ]
-										}
-									/>
 								)}
-							</div>
+							</QuestionTemplate>
 						</div>
 
-						<div
-							className='font-bold'
-							contentEditable={isEditableDescription}
-							onClick={() => setIsEditableDescription(true)}
-							onBlur={() => {
-								setIsEditableDescription(false);
-								setTimeout(async () => {
-									const resp = await fetch(
-										"https://pen.dataupload.xyz/templates/" + selectedTemplate.id + "/",
-										{
-											method: "PATCH",
-											headers: {
-												"Content-Type": "application/json",
-											},
-											body: JSON.stringify({
-												description: description,
-											}),
-										}
-									);
-									if (resp.ok) {
-										toast({
-											title: "Leírás sikeresen frissítve",
-											action: <Check className='w-5 h-5 text-green-700' />,
-											duration: 1000,
-										});
-										return;
+						<div className='mt-3'>
+							{readonly ? null : felmeres.template !== selectedTemplate.id ? (
+								<Button size='icon' variant='outline' onClick={onSelectTemplate}>
+									<Plus className='w-4 h-4 text-gray-700' />
+								</Button>
+							) : (
+								<DropdownMenu
+									dropdownMenuItems={
+										felmeres.template
+											? [
+													{
+														value: "Mentés",
+														onClick: saveTemplate,
+														icon: <Save className='w-5 h-5 mr-2' />,
+														shortcut: "ctrl+shift+s",
+													},
+													{
+														value: "Mentés másként",
+														onClick: () => setOpenTemplateDialog(true),
+														icon: <SaveAll className='w-5 h-5 mr-2' />,
+														shortcut: "f4",
+													},
+											  ]
+											: [
+													{
+														value: "Mentés mint új sablon",
+														onClick: () => setOpenTemplateDialog(true),
+														icon: <SaveAll className='w-5 h-5 mr-2' />,
+														shortcut: "f4",
+													},
+											  ]
 									}
-									toast({
-										title: "Leírás frissítése sikertelen",
-										description: "Kérlek próbáld újra később",
-										variant: "destructive",
-										duration: 2000,
-									});
-								}, 1000);
-							}}
-							onInput={(e) => setDescription(e.currentTarget.textContent ?? "")}>
-							{felmeres.template === selectedTemplate.id ? selectedTemplate.description : ""}
+								/>
+							)}
 						</div>
 					</div>
-				) : null}
+
+					<div className='grid w-1/3 gap-1.5'>
+						<Label htmlFor='subject'>Tárgy</Label>
+
+						<Textarea
+							id='subject'
+							onBlur={() => {
+								if (selectedTemplate.id) {
+									setTimeout(async () => {
+										if (selectedTemplate.description === felmeres.subject) return;
+										const resp = await fetch(
+											"https://pen.dataupload.xyz/templates/" + selectedTemplate.id + "/",
+											{
+												method: "PATCH",
+												headers: {
+													"Content-Type": "application/json",
+												},
+												body: JSON.stringify({
+													description: felmeres.subject,
+												}),
+											}
+										);
+										if (resp.ok) {
+											toast({
+												title: "Leírás sikeresen frissítve",
+												action: <Check className='w-5 h-5 text-green-700' />,
+												duration: 1000,
+											});
+											setSelectedTemplate((prev) => ({
+												...prev,
+												description: felmeres.subject,
+											}));
+											return;
+										}
+										toast({
+											title: "Leírás frissítése sikertelen",
+											description: "Kérlek próbáld újra később",
+											variant: "destructive",
+											duration: 2000,
+										});
+									}, 500);
+								}
+							}}
+							disabled={readonly}
+							value={felmeres.subject}
+							onChange={(e) => {
+								setFelmeres
+									? setFelmeres((prev) => ({ ...prev, subject: e.target.value ?? "" }))
+									: null;
+							}}
+						/>
+						<p className='text-sm text-muted-foreground'>Az ajánlat tárgya.</p>
+					</div>
+				</div>
 				<Card className='my-5'>
 					<div className='w-full overflow-x-auto rounded-md'>
 						<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>

@@ -15,6 +15,7 @@ import CustomDialog from "../_components/CustomDialog";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { createTemplate, updateTemplate } from "@/lib/fetchers";
+import useBreakpointValue from "../_components/useBreakpoint";
 
 export default function Page({ templates, products }: { templates: Template[]; products: Product[] }) {
 	const [template, setTemplate] = React.useState<Template>({ description: "", name: "", type: "", id: 0 });
@@ -98,7 +99,7 @@ export default function Page({ templates, products }: { templates: Template[]; p
 				filters={[
 					{ field: "name", label: "Név", type: "select" },
 					{ field: "type", label: "Típus", type: "select" },
-					{ field: "description", label: "Leírás", type: "select" },
+					{ field: "description", label: "Tárgy", type: "select" },
 					{ field: "jsonProducts", label: "Termék", type: "text" },
 					{ field: "id", label: "Azonosító", type: "select" },
 				]}
@@ -171,16 +172,17 @@ export function Form({
 	onClickAddItem: (e: string) => void;
 	onClickDeleteItem: (e: string) => void;
 }) {
+	const deviceSize = useBreakpointValue();
 	return (
 		<div className='flex flex-col w-full gap-5 h-full overflow-y-scroll px-3'>
-			<div>
+			<div className='flex flex-col gap-2'>
 				<div>Név</div>
 				<Input
 					value={template.name}
 					onChange={(e) => setTemplate((prev) => ({ ...prev, name: e.target.value }))}
 				/>
 			</div>
-			<div>
+			<div className='flex flex-col gap-2'>
 				<div>Típus</div>
 				<Select
 					options={[
@@ -196,24 +198,25 @@ export function Form({
 					value={template.type}
 				/>
 			</div>
-			<div>
-				<div>Leírás</div>
+			<div className='flex flex-col gap-2'>
+				<div>Tárgy</div>
 				<Textarea
 					value={template.description}
 					onChange={(e) => setTemplate((prev) => ({ ...prev, description: e }))}
 				/>
 			</div>
-			<div>
-				<div className='-mt-10'>
+			<div className='flex flex-col gap-2'>
+				<div className='-mt-0 lg:-mt-10'>
 					<Heading title='Tételek' variant='h4' border={false} />
 				</div>
-				<div className='relative bottom-10'>
+				<div className='lg:relative bottom-10'>
 					<AutoComplete
-						side='right'
+						width={deviceSize === "sm" ? "300px" : "600px"}
 						options={products
 							.filter((product) => !items.map((item) => item).includes(product.id.toString()))
+							.sort((a, b) => a.sku.localeCompare(b.sku))
 							.map((product) => ({
-								label: product.sku + " - " + product.name,
+								label: product.sku.trim() + " - " + product.name,
 								value: product.id.toString(),
 							}))}
 						onSelect={onClickAddItem}

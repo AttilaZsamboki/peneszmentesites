@@ -309,7 +309,6 @@ export default function ClientPage({
 										<EditButton
 											href={`/${felmeresId}/edit`}
 											disabled={
-												felmeresStatus === "COMPLETED" ||
 												felmeresStatus === "CANCELLED" ||
 												felmeres.offer_status === "Elfogadott ajánlat" ||
 												felmeres.offer_status == "Sikeres megrendelés"

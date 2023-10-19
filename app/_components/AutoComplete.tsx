@@ -39,7 +39,7 @@ export default function AutoComplete({
 					aria-expanded={open}
 					style={{ width: width }}
 					className='justify-between'>
-					{value ? options.find((option) => option.label === value)?.label : (label ?? "Keress..")}
+					{value ? options.find((option) => option.label === value)?.label : label ?? "Keress.."}
 					<div className='flex items-center'>
 						{value && deselectable && (
 							<X
@@ -104,9 +104,16 @@ export default function AutoComplete({
 									onSelect ? onSelect(option.value) : null;
 									setOpen(false);
 								}}>
-								<Check
-									className={cn("mr-2 h-4 w-4", value === option.label ? "opacity-100" : "opacity-0")}
-								/>
+								{value ? (
+									<Check
+										className={cn(
+											"mr-2 h-4 w-4",
+											value === option.label ? "opacity-100" : "opacity-0"
+										)}
+									/>
+								) : (
+									<div className='mr-2'></div>
+								)}
 								{option.label}
 							</CommandItem>
 						))}
