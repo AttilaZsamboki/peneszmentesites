@@ -27,7 +27,7 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(err);
-			return {};
+			return { adatlap_id: 0 };
 		});
 	const felmeresItems: FelmeresItem[] = await fetch(
 		"https://pen.dataupload.xyz/felmeres_items?adatlap_id=" + felmeresId,
@@ -71,7 +71,9 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 			  }
 			: { ...field }
 	);
+	console.log(felmeres);
 	if (!felmeres || !felmeres.adatlap_id) {
+		console.log(felmeres);
 		notFound();
 	}
 

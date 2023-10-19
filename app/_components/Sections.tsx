@@ -1,9 +1,10 @@
 "use client";
 
 import React from "react";
-import { Tab, Tabs, TabsHeader, Accordion, AccordionBody, AccordionHeader } from "@material-tailwind/react";
-import Input from "./Input";
 import Link from "next/link";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 function Icon({ open }: { open: boolean }) {
 	return (
@@ -25,9 +26,10 @@ export default function Sections({
 	filter,
 	setFilter,
 	disabled = false,
+	selected,
 	href,
 }: {
-	options: { label: string; value: string | number }[];
+	options: { label: string; value: string | number; subOptions?: { label: string; value: string | number }[] }[];
 	selected: string | number;
 	setSelected: React.Dispatch<React.SetStateAction<string | number>>;
 	filter: string;
@@ -35,33 +37,60 @@ export default function Sections({
 	disabled?: boolean;
 	href?: (value: string) => string;
 }) {
-	const [open, setOpen] = React.useState(true);
 	return (
-		<Tabs className='sticky top-5 w-full flex flex-col ' orientation='vertical'>
-			<TabsHeader className='rounded-none lg:rounded-sm px-5 border'>
-				<Accordion open={open} icon={<Icon open={open} />}>
-					<AccordionHeader onClick={() => setOpen(!open)}>
-						<div className='mx-3 my-1 mb-3 w-full'>
-							<Input onChange={(e) => setFilter(e.target.value)} value={filter} />
-						</div>
-					</AccordionHeader>
-					<AccordionBody>
-						{options.map((section) => (
-							<Link key={section.value} href={href ? href(section.value.toString()) : ""}>
-								<Tab
-									onClick={() => {
-										setSelected(section.value);
-										setFilter("");
-									}}
-									disabled={disabled}
-									value={section.value}>
-									{section.label}
-								</Tab>
+		<Card>
+			<CardHeader>
+				<CardTitle>Szekciók</CardTitle>
+				<CardDescription>Itt tudsz a szekciók között váltani</CardDescription>
+			</CardHeader>
+			<CardContent className='sticky top-5 w-full '>
+				<div className='rounded-none py-3 lg:rounded-sm px-3 border flex flex-col gap-2'>
+					{options.map((section) =>
+						section.subOptions ? (
+							<Accordion key={section.value} type='single' collapsible>
+								<AccordionItem className='border-b-0' value='item-1'>
+									<AccordionTrigger className='hover:no-underline rounded-md px-2 py-1'>
+										{section.label}
+									</AccordionTrigger>
+									<AccordionContent>
+										<div className='flex flex-col gap-2 py-2'>
+											{section.subOptions.map((option) => (
+												<Link
+													key={option.value}
+													className={cn(
+														selected === option.value && "bg-gray-100 font-semibold",
+														"rounded-md px-2 py-1"
+													)}
+													href={href ? href(option.value.toString()) : ""}
+													onClick={() => {
+														setSelected(option.value);
+														setFilter("");
+													}}>
+													{option.label}
+												</Link>
+											))}
+										</div>
+									</AccordionContent>
+								</AccordionItem>
+							</Accordion>
+						) : (
+							<Link
+								key={section.value}
+								className={cn(
+									selected === section.value && "bg-gray-100 font-semibold",
+									"rounded-md px-2 py-1"
+								)}
+								href={href ? href(section.value.toString()) : ""}
+								onClick={() => {
+									setSelected(section.value);
+									setFilter("");
+								}}>
+								<div>{section.label}</div>
 							</Link>
-						))}
-					</AccordionBody>
-				</Accordion>
-			</TabsHeader>
-		</Tabs>
+						)
+					)}
+				</div>
+			</CardContent>
+		</Card>
 	);
 }

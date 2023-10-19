@@ -46,12 +46,13 @@ export const hufFormatter = new Intl.NumberFormat("hu-HU", {
 	currency: "HUF",
 });
 
-export type SectionNames = "" | "Tételek" | "Alapadatok" | "Fix" | number;
+export type SectionNames = "" | "Tételek" | "Alapadatok" | "Fix" | "Kérdések" | number;
 
 export interface PageMap {
 	component: JSX.Element;
 	title: string;
 	id: SectionNames;
+	subSections?: PageMap[];
 }
 
 export default function ClientPage({
@@ -119,36 +120,41 @@ export default function ClientPage({
 			title: "Tételek",
 			id: "Tételek",
 		},
-		...Array.from(
-			new Set(
-				felmeresQuestions
-					.filter((question) => question.value && question.value !== "")
-					.map((question) => question.product)
-			)
-		).map((product) => ({
-			component: isEditing ? (
-				<QuestionPage
-					questions={questions.filter((question) =>
-						felmeresQuestions
-							.filter((field) => field.product === product)
-							.map((field) => field.question)
-							.includes(question.id)
-					)}
-					setData={setFilteredData}
-					adatlap_id={felmeres.adatlap_id}
-					globalData={filteredData.map((field) => ({
-						...field,
-						value: isJSONParsable(field.value) ? JSON.parse(field.value) : field.value,
-					}))}
-					product={product}
-					key={product}
-				/>
-			) : (
-				<QuestionPageRead product={product} questions={questions} data={originalData} key={product} />
-			),
-			title: products.find((p) => p.id === product)?.sku ?? "Fix kérdések",
-			id: product ?? ("Fix" as SectionNames),
-		})),
+		{
+			component: <div></div>,
+			id: "Kérdések",
+			title: "Kérdések",
+			subSections: Array.from(
+				new Set(
+					felmeresQuestions
+						.filter((question) => question.value && question.value !== "")
+						.map((question) => question.product)
+				)
+			).map((product) => ({
+				component: isEditing ? (
+					<QuestionPage
+						questions={questions.filter((question) =>
+							felmeresQuestions
+								.filter((field) => field.product === product)
+								.map((field) => field.question)
+								.includes(question.id)
+						)}
+						setData={setFilteredData}
+						adatlap_id={felmeres.adatlap_id}
+						globalData={filteredData.map((field) => ({
+							...field,
+							value: isJSONParsable(field.value) ? JSON.parse(field.value) : field.value,
+						}))}
+						product={product}
+						key={product}
+					/>
+				) : (
+					<QuestionPageRead product={product} questions={questions} data={originalData} key={product} />
+				),
+				title: products.find((p) => p.id === product)?.sku ?? "Fix kérdések",
+				id: product ?? ("Fix" as SectionNames),
+			})),
+		},
 	];
 
 	const [filter, setFilter] = React.useState("");
@@ -251,6 +257,13 @@ export default function ClientPage({
 		});
 	};
 
+	console.log(
+		sections
+			.map((section) =>
+				[...(section.subSections ?? []), section].find((section) => section?.id === selectedSection)
+			)
+			.filter((section) => section !== undefined)[0]?.title
+	);
 	return (
 		<div className='w-full overflow-y-scroll overflow-x-hidden lg:h-[98dvh] h-[90dvh]'>
 			<div className='flex flex-row w-ful flex-wrap lg:flex-nowrap justify-center mt-2'>
@@ -341,19 +354,42 @@ export default function ClientPage({
 													return section.component;
 												}
 												return (
-													<div key={index} className='border-t'>
-														<Heading
-															id={section.id.toString()}
-															variant='h3'
-															border={false}
-															marginY='my-5'
-															title={section.title}
-														/>
-														{section.component}
-													</div>
+													<>
+														<Separator className='my-5' />
+														<div key={index} className=''>
+															<Heading
+																id={section.id.toString()}
+																variant='h3'
+																border={false}
+																marginY='my-5'
+																title={section.title}
+															/>
+															{section.component}
+														</div>
+														{section.subSections?.map((subSection) => {
+															return (
+																<div key={subSection.id} className=''>
+																	<Heading
+																		id={subSection.id.toString()}
+																		variant='h5'
+																		border={false}
+																		marginY='my-5 font-medium text-left ml-0 pl-0 w-full'
+																		title={subSection.title}
+																	/>
+																	{subSection.component}
+																</div>
+															);
+														})}
+													</>
 												);
 											})
-									: sections.find((section) => section.id === selectedSection)?.component}
+									: sections
+											.map((section) =>
+												[...(section.subSections ?? []), section].find(
+													(section) => section?.id === selectedSection
+												)
+											)
+											.filter((section) => section !== undefined)[0]?.component}
 							</CardContent>
 						</Card>
 					</div>
@@ -363,7 +399,14 @@ export default function ClientPage({
 						<div className='w-full sticky top-8 '>
 							<div className='relative'>
 								<Sections
-									options={sections.map((section) => ({ label: section.title, value: section.id }))}
+									options={sections.map((section) => ({
+										label: section.title,
+										value: section.id,
+										subOptions: section.subSections?.map((sub) => ({
+											label: sub.title,
+											value: sub.id,
+										})),
+									}))}
 									href={(value) => `/${felmeresId}#${isAll ? value : ""}`}
 									selected={selectedSection}
 									setSelected={
