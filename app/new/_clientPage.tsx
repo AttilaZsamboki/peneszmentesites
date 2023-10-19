@@ -21,7 +21,13 @@ import { useGlobalState } from "@/app/_clientLayout";
 import { Page2 } from "./Page2";
 import { useToast } from "@/components/ui/use-toast";
 import { Checkmark } from "@/components/check";
-import { PageMap, SectionNames, isJSONParsable } from "../[id]/_clientPage";
+import {
+	FelmeresPictures,
+	FelmeresPicturesComponent,
+	PageMap,
+	SectionNames,
+	isJSONParsable,
+} from "../[id]/_clientPage";
 import _ from "lodash";
 import { ToastAction } from "@/components/ui/toast";
 import { CornerUpLeft, IterationCw } from "lucide-react";
@@ -103,6 +109,7 @@ export default function Page({
 	editData,
 	startPage,
 	isEdit,
+	editPictures,
 }: {
 	adatlapok: AdatlapData[];
 	templates: Template[];
@@ -113,6 +120,7 @@ export default function Page({
 	editData?: FelmeresQuestion[];
 	startPage?: number;
 	isEdit?: boolean;
+	editPictures?: FelmeresPictures[];
 }) {
 	const { setProgress } = useGlobalState();
 	const searchParams = useSearchParams();
@@ -180,6 +188,8 @@ export default function Page({
 				: 0
 			: 0
 	);
+	const [pictures, setPictures] = React.useState<FelmeresPictures[]>(editPictures ?? []);
+
 	const { toast } = useToast();
 	const createQueryString = useCreateQueryString(searchParams);
 
@@ -465,6 +475,21 @@ export default function Page({
 			console.log("Kérdések létrehozása: " + (createQuestions - start) + "ms");
 			// -- END -- //
 
+			// Képek mentése //
+			pictures
+				.filter((pic) => !pic.id)
+				.map(
+					async (pic) =>
+						await fetch("https://pen.dataupload.xyz/felmeres-pictures/", {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+							},
+							body: JSON.stringify({ ...pic, felmeres: felmeresResponseData.id }),
+						})
+				);
+			// -- END -- //
+
 			// MiniCRM ajánlat létrehozása //
 			if (
 				// Nem failelt a kérdések mentése
@@ -738,6 +763,7 @@ export default function Page({
 						<Separator className='mb-4' />
 						<CardContent className={`${page !== 1 ? "p-8" : null} transform`}>
 							<PageChooser
+								setPictures={setPictures}
 								setOtherItems={setOtherItems}
 								globalData={data}
 								setData={setData}
@@ -756,6 +782,7 @@ export default function Page({
 								otherItems={otherItems}
 								discount={discount}
 								setDiscount={setDiscount}
+								pictures={pictures}
 							/>
 							<div className='flex flex-row justify-end gap-3 py-4'>
 								{page === 0 || startPage === page ? null : (
@@ -938,6 +965,8 @@ function PageChooser({
 	setOtherItems,
 	discount,
 	setDiscount,
+	pictures,
+	setPictures,
 }: {
 	page: number;
 	setData: React.Dispatch<React.SetStateAction<FelmeresQuestion[]>>;
@@ -957,6 +986,8 @@ function PageChooser({
 	setOtherItems: React.Dispatch<React.SetStateAction<OtherFelmeresItem[]>>;
 	discount: number;
 	setDiscount: React.Dispatch<React.SetStateAction<number>>;
+	pictures: FelmeresPictures[];
+	setPictures: React.Dispatch<React.SetStateAction<FelmeresPictures[]>>;
 }) {
 	const pageMap: PageMap[] = [
 		{
@@ -1000,6 +1031,18 @@ function PageChooser({
 					id: product ?? ("Fix" as SectionNames),
 				};
 			}),
+		{
+			component: (
+				<FelmeresPicturesComponent
+					save={false}
+					felmeresId={felmeres.id}
+					pictures={pictures}
+					setPictures={setPictures}
+				/>
+			),
+			id: "Kép",
+			title: "Képek",
+		},
 	];
 
 	React.useEffect(() => {

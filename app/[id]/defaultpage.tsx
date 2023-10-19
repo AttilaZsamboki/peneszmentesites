@@ -40,10 +40,16 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 	const products: Product[] = await fetch("https://pen.dataupload.xyz/products?all=true", {
 		next: { tags: ["products"] },
 	}).then((response) => response.json());
+	const pictures = await fetch("https://pen.dataupload.xyz/felmeres-pictures?felmeres_id=" + felmeresId, {
+		next: { tags: [encodeURIComponent(felmeresId)] },
+	})
+		.then((res) => res.json())
+		.catch((err) => console.error(err));
 
 	if (edit) {
 		return (
 			<EditClientPage
+				pictures={pictures}
 				felmeres={felmeres}
 				felmeresItems={felmeresItems}
 				felmeresQuestions={felmeresQuestions}
@@ -71,9 +77,7 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 			  }
 			: { ...field }
 	);
-	console.log(felmeres);
 	if (!felmeres || !felmeres.adatlap_id) {
-		console.log(felmeres);
 		notFound();
 	}
 
@@ -91,6 +95,7 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 	if (adatlap) {
 		return (
 			<ClientPage
+				pictures={pictures}
 				felmeresQuestions={formattedFelmeres}
 				felmeresItems={felmeresItems}
 				questions={question}

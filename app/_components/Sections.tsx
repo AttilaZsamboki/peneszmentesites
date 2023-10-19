@@ -52,14 +52,14 @@ export default function Sections({
 									<AccordionTrigger className='hover:no-underline rounded-md px-2 py-1'>
 										{section.label}
 									</AccordionTrigger>
-									<AccordionContent>
+									<AccordionContent className='pb-0'>
 										<div className='flex flex-col gap-2 py-2'>
 											{section.subOptions.map((option) => (
 												<Link
 													key={option.value}
 													className={cn(
 														selected === option.value && "bg-gray-100 font-semibold",
-														"rounded-md px-2 py-1"
+														"rounded-md px-2 py-1 ml-2"
 													)}
 													href={href ? href(option.value.toString()) : ""}
 													onClick={() => {

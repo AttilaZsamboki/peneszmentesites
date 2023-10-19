@@ -31,6 +31,7 @@ import _ from "lodash";
 import { ToastAction } from "@/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Product } from "../products/page";
+import FileUpload from "../_components/FileUpload";
 
 export function isJSONParsable(str: string) {
 	try {
@@ -46,13 +47,19 @@ export const hufFormatter = new Intl.NumberFormat("hu-HU", {
 	currency: "HUF",
 });
 
-export type SectionNames = "" | "Tételek" | "Alapadatok" | "Fix" | "Kérdések" | number;
+export type SectionNames = "" | "Tételek" | "Alapadatok" | "Fix" | "Kérdések" | "Kép" | number;
 
 export interface PageMap {
 	component: JSX.Element;
 	title: string;
 	id: SectionNames;
 	subSections?: PageMap[];
+}
+
+export interface FelmeresPictures {
+	id: number;
+	felmeres: number;
+	src: string;
 }
 
 export default function ClientPage({
@@ -64,6 +71,7 @@ export default function ClientPage({
 	questions,
 	template,
 	products,
+	pictures,
 }: {
 	felmeresQuestions: FelmeresQuestion[];
 	felmeresId: string;
@@ -73,6 +81,7 @@ export default function ClientPage({
 	adatlap: AdatlapDetails;
 	template: Template;
 	products: Product[];
+	pictures: FelmeresPictures[];
 }) {
 	const [felmeres, setFelmeres] = React.useState(
 		felmeresNonState
@@ -94,6 +103,7 @@ export default function ClientPage({
 		}))
 	);
 	const [selectedSection, setSelectedSection] = React.useState<SectionNames>("");
+	const [statePictures, setStatePictures] = React.useState(pictures);
 
 	const sections: PageMap[] = [
 		{
@@ -154,6 +164,17 @@ export default function ClientPage({
 				title: products.find((p) => p.id === product)?.sku ?? "Fix kérdések",
 				id: product ?? ("Fix" as SectionNames),
 			})),
+		},
+		{
+			component: (
+				<FelmeresPicturesComponent
+					felmeresId={parseInt(felmeresId)}
+					pictures={statePictures}
+					setPictures={setStatePictures}
+				/>
+			),
+			id: "Kép",
+			title: "Képek",
 		},
 	];
 
@@ -257,13 +278,6 @@ export default function ClientPage({
 		});
 	};
 
-	console.log(
-		sections
-			.map((section) =>
-				[...(section.subSections ?? []), section].find((section) => section?.id === selectedSection)
-			)
-			.filter((section) => section !== undefined)[0]?.title
-	);
 	return (
 		<div className='w-full overflow-y-scroll overflow-x-hidden lg:h-[98dvh] h-[90dvh]'>
 			<div className='flex flex-row w-ful flex-wrap lg:flex-nowrap justify-center mt-2'>
@@ -347,28 +361,31 @@ export default function ClientPage({
 							<Separator className='mb-4' />
 							<CardContent>
 								{isAll
-									? sections
-											.sort((a, b) => Number(a.id === "Fix") - Number(b.id === "Fix"))
-											.map((section, index) => {
-												if (index === 0) {
-													return section.component;
-												}
-												return (
-													<>
-														<Separator className='my-5' />
-														<div key={index} className=''>
-															<Heading
-																id={section.id.toString()}
-																variant='h3'
-																border={false}
-																marginY='my-5'
-																title={section.title}
-															/>
-															{section.component}
-														</div>
-														{section.subSections?.map((subSection) => {
+									? sections.map((section, index) => {
+											if (index === 0) {
+												return section.component;
+											}
+											if (section.subSections && section.subSections.length === 0) return;
+											return (
+												<>
+													<Separator className='my-5' />
+													<div key={index} className=''>
+														<Heading
+															id={section.id.toString()}
+															variant='h3'
+															border={false}
+															marginY='my-5'
+															title={section.title}
+														/>
+														{section.component}
+													</div>
+													{section.subSections
+														?.sort(
+															(a, b) => Number(a.id === "Fix") - Number(b.id === "Fix")
+														)
+														.map((subSection) => {
 															return (
-																<div key={subSection.id} className=''>
+																<div key={subSection.id}>
 																	<Heading
 																		id={subSection.id.toString()}
 																		variant='h5'
@@ -380,9 +397,9 @@ export default function ClientPage({
 																</div>
 															);
 														})}
-													</>
-												);
-											})
+												</>
+											);
+									  })
 									: sections
 											.map((section) =>
 												[...(section.subSections ?? []), section].find(
@@ -399,14 +416,18 @@ export default function ClientPage({
 						<div className='w-full sticky top-8 '>
 							<div className='relative'>
 								<Sections
-									options={sections.map((section) => ({
-										label: section.title,
-										value: section.id,
-										subOptions: section.subSections?.map((sub) => ({
-											label: sub.title,
-											value: sub.id,
-										})),
-									}))}
+									options={sections
+										.map((section) => ({
+											label: section.title,
+											value: section.id,
+											subOptions: section.subSections?.map((sub) => ({
+												label: sub.title,
+												value: sub.id,
+											})),
+										}))
+										.filter((section) =>
+											section.subOptions ? section.subOptions.length > 0 : true
+										)}
 									href={(value) => `/${felmeresId}#${isAll ? value : ""}`}
 									selected={selectedSection}
 									setSelected={
@@ -577,4 +598,76 @@ function FieldViewing({ data, question }: { data: FelmeresQuestion; question: Qu
 			</div>
 		);
 	}
+}
+
+export function FelmeresPicturesComponent({
+	pictures,
+	setPictures,
+	felmeresId,
+	save = true,
+}: {
+	pictures: FelmeresPictures[];
+	setPictures: React.Dispatch<React.SetStateAction<FelmeresPictures[]>>;
+	felmeresId: number;
+	save?: boolean;
+}) {
+	return (
+		<div className='flex flex-col gap-2'>
+			<Gallery
+				media={pictures.map((pic) => pic.src)}
+				edit={true}
+				onDelete={async (index) => {
+					const pic = pictures[index];
+					if (!pic.id && !save) {
+						setPictures((prev) => prev.filter((pic, i) => i !== index));
+						return;
+					}
+					const resp = await fetch("https://pen.dataupload.xyz/felmeres-pictures/" + pictures[index].id, {
+						method: "DELETE",
+					});
+					if (resp.ok) {
+						setPictures((prev) => prev.filter((pic, i) => i !== index));
+						await fetch("/api/revalidate?tag=" + felmeresId);
+					}
+				}}
+			/>
+			<FileUpload
+				onUpload={async (file) => {
+					if (!save) {
+						setPictures((prev) => [
+							...prev,
+							{
+								id: 0,
+								felmeres: 0,
+								src: "https://felmeres-note-images.s3.eu-central-1.amazonaws.com/" + file.filename,
+							},
+						]);
+						return;
+					}
+					const resp = await fetch("https://pen.dataupload.xyz/felmeres-pictures/", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							felmeres: felmeresId,
+							src: "https://felmeres-note-images.s3.eu-central-1.amazonaws.com/" + file.filename,
+						}),
+					});
+					if (resp.ok) {
+						const data = await resp.json();
+						setPictures((prev) => [
+							...prev,
+							{
+								id: data.id,
+								felmeres: felmeresId,
+								src: "https://felmeres-note-images.s3.eu-central-1.amazonaws.com/" + file.filename,
+							},
+						]);
+						await fetch("/api/revalidate?tag=" + felmeresId);
+					}
+				}}
+			/>
+		</div>
+	);
 }

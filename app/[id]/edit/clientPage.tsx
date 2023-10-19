@@ -4,17 +4,20 @@ import { Product } from "@/app/products/page";
 import { ProductAttributes } from "@/app/products/_clientPage";
 import { Adatlap } from "@/app/new/page";
 import { FelmeresQuestion } from "@/app/page";
+import { FelmeresPictures } from "../_clientPage";
 
 export default async function Page({
 	felmeres,
 	felmeresItems,
 	felmeresQuestions,
-	products
+	products,
+	pictures,
 }: {
 	felmeres: BaseFelmeresData;
 	felmeresItems: FelmeresItem[];
 	felmeresQuestions: FelmeresQuestion[];
 	products: Product[];
+	pictures: FelmeresPictures[];
 }) {
 	var myHeaders = new Headers();
 	myHeaders.append("Authorization", "Basic MTE5OkQwNlBVTE9JM2VUUkJLY2xqQUdRWWJkNEZFcHVWeTFn");
@@ -45,6 +48,7 @@ export default async function Page({
 
 	return (
 		<ClientPage
+			editPictures={pictures}
 			editFelmeresItems={felmeresItems}
 			editFelmeres={felmeres}
 			adatlapok={adatlapok}

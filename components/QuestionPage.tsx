@@ -48,7 +48,7 @@ export function QuestionPage({
 		</div>
 	);
 }
-function FieldCreate({
+export function FieldCreate({
 	question,
 	setGlobalData,
 	globalData,
