@@ -47,9 +47,8 @@ export default function Sections({
 					</AccordionHeader>
 					<AccordionBody>
 						{options.map((section) => (
-							<Link href={href ? href(section.value.toString()) : ""}>
+							<Link key={section.value} href={href ? href(section.value.toString()) : ""}>
 								<Tab
-									key={section.value}
 									onClick={() => {
 										setSelected(section.value);
 										setFilter("");
