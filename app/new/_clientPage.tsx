@@ -31,6 +31,17 @@ import Link from "next/link";
 import { FelmeresStatus, useCreateQueryString } from "../_utils/utils";
 import { calculatePercentageValue } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export interface ProductTemplate {
 	product: number;
@@ -776,7 +787,45 @@ export default function Page({
 												sku: item.sku ? item.sku : null,
 												adatlap: null,
 											}))
-										) && felmeres.status !== "DRAFT" ? null : (
+										) && felmeres.status !== "DRAFT" ? null : isEdit ? (
+											<AlertDialog>
+												<AlertDialogTrigger asChild>
+													<Button
+														className='bg-green-500 hover:bg-green-500/90'
+														color='green'
+														disabled={
+															isDisabled[
+																page === 0
+																	? "Alapadatok"
+																	: page === 1
+																	? "Tételek"
+																	: section === "Fix kérdések"
+																	? "Fix"
+																	: section
+															]
+														}>
+														Beküldés
+													</Button>
+												</AlertDialogTrigger>
+												<AlertDialogContent>
+													<AlertDialogHeader>
+														<AlertDialogTitle>Biztos vagy benne?</AlertDialogTitle>
+														<AlertDialogDescription>
+															Ez a művelet nem vonható vissza. Ez véglegesen sztornózni
+															fogja az ajánlatot.
+														</AlertDialogDescription>
+													</AlertDialogHeader>
+													<AlertDialogFooter>
+														<AlertDialogCancel>Mégsem</AlertDialogCancel>
+														<AlertDialogAction
+															className='bg-red-800 hover:bg-red-800/90'
+															onClick={() => CreateFelmeres()}>
+															Folytatás
+														</AlertDialogAction>
+													</AlertDialogFooter>
+												</AlertDialogContent>
+											</AlertDialog>
+										) : (
 											<Button
 												className='bg-green-500 hover:bg-green-500/90'
 												color='green'

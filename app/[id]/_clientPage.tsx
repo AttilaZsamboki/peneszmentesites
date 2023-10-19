@@ -506,9 +506,7 @@ function QuestionPageRead({
 
 function FieldViewing({ data, question }: { data: FelmeresQuestion; question: Question }) {
 	if (["TEXT", "LIST", "MULTIPLE_CHOICE", "SCALE"].includes(question.type)) {
-		return (
-			<dd className='mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 lg:text-right'>{data.value}</dd>
-		);
+		return <div className='mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 '>{data.value}</div>;
 	} else if (question.type === "CHECKBOX") {
 		return (
 			<MultipleChoice
