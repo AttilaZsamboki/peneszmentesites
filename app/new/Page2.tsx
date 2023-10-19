@@ -112,7 +112,7 @@ export function Page2({
 							setItems((prevItems) => [
 								...prevItems,
 								{
-									id: prevItems.length,
+									id: prevItems.length ? Math.max(...prevItems.map((item) => item.id ?? 0)) + 1 : 0,
 									product: productTemplate.product,
 									name: productData.name,
 									place: productAttributeData ? productAttributeData.place : true,
@@ -309,6 +309,7 @@ export function Page2({
 									valueType: "fixed",
 									source: "Template",
 									category: "",
+									id: Math.max(...prev.map((item) => item.id ?? 0)) + 1,
 								},
 							]);
 						}}
@@ -822,7 +823,7 @@ export function Page2({
 															...prev.filter((item) => item.product.toString() !== value),
 															{
 																...prev[prev.length - 1],
-																id: items.length,
+																id: Math.max(...items.map((item) => item.id ?? 0)) + 1,
 																adatlap: felmeres.adatlap_id,
 																product: parseInt(value),
 																name: product.name,
