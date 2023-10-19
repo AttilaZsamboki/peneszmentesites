@@ -2,13 +2,23 @@
 import React from "react";
 import { ArchiveBoxIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import CircularProgressBar from "./_components/CircularProgressBar";
 import { Toaster } from "@/components/ui/toaster";
 import { ChevronDown, Menu, Search } from "lucide-react";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Separator } from "@/components/ui/separator";
 import useBreakpointValue from "./_components/useBreakpoint";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Progress {
 	percent: number;
@@ -103,7 +113,8 @@ export function useGlobalState() {
 
 function Navbar({ routes }: { routes: Route[] }) {
 	const deviceSize = useBreakpointValue();
-	const router = usePathname().split("?")[0];
+	const pathname = usePathname().split("?")[0];
+	const router = useRouter();
 	const [open, setOpen] = React.useState("");
 	const [openNav, setOpenNav] = React.useState(false);
 	const [ref] = useAutoAnimate<HTMLDivElement>();
@@ -115,14 +126,19 @@ function Navbar({ routes }: { routes: Route[] }) {
 	const handleSetOpen = (route: string) => {
 		setOpen((prev) => (prev === route ? "" : route));
 	};
-	const routerParts = router.split("/");
+	const routerParts = pathname.split("/");
 	const routerBasePath = isNaN(Number(routerParts[1])) ? routerParts[1] : routerParts[0]; // Check if the base path is an integer
 	const activeRoute: any = routes.find(
 		(route) =>
 			route.subRoutes.some((subRoute) => subRoute.href.includes("/" + routerBasePath)) ||
 			"/" + routerBasePath === route.href
 	);
+	const { user, error, isLoading } = useUser();
 
+	if (!user && !isLoading) {
+		window.location.href = "/api/auth/login";
+		return null;
+	}
 	return (
 		<div className='flex' ref={ref}>
 			{!openNav ? (
@@ -154,7 +170,7 @@ function Navbar({ routes }: { routes: Route[] }) {
 										className={`p-1.5 ${
 											route.subRoutes
 												? [...route.subRoutes.map((route) => route.href), route.href].includes(
-														"/" + router.split("/")[1]
+														"/" + pathname.split("/")[1]
 												  )
 													? "bg-gray-200"
 													: "text-gray-500 dark:text-gray-400 dark:hover:bg-gray-800 hover:bg-gray-100"
@@ -170,7 +186,7 @@ function Navbar({ routes }: { routes: Route[] }) {
 			) : (
 				<div className='flex'>
 					<aside className='border-r'>
-						<div className='flex flex-col items-start w-[250px] lg:w-[300px] h-full py-8 space-y-8 bg-white dark:bg-gray-900 dark:border-gray-700 sticky top-0'>
+						<div className='flex justify-between flex-col items-start w-[250px] lg:w-[300px] h-full py-8 space-y-8 bg-white dark:bg-gray-900 dark:border-gray-700 sticky top-0'>
 							<div className='flex flex-col items-start w-full px-4 h-full bg-white dark:bg-gray-900 dark:border-gray-700 sticky top-0 gap-2'>
 								<div
 									className='pb-2 active:bg-white cursor-pointer justify-self-end self-end'
@@ -189,7 +205,7 @@ function Navbar({ routes }: { routes: Route[] }) {
 											<div
 												className={`${
 													route.subRoutes
-														? router === route.href
+														? pathname === route.href
 															? "bg-gray-200"
 															: "text-gray-500 dark:text-gray-400 dark:hover:bg-gray-800 hover:bg-gray-100"
 														: ""
@@ -225,7 +241,7 @@ function Navbar({ routes }: { routes: Route[] }) {
 																	key={subRoute.href[0]}
 																	href={subRoute.href[0]}
 																	className={`${
-																		subRoute.href.includes(router)
+																		subRoute.href.includes(pathname)
 																			? "bg-gray-200"
 																			: "text-gray-500 dark:text-gray-400 dark:hover:bg-gray-800 hover:bg-gray-100"
 																	} focus:outline-nones flex flex-row w-full p-2 items-center gap-5 transition-colors duration-200 rounded-lg`}>
@@ -239,6 +255,54 @@ function Navbar({ routes }: { routes: Route[] }) {
 										</div>
 									);
 								})}
+							</div>
+							<div className='px-4'>
+								{isLoading ? (
+									<div className='flex items-center justify-center w-full h-full'>
+										<div className='flex justify-center items-center space-x-1 text-sm text-gray-700'>
+											<svg
+												fill='none'
+												className='w-6 h-6 animate-spin'
+												viewBox='0 0 32 32'
+												xmlns='http://www.w3.org/2000/svg'>
+												<path
+													clip-rule='evenodd'
+													d='M15.165 8.53a.5.5 0 01-.404.58A7 7 0 1023 16a.5.5 0 011 0 8 8 0 11-9.416-7.874.5.5 0 01.58.404z'
+													fill='currentColor'
+													fill-rule='evenodd'
+												/>
+											</svg>
+
+											<div>Töltődik ...</div>
+										</div>
+									</div>
+								) : !user ? (
+									<a href='/api/auth/login'>Login</a>
+								) : (
+									<div className='flex flex-row items-center gap-2'>
+										<Avatar>
+											<AvatarImage src={user.picture ?? ""} />
+											<AvatarFallback>{user.nickname}</AvatarFallback>
+										</Avatar>
+										<DropdownMenu></DropdownMenu>
+										<DropdownMenu>
+											<DropdownMenuTrigger>{user.name}</DropdownMenuTrigger>
+											<DropdownMenuContent>
+												<DropdownMenuLabel>Fiókom</DropdownMenuLabel>
+												<DropdownMenuSeparator />
+												<a href='/api/auth/me'>
+													<DropdownMenuItem>Profil</DropdownMenuItem>
+												</a>
+												<DropdownMenuSeparator />
+												<a href='/api/auth/logout'>
+													<DropdownMenuItem className='text-red-700 hover:text-red-700 font-semibold'>
+														Kijelentkezés
+													</DropdownMenuItem>
+												</a>
+											</DropdownMenuContent>
+										</DropdownMenu>
+									</div>
+								)}
 							</div>
 						</div>
 					</aside>

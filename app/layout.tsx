@@ -6,6 +6,7 @@ import "filepond/dist/filepond.min.css";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
 
 import RootLayoutClient from "./_clientLayout";
+import { UserProvider } from "@auth0/nextjs-auth0/client";
 
 import type { Metadata } from "next";
 
@@ -21,10 +22,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
 		<html lang='en'>
-			<body>
-				<RootLayoutClient>{children}</RootLayoutClient>
-				<Analytics />
-			</body>
+			<UserProvider>
+				<body>
+					<RootLayoutClient>{children}</RootLayoutClient>
+					<Analytics />
+				</body>
+			</UserProvider>
 		</html>
 	);
 }

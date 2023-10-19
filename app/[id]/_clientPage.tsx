@@ -47,7 +47,7 @@ export const hufFormatter = new Intl.NumberFormat("hu-HU", {
 	currency: "HUF",
 });
 
-export type SectionNames = "" | "Tételek" | "Alapadatok" | "Fix" | "Kérdések" | "Kép" | number;
+export type SectionNames = "" | "Tételek" | "Alapadatok" | "Fix" | "Kérdések" | "Kép" | "Megjegyzések" | number;
 
 export interface PageMap {
 	component: JSX.Element;
@@ -175,6 +175,14 @@ export default function ClientPage({
 			),
 			id: "Kép",
 			title: "Képek",
+		},
+		{
+			component: (
+				// <Discuss />
+				<div></div>
+			),
+			id: "Megjegyzések",
+			title: "Megjegyzések",
 		},
 	];
 
