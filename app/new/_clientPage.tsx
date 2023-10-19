@@ -564,6 +564,7 @@ export default function Page({
 													return;
 												}
 												updateStatus(3400);
+												await fetch("/api/revalidate?tag=" + felmeres.id);
 												router.push("/");
 											}}>
 											<IterationCw className='w-5 h-5' />
@@ -572,6 +573,7 @@ export default function Page({
 											altText='skip'
 											onClick={async () => {
 												updateStatus(3400);
+												await fetch("/api/revalidate?tag=" + felmeres.id);
 												router.push("/");
 											}}>
 											Kihagyás
@@ -587,7 +589,7 @@ export default function Page({
 						return;
 					}
 					updateStatus(3400);
-					await fetch("/api/revalidate?tag=" + felmeres.id);
+					await fetch("/api/revalidate?tag=" + felmeresResponseData.id);
 					await fetch("/api/revalidate?path=/");
 					router.push("/");
 				}
@@ -604,17 +606,20 @@ export default function Page({
 					const closeTodo = performance.now();
 					console.log("ToDo lezárása: " + (closeTodo - start) + "ms");
 					updateStatus(3400);
-					await fetch("/api/revalidate?path=/" + felmeres.id);
+					await fetch("/api/revalidate?path=/" + felmeresResponseData.id);
+					await fetch("/api/revalidate?tag=" + felmeresResponseData.id);
 					router.push("/");
 					// -- END -- //
 				}
 			}
 			updateStatus(3400, felmeresResponseData.id);
 			if (createType === "UPDATE" || createType === "DRAFT UPDATE") {
-				await fetch("/api/revalidate?path=/" + felmeres.id);
+				await fetch("/api/revalidate?path=/" + felmeresResponseData.id);
+				await fetch("/api/revalidate?tag=" + felmeresResponseData.id);
 				router.push("/" + felmeresResponseData.id);
 			} else {
 				await fetch("/api/revalidate?path=/");
+				await fetch("/api/revalidate?tag=" + felmeresResponseData.id);
 				router.push("/");
 			}
 		}
