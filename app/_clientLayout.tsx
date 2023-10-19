@@ -290,10 +290,6 @@ function Navbar({ routes }: { routes: Route[] }) {
 											<DropdownMenuContent>
 												<DropdownMenuLabel>Fiókom</DropdownMenuLabel>
 												<DropdownMenuSeparator />
-												<a href='/api/auth/me'>
-													<DropdownMenuItem>Profil</DropdownMenuItem>
-												</a>
-												<DropdownMenuSeparator />
 												<a href='/api/auth/logout'>
 													<DropdownMenuItem className='text-red-700 hover:text-red-700 font-semibold'>
 														Kijelentkezés
