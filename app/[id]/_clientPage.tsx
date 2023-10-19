@@ -334,23 +334,25 @@ export default function ClientPage({
 							<Separator className='mb-4' />
 							<CardContent>
 								{isAll
-									? sections.map((section, index) => {
-											if (index === 0) {
-												return section.component;
-											}
-											return (
-												<div key={index} className='border-t'>
-													<Heading
-														id={section.id.toString()}
-														variant='h3'
-														border={false}
-														marginY='my-5'
-														title={section.title}
-													/>
-													{section.component}
-												</div>
-											);
-									  })
+									? sections
+											.sort((a, b) => Number(a.id === "Fix") - Number(b.id === "Fix"))
+											.map((section, index) => {
+												if (index === 0) {
+													return section.component;
+												}
+												return (
+													<div key={index} className='border-t'>
+														<Heading
+															id={section.id.toString()}
+															variant='h3'
+															border={false}
+															marginY='my-5'
+															title={section.title}
+														/>
+														{section.component}
+													</div>
+												);
+											})
 									: sections.find((section) => section.id === selectedSection)?.component}
 							</CardContent>
 						</Card>
@@ -408,11 +410,13 @@ export default function ClientPage({
 										className:
 											"bg-transparent border-b-2 border-gray-900 mx-3 shadow-none rounded-none",
 									}}>
-									<Tab value={section.title} className='pb-2'>
-										<div className='hover:bg-gray-100 px-3 py-1 rounded-md truncate max-w-[12rem]'>
-											{section.title}
-										</div>
-									</Tab>
+									<Link href={`/${felmeresId}#${isAll ? section.id : ""}`}>
+										<Tab value={section.title} className='pb-2'>
+											<div className='hover:bg-gray-100 px-3 py-1 rounded-md truncate max-w-[12rem]'>
+												{section.title}
+											</div>
+										</Tab>
+									</Link>
 								</TabsHeader>
 							))}
 						</Tabs>
