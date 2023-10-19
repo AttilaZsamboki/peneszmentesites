@@ -144,7 +144,7 @@ export default function ClientPage({
 					key={product}
 				/>
 			) : (
-				<QuestionPageRead product={product} questions={questions} data={filteredData} key={product} />
+				<QuestionPageRead product={product} questions={questions} data={originalData} key={product} />
 			),
 			title: products.find((p) => p.id === product)?.sku ?? "Fix kérdések",
 			id: product ?? ("Fix" as SectionNames),
@@ -158,7 +158,9 @@ export default function ClientPage({
 	const [isAll, setIsAll] = React.useState(true);
 
 	React.useEffect(() => {
-		setSelectedSection(sections[0].id as SectionNames);
+		if (isAll) {
+			setSelectedSection(sections[0].id as SectionNames);
+		}
 	}, [isAll]);
 	React.useEffect(() => {
 		setFilteredData(
@@ -339,6 +341,7 @@ export default function ClientPage({
 											return (
 												<div key={index} className='border-t'>
 													<Heading
+														id={section.id.toString()}
 														variant='h3'
 														border={false}
 														marginY='my-5'
@@ -359,6 +362,7 @@ export default function ClientPage({
 							<div className='relative'>
 								<Sections
 									options={sections.map((section) => ({ label: section.title, value: section.id }))}
+									href={(value) => `/${felmeresId}#${isAll ? value : ""}`}
 									selected={selectedSection}
 									setSelected={
 										setSelectedSection as React.Dispatch<React.SetStateAction<string | number>>

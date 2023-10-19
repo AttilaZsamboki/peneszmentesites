@@ -321,7 +321,7 @@ export function Page2({
 					/>
 				</CustomDialog>
 			) : null}
-			<div>
+			<div id='Tételek'>
 				<Heading title='Tételek' variant='h5' marginY='lg:my-4' border={false} />
 				<div className='flex flex-row justify-between w-full items-start'>
 					<div className='flex flex-row gap-4 items-center'>

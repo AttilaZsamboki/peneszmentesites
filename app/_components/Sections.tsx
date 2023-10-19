@@ -3,6 +3,7 @@
 import React from "react";
 import { Tab, Tabs, TabsHeader, Accordion, AccordionBody, AccordionHeader } from "@material-tailwind/react";
 import Input from "./Input";
+import Link from "next/link";
 
 function Icon({ open }: { open: boolean }) {
 	return (
@@ -24,6 +25,7 @@ export default function Sections({
 	filter,
 	setFilter,
 	disabled = false,
+	href,
 }: {
 	options: { label: string; value: string | number }[];
 	selected: string | number;
@@ -31,6 +33,7 @@ export default function Sections({
 	filter: string;
 	setFilter: React.Dispatch<React.SetStateAction<string>>;
 	disabled?: boolean;
+	href?: (value: string) => string;
 }) {
 	const [open, setOpen] = React.useState(true);
 	return (
@@ -44,16 +47,18 @@ export default function Sections({
 					</AccordionHeader>
 					<AccordionBody>
 						{options.map((section) => (
-							<Tab
-								key={section.value}
-								onClick={() => {
-									setSelected(section.value);
-									setFilter("");
-								}}
-								disabled={disabled}
-								value={section.value}>
-								{section.label}
-							</Tab>
+							<Link href={href ? href(section.value.toString()) : ""}>
+								<Tab
+									key={section.value}
+									onClick={() => {
+										setSelected(section.value);
+										setFilter("");
+									}}
+									disabled={disabled}
+									value={section.value}>
+									{section.label}
+								</Tab>
+							</Link>
 						))}
 					</AccordionBody>
 				</Accordion>

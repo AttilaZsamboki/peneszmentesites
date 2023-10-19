@@ -2,6 +2,7 @@
 import { Typography } from "@material-tailwind/react";
 
 export default function Heading({
+	id,
 	title,
 	variant,
 	width = "w-11/12",
@@ -9,6 +10,7 @@ export default function Heading({
 	border = true,
 	marginY,
 }: {
+	id?: string;
 	title: string;
 	variant: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 	width?: string;
@@ -18,6 +20,7 @@ export default function Heading({
 }) {
 	return (
 		<div
+			id={id}
 			className={`flex lg:flex-row flex-col justify-between items-center w-full mb-2 ${
 				border ? "border-b" : ""
 			}`}>
