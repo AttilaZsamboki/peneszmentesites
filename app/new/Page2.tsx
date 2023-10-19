@@ -802,6 +802,7 @@ export function Page2({
 																				.map((item) => item.product)
 																				.includes(product.id)
 																	)
+																	.sort((a, b) => a.sku.localeCompare(b.sku))
 																	.map((product) => ({
 																		label: product.sku + " - " + product.name,
 																		value: product.id.toString(),
