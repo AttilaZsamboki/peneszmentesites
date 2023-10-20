@@ -139,7 +139,6 @@ function Navbar({ routes }: { routes: Route[] }) {
 		window.location.href = "/api/auth/login";
 		return null;
 	}
-	console.log(user?.sub);
 	return (
 		<div className='flex' ref={ref}>
 			{!openNav ? (

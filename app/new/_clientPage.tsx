@@ -816,7 +816,8 @@ export default function Page({
 												sku: item.sku ? item.sku : null,
 												adatlap: null,
 											}))
-										) && felmeres.status !== "DRAFT" ? null : isEdit ? (
+										) && felmeres.status !== "DRAFT" ? null : isEdit &&
+										  felmeres.status !== "DRAFT" ? (
 											<AlertDialog>
 												<AlertDialogTrigger asChild>
 													<Button
