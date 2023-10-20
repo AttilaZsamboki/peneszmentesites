@@ -61,7 +61,6 @@
 		"react-select": "^5.7.4",
 		"tailwind-merge": "^1.14.0",
 		"tailwindcss-animate": "^1.0.7",
-		"talkjs": "^0.16.6",
 		"typescript": "5.1.6",
 		"useflytrap": "^0.6.0",
 		"uuid": "^9.0.1"

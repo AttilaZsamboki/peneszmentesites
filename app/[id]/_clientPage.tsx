@@ -178,11 +178,11 @@ export default function ClientPage({
 			id: "Kép",
 			title: "Képek",
 		},
-		{
-			component: <ChatComponent id={felmeres.id.toString()} />,
-			id: "Megjegyzések",
-			title: "Megjegyzések",
-		},
+		// {
+		// 	component: <ChatComponent id={felmeres.id.toString()} />,
+		// 	id: "Megjegyzések",
+		// 	title: "Megjegyzések",
+		// },
 	];
 
 	const [filter, setFilter] = React.useState("");
@@ -266,6 +266,7 @@ export default function ClientPage({
 			})
 		).then((status) => status.every((s) => s === true));
 		if (status) {
+			await fetch("/api/revalidate?tag=" + felmeresId);
 			setIsEditing(false);
 			setOriginalData((prev) => [
 				...prev.filter((field) => field.product !== filteredData[0].product),
@@ -366,21 +367,15 @@ export default function ClientPage({
 								</div>
 							</CardHeader>
 							<Separator className='mb-4' />
-							<CardContent className='px-0 lg:pb-6 pb-0'>
+							<CardContent>
 								{isAll
 									? sections.map((section, index) => {
 											if (index === 0) {
-												return (
-													<div key={section.id} className='p-6 pt-0'>
-														{section.component}
-													</div>
-												);
+												return section.component;
 											}
 											if (section.subSections && section.subSections.length === 0) return;
 											return (
-												<div
-													key={section.id}
-													className={cn(section.id === "Megjegyzések" ? null : "p-6 pt-0")}>
+												<>
 													<Separator className='my-5' />
 													<div key={index} className=''>
 														<Heading
@@ -410,7 +405,7 @@ export default function ClientPage({
 																</div>
 															);
 														})}
-												</div>
+												</>
 											);
 									  })
 									: sections
