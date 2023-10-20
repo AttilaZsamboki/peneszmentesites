@@ -324,9 +324,9 @@ export function Page2({
 			) : null}
 			<div id='Tételek'>
 				<Heading title='Tételek' variant='h5' marginY='lg:my-4' border={false} />
-				<div className='flex flex-row justify-between w-full items-start'>
+				<div className='flex flex-row justify-between w-full items-start flex-wrap'>
 					<div className='flex flex-row gap-4 items-center'>
-						<div className='flex flex-row items-center gap-2'>
+						<div className='flex flex-row items-center gap-2 flex-wrap'>
 							<QuestionTemplate title='Milyen rendszert tervezel?'>
 								<AutoComplete
 									disabled={readonly}
@@ -352,75 +352,76 @@ export function Page2({
 								/>
 							</QuestionTemplate>
 							<QuestionTemplate title='Sablon'>
-								<AutoComplete
-									disabled={readonly}
-									width='300px'
-									options={templates!
-										.filter((template) => template.type === felmeres.type)
-										.map((template) => ({
-											label: template.name,
-											value: template.id.toString(),
-										}))}
-									onSelect={(e) => {
-										if (templates) {
-											if (templates.find((template) => template.id.toString() === e)) {
-												setSelectedTemplate(
-													templates.find((template) => template.id.toString() === e)!
-												);
-												setFelmeres
-													? setFelmeres((prev) => ({
-															...prev,
-															subject: templates.find(
-																(template) => template.id.toString() === e
-															)!.description,
-													  }))
-													: null;
+								<div className='flex flex-row items-center gap-2'>
+									<AutoComplete
+										disabled={readonly}
+										width='300px'
+										options={templates!
+											.filter((template) => template.type === felmeres.type)
+											.map((template) => ({
+												label: template.name,
+												value: template.id.toString(),
+											}))}
+										onSelect={(e) => {
+											if (templates) {
+												if (templates.find((template) => template.id.toString() === e)) {
+													setSelectedTemplate(
+														templates.find((template) => template.id.toString() === e)!
+													);
+													setFelmeres
+														? setFelmeres((prev) => ({
+																...prev,
+																subject: templates.find(
+																	(template) => template.id.toString() === e
+																)!.description,
+														  }))
+														: null;
+												}
 											}
-										}
-									}}
-									value={selectedTemplate.name}
-								/>
+										}}
+										value={selectedTemplate.name}
+									/>
+									<div className='mt-0 lg:mt-3'>
+										{readonly ? null : felmeres.template !== selectedTemplate.id ? (
+											<Button size='icon' variant='outline' onClick={onSelectTemplate}>
+												<Plus className='w-4 h-4 text-gray-700' />
+											</Button>
+										) : (
+											<DropdownMenu
+												dropdownMenuItems={
+													felmeres.template
+														? [
+																{
+																	value: "Mentés",
+																	onClick: saveTemplate,
+																	icon: <Save className='w-5 h-5 mr-2' />,
+																	shortcut: "ctrl+shift+s",
+																},
+																{
+																	value: "Mentés másként",
+																	onClick: () => setOpenTemplateDialog(true),
+																	icon: <SaveAll className='w-5 h-5 mr-2' />,
+																	shortcut: "f4",
+																},
+														  ]
+														: [
+																{
+																	value: "Mentés mint új sablon",
+																	onClick: () => setOpenTemplateDialog(true),
+																	icon: <SaveAll className='w-5 h-5 mr-2' />,
+																	shortcut: "f4",
+																},
+														  ]
+												}
+											/>
+										)}
+									</div>
+								</div>
 							</QuestionTemplate>
-						</div>
-
-						<div className='mt-3'>
-							{readonly ? null : felmeres.template !== selectedTemplate.id ? (
-								<Button size='icon' variant='outline' onClick={onSelectTemplate}>
-									<Plus className='w-4 h-4 text-gray-700' />
-								</Button>
-							) : (
-								<DropdownMenu
-									dropdownMenuItems={
-										felmeres.template
-											? [
-													{
-														value: "Mentés",
-														onClick: saveTemplate,
-														icon: <Save className='w-5 h-5 mr-2' />,
-														shortcut: "ctrl+shift+s",
-													},
-													{
-														value: "Mentés másként",
-														onClick: () => setOpenTemplateDialog(true),
-														icon: <SaveAll className='w-5 h-5 mr-2' />,
-														shortcut: "f4",
-													},
-											  ]
-											: [
-													{
-														value: "Mentés mint új sablon",
-														onClick: () => setOpenTemplateDialog(true),
-														icon: <SaveAll className='w-5 h-5 mr-2' />,
-														shortcut: "f4",
-													},
-											  ]
-									}
-								/>
-							)}
 						</div>
 					</div>
 
-					<div className='grid w-1/3 gap-1.5'>
+					<div className='grid w-full lg:w-1/3 gap-1.5'>
 						<Label htmlFor='subject'>Tárgy</Label>
 
 						<Textarea
