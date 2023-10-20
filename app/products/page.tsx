@@ -79,6 +79,8 @@ export interface Filter {
 	sort_order: "asc" | "desc";
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function ProductsFetch({ searchParams }: { searchParams: { page: string; filter?: string } }) {
 	const questions: Question[] = await fetch("https://pen.dataupload.xyz/questions").then(async (res) => {
 		const data = await res.json();
