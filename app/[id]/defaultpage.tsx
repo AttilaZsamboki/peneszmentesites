@@ -36,15 +36,21 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 		}
 	)
 		.then((res) => res.json())
-		.catch((err) => console.error(err));
+		.catch((err) => {
+			console.error(err);
+			return [];
+		});
 	const products: Product[] = await fetch("https://pen.dataupload.xyz/products?all=true", {
 		next: { tags: ["products"] },
-	}).then((response) => response.json());
+	}).then((response) => (response.ok ? response.json() : []));
 	const pictures = await fetch("https://pen.dataupload.xyz/felmeres-pictures?felmeres_id=" + felmeresId, {
 		next: { tags: [encodeURIComponent(felmeresId)] },
 	})
 		.then((res) => res.json())
-		.catch((err) => console.error(err));
+		.catch((err) => {
+			console.error(err);
+			return [];
+		});
 
 	if (edit) {
 		return (
@@ -63,7 +69,10 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 				next: { tags: [encodeURIComponent(felmeresId)] },
 			})
 				.then((res) => res.json())
-				.catch((err) => console.error(err));
+				.catch((err) => {
+					console.error(err);
+					return {};
+				});
 			return question;
 		})
 	);

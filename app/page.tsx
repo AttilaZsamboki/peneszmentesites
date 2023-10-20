@@ -46,7 +46,10 @@ export default async function Home() {
 		).then((adatlapok) => adatlapok.filter((adatlap) => adatlap !== undefined));
 		const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates/")
 			.then((res) => res.json())
-			.catch((err) => console.log(err))
+			.catch((err) => {
+				console.log(err);
+				return [];
+			})
 			.then((data: Template[]) =>
 				data.filter((template) => felmeresek.map((felmeres) => felmeres.template).includes(template.id))
 			);
@@ -88,9 +91,12 @@ export default async function Home() {
 				"created_at": formattedDate,
 			};
 		});
-		const filters: Filter[] = await fetch("https://pen.dataupload.xyz/filters?type=Felmérések").then(
-			async (resp) => await resp.json()
-		);
+		const filters: Filter[] = await fetch("https://pen.dataupload.xyz/filters?type=Felmérések")
+			.then(async (resp) => await resp.json())
+			.catch((err) => {
+				console.log(err);
+				return [];
+			});
 
 		const savedFilters = await Promise.all(
 			filters.map(async (item) => {
