@@ -370,11 +370,17 @@ export default function ClientPage({
 								{isAll
 									? sections.map((section, index) => {
 											if (index === 0) {
-												return <div className='p-6 pt-0'>{section.component}</div>;
+												return (
+													<div key={section.id} className='p-6 pt-0'>
+														{section.component}
+													</div>
+												);
 											}
 											if (section.subSections && section.subSections.length === 0) return;
 											return (
-												<div className={cn(section.id === "Megjegyzések" ? null : "p-6 pt-0")}>
+												<div
+													key={section.id}
+													className={cn(section.id === "Megjegyzések" ? null : "p-6 pt-0")}>
 													<Separator className='my-5' />
 													<div key={index} className=''>
 														<Heading
