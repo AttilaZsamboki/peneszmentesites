@@ -32,6 +32,8 @@ import { ToastAction } from "@/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Product } from "../products/page";
 import FileUpload from "../_components/FileUpload";
+import ChatComponent from "@/components/chat";
+import { cn } from "@/lib/utils";
 
 export function isJSONParsable(str: string) {
 	try {
@@ -177,10 +179,7 @@ export default function ClientPage({
 			title: "Képek",
 		},
 		{
-			component: (
-				// <Discuss />
-				<div></div>
-			),
+			component: <ChatComponent id={felmeres.id.toString()} />,
 			id: "Megjegyzések",
 			title: "Megjegyzések",
 		},
@@ -288,9 +287,9 @@ export default function ClientPage({
 
 	return (
 		<div className='w-full overflow-y-scroll overflow-x-hidden lg:h-[98dvh] h-[90dvh]'>
-			<div className='flex flex-row w-ful flex-wrap lg:flex-nowrap justify-center mt-2'>
+			<div className='flex flex-row w-ful flex-wrap lg:flex-nowrap justify-center mt-0 lg:mt-2'>
 				<div className='w-full'>
-					<div className='mt-6 lg:px-10 px-3 w-full'>
+					<div className='mt-0 lg:mt-6 lg:px-10 px-0 w-full'>
 						<Card>
 							<CardHeader>
 								<div className='flex gap-5 flex-row items-center justify-between w-full flex-wrap'>
@@ -367,15 +366,15 @@ export default function ClientPage({
 								</div>
 							</CardHeader>
 							<Separator className='mb-4' />
-							<CardContent>
+							<CardContent className='px-0 lg:pb-6 pb-0'>
 								{isAll
 									? sections.map((section, index) => {
 											if (index === 0) {
-												return section.component;
+												return <div className='p-6 pt-0'>{section.component}</div>;
 											}
 											if (section.subSections && section.subSections.length === 0) return;
 											return (
-												<>
+												<div className={cn(section.id === "Megjegyzések" ? null : "p-6 pt-0")}>
 													<Separator className='my-5' />
 													<div key={index} className=''>
 														<Heading
@@ -405,7 +404,7 @@ export default function ClientPage({
 																</div>
 															);
 														})}
-												</>
+												</div>
 											);
 									  })
 									: sections
