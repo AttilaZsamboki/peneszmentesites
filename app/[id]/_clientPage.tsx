@@ -56,6 +56,7 @@ export interface PageMap {
 	title: string;
 	id: SectionNames;
 	subSections?: PageMap[];
+	onClick?: () => void;
 }
 
 export interface FelmeresPictures {
@@ -133,6 +134,7 @@ export default function ClientPage({
 			),
 			title: "Tételek",
 			id: "Tételek",
+			onClick: () => setIsEditing(false),
 		},
 		{
 			component: <div></div>,
@@ -434,6 +436,7 @@ export default function ClientPage({
 												label: sub.title,
 												value: sub.id,
 											})),
+											onClick: section.onClick,
 										}))
 										.filter((section) =>
 											section.subOptions ? section.subOptions.length > 0 : true

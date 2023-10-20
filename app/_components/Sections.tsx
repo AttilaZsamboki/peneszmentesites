@@ -29,7 +29,12 @@ export default function Sections({
 	selected,
 	href,
 }: {
-	options: { label: string; value: string | number; subOptions?: { label: string; value: string | number }[] }[];
+	options: {
+		label: string;
+		value: string | number;
+		subOptions?: { label: string; value: string | number }[];
+		onClick?: () => void;
+	}[];
 	selected: string | number;
 	setSelected: React.Dispatch<React.SetStateAction<string | number>>;
 	filter: string;
@@ -83,6 +88,7 @@ export default function Sections({
 								href={href ? href(section.value.toString()) : ""}
 								onClick={() => {
 									setSelected(section.value);
+									section.onClick && section.onClick();
 									setFilter("");
 								}}>
 								<div>{section.label}</div>
