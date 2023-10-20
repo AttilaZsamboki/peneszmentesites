@@ -664,12 +664,7 @@ export default function Page({
 
 	const isDisabled = {
 		Alapadatok: !felmeres.adatlap_id,
-		Tételek:
-			!items
-				.map((item) => item.inputValues.map((value) => value.ammount).every((value) => value > 0))
-				.every((value) => value === true) ||
-			!items.length ||
-			!felmeres.subject,
+		Tételek: false,
 		...Object.assign(
 			{},
 			...Array.from(new Set(data.map((field) => field.product))).map((product) => ({
@@ -756,7 +751,7 @@ export default function Page({
 			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-0 lg:mt-2'>
 				<div
 					className={`lg:mt-6 lg:px-10 px-0 w-full ${
-						page === 1 ? "lg:w-11/12" : page == 0 ? "lg:w-1/4" : "lg:w-2/3"
+						page === 1 ? "lg:w-full" : page == 0 ? "lg:w-1/4" : "lg:w-2/3"
 					}`}>
 					<Card className='lg:rounded-md rounded-none lg:border border-0'>
 						<CardHeader>
@@ -799,7 +794,16 @@ export default function Page({
 								)}
 								{numPages === page + 1 ? (
 									<div className='flex flex-row px-4 items-center justify-center gap-3'>
-										{_.isEqual(
+										{!items
+											.map((item) =>
+												item.inputValues
+													.map((value) => value.ammount)
+													.every((value) => value > 0)
+											)
+											.every((value) => value === true) ||
+										!items.length ||
+										!felmeres.subject ||
+										(_.isEqual(
 											editFelmeresItems?.map((item) => ({
 												...item,
 												id: 0,
@@ -816,7 +820,8 @@ export default function Page({
 												sku: item.sku ? item.sku : null,
 												adatlap: null,
 											}))
-										) && felmeres.status !== "DRAFT" ? null : isEdit &&
+										) &&
+											felmeres.status !== "DRAFT") ? null : isEdit &&
 										  felmeres.status !== "DRAFT" ? (
 											<AlertDialog>
 												<AlertDialogTrigger asChild>

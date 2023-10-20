@@ -35,6 +35,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { calculatePercentageValue, cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import useBreakpointValue from "../_components/useBreakpoint";
 
 export function Page2({
 	felmeres,
@@ -80,6 +81,9 @@ export function Page2({
 		}
 	);
 	const [openTemplateDialog, setOpenTemplateDialog] = React.useState(false);
+	console.log(items);
+
+	const deviceSize = useBreakpointValue();
 
 	const [otherItemsTableRef] = useAutoAnimate();
 	const [otherMaterialTableRef] = useAutoAnimate();
@@ -527,7 +531,7 @@ export function Page2({
 													<tr key={name} className='border-b border-blue-gray-50'>
 														<th
 															className={cn(
-																"lg:relative table-cell bg-white sticky z-10 left-0 border-r",
+																"table-cell bg-white sticky z-10 left-0 border-r",
 																classes
 															)}>
 															<Typography variant='small' color='blue-gray'>
@@ -805,6 +809,7 @@ export function Page2({
 											<td></td>
 											<td></td>
 											<td></td>
+											<td></td>
 											<td className='p-4 border-b border-blue-gray-50'>
 												<PlusCircleIcon
 													className='w-7 h-7 text-green-600 cursor-pointer'
@@ -816,9 +821,9 @@ export function Page2({
 										</>
 									) : (
 										<>
-											<td className='p-4 border-b border-blue-gray-50'>
+											<td className='p-4 border-b border-blue-gray-50 border-r sticky left-0'>
 												<AutoComplete
-													width='500px'
+													width={deviceSize !== "sm" ? "300px" : "200px"}
 													options={
 														!products
 															? []
@@ -849,7 +854,9 @@ export function Page2({
 															...prev.filter((item) => item.product.toString() !== value),
 															{
 																...prev[prev.length - 1],
-																id: Math.max(...items.map((item) => item.id ?? 0)) + 1,
+																id: prev.length
+																	? Math.max(...prev.map((item) => item.id ?? 0)) + 1
+																	: 0,
 																adatlap: felmeres.adatlap_id,
 																product: parseInt(value),
 																name: product.name,
@@ -887,6 +894,7 @@ export function Page2({
 											<td className='p-4 border-b border-blue-gray-50'></td>
 											<td className='p-4 border-b border-blue-gray-50'></td>
 											<td className='p-4 border-b border-blue-gray-50'></td>
+											<td className='p-4 border-b border-blue-gray-50'></td>
 											<td className='p-4 border-b border-blue-gray-50'>
 												<CheckCircleIcon
 													className='w-7 h-7 text-green-600 cursor-pointer'
@@ -900,7 +908,7 @@ export function Page2({
 							<tfoot className='bg-gray'>
 								<tr>
 									<td
-										className='border-b border-r sticky left-0 border-blue-gray-100 bg-blue-gray-50 p-4'
+										className='border-b border-r sticky left-0 border-blue-gray-100 bg-blue-gray-50 p-4 z-10'
 										style={{ borderTopWidth: 0 }}>
 										<Typography
 											variant='small'
