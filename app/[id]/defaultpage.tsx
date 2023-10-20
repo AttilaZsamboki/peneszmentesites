@@ -23,7 +23,6 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 
 	const felmeres: BaseFelmeresData = await fetch("https://pen.dataupload.xyz/felmeresek/" + felmeresId, {
 		next: { tags: [encodeURIComponent(felmeresId)], revalidate: 60 },
-		cache: "force-cache",
 	})
 		.then((res) => res.json())
 		.catch((err) => {
