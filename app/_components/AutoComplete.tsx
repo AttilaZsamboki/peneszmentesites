@@ -16,7 +16,7 @@ export default function AutoComplete({
 	width = "200px",
 	side,
 	label,
-	disabled,
+	disabled = false,
 }: {
 	options: { label: string; value: string }[];
 	value?: string;

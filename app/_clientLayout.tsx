@@ -256,50 +256,54 @@ function Navbar({ routes }: { routes: Route[] }) {
 									);
 								})}
 							</div>
-							<Separator />
-							<div className='px-8 w-full'>
-								{isLoading ? (
-									<div className='flex items-center justify-center w-full h-full'>
-										<div className='flex justify-center items-center space-x-1 text-sm text-gray-700'>
-											<svg
-												fill='none'
-												className='w-6 h-6 animate-spin'
-												viewBox='0 0 32 32'
-												xmlns='http://www.w3.org/2000/svg'>
-												<path
-													clip-rule='evenodd'
-													d='M15.165 8.53a.5.5 0 01-.404.58A7 7 0 1023 16a.5.5 0 011 0 8 8 0 11-9.416-7.874.5.5 0 01.58.404z'
-													fill='currentColor'
-													fill-rule='evenodd'
-												/>
-											</svg>
 
-											<div>Töltődik ...</div>
+							<div className='flex w-full flex-col'>
+								<Separator className='w-full h-[1px]' />
+								<div className='px-8 w-full bg-gray-100 bottom-0 py-8'>
+									{isLoading ? (
+										<div className='flex items-center justify-center w-full h-full'>
+											<div className='flex justify-center items-center space-x-1 text-sm text-gray-700'>
+												<svg
+													fill='none'
+													className='w-6 h-6 animate-spin'
+													viewBox='0 0 32 32'
+													xmlns='http://www.w3.org/2000/svg'>
+													<path
+														clip-rule='evenodd'
+														d='M15.165 8.53a.5.5 0 01-.404.58A7 7 0 1023 16a.5.5 0 011 0 8 8 0 11-9.416-7.874.5.5 0 01.58.404z'
+														fill='currentColor'
+														fill-rule='evenodd'
+													/>
+												</svg>
+
+												<div>Töltődik ...</div>
+											</div>
 										</div>
-									</div>
-								) : !user ? (
-									<a href='/api/auth/login'>Login</a>
-								) : (
-									<div className='flex w-full flex-row items-center gap-2 justify-between'>
-										<Avatar>
-											<AvatarImage src={user.picture ?? ""} />
-											<AvatarFallback>{user.nickname}</AvatarFallback>
-										</Avatar>
-										<DropdownMenu></DropdownMenu>
-										<DropdownMenu>
-											<DropdownMenuTrigger>{user.name}</DropdownMenuTrigger>
-											<DropdownMenuContent>
-												<DropdownMenuLabel>Fiókom</DropdownMenuLabel>
-												<DropdownMenuSeparator />
-												<a href='/api/auth/logout'>
-													<DropdownMenuItem className='text-red-700 hover:text-red-700 font-semibold'>
-														Kijelentkezés
-													</DropdownMenuItem>
-												</a>
-											</DropdownMenuContent>
-										</DropdownMenu>
-									</div>
-								)}
+									) : !user ? (
+										<a href='/api/auth/login'>Login</a>
+									) : (
+										<div className='flex w-full flex-row items-center gap-2 justify-between'>
+											<Avatar>
+												<AvatarImage src={user.picture ?? ""} />
+												<AvatarFallback>{user.nickname}</AvatarFallback>
+											</Avatar>
+											<DropdownMenu></DropdownMenu>
+											<DropdownMenu>
+												<DropdownMenuTrigger>{user.name}</DropdownMenuTrigger>
+												<DropdownMenuContent>
+													<DropdownMenuLabel>Fiókom</DropdownMenuLabel>
+													<DropdownMenuSeparator />
+													<a href='/api/auth/logout'>
+														<DropdownMenuItem className='text-red-700 hover:text-red-700 font-semibold'>
+															Kijelentkezés
+														</DropdownMenuItem>
+													</a>
+												</DropdownMenuContent>
+											</DropdownMenu>
+										</div>
+									)}
+								</div>
+								<Separator className='w-full h-[1px]' />
 							</div>
 						</div>
 					</aside>

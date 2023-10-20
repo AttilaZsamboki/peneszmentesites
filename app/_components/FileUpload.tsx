@@ -17,9 +17,6 @@ export default function FileUpload({ onUpload }: { onUpload?: (file: any) => voi
 			}}
 			server={{
 				url: "https://pen.dataupload.xyz/save-image/",
-				headers: {
-					Authorization: "Bearer your_token", // if you have any headers
-				},
 			}}
 			allowReorder={true}
 			allowProcess={true}

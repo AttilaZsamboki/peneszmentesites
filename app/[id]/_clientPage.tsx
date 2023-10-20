@@ -32,7 +32,7 @@ import { ToastAction } from "@/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Product } from "../products/page";
 import FileUpload from "../_components/FileUpload";
-import ChatComponent from "@/components/chat";
+import ChatComponent, { Chat } from "@/components/chat";
 import { cn } from "@/lib/utils";
 
 export function isJSONParsable(str: string) {
@@ -74,6 +74,7 @@ export default function ClientPage({
 	template,
 	products,
 	pictures,
+	chat,
 }: {
 	felmeresQuestions: FelmeresQuestion[];
 	felmeresId: string;
@@ -84,6 +85,7 @@ export default function ClientPage({
 	template: Template;
 	products: Product[];
 	pictures: FelmeresPictures[];
+	chat: Chat[];
 }) {
 	const [felmeres, setFelmeres] = React.useState(
 		felmeresNonState
@@ -178,11 +180,11 @@ export default function ClientPage({
 			id: "Kép",
 			title: "Képek",
 		},
-		// {
-		// 	component: <ChatComponent id={felmeres.id.toString()} />,
-		// 	id: "Megjegyzések",
-		// 	title: "Megjegyzések",
-		// },
+		{
+			component: <ChatComponent id={felmeres.id.toString()} chat={chat} />,
+			id: "Megjegyzések",
+			title: "Megjegyzések",
+		},
 	];
 
 	const [filter, setFilter] = React.useState("");

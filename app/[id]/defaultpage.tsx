@@ -102,6 +102,15 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 			return {};
 		});
 
+	const chat = await fetch("https://pen.dataupload.xyz/felmeres-notes?felmeres_id=" + felmeres.id, {
+		next: { tags: [encodeURIComponent(felmeresId)] },
+	})
+		.then((res) => res.json())
+		.catch((err) => {
+			console.error(err);
+			return [];
+		});
+
 	if (adatlap) {
 		return (
 			<ClientPage
@@ -114,6 +123,7 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 				adatlap={adatlap}
 				template={template}
 				products={products}
+				chat={chat}
 			/>
 		);
 	} else {

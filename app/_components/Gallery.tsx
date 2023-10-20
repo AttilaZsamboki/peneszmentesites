@@ -38,11 +38,13 @@ export default function Gallery({
 	single,
 	edit,
 	onDelete,
+	width,
 }: {
 	media: string[];
 	single?: boolean;
 	edit?: boolean;
 	onDelete?: (index: number) => void;
+	width?: number;
 }) {
 	const [open, setOpen] = useState(false);
 	const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -78,7 +80,7 @@ export default function Gallery({
 								{isVideo(media) ? (
 									<video className='h-auto max-w-full rounded-lg' src={media} controls />
 								) : (
-									<img className='h-auto max-w-full rounded-lg' src={media} />
+									<img className='h-auto max-w-full rounded-lg' width={width ?? "full"} src={media} />
 								)}
 							</div>
 							{edit ? (
