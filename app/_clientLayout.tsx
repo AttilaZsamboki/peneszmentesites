@@ -139,6 +139,7 @@ function Navbar({ routes }: { routes: Route[] }) {
 		window.location.href = "/api/auth/login";
 		return null;
 	}
+	console.log(user?.sub);
 	return (
 		<div className='flex' ref={ref}>
 			{!openNav ? (
@@ -256,7 +257,8 @@ function Navbar({ routes }: { routes: Route[] }) {
 									);
 								})}
 							</div>
-							<div className='px-4'>
+							<Separator />
+							<div className='px-8 w-full'>
 								{isLoading ? (
 									<div className='flex items-center justify-center w-full h-full'>
 										<div className='flex justify-center items-center space-x-1 text-sm text-gray-700'>
@@ -279,7 +281,7 @@ function Navbar({ routes }: { routes: Route[] }) {
 								) : !user ? (
 									<a href='/api/auth/login'>Login</a>
 								) : (
-									<div className='flex flex-row items-center gap-2'>
+									<div className='flex w-full flex-row items-center gap-2 justify-between'>
 										<Avatar>
 											<AvatarImage src={user.picture ?? ""} />
 											<AvatarFallback>{user.nickname}</AvatarFallback>

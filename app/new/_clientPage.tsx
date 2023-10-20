@@ -667,7 +667,9 @@ export default function Page({
 		Tételek:
 			!items
 				.map((item) => item.inputValues.map((value) => value.ammount).every((value) => value > 0))
-				.every((value) => value === true) || !items.length,
+				.every((value) => value === true) ||
+			!items.length ||
+			!felmeres.subject,
 		...Object.assign(
 			{},
 			...Array.from(new Set(data.map((field) => field.product))).map((product) => ({
