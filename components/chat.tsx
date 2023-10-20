@@ -135,7 +135,7 @@ export default function ChatComponent({ id, chat }: { id: string; chat: Chat[] }
 					<section className='flex flex-col flex-auto'>
 						<div className='chat-body p-4 flex-1 overflow-y-scroll'>
 							{groupMessages(stateChat).map((group) => (
-								<div className='flex flex-col gap-[2px]'>
+								<div key={group[0].id} className='flex flex-col gap-[2px]'>
 									<div
 										className={cn(
 											"text-sm -mb-1 text-gray-800",
@@ -145,6 +145,7 @@ export default function ChatComponent({ id, chat }: { id: string; chat: Chat[] }
 									</div>
 									{group.map((message, index) => (
 										<div
+											key={message.id}
 											className={cn(
 												user?.name === message.user_id ? "justify-end" : "justify-start",
 												"flex flex-row"
@@ -396,7 +397,10 @@ export default function ChatComponent({ id, chat }: { id: string; chat: Chat[] }
 		const replyMessage = stateChat.find((message2) => message2.id === message.reply_to);
 		return (
 			<div className=' bg-gray-200 rounded-xl p-2 mt-2 flex flex-col gap-1'>
-				<Link href={`${window.location.href.split("#")[0]}#${replyMessage?.id}`}>
+				<Link
+					href={`${window ? window.location.href.split("#")[0] : "https://app.peneszmentesites.hu"}#${
+						replyMessage?.id
+					}`}>
 					{replyMessage?.type === "image" ? (
 						<ImageMessage message={replyMessage} />
 					) : (
