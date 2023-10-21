@@ -25,7 +25,7 @@ import {
 import { Template } from "../templates/page";
 import DropdownMenu from "../_components/Menu";
 import { Button } from "@/components/ui/button";
-import { Check, Plus, Save, SaveAll } from "lucide-react";
+import { Banknote, Check, Plus, Save, SaveAll } from "lucide-react";
 import CustomDialog from "../_components/CustomDialog";
 import { createTemplate, updateTemplate } from "../../lib/fetchers";
 import { Form } from "../templates/_clientPage";
@@ -34,8 +34,8 @@ import { OpenCreatedToast } from "@/components/toasts";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { calculatePercentageValue, cn } from "@/lib/utils";
-import { Separator } from "@/components/ui/separator";
 import useBreakpointValue from "../_components/useBreakpoint";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 
 export function Page2({
 	felmeres,
@@ -81,7 +81,6 @@ export function Page2({
 		}
 	);
 	const [openTemplateDialog, setOpenTemplateDialog] = React.useState(false);
-	console.log(items);
 
 	const deviceSize = useBreakpointValue();
 
@@ -153,7 +152,10 @@ export function Page2({
 		}
 	};
 
-	const TABLE_HEAD_ITEMS = ["SKU", "Név", "Darab + Hely", "Nettó egységár", "Nettó összesen"];
+	const TABLE_HEAD_ITEMS =
+		deviceSize === "sm"
+			? ["SKU", "Darab + Hely", "Nettó egységár", "Nettó összesen"]
+			: ["SKU", "Név", "Darab + Hely", "Nettó egységár", "Nettó összesen"];
 	const TABLE_HEAD_OTHER = ["Név", "Nettó egységár", "Nettó összesen"];
 	const TABLE_HEAD_OTHER_MATERIAL = ["Név", "Darab", "Nettó egységár", "Nettó összesen"];
 
@@ -528,117 +530,228 @@ export function Page2({
 
 											return (
 												<>
-													<tr key={name} className='border-b border-blue-gray-50'>
-														<th
-															className={cn(
-																"table-cell bg-white sticky z-10 left-0 border-r",
-																classes
-															)}>
-															<Typography variant='small' color='blue-gray'>
-																<span className='font-bold'>{sku}</span>
-															</Typography>
-														</th>
-														<td className={classes}>
-															<Typography
-																variant='small'
-																color='blue-gray'
-																className='font-normal max-w-[30rem]'>
-																{name}
-															</Typography>
-														</td>
-														{inputValues
-															.sort((a, b) => a.id - b.id)
-															.map((inputValue) => (
-																<div
-																	key={inputValue.id}
-																	className='flex flex-row items-center'>
-																	<td className={classes}>
-																		{readonly ? (
-																			<Typography
-																				variant='small'
-																				color='blue-gray'
-																				className='font-normal w-80 flex flex-row gap-4 '>
-																				<span className='break-keep '>
-																					{inputValue.ammount} darab
-																				</span>
-																				{place ? (
-																					<>
-																						-
-																						<span className='w-2/3'>
-																							{inputValue.value}
-																						</span>
-																					</>
-																				) : null}
-																			</Typography>
-																		) : (
-																			<Counter
-																				maxWidth='max-w-[10rem]'
-																				value={inputValue.ammount}
-																				onChange={(value) =>
-																					!setItems
-																						? null
-																						: setItems([
-																								...items.filter(
-																									(i) =>
-																										i.product !==
-																										product
-																								),
-																								{
-																									...items.find(
-																										(i) =>
-																											i.product ===
-																											product
-																									)!,
-																									inputValues: [
-																										...inputValues.filter(
-																											(value) =>
-																												value.id !==
-																												inputValue.id
-																										),
-																										{
-																											...inputValue,
-																											ammount:
-																												value,
-																										},
-																									],
-																								},
-																						  ])
-																				}
-																			/>
-																		)}
-																	</td>
-																	{place ? (
-																		<td
-																			className={
-																				classes +
-																				" flex flex-row w-full items-center gap-2"
-																			}>
-																			<div className='font-normal flex flex-col gap-2 max-w-[17rem]'>
-																				<div className='flex-row flex items-center gap-2'>
-																					{readonly ? null : (
+													<HoverCard>
+														<HoverCardContent className='w-80 z-[99999]'>
+															<div className='flex justify-between space-x-4'>
+																<div className='space-y-1'>
+																	<h4 className='text-sm font-semibold'>{sku}</h4>
+																	<p className='text-sm'>{name}</p>
+																	<div className='flex items-center pt-2'>
+																		<Banknote className='mr-2 h-4 w-4 opacity-70' />{" "}
+																		<span className='text-xs text-muted-foreground'>
+																			{hufFormatter.format(netPrice)}
+																		</span>
+																	</div>
+																</div>
+															</div>
+														</HoverCardContent>
+														<tr key={name} className='border-b border-blue-gray-50'>
+															<th
+																className={cn(
+																	"table-cell bg-white sticky z-[1] left-0 border-r",
+																	classes
+																)}>
+																<HoverCardTrigger asChild>
+																	<Button
+																		variant='link'
+																		className='text-black active:text-black hover:text-black hover:no-underline active:no-underline'>
+																		{sku}
+																	</Button>
+																</HoverCardTrigger>
+															</th>
+															<td className={classes}>
+																<Typography
+																	variant='small'
+																	color='blue-gray'
+																	className='font-normal max-w-[30rem]'>
+																	{name}
+																</Typography>
+															</td>
+															{inputValues
+																.sort((a, b) => a.id - b.id)
+																.map((inputValue) => (
+																	<div
+																		key={inputValue.id}
+																		className='flex flex-row items-center'>
+																		<td className={classes}>
+																			{readonly ? (
+																				<Typography
+																					variant='small'
+																					color='blue-gray'
+																					className='font-normal w-80 flex flex-row gap-4 '>
+																					<span className='break-keep '>
+																						{inputValue.ammount} darab
+																					</span>
+																					{place ? (
 																						<>
-																							<AutoComplete
-																								options={place_options.map(
-																									(option) => ({
-																										label: option,
-																										value: option,
-																									})
-																								)}
-																								width='300px'
-																								value={inputValue.value}
-																								create={true}
-																								onSelect={(e) => {
-																									if (
-																										!place_options.includes(
-																											e
-																										)
-																									) {
-																										createNewPlaceOption(
-																											e,
-																											attributeId,
+																							-
+																							<span className='w-2/3'>
+																								{inputValue.value}
+																							</span>
+																						</>
+																					) : null}
+																				</Typography>
+																			) : (
+																				<Counter
+																					maxWidth='max-w-[10rem]'
+																					value={inputValue.ammount}
+																					onChange={(value) =>
+																						!setItems
+																							? null
+																							: setItems([
+																									...items.filter(
+																										(i) =>
+																											i.product !==
 																											product
-																										);
+																									),
+																									{
+																										...items.find(
+																											(i) =>
+																												i.product ===
+																												product
+																										)!,
+																										inputValues: [
+																											...inputValues.filter(
+																												(
+																													value
+																												) =>
+																													value.id !==
+																													inputValue.id
+																											),
+																											{
+																												...inputValue,
+																												ammount:
+																													value,
+																											},
+																										],
+																									},
+																							  ])
+																					}
+																				/>
+																			)}
+																		</td>
+																		{place ? (
+																			<td
+																				className={
+																					classes +
+																					" flex flex-row w-full items-center gap-2"
+																				}>
+																				<div className='font-normal flex flex-col gap-2 max-w-[17rem]'>
+																					<div className='flex-row flex items-center gap-2'>
+																						{readonly ? null : (
+																							<>
+																								<AutoComplete
+																									options={place_options.map(
+																										(option) => ({
+																											label: option,
+																											value: option,
+																										})
+																									)}
+																									width='300px'
+																									value={
+																										inputValue.value
 																									}
+																									create={true}
+																									onSelect={(e) => {
+																										if (
+																											!place_options.includes(
+																												e
+																											)
+																										) {
+																											createNewPlaceOption(
+																												e,
+																												attributeId,
+																												product
+																											);
+																										}
+																										if (!setItems)
+																											return;
+																										setItems([
+																											...items.filter(
+																												(
+																													item
+																												) =>
+																													item.product !==
+																													product
+																											),
+																											{
+																												...items.find(
+																													(
+																														item
+																													) =>
+																														item.product ===
+																														product
+																												)!,
+																												inputValues:
+																													[
+																														...inputValues.filter(
+																															(
+																																value
+																															) =>
+																																value.id !==
+																																inputValue.id
+																														),
+																														{
+																															value: e,
+																															id: inputValue.id,
+																															ammount:
+																																inputValue.ammount,
+																														},
+																													],
+																											},
+																										]);
+																									}}
+																								/>
+																								<PlusCircleIcon
+																									className='w-7 h-7 cursor-pointer'
+																									onClick={() =>
+																										!setItems
+																											? null
+																											: setItems([
+																													...items.filter(
+																														(
+																															item
+																														) =>
+																															item.product !==
+																															product
+																													),
+																													{
+																														...items.find(
+																															(
+																																item
+																															) =>
+																																item.product ===
+																																product
+																														)!,
+																														inputValues:
+																															[
+																																...inputValues,
+																																{
+																																	value: "",
+																																	id:
+																																		Math.max(
+																																			...inputValues.map(
+																																				(
+																																					value
+																																				) =>
+																																					value.id
+																																			)
+																																		) +
+																																		1,
+																																	ammount: 0,
+																																},
+																															],
+																													},
+																											  ])
+																									}
+																								/>
+																							</>
+																						)}
+																						{!readonly &&
+																						inputValues.length > 1 ? (
+																							<MinusCircleIcon
+																								className='w-7 h-7 cursor-pointer'
+																								onClick={() => {
 																									if (!setItems)
 																										return;
 																									setItems([
@@ -664,140 +777,63 @@ export function Page2({
 																															value.id !==
 																															inputValue.id
 																													),
-																													{
-																														value: e,
-																														id: inputValue.id,
-																														ammount:
-																															inputValue.ammount,
-																													},
 																												],
 																										},
 																									]);
 																								}}
 																							/>
-																							<PlusCircleIcon
-																								className='w-7 h-7 cursor-pointer'
-																								onClick={() =>
-																									!setItems
-																										? null
-																										: setItems([
-																												...items.filter(
-																													(
-																														item
-																													) =>
-																														item.product !==
-																														product
-																												),
-																												{
-																													...items.find(
-																														(
-																															item
-																														) =>
-																															item.product ===
-																															product
-																													)!,
-																													inputValues:
-																														[
-																															...inputValues,
-																															{
-																																value: "",
-																																id:
-																																	Math.max(
-																																		...inputValues.map(
-																																			(
-																																				value
-																																			) =>
-																																				value.id
-																																		)
-																																	) +
-																																	1,
-																																ammount: 0,
-																															},
-																														],
-																												},
-																										  ])
-																								}
-																							/>
-																						</>
-																					)}
-																					{!readonly &&
-																					inputValues.length > 1 ? (
-																						<MinusCircleIcon
-																							className='w-7 h-7 cursor-pointer'
-																							onClick={() => {
-																								if (!setItems) return;
-																								setItems([
-																									...items.filter(
-																										(item) =>
-																											item.product !==
-																											product
-																									),
-																									{
-																										...items.find(
-																											(item) =>
-																												item.product ===
-																												product
-																										)!,
-																										inputValues: [
-																											...inputValues.filter(
-																												(
-																													value
-																												) =>
-																													value.id !==
-																													inputValue.id
-																											),
-																										],
-																									},
-																								]);
-																							}}
-																						/>
-																					) : null}
+																						) : null}
+																					</div>
 																				</div>
-																			</div>
-																		</td>
-																	) : (
-																		<td className={classes + " w-full"}></td>
-																	)}
-																</div>
-															))}
-														<td className={classes}>
-															<Typography
-																variant='small'
-																color='blue-gray'
-																className='font-normal max-w-[30rem]'>
-																{hufFormatter.format(netPrice)}
-															</Typography>
-														</td>
-														<td className={classes}>
-															<Typography
-																variant='small'
-																color='blue-gray'
-																className='font-normal max-w-[30rem]'>
-																{hufFormatter.format(
-																	netPrice *
-																		inputValues.reduce((a, b) => a + b.ammount, 0)
-																)}
-															</Typography>
-														</td>
-														{!readonly ? (
+																			</td>
+																		) : (
+																			<td className={classes + " w-full"}></td>
+																		)}
+																	</div>
+																))}
 															<td className={classes}>
-																{isEditingItems ? (
-																	<MinusCircleIcon
-																		className='w-7 h-7 text-red-600 cursor-pointer'
-																		onClick={() =>
-																			!setItems
-																				? null
-																				: setItems((prev) =>
-																						prev.filter(
-																							(item) => item.name !== name
-																						)
-																				  )
-																		}
-																	/>
-																) : null}
+																<Typography
+																	variant='small'
+																	color='blue-gray'
+																	className='font-normal max-w-[30rem]'>
+																	{hufFormatter.format(netPrice)}
+																</Typography>
 															</td>
-														) : null}
-													</tr>
+															<td className={classes}>
+																<Typography
+																	variant='small'
+																	color='blue-gray'
+																	className='font-normal max-w-[30rem]'>
+																	{hufFormatter.format(
+																		netPrice *
+																			inputValues.reduce(
+																				(a, b) => a + b.ammount,
+																				0
+																			)
+																	)}
+																</Typography>
+															</td>
+															{!readonly ? (
+																<td className={classes}>
+																	{isEditingItems ? (
+																		<MinusCircleIcon
+																			className='w-7 h-7 text-red-600 cursor-pointer'
+																			onClick={() =>
+																				!setItems
+																					? null
+																					: setItems((prev) =>
+																							prev.filter(
+																								(item) =>
+																									item.name !== name
+																							)
+																					  )
+																			}
+																		/>
+																	) : null}
+																</td>
+															) : null}
+														</tr>
+													</HoverCard>
 												</>
 											);
 										}
@@ -913,7 +949,7 @@ export function Page2({
 										<Typography
 											variant='small'
 											color='blue-gray'
-											className='font-normal leading-none opacity-70'>
+											className='font-normal leading-none opacity-70 z-[1]'>
 											Össz:
 										</Typography>
 									</td>

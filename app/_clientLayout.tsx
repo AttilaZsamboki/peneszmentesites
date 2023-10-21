@@ -92,7 +92,7 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 			<div className='flex w-full h-full'>
 				<Navbar routes={routes} />
 
-				<div className='flex flex-col w-full'>
+				<div className='flex flex-col w-full relative z-10'>
 					<GlobalContext.Provider value={{ setProgress, progress }}>
 						<div className='w-full'>{children}</div>
 						<Toaster />
@@ -114,7 +114,6 @@ export function useGlobalState() {
 function Navbar({ routes }: { routes: Route[] }) {
 	const deviceSize = useBreakpointValue();
 	const pathname = usePathname().split("?")[0];
-	const router = useRouter();
 	const [open, setOpen] = React.useState("");
 	const [openNav, setOpenNav] = React.useState(false);
 	const [ref] = useAutoAnimate<HTMLDivElement>();
@@ -144,7 +143,7 @@ function Navbar({ routes }: { routes: Route[] }) {
 			{!openNav ? (
 				deviceSize === "sm" || !deviceSize ? (
 					<div
-						className='border rounded-sm active:bg-white cursor-pointer absolute top-2 left-2 bg-white'
+						className='border rounded-sm active:bg-white cursor-pointer absolute top-2 left-2 bg-white z-20'
 						onClick={() => setOpenNav((prev) => !prev)}>
 						<Menu className='' />
 					</div>

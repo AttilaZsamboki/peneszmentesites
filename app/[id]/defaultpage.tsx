@@ -87,7 +87,6 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 			: { ...field }
 	);
 	if (!felmeres || !felmeres.adatlap_id) {
-		console.log(felmeres);
 		notFound();
 	}
 

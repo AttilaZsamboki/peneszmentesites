@@ -24,7 +24,7 @@ import { statusMap } from "@/app/_utils/utils";
 import { toast } from "@/components/ui/use-toast";
 import useBreakpointValue from "../_components/useBreakpoint";
 import { Separator } from "@/components/ui/separator";
-import { Check, FileEdit, IterationCw, Lock, X } from "lucide-react";
+import { Check, Download, FileEdit, IterationCw, Lock, X } from "lucide-react";
 import Link from "next/link";
 import { Page2 } from "../new/Page2";
 import _ from "lodash";
@@ -607,6 +607,11 @@ function FieldViewing({ data, question }: { data: FelmeresQuestion; question: Qu
 	} else if (question.type === "FILE_UPLOAD") {
 		return (
 			<div className='lg:col-span-2'>
+				<div className='w-full flex flex-row justify-end pb-4'>
+					<Button size='icon' color='blue' onClick={() => handleDownload(data.value as unknown as string[])}>
+						<Download />
+					</Button>
+				</div>
 				<Gallery media={data.value as unknown as string[]} />
 			</div>
 		);
@@ -625,7 +630,13 @@ export function FelmeresPicturesComponent({
 	save?: boolean;
 }) {
 	return (
-		<div className='flex flex-col gap-2'>
+		<div className='flex flex-col gap-2 w-full'>
+			<div className='w-full flex flex-row justify-end pb-4'>
+				<Button size='icon' color='blue' onClick={() => handleDownload(pictures.map((pic) => pic.src))}>
+					<Download />
+				</Button>
+			</div>
+
 			<Gallery
 				media={pictures.map((pic) => pic.src)}
 				edit={true}
@@ -684,3 +695,33 @@ export function FelmeresPicturesComponent({
 		</div>
 	);
 }
+
+const handleDownload = async (pictures: string[]) => {
+	for (const pic of pictures) {
+		fetch(pic, {
+			method: "GET",
+			headers: {
+				"Content-Type": "application/pdf",
+			},
+		})
+			.then((response) => response.blob())
+			.catch((error) => console.error(error))
+			.then((blob) => {
+				if (blob === undefined) return;
+				// Create blob link to download
+				const url = window.URL.createObjectURL(new Blob([blob]));
+				const link = document.createElement("a");
+				link.href = url;
+				link.setAttribute("download", pic.split("/").pop() ?? "");
+
+				// Append to html link element page
+				document.body.appendChild(link);
+
+				// Start download
+				link.click();
+
+				// Clean up and remove the link
+				link.parentNode?.removeChild(link);
+			});
+	}
+};
