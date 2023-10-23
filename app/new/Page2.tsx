@@ -155,7 +155,7 @@ export function Page2({
 	const TABLE_HEAD_ITEMS =
 		deviceSize === "sm"
 			? ["SKU", "Darab + Hely", "Nettó egységár", "Nettó összesen"]
-			: ["SKU", "Név", "Darab + Hely", "Nettó egységár", "Nettó összesen"];
+			: ["SKU", "Darab + Hely", "Nettó egységár", "Nettó összesen"];
 	const TABLE_HEAD_OTHER = ["Név", "Nettó egységár", "Nettó összesen"];
 	const TABLE_HEAD_OTHER_MATERIAL = ["Név", "Darab", "Nettó egységár", "Nettó összesen"];
 
@@ -559,14 +559,7 @@ export function Page2({
 																	</Button>
 																</HoverCardTrigger>
 															</th>
-															<td className={classes}>
-																<Typography
-																	variant='small'
-																	color='blue-gray'
-																	className='font-normal max-w-[30rem]'>
-																	{name}
-																</Typography>
-															</td>
+
 															{inputValues
 																.sort((a, b) => a.id - b.id)
 																.map((inputValue) => (
@@ -841,8 +834,7 @@ export function Page2({
 								<tr>
 									{!isEditingItems ? null : !isAddingNewItem ? (
 										<>
-											<td></td>
-											<td></td>
+											<td className='border-r'></td>
 											<td></td>
 											<td></td>
 											<td></td>
@@ -930,7 +922,6 @@ export function Page2({
 											<td className='p-4 border-b border-blue-gray-50'></td>
 											<td className='p-4 border-b border-blue-gray-50'></td>
 											<td className='p-4 border-b border-blue-gray-50'></td>
-											<td className='p-4 border-b border-blue-gray-50'></td>
 											<td className='p-4 border-b border-blue-gray-50'>
 												<CheckCircleIcon
 													className='w-7 h-7 text-green-600 cursor-pointer'
@@ -953,7 +944,6 @@ export function Page2({
 											Össz:
 										</Typography>
 									</td>
-									<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
 									<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
 									<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
 									<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>

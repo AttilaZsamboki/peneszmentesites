@@ -278,6 +278,7 @@ export default function Page({
 			fetchAdatlapData();
 		}
 	}, [felmeres.adatlap_id]);
+	const template = templates.find((template) => template.id === felmeres.template);
 
 	const CreateFelmeres = async (sendOffer: boolean = true) => {
 		const start = performance.now();
@@ -497,7 +498,6 @@ export default function Page({
 				sendOffer
 			) {
 				// XML string összeállítása
-				const template = templates.find((template) => template.id === felmeres.template);
 				await assembleOfferXML(
 					"Elfogadásra vár",
 					39636,

@@ -6,18 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { cn } from "@/lib/utils";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
-function Icon({ open }: { open: boolean }) {
-	return (
-		<svg
-			xmlns='http://www.w3.org/2000/svg'
-			fill='none'
-			viewBox='0 0 24 24'
-			strokeWidth={2}
-			stroke='currentColor'
-			className={`${open ? "rotate-180" : ""} h-5 w-5 transition-transform`}>
-			<path strokeLinecap='round' strokeLinejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5' />
-		</svg>
-	);
+interface Option {
+	label: string | React.ReactNode;
+	value: string | number;
+	subOptions?: Option[];
+	onClick?: () => void;
 }
 
 export default function Sections({
@@ -29,12 +22,7 @@ export default function Sections({
 	selected,
 	href,
 }: {
-	options: {
-		label: string;
-		value: string | number;
-		subOptions?: { label: string; value: string | number }[];
-		onClick?: () => void;
-	}[];
+	options: Option[];
 	selected: string | number;
 	setSelected: React.Dispatch<React.SetStateAction<string | number>>;
 	filter: string;
@@ -48,7 +36,7 @@ export default function Sections({
 				<CardTitle>Szekciók</CardTitle>
 				<CardDescription>Itt tudsz a szekciók között váltani</CardDescription>
 			</CardHeader>
-			<CardContent className='sticky top-5 w-full '>
+			<CardContent className='sticky top-5 w-full'>
 				<div className='rounded-none py-3 lg:rounded-sm px-3 border flex flex-col gap-2'>
 					{options.map((section) =>
 						section.subOptions ? (

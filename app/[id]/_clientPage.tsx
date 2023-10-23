@@ -33,7 +33,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Product } from "../products/page";
 import FileUpload from "../_components/FileUpload";
 import ChatComponent, { Chat } from "@/components/chat";
-import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { DropdownMenu } from "@/components/ui/dropdown-menu";
 
 export function isJSONParsable(str: string) {
 	try {
@@ -57,6 +58,7 @@ export interface PageMap {
 	id: SectionNames;
 	subSections?: PageMap[];
 	onClick?: () => void;
+	label?: React.ReactNode;
 }
 
 export interface FelmeresPictures {
@@ -109,7 +111,24 @@ export default function ClientPage({
 	);
 	const [selectedSection, setSelectedSection] = React.useState<SectionNames>("");
 	const [statePictures, setStatePictures] = React.useState(pictures);
+	const [stateChat, setStateChat] = React.useState<Chat[]>(chat);
 
+	const handleSeenChat = async () => {
+		const response = await fetch(`https://pen.dataupload.xyz/felmeres-notes/?felmeres_id=${felmeresId}`, {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				seen: true,
+			}),
+		});
+		if (response.ok) {
+			await fetch("/api/revalidate?tag=" + felmeresId);
+			setStateChat((prev) => prev.map((message) => ({ ...message, seen: true })));
+			await fetch("/api/revalidate?tag=" + felmeresId);
+		}
+	};
 	const sections: PageMap[] = [
 		{
 			component: (
@@ -183,9 +202,30 @@ export default function ClientPage({
 			title: "Képek",
 		},
 		{
-			component: <ChatComponent id={felmeres.id.toString()} chat={chat} />,
+			component: <ChatComponent id={felmeres.id.toString()} chat={stateChat} setChat={setStateChat} />,
 			id: "Megjegyzések",
 			title: "Megjegyzések",
+			label: (
+				<div className='flex flex-row justify-between w-full items-center gap-2'>
+					<div>Megjegyzések</div>
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger>
+								<Badge
+									variant={
+										stateChat.filter((message) => !message.seen).length ? "destructive" : "outline"
+									}
+									onClick={handleSeenChat}>
+									{stateChat.filter((message) => !message.seen).length}
+								</Badge>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Olvasottnak jelölés</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+				</div>
+			),
 		},
 	];
 
@@ -292,9 +332,9 @@ export default function ClientPage({
 
 	return (
 		<div className='w-full overflow-y-scroll overflow-x-hidden lg:h-[98dvh] h-[90dvh]'>
-			<div className='flex flex-row w-ful flex-wrap lg:flex-nowrap justify-center mt-0 lg:mt-2'>
+			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-0 lg:mt-2 lg:px-6 px-0 gap-6'>
 				<div className='w-full'>
-					<div className='mt-0 lg:mt-6 lg:px-10 px-0 w-full'>
+					<div className='mt-0 lg:mt-6 w-full'>
 						<Card>
 							<CardHeader>
 								<div className='flex gap-5 flex-row items-center justify-between w-full flex-wrap'>
@@ -424,16 +464,16 @@ export default function ClientPage({
 					</div>
 				</div>
 				{deviceSize !== "sm" ? (
-					<div className='w-full lg:w-3/12 lg:mr-10 flex justify-center lg:justify-normal lg:items-start items-center lg:px-0 px-3 mt-6'>
+					<div className='w-full lg:w-3/12 flex justify-center lg:justify-normal lg:items-start items-center lg:px-0 px-3 mt-6'>
 						<div className='w-full sticky top-8 '>
 							<div className='relative'>
 								<Sections
 									options={sections
 										.map((section) => ({
-											label: section.title,
+											label: section.label ?? section.title,
 											value: section.id,
 											subOptions: section.subSections?.map((sub) => ({
-												label: sub.title,
+												label: sub.label ?? sub.title,
 												value: sub.id,
 											})),
 											onClick: section.onClick,
@@ -490,7 +530,7 @@ export default function ClientPage({
 									<Link href={`/${felmeresId}#${isAll ? section.id : ""}`}>
 										<Tab value={section.title} className='pb-2'>
 											<div className='hover:bg-gray-100 px-3 py-1 rounded-md truncate max-w-[12rem]'>
-												{section.title}
+												{section.label ?? section.title}
 											</div>
 										</Tab>
 									</Link>

@@ -19,6 +19,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useLocalStorageState } from "@/lib/utils";
 
 interface Progress {
 	percent: number;
@@ -115,12 +116,8 @@ function Navbar({ routes }: { routes: Route[] }) {
 	const deviceSize = useBreakpointValue();
 	const pathname = usePathname().split("?")[0];
 	const [open, setOpen] = React.useState("");
-	const [openNav, setOpenNav] = React.useState(false);
+	const [openNav, setOpenNav] = useLocalStorageState("navbarOpen", deviceSize !== "sm");
 	const [ref] = useAutoAnimate<HTMLDivElement>();
-
-	React.useEffect(() => {
-		setOpenNav(deviceSize !== "sm");
-	}, [deviceSize]);
 
 	const handleSetOpen = (route: string) => {
 		setOpen((prev) => (prev === route ? "" : route));
@@ -138,6 +135,7 @@ function Navbar({ routes }: { routes: Route[] }) {
 		window.location.href = "/api/auth/login";
 		return null;
 	}
+	console.log(openNav);
 	return (
 		<div className='flex' ref={ref}>
 			{!openNav ? (
@@ -178,6 +176,49 @@ function Navbar({ routes }: { routes: Route[] }) {
 										{route.icon}
 									</Link>
 								))}
+
+								<div className='flex w-full flex-col items-center h-full relative'>
+									<div className='px-2 w-full bottom-0 py-2 absolute'>
+										{isLoading ? (
+											<div className='flex items-center justify-center w-full h-full'>
+												<div className='flex justify-center items-center space-x-1 text-sm text-gray-700'>
+													<svg
+														fill='none'
+														className='w-6 h-6 animate-spin'
+														viewBox='0 0 32 32'
+														xmlns='http://www.w3.org/2000/svg'>
+														<path
+															clip-rule='evenodd'
+															d='M15.165 8.53a.5.5 0 01-.404.58A7 7 0 1023 16a.5.5 0 011 0 8 8 0 11-9.416-7.874.5.5 0 01.58.404z'
+															fill='currentColor'
+															fill-rule='evenodd'
+														/>
+													</svg>
+												</div>
+											</div>
+										) : (
+											<div className='flex w-full flex-row items-center gap-2 justify-between'>
+												<DropdownMenu>
+													<DropdownMenuTrigger>
+														<Avatar>
+															<AvatarImage src={user?.picture ?? ""} />
+															<AvatarFallback>{user?.nickname}</AvatarFallback>
+														</Avatar>
+													</DropdownMenuTrigger>
+													<DropdownMenuContent>
+														<DropdownMenuLabel>Fiókom</DropdownMenuLabel>
+														<DropdownMenuSeparator />
+														<a href='/api/auth/logout'>
+															<DropdownMenuItem className='text-red-700 hover:text-red-700 font-semibold'>
+																Kijelentkezés
+															</DropdownMenuItem>
+														</a>
+													</DropdownMenuContent>
+												</DropdownMenu>
+											</div>
+										)}
+									</div>
+								</div>
 							</div>
 						</div>
 					</aside>

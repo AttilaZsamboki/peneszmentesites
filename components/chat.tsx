@@ -16,13 +16,21 @@ export interface Chat {
 	user_id: string;
 	reply_to?: string;
 	type: "text" | "image";
+	seen: boolean;
 }
 
-export default function ChatComponent({ id, chat }: { id: string; chat: Chat[] }) {
+export default function ChatComponent({
+	id,
+	chat,
+	setChat,
+}: {
+	id: string;
+	chat: Chat[];
+	setChat: React.Dispatch<React.SetStateAction<Chat[]>>;
+}) {
 	const { user, error, isLoading } = useUser();
 	const [input, setInput] = useState("");
 	const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
-	const [stateChat, setStateChat] = useState<Chat[]>(chat);
 	const [replyTo, setReplyTo] = useState<string | undefined>(undefined);
 	const router = useRouter();
 	const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -62,7 +70,7 @@ export default function ChatComponent({ id, chat }: { id: string; chat: Chat[] }
 		});
 		if (response.ok) {
 			const data = await response.json();
-			setStateChat((prevChat) => [...prevChat, data]);
+			setChat((prevChat) => [...prevChat, data]);
 			setUploadedFiles([]);
 			setInput("");
 			setReplyTo(undefined);
@@ -117,7 +125,7 @@ export default function ChatComponent({ id, chat }: { id: string; chat: Chat[] }
 			return messageDate.toDateString();
 		}
 	}
-	const returnMessage = stateChat.find((message) => message.id === replyTo);
+	const returnMessage = chat.find((message) => message.id === replyTo);
 
 	const ImageMessage = ({ message }: { message: Chat }) => (
 		<div id={message.id} className={cn("px-4 py-2 max-w-xs lg:max-w-md")}>
@@ -134,7 +142,7 @@ export default function ChatComponent({ id, chat }: { id: string; chat: Chat[] }
 				<main className='flex-grow flex flex-row min-h-0'>
 					<section className='flex flex-col flex-auto'>
 						<div className='chat-body p-4 flex-1 overflow-y-scroll'>
-							{groupMessages(stateChat).map((group) => (
+							{groupMessages(chat).map((group) => (
 								<div key={group[0].id} className='flex flex-col gap-[2px]'>
 									<div
 										className={cn(
@@ -155,7 +163,7 @@ export default function ChatComponent({ id, chat }: { id: string; chat: Chat[] }
 													<div className='messages text-sm text-white grid grid-flow-row gap-2'>
 														<div className='flex flex-col gap-1'>
 															{message.reply_to ? (
-																<ReplyBubble message={message} stateChat={stateChat}>
+																<ReplyBubble message={message} stateChat={chat}>
 																	<div className='flex items-center flex-row-reverse group'>
 																		{message.type === "image" ? (
 																			<ImageMessage message={message} />
@@ -222,7 +230,7 @@ export default function ChatComponent({ id, chat }: { id: string; chat: Chat[] }
 												<>
 													<div className='messages text-sm text-gray-700 grid grid-flow-row gap-2'>
 														{message.reply_to ? (
-															<ReplyBubble message={message} stateChat={stateChat}>
+															<ReplyBubble message={message} stateChat={chat}>
 																<OtherPartnerBubble
 																	message={message}
 																	index={index}
