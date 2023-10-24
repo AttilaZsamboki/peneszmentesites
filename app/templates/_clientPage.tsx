@@ -211,7 +211,7 @@ export function Form({
 				</div>
 				<div className='lg:relative bottom-10'>
 					<AutoComplete
-						width={deviceSize === "sm" ? "300px" : "600px"}
+						inputWidth={deviceSize === "sm" ? "300px" : "600px"}
 						options={products
 							.filter((product) => !items.map((item) => item).includes(product.id.toString()))
 							.sort((a, b) => a.sku.localeCompare(b.sku))

@@ -758,7 +758,7 @@ export default function Page({
 							<CardTitle>{section}</CardTitle>
 						</CardHeader>
 						<Separator className='mb-4' />
-						<CardContent className={`${page !== 1 ? "p-8" : null} transform`}>
+						<CardContent className={`${page !== 1 ? "p-8" : "lg:p-6 px-4 pt-0"} transform`}>
 							<PageChooser
 								setPictures={setPictures}
 								setOtherItems={setOtherItems}
@@ -780,6 +780,7 @@ export default function Page({
 								discount={discount}
 								setDiscount={setDiscount}
 								pictures={pictures}
+								isEdit={isEdit}
 							/>
 							<div className='flex flex-row justify-end gap-3 py-4'>
 								{page === 0 || startPage === page ? null : (
@@ -975,6 +976,7 @@ function PageChooser({
 	setDiscount,
 	pictures,
 	setPictures,
+	isEdit,
 }: {
 	page: number;
 	setData: React.Dispatch<React.SetStateAction<FelmeresQuestion[]>>;
@@ -996,6 +998,7 @@ function PageChooser({
 	setDiscount: React.Dispatch<React.SetStateAction<number>>;
 	pictures: FelmeresPictures[];
 	setPictures: React.Dispatch<React.SetStateAction<FelmeresPictures[]>>;
+	isEdit?: boolean;
 }) {
 	const pageMap: PageMap[] = [
 		{
@@ -1017,6 +1020,7 @@ function PageChooser({
 					setOtherItems={setOtherItems}
 					discount={discount}
 					setDiscount={setDiscount}
+					isEdit={isEdit}
 				/>
 			),
 			title: adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)?.Name ?? "",

@@ -50,6 +50,7 @@ export function Page2({
 	discount,
 	setDiscount,
 	readonly,
+	isEdit,
 }: {
 	felmeres: BaseFelmeresData;
 	setFelmeres?: React.Dispatch<React.SetStateAction<BaseFelmeresData>>;
@@ -63,12 +64,12 @@ export function Page2({
 	discount: number;
 	setDiscount?: React.Dispatch<React.SetStateAction<number>>;
 	readonly?: boolean;
+	isEdit?: boolean;
 }) {
-	const [isAddingNewItem, setIsAddingNewItem] = React.useState(false);
 	const [isAddingNewOtherMaterial, setIsAddingNewOtherMaterial] = React.useState(false);
 	const [isAddingNewOtherItem, setIsAddingNewOtherItem] = React.useState(false);
 	const [newOtherItem, setNewOtherItem] = React.useState<OtherFelmeresItem>();
-	const [isEditingItems, setIsEditingItems] = React.useState(false);
+	const [isEditingItems, setIsEditingItems] = React.useState(!readonly && !isEdit);
 	const [isEditingOtherMaterials, setIsEditingOtherMaterials] = React.useState(false);
 	const [isEditingOtherItems, setIsEditingOtherItems] = React.useState(false);
 	const [templates, setTemplates] = React.useState<Template[]>(originalTemplates ?? []);
@@ -362,7 +363,7 @@ export function Page2({
 								<div className='flex flex-row items-center gap-2'>
 									<AutoComplete
 										disabled={readonly}
-										width='300px'
+										inputWidth='300px'
 										options={templates!
 											.filter((template) => template.type === felmeres.type)
 											.map((template) => ({
@@ -548,14 +549,15 @@ export function Page2({
 														<tr key={name} className='border-b border-blue-gray-50'>
 															<th
 																className={cn(
-																	"table-cell bg-white sticky z-[1] left-0 border-r",
-																	classes
+																	"table-cell bg-white sticky z-[1] left-0 border-r "
 																)}>
 																<HoverCardTrigger asChild>
 																	<Button
 																		variant='link'
-																		className='text-black active:text-black hover:text-black hover:no-underline active:no-underline'>
-																		{sku}
+																		className='text-black justify-start lg:px-4 px-3 active:text-black hover:text-black hover:no-underline active:no-underline'>
+																		<div className='max-w-[100px] truncate'>
+																			{sku}
+																		</div>
 																	</Button>
 																</HoverCardTrigger>
 															</th>
@@ -640,7 +642,7 @@ export function Page2({
 																											value: option,
 																										})
 																									)}
-																									width='300px'
+																									inputWidth='300px'
 																									value={
 																										inputValue.value
 																									}
@@ -832,26 +834,13 @@ export function Page2({
 										}
 									)}
 								<tr>
-									{!isEditingItems ? null : !isAddingNewItem ? (
+									{!isEditingItems ? null : (
 										<>
-											<td className='border-r'></td>
-											<td></td>
-											<td></td>
-											<td></td>
-											<td className='p-4 border-b border-blue-gray-50'>
-												<PlusCircleIcon
-													className='w-7 h-7 text-green-600 cursor-pointer'
-													onClick={() => {
-														setIsAddingNewItem(true);
-													}}
-												/>
-											</td>
-										</>
-									) : (
-										<>
-											<td className='p-4 border-b border-blue-gray-50 border-r sticky left-0'>
+											<td className='p-4 px-2 border-b border-blue-gray-50 border-r sticky left-0'>
 												<AutoComplete
-													width={deviceSize !== "sm" ? "300px" : "200px"}
+													label='Hozzáad'
+													inputWidth={deviceSize !== "sm" ? "300px" : "100px"}
+													width='300px'
 													options={
 														!products
 															? []
@@ -922,12 +911,7 @@ export function Page2({
 											<td className='p-4 border-b border-blue-gray-50'></td>
 											<td className='p-4 border-b border-blue-gray-50'></td>
 											<td className='p-4 border-b border-blue-gray-50'></td>
-											<td className='p-4 border-b border-blue-gray-50'>
-												<CheckCircleIcon
-													className='w-7 h-7 text-green-600 cursor-pointer'
-													onClick={() => setIsAddingNewItem(false)}
-												/>
-											</td>
+											<td className='p-4 border-b border-blue-gray-50'></td>
 										</>
 									)}
 								</tr>
@@ -1141,7 +1125,7 @@ export function Page2({
 															}}
 														/>
 														<AutoComplete
-															width='300px'
+															inputWidth='300px'
 															label='Típus'
 															onSelect={(value) => {
 																setNewOtherItem((prev) => ({
@@ -1377,7 +1361,7 @@ export function Page2({
 												<td className='p-4 border-b border-blue-gray-50'>
 													<AutoComplete
 														side='bottom'
-														width='300px'
+														inputWidth='300px'
 														options={
 															!products
 																? []

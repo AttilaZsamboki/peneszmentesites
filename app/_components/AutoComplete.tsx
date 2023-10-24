@@ -13,10 +13,11 @@ export default function AutoComplete({
 	onChange,
 	create = false,
 	deselectable = true,
-	width = "200px",
+	inputWidth = "200px",
 	side,
 	label,
 	disabled = false,
+	width,
 }: {
 	options: { label: string; value: string }[];
 	value?: string;
@@ -24,10 +25,11 @@ export default function AutoComplete({
 	onChange?: (value: string) => void;
 	create?: boolean;
 	deselectable?: boolean;
-	width?: string;
+	inputWidth?: string;
 	side?: "left" | "right" | "top" | "bottom";
 	label?: string;
 	disabled?: boolean;
+	width?: string;
 }) {
 	const [open, setOpen] = React.useState(false);
 	const [inputValue, setInputValue] = React.useState("");
@@ -39,7 +41,7 @@ export default function AutoComplete({
 					variant='outline'
 					role='combobox'
 					aria-expanded={open}
-					style={{ width: width }}
+					style={{ width: inputWidth }}
 					className='justify-between'>
 					{value ? options.find((option) => option.label === value)?.label : label ?? "Keress.."}
 					<div className='flex items-center'>
@@ -56,7 +58,7 @@ export default function AutoComplete({
 					</div>
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent side={side} style={{ width: width }} className='p-0'>
+			<PopoverContent side={side} style={{ width: width ?? inputWidth }} className='p-0'>
 				<Command
 					onChange={(e) => {
 						setInputValue((e.target as unknown as { value: string }).value);

@@ -18,13 +18,17 @@ export function useLocalStorageState(
 	key: string,
 	defaultValue: boolean
 ): [boolean, React.Dispatch<React.SetStateAction<boolean>>] {
-	const [state, setState] = React.useState(() => {
-		const storedValue = typeof window !== "undefined" ? window.localStorage.getItem(key) : null;
-		return storedValue !== null ? (JSON.parse(storedValue) as boolean) : defaultValue;
-	});
+	const [state, setState] = React.useState(defaultValue);
 
 	React.useEffect(() => {
-		window.localStorage.setItem(key, JSON.stringify(state));
+		setState(() => {
+			const storedValue = window.localStorage.getItem(key);
+			return storedValue !== null ? (JSON.parse(storedValue) as boolean) : defaultValue;
+		});
+	}, []);
+
+	React.useEffect(() => {
+		setTimeout(() => window.localStorage.setItem(key, JSON.stringify(state)), 1);
 	}, [key, state]);
 
 	return [state, setState];
