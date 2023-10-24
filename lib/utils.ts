@@ -19,7 +19,7 @@ export function useLocalStorageState(
 	defaultValue: boolean
 ): [boolean, React.Dispatch<React.SetStateAction<boolean>>] {
 	const [state, setState] = React.useState(() => {
-		const storedValue = window.localStorage.getItem(key);
+		const storedValue = typeof window !== "undefined" ? window.localStorage.getItem(key) : null;
 		return storedValue !== null ? (JSON.parse(storedValue) as boolean) : defaultValue;
 	});
 
