@@ -331,7 +331,7 @@ export default function ClientPage({
 	};
 
 	return (
-		<div className='w-full overflow-y-scroll overflow-x-hidden lg:h-[98dvh] h-[90dvh]'>
+		<div className='w-full overflow-y-scroll overflow-x-hidden lg:h-[98dvh] h-[92dvh]'>
 			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-0 lg:mt-2 lg:px-6 px-0 gap-6'>
 				<div className='w-full'>
 					<div className='mt-0 lg:mt-6 w-full'>
@@ -740,9 +740,7 @@ const handleDownload = async (pictures: string[]) => {
 	for (const pic of pictures) {
 		fetch(pic, {
 			method: "GET",
-			headers: {
-				"Content-Type": "application/pdf",
-			},
+			cache: "no-store"
 		})
 			.then((response) => response.blob())
 			.catch((error) => console.error(error))

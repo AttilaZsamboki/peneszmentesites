@@ -26,7 +26,7 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 	})
 		.then((res) => res.json())
 		.catch((err) => {
-			console.error(err);
+			console.log(err);
 			return { adatlap_id: 0 };
 		});
 	const felmeresItems: FelmeresItem[] = await fetch(
@@ -87,6 +87,7 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 			: { ...field }
 	);
 	if (!felmeres || !felmeres.adatlap_id) {
+		console.log(felmeres);
 		notFound();
 	}
 
