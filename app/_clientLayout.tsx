@@ -140,7 +140,7 @@ function Navbar({ routes }: { routes: Route[] }) {
 			{!openNav ? (
 				deviceSize === "sm" || !deviceSize ? (
 					<div
-						className='border rounded-sm active:bg-white cursor-pointer absolute top-2 left-2 bg-white z-20'
+						className='rounded-sm cursor-pointer absolute top-2 left-2 z-20'
 						onClick={() => setOpenNav((prev) => !prev)}>
 						<Menu className='' />
 					</div>

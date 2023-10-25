@@ -20,7 +20,7 @@ import MultipleChoice from "@/app/_components/MultipleChoice";
 import { Grid } from "@/app/_components/Grid";
 import Gallery from "@/app/_components/Gallery";
 
-import { statusMap } from "@/app/_utils/utils";
+import { FelmeresStatus, statusMap } from "@/app/_utils/utils";
 import { toast } from "@/components/ui/use-toast";
 import useBreakpointValue from "../_components/useBreakpoint";
 import { Separator } from "@/components/ui/separator";
@@ -34,7 +34,12 @@ import { Product } from "../products/page";
 import FileUpload from "../_components/FileUpload";
 import ChatComponent, { Chat } from "@/components/chat";
 import { Badge } from "@/components/ui/badge";
-import { DropdownMenu } from "@/components/ui/dropdown-menu";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function isJSONParsable(str: string) {
 	try {
@@ -261,7 +266,7 @@ export default function ClientPage({
 
 	const felmeresStatus = felmeres.status ? felmeres.status : "DRAFT";
 
-	const changeStatus = async (status: string) => {
+	const changeStatus = async (status: FelmeresStatus) => {
 		const response = await fetch(`https://pen.dataupload.xyz/felmeresek/${felmeresId}/`, {
 			method: "PATCH",
 			headers: {
@@ -335,31 +340,12 @@ export default function ClientPage({
 			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-0 lg:mt-2 lg:px-6 px-0 gap-6'>
 				<div className='w-full'>
 					<div className='mt-0 lg:mt-6 w-full'>
-						<Card>
-							<CardHeader>
-								<div className='flex gap-5 flex-row items-center justify-between w-full flex-wrap'>
-									<div className='flex flex-row items-center gap-5'>
-										<CardTitle>{adatlap.Name}</CardTitle>
-										<div className='flex flex-row items-center gap-2 justify-center'>
-											<Button
-												color={statusMap[felmeresStatus].color}
-												className='uppercase font-semibold w-32 cursor-default'>
-												{statusMap[felmeresStatus].name}
-											</Button>
-											{felmeresStatus === "IN_PROGRESS" ? (
-												<Button
-													onClick={() => {
-														changeStatus("COMPLETED");
-													}}
-													size='icon'
-													variant='outline'
-													className='hover:border-green-700 hover:bg-green-100 hover:border-2 hover:text-green-700'>
-													<Check className='h-5 w-5' />
-												</Button>
-											) : null}
-										</div>
-									</div>
-									{deviceSize === "sm" ? <Separator /> : null}
+						<Card className='lg:rounded-lg rounded-none border-0'>
+							<CardTitle className='lg:py-3 py-2 lg:rounded-t-lg rounded-t-none border-b top-0 sticky z-40 pl-10 bg-blue-800 text-white'>
+								{adatlap.Name}
+							</CardTitle>
+							<CardHeader className='pt-2 lg:pt-6 lg:p-6 p-0'>
+								<div className='flex gap-5 flex-row items-center justify-between w-full flex-wrap lg:p-0 p-4 pt-6 lg:pt-0'>
 									<div className='flex w-full lg:w-1/4 lg:justify-normal justify-center h-5 items-center space-x-4 lg:text-md lg:font-medium text-sm'>
 										<div>{adatlap.Felmero2 ?? ""}</div>
 										{felmeres.type ? (
@@ -368,12 +354,37 @@ export default function ClientPage({
 												<div>{felmeres.type}</div>
 											</>
 										) : null}
-										{template.name ? (
-											<>
-												<Separator orientation='vertical' />
-												<div>{template.name}</div>
-											</>
-										) : null}
+										<div className='flex flex-row items-center gap-5'>
+											<div className='flex flex-row items-center gap-2 justify-center'>
+												<DropdownMenu>
+													<DropdownMenuTrigger asChild>
+														<Button
+															color={statusMap[felmeresStatus].color}
+															className='uppercase font-semibold w-32 cursor-default'>
+															{statusMap[felmeresStatus].name}
+														</Button>
+													</DropdownMenuTrigger>
+													{felmeres.status === "IN_PROGRESS" ||
+													felmeres.status === "COMPLETED" ? (
+														<DropdownMenuContent>
+															{felmeres.status === "IN_PROGRESS" ? (
+																<DropdownMenuItem
+																	className='uppercase font-bold text-center'
+																	onClick={() => changeStatus("COMPLETED")}>
+																	Kész
+																</DropdownMenuItem>
+															) : felmeres.status === "COMPLETED" ? (
+																<DropdownMenuItem
+																	className='uppercase font-bold text-center'
+																	onClick={() => changeStatus("IN_PROGRESS")}>
+																	Folyamatban
+																</DropdownMenuItem>
+															) : null}
+														</DropdownMenuContent>
+													) : null}
+												</DropdownMenu>
+											</div>
+										</div>
 									</div>
 									{deviceSize === "sm" ? <Separator /> : null}
 									{isEditing ? (
@@ -740,7 +751,7 @@ const handleDownload = async (pictures: string[]) => {
 	for (const pic of pictures) {
 		fetch(pic, {
 			method: "GET",
-			cache: "no-store"
+			cache: "no-store",
 		})
 			.then((response) => response.blob())
 			.catch((error) => console.error(error))

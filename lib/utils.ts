@@ -20,10 +20,13 @@ export function useLocalStorageState(
 	defaultValue: boolean
 ): [boolean, React.Dispatch<React.SetStateAction<boolean>>] {
 	const [state, setState] = React.useState(() => {
-		const storedValue = window.localStorage.getItem(key);
-		return isJSONParsable(storedValue ?? "") && storedValue !== null
-			? (JSON.parse(storedValue) as boolean)
-			: defaultValue;
+		if (typeof window !== "undefined") {
+			const storedValue = window.localStorage.getItem(key);
+			return isJSONParsable(storedValue ?? "") && storedValue !== null
+				? (JSON.parse(storedValue) as boolean)
+				: defaultValue;
+		}
+		return defaultValue;
 	});
 
 	React.useEffect(() => {
