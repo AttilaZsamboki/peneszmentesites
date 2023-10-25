@@ -1,3 +1,4 @@
+import { isJSONParsable } from "@/app/[id]/_clientPage";
 import { type ClassValue, clsx } from "clsx";
 import React from "react";
 import { twMerge } from "tailwind-merge";
@@ -18,17 +19,15 @@ export function useLocalStorageState(
 	key: string,
 	defaultValue: boolean
 ): [boolean, React.Dispatch<React.SetStateAction<boolean>>] {
-	const [state, setState] = React.useState(defaultValue);
+	const [state, setState] = React.useState(() => {
+		const storedValue = window.localStorage.getItem(key);
+		return isJSONParsable(storedValue ?? "") && storedValue !== null
+			? (JSON.parse(storedValue) as boolean)
+			: defaultValue;
+	});
 
 	React.useEffect(() => {
-		setState(() => {
-			const storedValue = window.localStorage.getItem(key);
-			return storedValue !== null ? (JSON.parse(storedValue) as boolean) : defaultValue;
-		});
-	}, []);
-
-	React.useEffect(() => {
-		setTimeout(() => window.localStorage.setItem(key, JSON.stringify(state)), 1);
+		window.localStorage.setItem(key, JSON.stringify(state));
 	}, [key, state]);
 
 	return [state, setState];
