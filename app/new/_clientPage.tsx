@@ -125,7 +125,7 @@ export default function Page({
 	const { setProgress } = useGlobalState();
 	const searchParams = useSearchParams();
 	const [page, setPage] = React.useState(startPage ? startPage : parseInt(searchParams.get("page") ?? "0"));
-	const [section, setSection] = React.useState("Alapadatok");
+	const [section, setSection] = React.useState(isEdit ? "" : "Alapadatok");
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>(
 		editFelmeres
 			? editFelmeres
@@ -189,6 +189,19 @@ export default function Page({
 			: 0
 	);
 	const [pictures, setPictures] = React.useState<FelmeresPictures[]>(editPictures ?? []);
+	const createType = (
+		sendOffer?: boolean
+	): {
+		CREATE_OFFER: boolean;
+		FELMERES: "UPDATE" | "CREATE" | null;
+		CANCEL_OLD_OFFER: boolean;
+	} => {
+		return {
+			CREATE_OFFER: sendOffer ?? false,
+			FELMERES: isEdit ? "UPDATE" : "CREATE",
+			CANCEL_OLD_OFFER: (sendOffer && felmeres.status !== "DRAFT") ?? false,
+		};
+	};
 
 	const { toast } = useToast();
 	const createQueryString = useCreateQueryString(searchParams);
@@ -281,6 +294,7 @@ export default function Page({
 	const template = templates.find((template) => template.id === felmeres.template);
 
 	const CreateFelmeres = async (sendOffer: boolean = true) => {
+		const createType2 = createType(sendOffer);
 		const start = performance.now();
 		const percent = (num: number) => Math.floor((num / 3400) * 100);
 		const updateStatus = (num: number, id?: number) => {
@@ -288,7 +302,7 @@ export default function Page({
 				title: percent(num) === 100 ? "Felmérés létrehozva" : "Felmérés létrehozása",
 				description:
 					percent(num) === 100 ? (
-						createType === "DRAFT UPDATE" ? (
+						createType2.FELMERES === "UPDATE" ? (
 							<div>Felmérés módosítva</div>
 						) : (
 							<Link
@@ -308,39 +322,6 @@ export default function Page({
 		};
 		updateStatus(1);
 
-		let createType:
-			| "CREATE"
-			| "CREATE NEW OFFER"
-			| "CANCEL AND CREATE NEW OFFER"
-			| "DRAFT UPDATE"
-			| "UPDATE"
-			| "DRAFT UPDATE AND CREATE NEW OFFER" = "CREATE";
-		// ha a beküldés gombra kattintasz
-		if (sendOffer) {
-			if (felmeres.status === "DRAFT") {
-				// ha nem létezik még ajánlat
-				if (isEdit) {
-					createType = "DRAFT UPDATE AND CREATE NEW OFFER";
-				} else {
-					createType = "CREATE NEW OFFER";
-				}
-			} else {
-				createType = "CANCEL AND CREATE NEW OFFER";
-			}
-			// ha a mentés gombra kattintasz és nem létezik még ajánlat
-		} else if (felmeres.status === "DRAFT") {
-			// ha létezik már felmérés
-			if (isEdit) {
-				createType = "DRAFT UPDATE";
-			} else {
-				// ha nem létezik még felmérés
-				createType = "CREATE";
-			}
-		} else {
-			// ha a mentés gombra kattintasz és létezik már ajánlat
-			createType = "UPDATE";
-		}
-
 		// Felmérés alapadatok mentése //
 		let date = new Date();
 		date.setHours(date.getHours() + 4);
@@ -357,24 +338,19 @@ export default function Page({
 			":" +
 			("0" + date.getSeconds()).slice(-2);
 		const fetchFelmeres = async () => {
-			if (
-				createType === "DRAFT UPDATE" ||
-				createType === "UPDATE" ||
-				createType === "DRAFT UPDATE AND CREATE NEW OFFER"
-			) {
-				if (sendOffer) {
-					const resp = await fetch("https://pen.dataupload.xyz/felmeresek/" + editFelmeres!.id + "/", {
-						method: "PATCH",
-						headers: {
-							"Content-Type": "application/json",
-						},
-						body: JSON.stringify({
-							status: "IN_PROGRESS",
-						}),
-					});
-					await fetch("/api/revalidate?tag=" + editFelmeres!.id);
-					return resp;
-				}
+			if (createType2.FELMERES === "UPDATE") {
+				const resp = await fetch("https://pen.dataupload.xyz/felmeresek/" + editFelmeres!.id + "/", {
+					method: "PUT",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						...felmeres,
+						status: createType2.CREATE_OFFER ? "IN_PROGRESS" : felmeres.status,
+					}),
+				});
+				await fetch("/api/revalidate?tag=" + editFelmeres!.id);
+				return resp;
 			} else {
 				const resp = await fetch("https://pen.dataupload.xyz/felmeresek/", {
 					method: "POST",
@@ -403,23 +379,21 @@ export default function Page({
 		if (!res || res.ok) {
 			// Tételek mentése //
 			const felmeresResponseData: BaseFelmeresData = !res ? editFelmeres : await res.json();
-			if (createType !== "UPDATE") {
-				await fetch("https://pen.dataupload.xyz/felmeres_items/", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify(
-						submitItems.map((item) => ({
-							...item,
-							adatlap: felmeresResponseData.id,
-							netPrice: item.netPrice,
-							// ez annyit jelent hogy ha null az id akkor létrehozza az adatbázisban egyébként frissíti a meglévő tételeket
-							id: createType === "DRAFT UPDATE" ? item.id : null,
-						}))
-					),
-				});
-			}
+			await fetch("https://pen.dataupload.xyz/felmeres_items/", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(
+					submitItems.map((item) => ({
+						...item,
+						adatlap: felmeresResponseData.id,
+						netPrice: item.netPrice,
+						// ez annyit jelent hogy ha null az id akkor létrehozza az adatbázisban egyébként frissíti a meglévő tételeket
+						id: createType2.FELMERES === "UPDATE" ? item.id : null,
+					}))
+				),
+			});
 			updateStatus(196);
 			const saveOfferItems = performance.now();
 			console.log("Tételek mentése: " + (saveOfferItems - start) + "ms");
@@ -492,11 +466,7 @@ export default function Page({
 			// -- END -- //
 
 			// MiniCRM ajánlat létrehozása //
-			if (
-				// Nem failelt a kérdések mentése
-				status === 1 &&
-				sendOffer
-			) {
+			if (createType2.CREATE_OFFER) {
 				// XML string összeállítása
 				await assembleOfferXML(
 					"Elfogadásra vár",
@@ -575,7 +545,7 @@ export default function Page({
 				// -- END -- //
 
 				// Régi ajánlat stornózása
-				if (createType === "CANCEL AND CREATE NEW OFFER") {
+				if (createType2.CANCEL_OLD_OFFER) {
 					const cancelOffer = async () => {
 						const resp = await fetch("https://pen.dataupload.xyz/cancel_offer/", {
 							method: "POST",
@@ -650,7 +620,7 @@ export default function Page({
 				}
 			}
 			updateStatus(3400, felmeresResponseData.id);
-			if (createType === "UPDATE" || createType === "DRAFT UPDATE") {
+			if (createType2.FELMERES === "UPDATE") {
 				await fetch("/api/revalidate?path=/" + felmeresResponseData.id);
 				await fetch("/api/revalidate?tag=" + felmeresResponseData.id);
 				router.push("/" + felmeresResponseData.id);
@@ -745,7 +715,6 @@ export default function Page({
 				  (item.value / 100)
 		)
 		.reduce((a, b) => a + b, 0);
-
 	return (
 		<div className='w-full overflow-y-scroll h-[100dvh] pb-0 mb-0 lg:pb-10 lg:mb-10'>
 			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-0 lg:mt-2'>
@@ -805,22 +774,26 @@ export default function Page({
 										!items.length ||
 										!felmeres.subject ||
 										(_.isEqual(
-											editFelmeresItems?.map((item) => ({
-												...item,
-												id: 0,
-												inputValues: item.inputValues.map((value) => value.ammount),
-												sku: item.sku ? item.sku : null,
-												source: "",
-												adatlap: null,
-											})),
-											submitItems.map((item) => ({
-												...item,
-												id: 0,
-												inputValues: item.inputValues.map((value) => value.ammount),
-												source: "",
-												sku: item.sku ? item.sku : null,
-												adatlap: null,
-											}))
+											editFelmeresItems
+												?.map((item) => ({
+													...item,
+													id: 0,
+													inputValues: item.inputValues.map((value) => value.ammount),
+													sku: item.sku ?? "",
+													source: "",
+													adatlap: "",
+												}))
+												.sort((a, b) => a.sku.localeCompare(b.sku)),
+											submitItems
+												.map((item) => ({
+													...item,
+													id: 0,
+													inputValues: item.inputValues.map((value) => value.ammount),
+													source: "",
+													sku: item.sku ?? "",
+													adatlap: "",
+												}))
+												.sort((a, b) => a.sku.localeCompare(b.sku))
 										) &&
 											felmeres.status !== "DRAFT") ? null : isEdit &&
 										  felmeres.status !== "DRAFT" ? (

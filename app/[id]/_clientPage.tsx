@@ -341,12 +341,42 @@ export default function ClientPage({
 				<div className='w-full'>
 					<div className='mt-0 lg:mt-6 w-full'>
 						<Card className='lg:rounded-lg rounded-none border-0'>
-							<CardTitle className='lg:py-3 py-2 lg:rounded-t-lg rounded-t-none border-b top-0 sticky z-40 pl-10 bg-blue-800 text-white'>
-								{adatlap.Name}
-							</CardTitle>
+							<div className='py-3 flex flex-row justify-between items-center pr-4 lg:rounded-t-lg rounded-t-none border-b top-0 sticky z-40 pl-10 bg-blue-800 text-white'>
+								<CardTitle>{adatlap.Name}</CardTitle>
+								<div className='flex flex-row items-center gap-5'>
+									<div className='flex flex-row items-center gap-2 justify-center'>
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
+												<Button
+													color={statusMap[felmeresStatus].color}
+													className='uppercase font-semibold w-32 cursor-default'>
+													{statusMap[felmeresStatus].name}
+												</Button>
+											</DropdownMenuTrigger>
+											{felmeres.status === "IN_PROGRESS" || felmeres.status === "COMPLETED" ? (
+												<DropdownMenuContent>
+													{felmeres.status === "IN_PROGRESS" ? (
+														<DropdownMenuItem
+															className='uppercase font-bold text-center'
+															onClick={() => changeStatus("COMPLETED")}>
+															Kész
+														</DropdownMenuItem>
+													) : felmeres.status === "COMPLETED" ? (
+														<DropdownMenuItem
+															className='uppercase font-bold text-center'
+															onClick={() => changeStatus("IN_PROGRESS")}>
+															Folyamatban
+														</DropdownMenuItem>
+													) : null}
+												</DropdownMenuContent>
+											) : null}
+										</DropdownMenu>
+									</div>
+								</div>
+							</div>
 							<CardHeader className='pt-2 lg:pt-6 lg:p-6 p-0'>
 								<div className='flex gap-5 flex-row items-center justify-between w-full flex-wrap lg:p-0 p-4 pt-6 lg:pt-0'>
-									<div className='flex w-full lg:w-1/4 lg:justify-normal justify-center h-5 items-center space-x-4 lg:text-md lg:font-medium text-sm'>
+									<div className='flex w-full lg:w-1/4 lg:justify-normal justify-between h-5 items-center space-x-4 lg:text-md lg:font-medium text-sm'>
 										<div>{adatlap.Felmero2 ?? ""}</div>
 										{felmeres.type ? (
 											<>
@@ -354,37 +384,7 @@ export default function ClientPage({
 												<div>{felmeres.type}</div>
 											</>
 										) : null}
-										<div className='flex flex-row items-center gap-5'>
-											<div className='flex flex-row items-center gap-2 justify-center'>
-												<DropdownMenu>
-													<DropdownMenuTrigger asChild>
-														<Button
-															color={statusMap[felmeresStatus].color}
-															className='uppercase font-semibold w-32 cursor-default'>
-															{statusMap[felmeresStatus].name}
-														</Button>
-													</DropdownMenuTrigger>
-													{felmeres.status === "IN_PROGRESS" ||
-													felmeres.status === "COMPLETED" ? (
-														<DropdownMenuContent>
-															{felmeres.status === "IN_PROGRESS" ? (
-																<DropdownMenuItem
-																	className='uppercase font-bold text-center'
-																	onClick={() => changeStatus("COMPLETED")}>
-																	Kész
-																</DropdownMenuItem>
-															) : felmeres.status === "COMPLETED" ? (
-																<DropdownMenuItem
-																	className='uppercase font-bold text-center'
-																	onClick={() => changeStatus("IN_PROGRESS")}>
-																	Folyamatban
-																</DropdownMenuItem>
-															) : null}
-														</DropdownMenuContent>
-													) : null}
-												</DropdownMenu>
-											</div>
-										</div>
+										<Separator orientation='vertical' />
 									</div>
 									{deviceSize === "sm" ? <Separator /> : null}
 									{isEditing ? (

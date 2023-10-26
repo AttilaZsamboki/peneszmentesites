@@ -1,6 +1,8 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import Skeleton from "react-loading-skeleton";
 
@@ -9,10 +11,13 @@ export default function EditLoading() {
 		<div className='w-full overflow-y-scroll h-screen pb-10 mb-10'>
 			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-2'>
 				<div className='lg:mt-6 w-11/12 lg:px-10 lg:w-11/12'>
-					<div className='rounded-lg border bg-card text-card-htmlForeground shadow-sm'>
-						<div className='flex flex-col space-y-1.5 p-6'>
-							<h3 className='text-2xl font-semibold leading-none tracking-tight'>Tételek</h3>
-						</div>
+					<Card className='lg:rounded-md rounded-none lg:border border-0'>
+						<CardHeader>
+							<CardTitle className='w-1/6'>
+								<Skeleton className='py-1' />
+							</CardTitle>
+						</CardHeader>
+						<Separator className='mb-4' />
 						<div className='p-8 transhtmlForm'>
 							<div>
 								<div className='rounded-lg border bg-card text-card-htmlForeground shadow-sm my-5'>
@@ -270,7 +275,7 @@ export default function EditLoading() {
 								<Button disabled={true}>Következő</Button>
 							</div>
 						</div>
-					</div>
+					</Card>
 				</div>
 			</div>
 		</div>
