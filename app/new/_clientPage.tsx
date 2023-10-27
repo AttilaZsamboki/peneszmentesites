@@ -725,6 +725,7 @@ export default function Page({
 						subSections: Array.from(new Set(questions.map((question) => question.product)))
 							.sort((a, b) => Number(a === undefined) - Number(b === undefined))
 							.map((product) => {
+								const currProduct = products.find((p) => p.id === product);
 								return {
 									component: (
 										<QuestionPage
@@ -735,7 +736,8 @@ export default function Page({
 											setData={setData}
 										/>
 									),
-									title: products.find((p) => p.id === product)?.sku ?? "Fix kérdések",
+									title: currProduct?.sku ?? "Fix kérdések",
+									description: currProduct?.name ?? "Kérdések amik mindig feljönnek",
 									id: product ?? ("Fix" as SectionName),
 								};
 							}),
@@ -876,18 +878,6 @@ export default function Page({
 										</div>
 										<ul className='grid w-[400px] gap-3 md:w-[500px] md:grid-cols-2 lg:w-[600px] p-6 pt-0'>
 											{pageClass.sections.map((section, index) => {
-												const listItem = (
-													<li className='row-span-3'>
-														<div className='block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'>
-															<div className='text-sm font-medium leading-none'>
-																{section.title}
-															</div>
-															<p className='line-clamp-2 text-sm leading-snug text-muted-foreground'>
-																{section.description}
-															</p>
-														</div>
-													</li>
-												);
 												if (section.subSections) {
 													return (
 														<Accordion
@@ -898,15 +888,18 @@ export default function Page({
 															defaultValue='item-1'>
 															<AccordionItem className='border-b-0' value='item-1'>
 																<AccordionTrigger className='hover:no-underline rounded-md text-left pb-1'>
-																	{listItem}
+																	<ListItem
+																		description={section.description ?? ""}
+																		title={section.title}
+																	/>
 																</AccordionTrigger>
 																<AccordionContent className='pb-0'>
-																	<div className='flex flex-row w-full px-3 gap-2 pt-2'>
+																	<div className='flex flex-row w-full px-1 gap-2 pl-3'>
 																		<Separator
 																			orientation='vertical'
-																			className='w-[3px] text-gray-600'
+																			className='shrink-0 bg-border h-auto w-[3px]'
 																		/>
-																		<div className='flex flex-col gap-2 py-2'>
+																		<div className='flex flex-col gap-2 '>
 																			{section.subSections!.map(
 																				(section, index2) => (
 																					<Link
@@ -915,7 +908,7 @@ export default function Page({
 																							currentPage ===
 																								section.title &&
 																								"bg-gray-100 font-semibold",
-																							"rounded-md px-2 py-1 ml-2"
+																							"rounded-md py-1 ml-2"
 																						)}
 																						href={
 																							"?page=" + (index + index2)
@@ -924,7 +917,14 @@ export default function Page({
 																							setCurrentPage(section.id);
 																							setOpenPageDialog(false);
 																						}}>
-																						{section.title}
+																						<ListItem
+																							sub
+																							description={
+																								section.description ??
+																								""
+																							}
+																							title={section.title}
+																						/>
 																					</Link>
 																				)
 																			)}
@@ -945,7 +945,10 @@ export default function Page({
 															setCurrentPage(section.id);
 														}}
 														href={"?page=" + pageClass.getPageNum(section.id)}>
-														{listItem}
+														<ListItem
+															description={section.description ?? ""}
+															title={section.title}
+														/>
 													</Link>
 												);
 											})}
@@ -992,31 +995,45 @@ export default function Page({
 			</div>
 		</div>
 	);
+	function ListItem({ title, description, sub = false }: { title: string; description: string; sub?: boolean }) {
+		return (
+			<li className='row-span-3'>
+				<div className='block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'>
+					<div className={cn(sub ? "text-sm" : "text-base", "font-medium leading-none")}>{title}</div>
+					<p
+						className={cn(
+							sub ? "text-xs w-52 text-ellipsis" : "text-sm",
+							"line-clamp-2 leading-snug text-muted-foreground"
+						)}>
+						{description}
+					</p>
+				</div>
+			</li>
+		);
+	}
 
 	function SubmitOptions() {
-		console.log(
-			_.isEqual(
-				editFelmeresItems
-					?.map((item) => ({
-						...item,
-						id: 0,
-						inputValues: item.inputValues.map((value) => value.ammount),
-						sku: item.sku ?? "",
-						source: "",
-						adatlap: "",
-					}))
-					.sort((a, b) => a.sku.localeCompare(b.sku)),
-				submitItems
-					.map((item) => ({
-						...item,
-						id: 0,
-						inputValues: item.inputValues.map((value) => value.ammount),
-						source: "",
-						sku: item.sku ?? "",
-						adatlap: "",
-					}))
-					.sort((a, b) => a.sku.localeCompare(b.sku))
-			)
+		const isItemsEqual = _.isEqual(
+			editFelmeresItems
+				?.map((item) => ({
+					...item,
+					id: 0,
+					inputValues: item.inputValues.map((value) => value.ammount),
+					sku: item.sku ?? "",
+					source: "",
+					adatlap: "",
+				}))
+				.sort((a, b) => a.sku.localeCompare(b.sku)),
+			submitItems
+				.map((item) => ({
+					...item,
+					id: 0,
+					inputValues: item.inputValues.map((value) => value.ammount),
+					source: "",
+					sku: item.sku ?? "",
+					adatlap: "",
+				}))
+				.sort((a, b) => a.sku.localeCompare(b.sku))
 		);
 		return (
 			<div className='flex flex-row px-4 items-center justify-center gap-3'>
@@ -1025,29 +1042,7 @@ export default function Page({
 					.every((value) => value === true) ||
 				!items.length ||
 				!felmeres.subject ||
-				(_.isEqual(
-					editFelmeresItems
-						?.map((item) => ({
-							...item,
-							id: 0,
-							inputValues: item.inputValues.map((value) => value.ammount),
-							sku: item.sku ?? "",
-							source: "",
-							adatlap: "",
-						}))
-						.sort((a, b) => a.sku.localeCompare(b.sku)),
-					submitItems
-						.map((item) => ({
-							...item,
-							id: 0,
-							inputValues: item.inputValues.map((value) => value.ammount),
-							source: "",
-							sku: item.sku ?? "",
-							adatlap: "",
-						}))
-						.sort((a, b) => a.sku.localeCompare(b.sku))
-				) &&
-					felmeres.status !== "DRAFT") ? null : isEdit && felmeres.status !== "DRAFT" ? (
+				(isItemsEqual && felmeres.status !== "DRAFT") ? null : isEdit && felmeres.status !== "DRAFT" ? (
 					<AlertDialog>
 						<AlertDialogTrigger asChild>
 							<Button
@@ -1083,24 +1078,7 @@ export default function Page({
 						Beküldés
 					</Button>
 				)}
-				{!_.isEqual(
-					editFelmeresItems?.map((item) => ({
-						...item,
-						id: 0,
-						inputValues: item.inputValues.map((value) => value.ammount),
-						sku: item.sku ? item.sku : null,
-						source: "",
-						adatlap: null,
-					})),
-					submitItems.map((item) => ({
-						...item,
-						id: 0,
-						inputValues: item.inputValues.map((value) => value.ammount),
-						source: "",
-						sku: item.sku ? item.sku : null,
-						adatlap: null,
-					}))
-				) && felmeres.status !== "DRAFT" ? null : (
+				{!isItemsEqual && felmeres.status !== "DRAFT" ? null : (
 					<TooltipProvider>
 						<Tooltip>
 							<TooltipTrigger asChild>
