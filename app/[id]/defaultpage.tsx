@@ -121,7 +121,6 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 				felmeresId={felmeresId}
 				felmeresNonState={felmeres}
 				adatlap={adatlap}
-				template={template}
 				products={products}
 				chat={chat}
 			/>

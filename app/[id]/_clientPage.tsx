@@ -55,15 +55,16 @@ export const hufFormatter = new Intl.NumberFormat("hu-HU", {
 	currency: "HUF",
 });
 
-export type SectionNames = "" | "Tételek" | "Alapadatok" | "Fix" | "Kérdések" | "Kép" | "Megjegyzések" | number;
+export type SectionName = "" | "Tételek" | "Alapadatok" | "Fix" | "Kérdések" | "Kép" | "Megjegyzések" | number;
 
 export interface PageMap {
 	component: JSX.Element;
 	title: string;
-	id: SectionNames;
+	id: SectionName;
 	subSections?: PageMap[];
 	onClick?: () => void;
 	label?: React.ReactNode;
+	description?: string;
 }
 
 export interface FelmeresPictures {
@@ -79,7 +80,6 @@ export default function ClientPage({
 	felmeresItems,
 	adatlap,
 	questions,
-	template,
 	products,
 	pictures,
 	chat,
@@ -90,7 +90,6 @@ export default function ClientPage({
 	felmeresItems: FelmeresItem[];
 	questions: Question[];
 	adatlap: AdatlapDetails;
-	template: Template;
 	products: Product[];
 	pictures: FelmeresPictures[];
 	chat: Chat[];
@@ -114,7 +113,7 @@ export default function ClientPage({
 			value: isJSONParsable(field.value) ? JSON.parse(field.value) : field.value,
 		}))
 	);
-	const [selectedSection, setSelectedSection] = React.useState<SectionNames>("");
+	const [selectedSection, setSelectedSection] = React.useState<SectionName>("");
 	const [statePictures, setStatePictures] = React.useState(pictures);
 	const [stateChat, setStateChat] = React.useState<Chat[]>(chat);
 
@@ -192,7 +191,7 @@ export default function ClientPage({
 					<QuestionPageRead product={product} questions={questions} data={originalData} key={product} />
 				),
 				title: products.find((p) => p.id === product)?.sku ?? "Fix kérdések",
-				id: product ?? ("Fix" as SectionNames),
+				id: product ?? ("Fix" as SectionName),
 			})),
 		},
 		{
@@ -242,7 +241,7 @@ export default function ClientPage({
 
 	React.useEffect(() => {
 		if (isAll) {
-			setSelectedSection(sections[0].id as SectionNames);
+			setSelectedSection(sections[0].id as SectionName);
 		}
 	}, [isAll]);
 	React.useEffect(() => {

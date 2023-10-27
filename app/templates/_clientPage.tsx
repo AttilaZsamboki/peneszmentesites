@@ -4,7 +4,6 @@ import { Template } from "./page";
 import React from "react";
 import Input from "../_components/Input";
 import Select from "../_components/Select";
-import Textarea from "../_components/Textarea";
 import AutoComplete from "../_components/AutoComplete";
 import { Product } from "../products/page";
 import Heading from "../_components/Heading";
@@ -16,6 +15,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { createTemplate, updateTemplate } from "@/lib/fetchers";
 import useBreakpointValue from "../_components/useBreakpoint";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function Page({ templates, products }: { templates: Template[]; products: Product[] }) {
 	const [template, setTemplate] = React.useState<Template>({ description: "", name: "", type: "", id: 0 });
@@ -202,7 +202,7 @@ export function Form({
 				<div>Tárgy</div>
 				<Textarea
 					value={template.description}
-					onChange={(e) => setTemplate((prev) => ({ ...prev, description: e }))}
+					onChange={(e) => setTemplate((prev) => ({ ...prev, description: e.target.value }))}
 				/>
 			</div>
 			<div className='flex flex-col gap-2'>

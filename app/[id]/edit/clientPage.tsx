@@ -24,7 +24,7 @@ export default async function Page({
 	myHeaders.append("Content-Type", "application/json");
 
 	var requestOptions: RequestInit = {
-		cache: "no-store",
+		cache: "force-cache",
 		method: "GET",
 		headers: myHeaders,
 	};

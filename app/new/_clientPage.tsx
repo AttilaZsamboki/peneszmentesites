@@ -1,7 +1,7 @@
 "use client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import React, { use } from "react";
+import React from "react";
 import { FelmeresQuestion } from "../page";
 import { AdatlapData } from "./page";
 import AutoComplete from "@/app/_components/AutoComplete";
@@ -21,21 +21,15 @@ import { useGlobalState } from "@/app/_clientLayout";
 import { Page2 } from "./Page2";
 import { useToast } from "@/components/ui/use-toast";
 import { Checkmark } from "@/components/check";
-import {
-	FelmeresPictures,
-	FelmeresPicturesComponent,
-	PageMap,
-	SectionNames,
-	isJSONParsable,
-} from "../[id]/_clientPage";
+import { FelmeresPictures, FelmeresPicturesComponent, PageMap, SectionName, isJSONParsable } from "../[id]/_clientPage";
 import _ from "lodash";
 import { ToastAction } from "@/components/ui/toast";
-import { CornerUpLeft, IterationCw } from "lucide-react";
+import { CornerUpLeft, IterationCw, MenuSquare } from "lucide-react";
 import { QuestionPage } from "../../components/QuestionPage";
 import { TooltipTrigger, Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import Link from "next/link";
-import { FelmeresStatus, useCreateQueryString } from "../_utils/utils";
-import { calculatePercentageValue } from "@/lib/utils";
+import { FelmeresStatus, statusMap, useCreateQueryString } from "../_utils/utils";
+import { calculatePercentageValue, cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import {
 	AlertDialog,
@@ -48,6 +42,10 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DialogFooter, DialogHeader } from "@material-tailwind/react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
 
 export interface ProductTemplate {
 	product: number;
@@ -118,14 +116,12 @@ export default function Page({
 	editFelmeres?: BaseFelmeresData;
 	editFelmeresItems?: FelmeresItem[];
 	editData?: FelmeresQuestion[];
-	startPage?: number;
+	startPage?: SectionName;
 	isEdit?: boolean;
 	editPictures?: FelmeresPictures[];
 }) {
 	const { setProgress } = useGlobalState();
 	const searchParams = useSearchParams();
-	const [page, setPage] = React.useState(startPage ? startPage : parseInt(searchParams.get("page") ?? "0"));
-	const [section, setSection] = React.useState(isEdit ? "" : "Alapadatok");
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>(
 		editFelmeres
 			? editFelmeres
@@ -145,7 +141,6 @@ export default function Page({
 			? editFelmeresItems.filter((item) => item.type === "Item" || item.type === "Other Material")
 			: []
 	);
-	const [numPages, setNumPages] = React.useState(0);
 	const router = useRouter();
 	const [data, setData] = React.useState<FelmeresQuestion[]>(
 		editData
@@ -189,6 +184,8 @@ export default function Page({
 			: 0
 	);
 	const [pictures, setPictures] = React.useState<FelmeresPictures[]>(editPictures ?? []);
+	const [openPageDialog, setOpenPageDialog] = React.useState(false);
+
 	const createType = (
 		sendOffer?: boolean
 	): {
@@ -204,13 +201,7 @@ export default function Page({
 	};
 
 	const { toast } = useToast();
-	const createQueryString = useCreateQueryString(searchParams);
 
-	React.useEffect(() => {
-		if (page < 2) {
-			router.push("?" + createQueryString([{ name: "page", value: page.toString() }]));
-		}
-	}, [page]);
 	React.useEffect(() => {
 		const fetchQuestions = async () => {
 			setQuestions((prev) => prev.filter((question) => items.map((item) => item.product).includes(question.id)));
@@ -632,30 +623,11 @@ export default function Page({
 		}
 	};
 
-	const isDisabled = {
-		Alapadatok: !felmeres.adatlap_id,
-		Tételek: false,
-		...Object.assign(
-			{},
-			...Array.from(new Set(data.map((field) => field.product))).map((product) => ({
-				[product ?? ""]: !data
-					.filter((field) =>
-						questions
-							.filter((question) => question.mandatory)
-							.filter((question) =>
-								question.connection === "Termék"
-									? products.find((product) => product.id === question.product)?.id === product
-									: true
-							)
-							.map((question) => question.id)
-							.includes(field.question)
-					)
-					.every((field) => {
-						return field.value.toString() !== "" && field.value.toString().length;
-					}),
-			}))
-		),
-	};
+	interface Field {
+		product: string;
+		question: string;
+		value: string;
+	}
 
 	const submitItems = [
 		...items,
@@ -695,11 +667,6 @@ export default function Page({
 		},
 	] as FelmeresItem[];
 
-	const onPageChange = (page: number) => {
-		if (page === 0) {
-			setItems([]);
-		}
-	};
 	const netTotal = items
 		.map(({ inputValues, netPrice }) => netPrice * inputValues.reduce((a, b) => a + b.ammount, 0))
 		.reduce((a, b) => a + b, 0);
@@ -715,207 +682,306 @@ export default function Page({
 				  (item.value / 100)
 		)
 		.reduce((a, b) => a + b, 0);
+
+	const adatlap = adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id);
+
+	const [currentPage, setCurrentPage] = React.useState<SectionName>(isEdit ? "Tételek" : "Alapadatok");
+	class PageMapClass {
+		sections: PageMap[];
+
+		constructor(excludedPages: SectionName[] = []) {
+			this.sections = (
+				[
+					{
+						component: <Page1 felmeres={felmeres} setFelmeres={setFelmeres} adatlapok={adatlapok} />,
+						title: "Alapadatok",
+						id: "Alapadatok",
+					},
+					{
+						component: (
+							<Page2
+								products={products}
+								felmeres={felmeres}
+								items={items}
+								setItems={setItems}
+								originalTemplates={templates}
+								setFelmeres={setFelmeres}
+								productAttributes={productAttributes}
+								otherItems={otherItems}
+								setOtherItems={setOtherItems}
+								discount={discount}
+								setDiscount={setDiscount}
+								isEdit={isEdit}
+							/>
+						),
+						title: "Tételek",
+						id: "Tételek",
+						description: "Válaszd ki a felméréshez szükséges termékeket és szolgáltatásokat.",
+					},
+					{
+						component: <div></div>,
+						id: "Kérdések",
+						title: "Kérdések",
+						subSections: Array.from(new Set(questions.map((question) => question.product)))
+							.sort((a, b) => Number(a === undefined) - Number(b === undefined))
+							.map((product) => {
+								return {
+									component: (
+										<QuestionPage
+											globalData={data}
+											product={product ?? 0}
+											adatlap_id={felmeres.adatlap_id}
+											questions={questions.filter((question) => question.product === product)}
+											setData={setData}
+										/>
+									),
+									title: products.find((p) => p.id === product)?.sku ?? "Fix kérdések",
+									id: product ?? ("Fix" as SectionName),
+								};
+							}),
+						description: "Töltsd ki a felméréshez szükséges kérdéseket.",
+					},
+					{
+						component: (
+							<FelmeresPicturesComponent
+								save={false}
+								felmeresId={felmeres.id}
+								pictures={pictures}
+								setPictures={setPictures}
+							/>
+						),
+						id: "Kép",
+						title: "Képek",
+						description: "Töltsd fel a felméréshez szükséges képeket.",
+					},
+				] as PageMap[]
+			).filter((section) => !excludedPages.includes(section.id));
+		}
+
+		flat(shallow: boolean = false) {
+			const data = this.sections.map((section) => [...(section.subSections ?? []), section]).flat();
+			return shallow ? data.filter((section) => !section.subSections) : data;
+		}
+
+		changePageByIncrement(increment: number) {
+			const flatArray = this.flat(true);
+			const currentIndex = flatArray.findIndex((page) => page.id === currentPage);
+			const newIndex = currentIndex + increment;
+			if (newIndex >= 0 && newIndex < flatArray.length) {
+				setCurrentPage(flatArray[newIndex].id);
+				router.push("?page=" + newIndex);
+			}
+		}
+
+		nextPage() {
+			this.changePageByIncrement(1);
+		}
+
+		prevPage() {
+			this.changePageByIncrement(-1);
+		}
+
+		isLast() {
+			return this.getPageNum() === this.flat().length - 1;
+		}
+
+		isDisabled(page: SectionName = currentPage) {
+			const isProductDisabled = (product: number) => {
+				const relatedFields = data.filter((field) => field.product === product);
+				const mandatoryQuestions = questions.filter(
+					(question) => question.mandatory && question.connection === "Termék"
+				);
+
+				return relatedFields.every((field) => {
+					const isQuestionMandatory = mandatoryQuestions.some((question) => {
+						const productMatch = products.find((product) => product.id === question.product);
+						return (productMatch?.id === product || true) && question.id === field.question;
+					});
+
+					return isQuestionMandatory ? field.value.toString() !== "" && field.value.toString().length : true;
+				});
+			};
+
+			const uniqueProducts = Array.from(new Set(data.map((field) => field.product)));
+			const productStatuses = uniqueProducts.reduce(
+				(acc, product) => ({ ...acc, [product ?? ""]: !isProductDisabled(product ?? 0) }),
+				{}
+			);
+
+			const isDisabled: { [key: string]: boolean } = {
+				Alapadatok: !felmeres.adatlap_id,
+				Tételek: false,
+				...productStatuses,
+			};
+
+			return isDisabled[page];
+		}
+
+		getPageDetails(page: SectionName) {
+			return this.flat().find((section) => section.id === page);
+		}
+
+		getCurrentPageDetails() {
+			return this.getPageDetails(currentPage);
+		}
+
+		getPageNum(page: SectionName = currentPage) {
+			return this.flat().findIndex((page2) => page2.id === page);
+		}
+	}
+
+	const pageClass = new PageMapClass(isEdit ? ["Alapadatok"] : []);
+
+	React.useEffect(() => {
+		if (searchParams.get("page")) {
+			setCurrentPage(pageClass.flat(true)[Number(searchParams.get("page") ?? 0)]?.id);
+		}
+	}, [questions]);
+
 	return (
 		<div className='w-full overflow-y-scroll h-[100dvh] pb-0 mb-0 lg:pb-10 lg:mb-10'>
 			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-0 lg:mt-2'>
 				<div
 					className={`lg:mt-6 lg:px-10 px-0 w-full ${
-						page === 1 ? "lg:w-full" : page == 0 ? "lg:w-1/4" : "lg:w-2/3"
+						currentPage === "Tételek" ? "lg:w-full" : currentPage === "Alapadatok" ? "lg:w-1/4" : "lg:w-2/3"
 					}`}>
 					<Card className='lg:rounded-md rounded-none lg:border border-0'>
-						<CardHeader>
-							<CardTitle>{section}</CardTitle>
-						</CardHeader>
-						<Separator className='mb-4' />
-						<CardContent className={`${page !== 1 ? "p-8" : "lg:p-6 px-4 pt-0"} transform`}>
-							<PageChooser
-								setPictures={setPictures}
-								setOtherItems={setOtherItems}
-								globalData={data}
-								setData={setData}
-								page={page}
-								adatlapok={adatlapok}
-								setSection={setSection}
-								felmeres={felmeres}
-								items={items}
-								setItems={setItems}
-								setFelmeres={setFelmeres}
-								templates={templates}
-								setNumPages={setNumPages}
-								products={products}
-								productAttributes={productAttributes}
-								questions={questions}
-								otherItems={otherItems}
-								discount={discount}
-								setDiscount={setDiscount}
-								pictures={pictures}
-								isEdit={isEdit}
-							/>
+						<div className='sticky top-0 bg-white z-40'>
+							<CardHeader className='flex flex-row items-center justify-between p-0 pr-2'>
+								<div className='flex flex-col items-start pl-10 py-3'>
+									<div className='flex flex-row gap-2 items-center'>
+										<CardTitle>{adatlap?.Name ?? ""}</CardTitle>
+										<Badge size='xs' color={statusMap[felmeres.status].color as "default"}>
+											{statusMap[felmeres.status].name}
+										</Badge>
+									</div>
+									<CardDescription>{pageClass.getCurrentPageDetails()?.title}</CardDescription>
+								</div>
+								<Dialog
+									open={openPageDialog}
+									defaultOpen
+									onOpenChange={() => setOpenPageDialog((prev) => !prev)}>
+									<DialogTrigger>
+										<MenuSquare />
+									</DialogTrigger>
+									<DialogContent className='h-[100dvh] w-full p-0 flex flex-col gap-0'>
+										<div>
+											<DialogHeader className='flex flex-col items-start'>
+												<DialogTitle>{adatlap?.Name ?? ""}</DialogTitle>
+												<DialogDescription>
+													{pageClass.getCurrentPageDetails()?.title}
+												</DialogDescription>
+											</DialogHeader>
+											<Separator className='mb-4' />
+										</div>
+										<ul className='grid w-[400px] gap-3 md:w-[500px] md:grid-cols-2 lg:w-[600px] p-6 pt-0'>
+											{pageClass.sections.map((section, index) => {
+												const listItem = (
+													<li className='row-span-3'>
+														<div className='block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'>
+															<div className='text-sm font-medium leading-none'>
+																{section.title}
+															</div>
+															<p className='line-clamp-2 text-sm leading-snug text-muted-foreground'>
+																{section.description}
+															</p>
+														</div>
+													</li>
+												);
+												if (section.subSections) {
+													return (
+														<Accordion
+															key={section.id}
+															type='single'
+															collapsible
+															className='w-full flex flex-row justify-start'
+															defaultValue='item-1'>
+															<AccordionItem className='border-b-0' value='item-1'>
+																<AccordionTrigger className='hover:no-underline rounded-md text-left pb-1'>
+																	{listItem}
+																</AccordionTrigger>
+																<AccordionContent className='pb-0'>
+																	<div className='flex flex-row w-full px-3 gap-2 pt-2'>
+																		<Separator
+																			orientation='vertical'
+																			className='w-[3px] text-gray-600'
+																		/>
+																		<div className='flex flex-col gap-2 py-2'>
+																			{section.subSections!.map(
+																				(section, index2) => (
+																					<Link
+																						key={section.id}
+																						className={cn(
+																							currentPage ===
+																								section.title &&
+																								"bg-gray-100 font-semibold",
+																							"rounded-md px-2 py-1 ml-2"
+																						)}
+																						href={
+																							"?page=" + (index + index2)
+																						}
+																						onClick={() => {
+																							setCurrentPage(section.id);
+																							setOpenPageDialog(false);
+																						}}>
+																						{section.title}
+																					</Link>
+																				)
+																			)}
+																		</div>
+																	</div>
+																</AccordionContent>
+															</AccordionItem>
+														</Accordion>
+													);
+												}
+												return index <
+													(pageClass.sections
+														.flat()
+														.findIndex((page) => page.id === startPage) ?? 0) ? null : (
+													<Link
+														onClick={() => {
+															setOpenPageDialog(false);
+															setCurrentPage(section.id);
+														}}
+														href={"?page=" + pageClass.getPageNum(section.id)}>
+														{listItem}
+													</Link>
+												);
+											})}
+										</ul>
+										<DialogFooter>
+											<SubmitOptions />
+										</DialogFooter>
+									</DialogContent>
+								</Dialog>
+							</CardHeader>
+							<Separator className='mb-4' />
+						</div>
+						<CardContent className={`${currentPage !== "Tételek" ? "p-8" : "lg:p-6 px-4 pt-0"} transform`}>
+							{
+								pageClass.sections
+									.map((section) =>
+										[...(section.subSections ?? []), section].find(
+											(section) => section?.id === currentPage
+										)
+									)
+									.filter((section) => section !== undefined)[0]?.component
+							}
 							<div className='flex flex-row justify-end gap-3 py-4'>
-								{page === 0 || startPage === page ? null : (
+								{pageClass.getPageNum() === 0 ? null : (
 									<Button
 										variant='outline'
 										onClick={() => {
-											setPage(page - 1);
-											onPageChange(page - 1);
+											pageClass.prevPage();
 										}}>
 										Előző
 									</Button>
 								)}
-								{numPages === page + 1 ? (
-									<div className='flex flex-row px-4 items-center justify-center gap-3'>
-										{!items
-											.map((item) =>
-												item.inputValues
-													.map((value) => value.ammount)
-													.every((value) => value > 0)
-											)
-											.every((value) => value === true) ||
-										!items.length ||
-										!felmeres.subject ||
-										(_.isEqual(
-											editFelmeresItems
-												?.map((item) => ({
-													...item,
-													id: 0,
-													inputValues: item.inputValues.map((value) => value.ammount),
-													sku: item.sku ?? "",
-													source: "",
-													adatlap: "",
-												}))
-												.sort((a, b) => a.sku.localeCompare(b.sku)),
-											submitItems
-												.map((item) => ({
-													...item,
-													id: 0,
-													inputValues: item.inputValues.map((value) => value.ammount),
-													source: "",
-													sku: item.sku ?? "",
-													adatlap: "",
-												}))
-												.sort((a, b) => a.sku.localeCompare(b.sku))
-										) &&
-											felmeres.status !== "DRAFT") ? null : isEdit &&
-										  felmeres.status !== "DRAFT" ? (
-											<AlertDialog>
-												<AlertDialogTrigger asChild>
-													<Button
-														className='bg-green-500 hover:bg-green-500/90'
-														color='green'
-														disabled={
-															isDisabled[
-																page === 0
-																	? "Alapadatok"
-																	: page === 1
-																	? "Tételek"
-																	: section === "Fix kérdések"
-																	? "Fix"
-																	: section
-															]
-														}>
-														Beküldés
-													</Button>
-												</AlertDialogTrigger>
-												<AlertDialogContent>
-													<AlertDialogHeader>
-														<AlertDialogTitle>Biztos vagy benne?</AlertDialogTitle>
-														<AlertDialogDescription>
-															Ez a művelet nem vonható vissza. Ez véglegesen sztornózni
-															fogja az ajánlatot.
-														</AlertDialogDescription>
-													</AlertDialogHeader>
-													<AlertDialogFooter>
-														<AlertDialogCancel>Mégsem</AlertDialogCancel>
-														<AlertDialogAction
-															className='bg-red-800 hover:bg-red-800/90'
-															onClick={() => CreateFelmeres()}>
-															Folytatás
-														</AlertDialogAction>
-													</AlertDialogFooter>
-												</AlertDialogContent>
-											</AlertDialog>
-										) : (
-											<Button
-												className='bg-green-500 hover:bg-green-500/90'
-												color='green'
-												onClick={() => CreateFelmeres()}
-												disabled={
-													isDisabled[
-														page === 0
-															? "Alapadatok"
-															: page === 1
-															? "Tételek"
-															: section === "Fix kérdések"
-															? "Fix"
-															: section
-													]
-												}>
-												Beküldés
-											</Button>
-										)}
-										{!_.isEqual(
-											editFelmeresItems?.map((item) => ({
-												...item,
-												id: 0,
-												inputValues: item.inputValues.map((value) => value.ammount),
-												sku: item.sku ? item.sku : null,
-												source: "",
-												adatlap: null,
-											})),
-											submitItems.map((item) => ({
-												...item,
-												id: 0,
-												inputValues: item.inputValues.map((value) => value.ammount),
-												source: "",
-												sku: item.sku ? item.sku : null,
-												adatlap: null,
-											}))
-										) && felmeres.status !== "DRAFT" ? null : (
-											<TooltipProvider>
-												<Tooltip>
-													<TooltipTrigger asChild>
-														<Button
-															onClick={() => CreateFelmeres(false)}
-															disabled={
-																isDisabled[
-																	page === 0
-																		? "Alapadatok"
-																		: page === 1
-																		? "Tételek"
-																		: section === "Fix kérdések"
-																		? "Fix"
-																		: section
-																]
-															}>
-															Mentés
-														</Button>
-													</TooltipTrigger>
-													<TooltipContent>
-														<p>
-															Ez az opció nem küldi el az ajánlatot, még lehet változtatni
-															rajta
-														</p>
-													</TooltipContent>
-												</Tooltip>
-											</TooltipProvider>
-										)}
-									</div>
+								{pageClass.isLast() ? (
+									<SubmitOptions />
 								) : (
-									<Button
-										onClick={() => {
-											setPage(page + 1);
-										}}
-										disabled={
-											isDisabled[
-												page === 0
-													? "Alapadatok"
-													: page === 1
-													? "Tételek"
-													: section === "Fix kérdések"
-													? "Fix"
-													: section
-											]
-										}>
+									<Button onClick={() => pageClass.nextPage()} disabled={pageClass.isDisabled()}>
 										Következő
 									</Button>
 								)}
@@ -926,118 +992,131 @@ export default function Page({
 			</div>
 		</div>
 	);
-}
 
-function PageChooser({
-	page,
-	adatlapok,
-	setSection,
-	templates,
-	productAttributes,
-	felmeres,
-	setFelmeres,
-	items,
-	setItems,
-	setData,
-	setNumPages,
-	globalData,
-	products,
-	questions,
-	otherItems,
-	setOtherItems,
-	discount,
-	setDiscount,
-	pictures,
-	setPictures,
-	isEdit,
-}: {
-	page: number;
-	setData: React.Dispatch<React.SetStateAction<FelmeresQuestion[]>>;
-	adatlapok: AdatlapData[];
-	setSection: React.Dispatch<React.SetStateAction<string>>;
-	templates: Template[];
-	felmeres: BaseFelmeresData;
-	setFelmeres: React.Dispatch<React.SetStateAction<BaseFelmeresData>>;
-	items: FelmeresItem[];
-	setItems: React.Dispatch<React.SetStateAction<FelmeresItem[]>>;
-	setNumPages: React.Dispatch<React.SetStateAction<number>>;
-	globalData: FelmeresQuestion[];
-	products: Product[];
-	productAttributes: ProductAttributes[];
-	questions: Question[];
-	otherItems: OtherFelmeresItem[];
-	setOtherItems: React.Dispatch<React.SetStateAction<OtherFelmeresItem[]>>;
-	discount: number;
-	setDiscount: React.Dispatch<React.SetStateAction<number>>;
-	pictures: FelmeresPictures[];
-	setPictures: React.Dispatch<React.SetStateAction<FelmeresPictures[]>>;
-	isEdit?: boolean;
-}) {
-	const pageMap: PageMap[] = [
-		{
-			component: <Page1 felmeres={felmeres} setFelmeres={setFelmeres} adatlapok={adatlapok} />,
-			title: "Alapadatok",
-			id: "Alapadatok",
-		},
-		{
-			component: (
-				<Page2
-					products={products}
-					felmeres={felmeres}
-					items={items}
-					setItems={setItems}
-					originalTemplates={templates}
-					setFelmeres={setFelmeres}
-					productAttributes={productAttributes}
-					otherItems={otherItems}
-					setOtherItems={setOtherItems}
-					discount={discount}
-					setDiscount={setDiscount}
-					isEdit={isEdit}
-				/>
-			),
-			title: adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)?.Name ?? "",
-			id: "Tételek",
-		},
-		...Array.from(new Set(questions.map((question) => question.product)))
-			.sort((a, b) => Number(a === undefined) - Number(b === undefined))
-			.map((product) => {
-				return {
-					component: (
-						<QuestionPage
-							globalData={globalData}
-							product={product ?? 0}
-							adatlap_id={felmeres.adatlap_id}
-							questions={questions.filter((question) => question.product === product)}
-							setData={setData}
-						/>
-					),
-					title: products.find((p) => p.id === product)?.sku ?? "Fix kérdések",
-					id: product ?? ("Fix" as SectionNames),
-				};
-			}),
-		{
-			component: (
-				<FelmeresPicturesComponent
-					save={false}
-					felmeresId={felmeres.id}
-					pictures={pictures}
-					setPictures={setPictures}
-				/>
-			),
-			id: "Kép",
-			title: "Képek",
-		},
-	];
-
-	React.useEffect(() => {
-		setNumPages(pageMap.length);
-	}, [pageMap.length]);
-	React.useEffect(() => {
-		setSection(pageMap[page].title);
-	}, [page]);
-
-	return pageMap[page].component;
+	function SubmitOptions() {
+		console.log(
+			_.isEqual(
+				editFelmeresItems
+					?.map((item) => ({
+						...item,
+						id: 0,
+						inputValues: item.inputValues.map((value) => value.ammount),
+						sku: item.sku ?? "",
+						source: "",
+						adatlap: "",
+					}))
+					.sort((a, b) => a.sku.localeCompare(b.sku)),
+				submitItems
+					.map((item) => ({
+						...item,
+						id: 0,
+						inputValues: item.inputValues.map((value) => value.ammount),
+						source: "",
+						sku: item.sku ?? "",
+						adatlap: "",
+					}))
+					.sort((a, b) => a.sku.localeCompare(b.sku))
+			)
+		);
+		return (
+			<div className='flex flex-row px-4 items-center justify-center gap-3'>
+				{!items
+					.map((item) => item.inputValues.map((value) => value.ammount).every((value) => value > 0))
+					.every((value) => value === true) ||
+				!items.length ||
+				!felmeres.subject ||
+				(_.isEqual(
+					editFelmeresItems
+						?.map((item) => ({
+							...item,
+							id: 0,
+							inputValues: item.inputValues.map((value) => value.ammount),
+							sku: item.sku ?? "",
+							source: "",
+							adatlap: "",
+						}))
+						.sort((a, b) => a.sku.localeCompare(b.sku)),
+					submitItems
+						.map((item) => ({
+							...item,
+							id: 0,
+							inputValues: item.inputValues.map((value) => value.ammount),
+							source: "",
+							sku: item.sku ?? "",
+							adatlap: "",
+						}))
+						.sort((a, b) => a.sku.localeCompare(b.sku))
+				) &&
+					felmeres.status !== "DRAFT") ? null : isEdit && felmeres.status !== "DRAFT" ? (
+					<AlertDialog>
+						<AlertDialogTrigger asChild>
+							<Button
+								className='bg-green-500 hover:bg-green-500/90'
+								color='green'
+								disabled={pageClass.isDisabled()}>
+								Beküldés
+							</Button>
+						</AlertDialogTrigger>
+						<AlertDialogContent>
+							<AlertDialogHeader>
+								<AlertDialogTitle>Biztos vagy benne?</AlertDialogTitle>
+								<AlertDialogDescription>
+									Ez a művelet nem vonható vissza. Ez véglegesen sztornózni fogja az ajánlatot.
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+							<AlertDialogFooter>
+								<AlertDialogCancel>Mégsem</AlertDialogCancel>
+								<AlertDialogAction
+									className='bg-red-800 hover:bg-red-800/90'
+									onClick={() => CreateFelmeres()}>
+									Folytatás
+								</AlertDialogAction>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
+				) : (
+					<Button
+						className='bg-green-500 hover:bg-green-500/90'
+						color='green'
+						onClick={() => CreateFelmeres()}
+						disabled={pageClass.isDisabled()}>
+						Beküldés
+					</Button>
+				)}
+				{!_.isEqual(
+					editFelmeresItems?.map((item) => ({
+						...item,
+						id: 0,
+						inputValues: item.inputValues.map((value) => value.ammount),
+						sku: item.sku ? item.sku : null,
+						source: "",
+						adatlap: null,
+					})),
+					submitItems.map((item) => ({
+						...item,
+						id: 0,
+						inputValues: item.inputValues.map((value) => value.ammount),
+						source: "",
+						sku: item.sku ? item.sku : null,
+						adatlap: null,
+					}))
+				) && felmeres.status !== "DRAFT" ? null : (
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Button onClick={() => CreateFelmeres(false)} disabled={pageClass.isDisabled()}>
+									Mentés
+								</Button>
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>Ez az opció nem küldi el az ajánlatot, még lehet változtatni rajta</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+				)}
+			</div>
+		);
+	}
 }
 
 export function QuestionTemplate({

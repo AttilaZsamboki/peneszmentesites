@@ -7,10 +7,10 @@ import MultipleChoice from "@/app/_components/MultipleChoice";
 import { GridOptions } from "../app/page";
 import { Grid } from "@/app/_components/Grid";
 import FileUpload from "@/app/_components/FileUpload";
-import Textarea from "../app/_components/Textarea";
 import Gallery from "../app/_components/Gallery";
 import { Separator } from "@/components/ui/separator";
 import { QuestionTemplate } from "../app/new/_clientPage";
+import { Textarea } from "./ui/textarea";
 
 export function QuestionPage({
 	questions,
@@ -168,7 +168,7 @@ export function FieldCreate({
 	};
 
 	if (question.type === "TEXT") {
-		return <Textarea onChange={(e) => setterSingle(e)} value={felmeres?.value as string} />;
+		return <Textarea onChange={(e) => setterSingle(e.target.value)} value={felmeres?.value as string} />;
 	} else if (question.type === "LIST") {
 		return (
 			<AutoComplete

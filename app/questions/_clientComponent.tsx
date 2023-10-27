@@ -8,7 +8,6 @@ import BaseComponentV2 from "../_components/BaseComponentV2";
 import MultipleChoiceCombobox from "../_components/MultipleChoiceList";
 import Counter from "../_components/Counter";
 import CustomDialog from "../_components/CustomDialog";
-import Textarea from "../_components/Textarea";
 import FormList from "../_components/FormList";
 
 import { Product } from "../products/page";
@@ -19,6 +18,7 @@ import { typeMap } from "../_utils/utils";
 import { getFirstProduct } from "../_utils/utils";
 import FormField from "../_components/FormField";
 import { useToast } from "@/components/ui/use-toast";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function ClientComponent({ data, products }: { data: any; products: Product[] }) {
 	const [question, setQuestion] = React.useState<Question>({
@@ -299,7 +299,7 @@ function QuestionForm({
 			<FormField title='Leírás'>
 				<Textarea
 					value={question.description}
-					onChange={(e) => setQuestion((prev) => ({ ...prev, description: e }))}
+					onChange={(e) => setQuestion((prev) => ({ ...prev, description: e.target.value }))}
 				/>
 			</FormField>
 			{question.connection === "Termék" ? (
