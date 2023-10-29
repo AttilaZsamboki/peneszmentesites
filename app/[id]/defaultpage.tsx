@@ -25,6 +25,7 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 		next: { tags: [encodeURIComponent(felmeresId)], revalidate: 60 },
 	})
 		.then((res) => res.json())
+		.then((data) => data[0])
 		.catch((err) => {
 			console.log(err);
 			return { adatlap_id: 0 };
@@ -92,15 +93,6 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 	}
 
 	const adatlap = await fetchAdatlapDetails(felmeres.adatlap_id.toString());
-
-	const template = await fetch("https://pen.dataupload.xyz/templates/" + felmeres.template, {
-		next: { tags: [encodeURIComponent(felmeresId)] },
-	})
-		.then((res) => res.json())
-		.catch((err) => {
-			console.error(err);
-			return {};
-		});
 
 	const chat = await fetch("https://pen.dataupload.xyz/felmeres-notes?felmeres_id=" + felmeres.id, {
 		next: { tags: [encodeURIComponent(felmeresId)] },
