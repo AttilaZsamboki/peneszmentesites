@@ -32,7 +32,7 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 	const felmeresItems: FelmeresItem[] = await fetch(
 		"https://pen.dataupload.xyz/felmeres_items?adatlap_id=" + felmeresId,
 		{
-			next: { tags: [encodeURIComponent(felmeresId)] },
+			next: { tags: [encodeURIComponent(felmeresId)], revalidate: 60 },
 		}
 	)
 		.then((res) => res.json())
