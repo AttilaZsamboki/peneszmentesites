@@ -866,17 +866,23 @@ export default function Page({
 									<DialogTrigger>
 										<MenuSquare />
 									</DialogTrigger>
-									<DialogContent className='h-[100dvh] w-full p-0 flex flex-col gap-0'>
-										<div>
+									<DialogContent className='h-[100dvh] w-full p-0 flex flex-col gap-0 '>
+										<div className='border-b'>
 											<DialogHeader className='flex flex-col items-start'>
-												<DialogTitle>{adatlap?.Name ?? ""}</DialogTitle>
+												<div className='flex flex-row gap-2 items-center'>
+													<DialogTitle>{adatlap?.Name ?? ""}</DialogTitle>
+													<Badge
+														size='xs'
+														color={statusMap[felmeres.status].color as "default"}>
+														{statusMap[felmeres.status].name}
+													</Badge>
+												</div>
 												<DialogDescription>
 													{pageClass.getCurrentPageDetails()?.title}
 												</DialogDescription>
 											</DialogHeader>
-											<Separator className='mb-4' />
 										</div>
-										<ul className='grid w-[400px] gap-3 md:w-[500px] md:grid-cols-2 lg:w-[600px] p-6 pt-0'>
+										<ul className='grid w-[400px] gap-3 md:w-[500px] md:grid-cols-2 lg:w-[600px] p-6 pt-0 overflow-y-scroll'>
 											{pageClass.sections.map((section, index) => {
 												if (section.subSections) {
 													return (
@@ -953,7 +959,7 @@ export default function Page({
 												);
 											})}
 										</ul>
-										<DialogFooter>
+										<DialogFooter className='border-t'>
 											<SubmitOptions />
 										</DialogFooter>
 									</DialogContent>
