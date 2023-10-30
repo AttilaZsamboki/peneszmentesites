@@ -10,6 +10,7 @@ import { UserProvider } from "@auth0/nextjs-auth0/client";
 
 import type { Metadata } from "next";
 
+import { GeistSans } from "geist/font";
 import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
 	return (
-		<html lang='en'>
+		<html lang='en' className={GeistSans.className}>
 			<UserProvider>
 				<body>
 					<RootLayoutClient>{children}</RootLayoutClient>

@@ -2,6 +2,7 @@
 import Skeleton from "react-loading-skeleton";
 import LoadingDots from "./LoadingDots";
 import { usePathname } from "next/navigation";
+import Heading from "./Heading";
 
 export default function BaseComponentLoading() {
 	const pathname = usePathname();
@@ -30,9 +31,13 @@ export default function BaseComponentLoading() {
 					<div className='flex lg:flex-row flex-col justify-between items-center w-full mb-2 '>
 						<div className='flex flex-col justify-items items-center w-full'>
 							<div className='flex flex-col w-full px-2 lg:items-start sm:items-center justify-center mt-11 mb-8 lg:justify-between text-center'>
-								<h2 className='block antialiased tracking-normal font-sans text-4xl leading-[1.3] font-semibold text-gradient-to-tr from-gray-900 to-gray-800 lg:my-0 text-left'>
-									{paths.find((path) => path.href === pathname)?.name}
-								</h2>
+								<Heading
+									border={false}
+									width='w-full'
+									title={paths.find((path) => path.href === pathname)?.name ?? ""}
+									marginY='mt-11 mb-8'
+									variant='h2'
+								/>
 							</div>
 						</div>
 						<div>

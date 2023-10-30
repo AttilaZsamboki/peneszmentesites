@@ -79,6 +79,7 @@ export interface FelmeresItem {
 	valueType: "percent" | "fixed";
 	source: "Manual" | "Template";
 	category: string;
+	sort_number: number;
 }
 
 export const hufFormatter = new Intl.NumberFormat("hu-HU", {
@@ -381,7 +382,7 @@ export default function Page({
 						adatlap: felmeresResponseData.id,
 						netPrice: item.netPrice,
 						// ez annyit jelent hogy ha null az id akkor létrehozza az adatbázisban egyébként frissíti a meglévő tételeket
-						id: createType2.FELMERES === "UPDATE" ? item.id : null,
+						id: createType2.FELMERES === "UPDATE" && item.id ? item.id : null,
 					}))
 				),
 			});
@@ -622,12 +623,6 @@ export default function Page({
 			}
 		}
 	};
-
-	interface Field {
-		product: string;
-		question: string;
-		value: string;
-	}
 
 	const submitItems = [
 		...items,

@@ -1,4 +1,3 @@
-"use client";
 import React from "react";
 import BaseComponentV2 from "./_components/BaseComponentV2";
 import { statusMap } from "./_utils/utils";
@@ -26,7 +25,7 @@ export default function ClientPage({ allData, savedFilters }: { allData: any; sa
 				subtitle2: "Felmérés típusa",
 				subtitle3: "Felmérő",
 				subtitle4: "created_at",
-				imgSrc: "Ingatlan képe",
+				imgSrc: "IngatlanKepe",
 				status: "Státusz",
 			}}
 			filters={[

@@ -9,13 +9,12 @@ import React from "react";
 
 import { Typography, Spinner, Tabs, TabsHeader, Tab } from "@material-tailwind/react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BaseFelmeresData, FelmeresItem, QuestionTemplate } from "../new/_clientPage";
 import { QuestionPage } from "../../components/QuestionPage";
 
 import { Question } from "@/app/questions/page";
-import { Template } from "@/app/templates/page";
 import MultipleChoice from "@/app/_components/MultipleChoice";
 import { Grid } from "@/app/_components/Grid";
 import Gallery from "@/app/_components/Gallery";
@@ -24,7 +23,7 @@ import { FelmeresStatus, statusMap } from "@/app/_utils/utils";
 import { toast } from "@/components/ui/use-toast";
 import useBreakpointValue from "../_components/useBreakpoint";
 import { Separator } from "@/components/ui/separator";
-import { Check, Download, FileEdit, IterationCw, Lock, X } from "lucide-react";
+import { CalendarDays, Check, Download, FileEdit, IterationCw, Lock, X } from "lucide-react";
 import Link from "next/link";
 import { Page2 } from "../new/Page2";
 import _ from "lodash";
@@ -40,6 +39,10 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { concatAddress } from "../_utils/MiniCRM";
 
 export function isJSONParsable(str: string) {
 	try {
@@ -340,15 +343,56 @@ export default function ClientPage({
 				<div className='w-full'>
 					<div className='mt-0 lg:mt-6 w-full'>
 						<Card className='lg:rounded-lg rounded-none border-0'>
-							<div className='py-3 flex flex-row justify-between items-center pr-4 lg:rounded-t-lg rounded-t-none border-b top-0 sticky z-40 pl-10 bg-blue-800 text-white'>
-								<CardTitle>{adatlap.Name}</CardTitle>
+							<div className='py-3 flex gap-2 justify-between items-center pr-2 lg:pr-4 lg:rounded-t-lg rounded-t-none top-0 sticky z-40 pl-10 bg-blue-800 text-white border-blue-500  w-full shadow-md backdrop-saturate-200 backdrop-blur-2xl bg-opacity-80 border-b border-white/80'>
+								<div className='prose prose-slate prose-img:m-0 prose-img:p-0'>
+									<HoverCard>
+										<HoverCardTrigger asChild className='mb-0'>
+											<h2 className='text-white'>
+												<button className='lg:break-keep lg:w-full truncate w-40'>
+													{adatlap.Name}
+												</button>
+											</h2>
+										</HoverCardTrigger>
+										<HoverCardContent className='w-80'>
+											<div className='flex justify-between space-x-4'>
+												<Avatar className='w-12 h-12'>
+													<AvatarImage src={adatlap.IngatlanKepe} />
+													<AvatarFallback>VC</AvatarFallback>
+												</Avatar>
+												<div className='prose prose-slate space-y-1'>
+													<h4 className='text-sm font-semibold hover:underline cursor-pointer'>
+														<a
+															href={`https://r3.minicrm.hu/119/#Project-23/${adatlap.Id}`}
+															target='_blank'>
+															{adatlap.Name}
+														</a>
+													</h4>
+													<p className='text-sm w-52 truncate'>{concatAddress(adatlap)}</p>
+
+													<div className='flex items-center pt-2'>
+														<CalendarDays className='mr-2 h-4 w-4 opacity-70' />{" "}
+														<span className='text-xs text-muted-foreground'>
+															{adatlap.CreatedAt}
+														</span>
+													</div>
+												</div>
+											</div>
+										</HoverCardContent>
+									</HoverCard>
+								</div>
 								<div className='flex flex-row items-center gap-5'>
 									<div className='flex flex-row items-center gap-2 justify-center'>
 										<DropdownMenu>
 											<DropdownMenuTrigger asChild>
 												<Button
 													color={statusMap[felmeresStatus].color}
-													className='uppercase font-semibold w-32 cursor-default'>
+													className={cn(
+														felmeresStatus === "IN_PROGRESS" ||
+															felmeresStatus === "COMPLETED"
+															? "cursor-pointer"
+															: "cursor-default",
+														"uppercase font-semibold w-24 text-xs lg:text-sm lg:w-32 shadow-md"
+													)}>
 													{statusMap[felmeresStatus].name}
 												</Button>
 											</DropdownMenuTrigger>
@@ -370,6 +414,39 @@ export default function ClientPage({
 												</DropdownMenuContent>
 											) : null}
 										</DropdownMenu>
+
+										{isEditing ? (
+											<>
+												<div className='w-full lg:w-fit flex lg:flex-none flex-row items-center gap-4'>
+													<Button
+														color='green'
+														size='icon'
+														className='lg:w-10 w-1/2 shadow-md'
+														onClick={handleSaveChanges}>
+														<Check className='h-6 w-6' />
+													</Button>
+													<Button
+														variant='destructive'
+														size='icon'
+														className='lg:w-10 w-1/2 shadow-md'
+														onClick={handleDiscardChanges}>
+														<X className='h-6 w-6' />
+													</Button>
+												</div>
+											</>
+										) : selectedSection === "Tételek" ? (
+											<EditButton
+												href={`/${felmeresId}/edit`}
+												disabled={
+													felmeresStatus === "CANCELLED" ||
+													felmeres.offer_status === "Elfogadott ajánlat" ||
+													felmeres.offer_status == "Sikeres megrendelés"
+												}
+												disabledText='Már el lett fogadva az ajánlat, nem lehet a tételeket változtatni'
+											/>
+										) : (
+											<EditButton onClick={handleChangeEditing} />
+										)}
 									</div>
 								</div>
 							</div>
@@ -386,38 +463,6 @@ export default function ClientPage({
 										<Separator orientation='vertical' />
 									</div>
 									{deviceSize === "sm" ? <Separator /> : null}
-									{isEditing ? (
-										<>
-											<div className='w-full lg:w-fit flex lg:flex-none flex-row items-center gap-4'>
-												<Button
-													color='green'
-													size='icon'
-													className='lg:w-10 w-1/2'
-													onClick={handleSaveChanges}>
-													<Check className='h-6 w-6' />
-												</Button>
-												<Button
-													variant='destructive'
-													size='icon'
-													className='lg:w-10 w-1/2'
-													onClick={handleDiscardChanges}>
-													<X className='h-6 w-6' />
-												</Button>
-											</div>
-										</>
-									) : selectedSection === "Tételek" ? (
-										<EditButton
-											href={`/${felmeresId}/edit`}
-											disabled={
-												felmeresStatus === "CANCELLED" ||
-												felmeres.offer_status === "Elfogadott ajánlat" ||
-												felmeres.offer_status == "Sikeres megrendelés"
-											}
-											disabledText='Már el lett fogadva az ajánlat, nem lehet a tételeket változtatni'
-										/>
-									) : (
-										<EditButton onClick={handleChangeEditing} />
-									)}
 								</div>
 							</CardHeader>
 							<Separator className='mb-4' />
@@ -570,12 +615,8 @@ function EditButton({
 			<TooltipProvider>
 				<Tooltip>
 					<TooltipTrigger asChild>
-						<div className='w-full lg:w-fit lg:flex-none flex flex-row items-center gap-4'>
-							<Button
-								variant='outline'
-								className='flex flex-row items-center w-full'
-								onClick={onClick}
-								disabled>
+						<div className='w-1/3 lg:w-fit lg:flex-none flex flex-row items-center gap-4'>
+							<Button className='flex flex-row items-center w-full shadow-md' onClick={onClick} disabled>
 								<Lock />
 							</Button>
 						</div>
@@ -588,9 +629,9 @@ function EditButton({
 		);
 	} else if (href) {
 		return (
-			<div className='w-full lg:w-fit lg:flex-none flex flex-row items-center gap-4'>
+			<div className='w-1/3 lg:w-fit lg:flex-none flex flex-row items-center gap-4'>
 				<Link href={href} className='flex flex-row items-center w-full'>
-					<Button variant='outline' className='flex flex-row items-center w-full' onClick={onClick}>
+					<Button className='flex flex-row items-center w-full shadow-md' onClick={onClick}>
 						<FileEdit />
 					</Button>
 				</Link>
@@ -598,8 +639,8 @@ function EditButton({
 		);
 	}
 	return (
-		<div className='w-full lg:w-fit lg:flex-none flex flex-row items-center gap-4'>
-			<Button variant='outline' className='flex flex-row items-center w-full' onClick={onClick}>
+		<div className='w-1/3 lg:w-fit lg:flex-none flex flex-row items-center gap-4'>
+			<Button className='flex flex-row items-center w-full shadow-md' onClick={onClick}>
 				<FileEdit />
 			</Button>
 		</div>

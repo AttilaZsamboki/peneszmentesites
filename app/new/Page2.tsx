@@ -117,7 +117,9 @@ export function Page2({
 							setItems((prevItems) => [
 								...prevItems,
 								{
-									id: prevItems.length ? Math.max(...prevItems.map((item) => item.id ?? 0)) + 1 : 0,
+									sort_number: prevItems.length
+										? Math.max(...prevItems.map((item) => item.sort_number ?? 0)) + 1
+										: 0,
 									product: productTemplate.product,
 									name: productData.name,
 									place: productAttributeData ? productAttributeData.place : true,
@@ -153,10 +155,7 @@ export function Page2({
 		}
 	};
 
-	const TABLE_HEAD_ITEMS =
-		deviceSize === "sm"
-			? ["SKU", "Darab + Hely", "Nettó egységár", "Nettó összesen"]
-			: ["SKU", "Darab + Hely", "Nettó egységár", "Nettó összesen"];
+	const TABLE_HEAD_ITEMS = ["SKU", "Darab + Hely", "Nettó egységár", "Nettó összesen"];
 	const TABLE_HEAD_OTHER = ["Név", "Nettó egységár", "Nettó összesen"];
 	const TABLE_HEAD_OTHER_MATERIAL = ["Név", "Darab", "Nettó egységár", "Nettó összesen"];
 
@@ -317,7 +316,7 @@ export function Page2({
 									valueType: "fixed",
 									source: "Template",
 									category: "",
-									id: Math.max(...prev.map((item) => item.id ?? 0)) + 1,
+									sort_number: Math.max(...prev.map((item) => item.sort_number ?? 0)) + 1,
 								},
 							]);
 						}}
@@ -331,156 +330,158 @@ export function Page2({
 				</CustomDialog>
 			) : null}
 			<div id='Tételek'>
-				<div className='flex flex-row justify-between w-full items-start flex-wrap'>
-					<div className='flex flex-row gap-4 items-center'>
-						<div className='flex flex-row items-center gap-2 flex-wrap'>
-							<QuestionTemplate title='Milyen rendszert tervezel?'>
-								<AutoComplete
-									disabled={readonly}
-									options={[
-										"Helyi elszívós rendszer",
-										"Központi ventillátoros",
-										"Passzív rendszer",
-										"Hővisszanyerős",
-									].map((option) => ({
-										label: option,
-										value: option,
-									}))}
-									value={felmeres.type}
-									onSelect={(e) => {
-										setFelmeres ? setFelmeres({ ...felmeres, type: e, template: 0 }) : null;
-										setSelectedTemplate({
-											description: "",
-											name: "",
-											type: "",
-											id: 0,
-										});
-									}}
-								/>
-							</QuestionTemplate>
-							<QuestionTemplate title='Sablon'>
-								<div className='flex flex-row items-center gap-2'>
+				{isEdit ? (
+					<div className='flex flex-row justify-between w-full items-start flex-wrap'>
+						<div className='flex flex-row gap-4 items-center'>
+							<div className='flex flex-row items-center gap-2 flex-wrap'>
+								<QuestionTemplate title='Milyen rendszert tervezel?'>
 									<AutoComplete
 										disabled={readonly}
-										inputWidth='300px'
-										options={templates!
-											.filter((template) => template.type === felmeres.type)
-											.map((template) => ({
-												label: template.name,
-												value: template.id.toString(),
-											}))}
+										options={[
+											"Helyi elszívós rendszer",
+											"Központi ventillátoros",
+											"Passzív rendszer",
+											"Hővisszanyerős",
+										].map((option) => ({
+											label: option,
+											value: option,
+										}))}
+										value={felmeres.type}
 										onSelect={(e) => {
-											if (templates) {
-												if (templates.find((template) => template.id.toString() === e)) {
-													setSelectedTemplate(
-														templates.find((template) => template.id.toString() === e)!
-													);
-													setFelmeres
-														? setFelmeres((prev) => ({
-																...prev,
-																subject: templates.find(
-																	(template) => template.id.toString() === e
-																)!.description,
-														  }))
-														: null;
-												}
-											}
+											setFelmeres ? setFelmeres({ ...felmeres, type: e, template: 0 }) : null;
+											setSelectedTemplate({
+												description: "",
+												name: "",
+												type: "",
+												id: 0,
+											});
 										}}
-										value={selectedTemplate.name}
 									/>
-									<div className='mt-0 lg:mt-3'>
-										{readonly ? null : felmeres.template !== selectedTemplate.id ? (
-											<Button size='icon' variant='outline' onClick={onSelectTemplate}>
-												<Plus className='w-4 h-4 text-gray-700' />
-											</Button>
-										) : (
-											<DropdownMenu
-												dropdownMenuItems={
-													felmeres.template
-														? [
-																{
-																	value: "Mentés",
-																	onClick: saveTemplate,
-																	icon: <Save className='w-5 h-5 mr-2' />,
-																	shortcut: "ctrl+shift+s",
-																},
-																{
-																	value: "Mentés másként",
-																	onClick: () => setOpenTemplateDialog(true),
-																	icon: <SaveAll className='w-5 h-5 mr-2' />,
-																	shortcut: "f4",
-																},
-														  ]
-														: [
-																{
-																	value: "Mentés mint új sablon",
-																	onClick: () => setOpenTemplateDialog(true),
-																	icon: <SaveAll className='w-5 h-5 mr-2' />,
-																	shortcut: "f4",
-																},
-														  ]
+								</QuestionTemplate>
+								<QuestionTemplate title='Sablon'>
+									<div className='flex flex-row items-center gap-2'>
+										<AutoComplete
+											disabled={readonly}
+											inputWidth='300px'
+											options={templates!
+												.filter((template) => template.type === felmeres.type)
+												.map((template) => ({
+													label: template.name,
+													value: template.id.toString(),
+												}))}
+											onSelect={(e) => {
+												if (templates) {
+													if (templates.find((template) => template.id.toString() === e)) {
+														setSelectedTemplate(
+															templates.find((template) => template.id.toString() === e)!
+														);
+														setFelmeres
+															? setFelmeres((prev) => ({
+																	...prev,
+																	subject: templates.find(
+																		(template) => template.id.toString() === e
+																	)!.description,
+															  }))
+															: null;
+													}
 												}
-											/>
-										)}
+											}}
+											value={selectedTemplate.name}
+										/>
+										<div className='mt-0 lg:mt-3'>
+											{readonly ? null : felmeres.template !== selectedTemplate.id ? (
+												<Button size='icon' variant='outline' onClick={onSelectTemplate}>
+													<Plus className='w-4 h-4 text-gray-700' />
+												</Button>
+											) : (
+												<DropdownMenu
+													dropdownMenuItems={
+														felmeres.template
+															? [
+																	{
+																		value: "Mentés",
+																		onClick: saveTemplate,
+																		icon: <Save className='w-5 h-5 mr-2' />,
+																		shortcut: "ctrl+shift+s",
+																	},
+																	{
+																		value: "Mentés másként",
+																		onClick: () => setOpenTemplateDialog(true),
+																		icon: <SaveAll className='w-5 h-5 mr-2' />,
+																		shortcut: "f4",
+																	},
+															  ]
+															: [
+																	{
+																		value: "Mentés mint új sablon",
+																		onClick: () => setOpenTemplateDialog(true),
+																		icon: <SaveAll className='w-5 h-5 mr-2' />,
+																		shortcut: "f4",
+																	},
+															  ]
+													}
+												/>
+											)}
+										</div>
 									</div>
-								</div>
-							</QuestionTemplate>
+								</QuestionTemplate>
+							</div>
+						</div>
+
+						<div className='grid w-full lg:w-1/3 gap-1.5'>
+							<Label htmlFor='subject'>Tárgy</Label>
+
+							<Textarea
+								id='subject'
+								onBlur={() => {
+									if (selectedTemplate.id) {
+										setTimeout(async () => {
+											if (selectedTemplate.description === felmeres.subject) return;
+											const resp = await fetch(
+												"https://pen.dataupload.xyz/templates/" + selectedTemplate.id + "/",
+												{
+													method: "PATCH",
+													headers: {
+														"Content-Type": "application/json",
+													},
+													body: JSON.stringify({
+														description: felmeres.subject,
+													}),
+												}
+											);
+											if (resp.ok) {
+												toast({
+													title: "Leírás sikeresen frissítve",
+													action: <Check className='w-5 h-5 text-green-700' />,
+													duration: 1000,
+												});
+												setSelectedTemplate((prev) => ({
+													...prev,
+													description: felmeres.subject,
+												}));
+												return;
+											}
+											toast({
+												title: "Leírás frissítése sikertelen",
+												description: "Kérlek próbáld újra később",
+												variant: "destructive",
+												duration: 2000,
+											});
+										}, 500);
+									}
+								}}
+								disabled={readonly}
+								value={felmeres.subject}
+								onChange={(e) => {
+									setFelmeres
+										? setFelmeres((prev) => ({ ...prev, subject: e.target.value ?? "" }))
+										: null;
+								}}
+							/>
+							<p className='text-sm text-muted-foreground'>Az ajánlat tárgya.</p>
 						</div>
 					</div>
-
-					<div className='grid w-full lg:w-1/3 gap-1.5'>
-						<Label htmlFor='subject'>Tárgy</Label>
-
-						<Textarea
-							id='subject'
-							onBlur={() => {
-								if (selectedTemplate.id) {
-									setTimeout(async () => {
-										if (selectedTemplate.description === felmeres.subject) return;
-										const resp = await fetch(
-											"https://pen.dataupload.xyz/templates/" + selectedTemplate.id + "/",
-											{
-												method: "PATCH",
-												headers: {
-													"Content-Type": "application/json",
-												},
-												body: JSON.stringify({
-													description: felmeres.subject,
-												}),
-											}
-										);
-										if (resp.ok) {
-											toast({
-												title: "Leírás sikeresen frissítve",
-												action: <Check className='w-5 h-5 text-green-700' />,
-												duration: 1000,
-											});
-											setSelectedTemplate((prev) => ({
-												...prev,
-												description: felmeres.subject,
-											}));
-											return;
-										}
-										toast({
-											title: "Leírás frissítése sikertelen",
-											description: "Kérlek próbáld újra később",
-											variant: "destructive",
-											duration: 2000,
-										});
-									}, 500);
-								}
-							}}
-							disabled={readonly}
-							value={felmeres.subject}
-							onChange={(e) => {
-								setFelmeres
-									? setFelmeres((prev) => ({ ...prev, subject: e.target.value ?? "" }))
-									: null;
-							}}
-						/>
-						<p className='text-sm text-muted-foreground'>Az ajánlat tárgya.</p>
-					</div>
-				</div>
+				) : null}
 				<Card className='my-5'>
 					<div className='w-full overflow-x-auto rounded-md'>
 						<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll border-separate border-spacing-0'>
@@ -514,7 +515,7 @@ export function Page2({
 							<tbody className=''>
 								{items
 									.filter((item) => item.type === "Item")
-									.sort((a, b) => (a.id ?? 0) - (b.id ?? 0))
+									.sort((a, b) => (a.sort_number ?? 0) - (b.sort_number ?? 0))
 									.map(
 										({
 											name,
@@ -870,8 +871,11 @@ export function Page2({
 															...prev.filter((item) => item.product.toString() !== value),
 															{
 																...prev[prev.length - 1],
-																id: prev.length
-																	? Math.max(...prev.map((item) => item.id ?? 0)) + 1
+																id: 0,
+																sort_number: prev.length
+																	? Math.max(
+																			...prev.map((item) => item.sort_number ?? 0)
+																	  ) + 1
 																	: 0,
 																adatlap: felmeres.adatlap_id,
 																product: parseInt(value),

@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
-		"dev": "next dev --turbo",
+		"dev": "next dev",
 		"build": "next build",
 		"start": "next start",
 		"lint": "next lint"
@@ -49,6 +49,7 @@
 		"filepond-plugin-image-exif-orientation": "^1.0.11",
 		"filepond-plugin-image-preview": "^4.6.11",
 		"framer-motion": "^10.16.4",
+		"geist": "^1.0.0",
 		"lodash": "^4.17.21",
 		"logrocket": "^5.0.1",
 		"lucide-react": "^0.263.1",

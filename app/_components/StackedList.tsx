@@ -32,6 +32,8 @@ import useBreakpointValue from "./useBreakpoint";
 import { Separator } from "@/components/ui/separator";
 import DateRangePicker from "@/components/daterange";
 import { useCreateQueryString, isValidDate } from "../_utils/utils";
+import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 function deepEqual(a: any, b: any) {
 	if (a === b) {
@@ -514,7 +516,7 @@ export default function StackedList({
 			/>
 			<ScrollArea
 				className={`${
-					pagination.numPages ? "h-[50dvh] lg:h-[55dvh] pb-0" : "h-[58dvh] lg:h-[70dvh]"
+					pagination.numPages ? "h-[50dvh] lg:h-[55dvh] pb-0" : "h-[57dvh] lg:h-[68dvh]"
 				} rounded-md border p-2 bg-white `}>
 				<ul ref={parent} role='list' className='w-full bg-white rounded-lg flex flex-col justify-between'>
 					{filteredData
@@ -534,17 +536,18 @@ export default function StackedList({
 								return (
 									<Link href={editHref + item[itemContent.id]} key={index}>
 										<div
-											className={`rounded-none shadow-none border-b ${
-												index === 0 ? "rounded-t-md" : ""
-											} ${index === data.length - 1 ? "rounded-b-md" : ""}`}>
+											className={cn(
+												"rounded-none shadow-none",
+												index === 0 ? "rounded-t-md" : "",
+												index === data.length - 1 ? "rounded-b-md" : "border-b"
+											)}>
 											<div className='flex justify-between px-6 py-5 bg-white bg-opacity-20 transform'>
 												<div className='flex flex-row min-w-0 gap-4'>
 													{itemContent.imgSrc ? (
-														<img
-															className='h-12 w-12 flex-none rounded-full bg-gray-50'
-															src={item[itemContent.imgSrc]}
-															alt='kep'
-														/>
+														<Avatar>
+															<AvatarImage src={item[itemContent.imgSrc]} />
+															<AvatarFallback>kep</AvatarFallback>
+														</Avatar>
 													) : null}
 													<div className='min-w-0 flex-auto'>
 														<div className='flex flex-row items-center gap-2'>

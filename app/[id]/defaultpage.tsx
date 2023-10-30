@@ -37,6 +37,7 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 		}
 	)
 		.then((res) => res.json())
+		.then((data: FelmeresItem[]) => data.map((d, index) => ({ ...d, sort_number: index })))
 		.catch((err) => {
 			console.error(err);
 			return [];

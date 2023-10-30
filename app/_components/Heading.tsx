@@ -1,5 +1,4 @@
 "use client";
-import { Typography } from "@material-tailwind/react";
 
 export default function Heading({
 	id,
@@ -29,14 +28,31 @@ export default function Heading({
 					className={`flex flex-col ${width} px-2 lg:items-start sm:items-center justify-center ${
 						marginY ? marginY : "lg:my-12"
 					} lg:justify-between text-center`}>
-					<Typography
-						variant={variant}
-						className={`font-semibold text-gradient-to-tr from-gray-900 to-gray-800 lg:my-0 text-left`}>
-						{title}
-					</Typography>
+					<div
+						className={`font-semibold text-gradient-to-tr from-gray-900 to-gray-800 lg:my-0 text-left prose prose-slate lg:prose-lg`}>
+						<Title />
+					</div>
 				</div>
 			</div>
 			{children}
 		</div>
 	);
+	function Title() {
+		switch (variant) {
+			case "h1":
+				return <h1>{title}</h1>;
+			case "h2":
+				return <h2>{title}</h2>;
+			case "h3":
+				return <h3>{title}</h3>;
+			case "h4":
+				return <h4>{title}</h4>;
+			case "h5":
+				return <h5>{title}</h5>;
+			case "h6":
+				return <h6>{title}</h6>;
+			default:
+				return <h1>{title}</h1>;
+		}
+	}
 }
