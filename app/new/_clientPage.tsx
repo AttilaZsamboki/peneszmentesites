@@ -589,8 +589,7 @@ export default function Page({
 					}
 					updateStatus(3400);
 					await fetch("/api/revalidate?tag=" + felmeresResponseData.id);
-					await fetch("/api/revalidate?path=/");
-					router.push("/");
+					window.location.replace("/");
 				}
 
 				if (sendOffer) {
@@ -605,21 +604,18 @@ export default function Page({
 					const closeTodo = performance.now();
 					console.log("ToDo lezárása: " + (closeTodo - start) + "ms");
 					updateStatus(3400);
-					await fetch("/api/revalidate?path=/" + felmeresResponseData.id);
 					await fetch("/api/revalidate?tag=" + felmeresResponseData.id);
-					router.push("/");
+					window.location.replace("/");
 					// -- END -- //
 				}
 			}
 			updateStatus(3400, felmeresResponseData.id);
 			if (createType2.FELMERES === "UPDATE") {
-				await fetch("/api/revalidate?path=/" + felmeresResponseData.id);
 				await fetch("/api/revalidate?tag=" + felmeresResponseData.id);
-				router.push("/" + felmeresResponseData.id);
+				window.location.replace("/" + felmeresResponseData.id);
 			} else {
-				await fetch("/api/revalidate?path=/");
 				await fetch("/api/revalidate?tag=" + felmeresResponseData.id);
-				router.push("/");
+				window.location.replace("/");
 			}
 		}
 	};

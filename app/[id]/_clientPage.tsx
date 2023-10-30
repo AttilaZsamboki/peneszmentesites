@@ -434,7 +434,7 @@ export default function ClientPage({
 													</Button>
 												</div>
 											</>
-										) : selectedSection === "Tételek" ? (
+										) : selectedSection === "Tételek" || isAll ? (
 											<EditButton
 												href={`/${felmeresId}/edit`}
 												disabled={
@@ -450,21 +450,21 @@ export default function ClientPage({
 									</div>
 								</div>
 							</div>
-							<CardHeader className='pt-2 lg:pt-6 lg:p-6 p-0'>
-								<div className='flex gap-5 flex-row items-center justify-between w-full flex-wrap lg:p-0 p-4 pt-6 lg:pt-0'>
-									<div className='flex w-full lg:w-1/4 lg:justify-normal justify-between h-5 items-center space-x-4 lg:text-md lg:font-medium text-sm'>
-										<div>{adatlap.Felmero2 ?? ""}</div>
-										{felmeres.type ? (
-											<>
-												<Separator orientation='vertical' />
-												<div>{felmeres.type}</div>
-											</>
-										) : null}
-										<Separator orientation='vertical' />
+							{selectedSection === "Tételek" || isAll ? (
+								<CardHeader className='pt-2 lg:pt-6 lg:p-6 p-0'>
+									<div className='flex gap-5 flex-row items-center justify-between w-full flex-wrap lg:p-0 p-4 pt-6 lg:pt-0'>
+										<div className='flex w-full lg:w-1/4 lg:justify-normal justify-between h-5 items-center space-x-4 lg:text-md lg:font-medium text-sm'>
+											<div>{adatlap.Felmero2 ?? ""}</div>
+											{felmeres.type ? (
+												<>
+													<Separator orientation='vertical' />
+													<div>{felmeres.type}</div>
+												</>
+											) : null}
+										</div>
 									</div>
-									{deviceSize === "sm" ? <Separator /> : null}
-								</div>
-							</CardHeader>
+								</CardHeader>
+							) : null}
 							<Separator className='mb-4' />
 							<CardContent>
 								{isAll
