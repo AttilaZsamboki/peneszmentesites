@@ -25,7 +25,6 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 		next: { tags: [encodeURIComponent(felmeresId)], revalidate: 60 },
 	})
 		.then((res) => res.json())
-		.then((data) => data[0])
 		.catch((err) => {
 			console.log(err);
 			return { adatlap_id: 0 };
