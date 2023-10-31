@@ -34,6 +34,7 @@ import DateRangePicker from "@/components/daterange";
 import { useCreateQueryString, isValidDate } from "../_utils/utils";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useUser } from "@auth0/nextjs-auth0/client";
 
 function deepEqual(a: any, b: any) {
 	if (a === b) {
@@ -112,6 +113,7 @@ export default function StackedList({
 	title,
 	filters,
 	savedFiltersOriginal,
+	defaultViewName,
 }: {
 	data: any[];
 	editType: "link" | "dialog";
@@ -122,6 +124,7 @@ export default function StackedList({
 	title: string;
 	filters: FilterItem[];
 	savedFiltersOriginal?: Filter[];
+	defaultViewName?: string;
 }) {
 	const parent = React.useRef<HTMLUListElement | null>(null);
 	const router = useRouter();
@@ -179,6 +182,7 @@ export default function StackedList({
 	const search: FilterItem = filter.filters.find((filter) => filter.field === "filter")!;
 
 	const [filteredData, setFilteredData] = React.useState(data);
+	const { user } = useUser();
 
 	React.useEffect(() => {
 		if (parent.current) {
@@ -234,10 +238,10 @@ export default function StackedList({
 	const { toast } = useToast();
 
 	const fetchSavedFilters = async () => {
-		if (savedFiltersOriginal?.length) {
+		if (savedFiltersOriginal?.length || !user?.sub) {
 			return;
 		}
-		const response = await fetch("https://pen.dataupload.xyz/filters?type=" + title);
+		const response = await fetch(`https://pen.dataupload.xyz/filters?type=${title}&user=${user.sub}`);
 		if (response.ok) {
 			const data: Filter[] = await response.json();
 
@@ -310,7 +314,7 @@ export default function StackedList({
 	};
 	React.useEffect(() => {
 		fetchSavedFilters();
-	}, []);
+	}, [user?.sub]);
 
 	React.useEffect(() => {
 		refilterData(filter);
@@ -508,6 +512,7 @@ export default function StackedList({
 				</div>
 			</div>
 			<FiltersComponent
+				defaultViewName={defaultViewName}
 				filterType={title}
 				filter={filter}
 				savedFilters={savedFilters}
@@ -516,7 +521,7 @@ export default function StackedList({
 			/>
 			<ScrollArea
 				className={`${
-					pagination.numPages ? "h-[50dvh] lg:h-[55dvh] pb-0" : "h-[57dvh] lg:h-[68dvh]"
+					pagination.numPages ? "h-[50dvh] lg:h-[55dvh] pb-0" : "h-[57dvh] lg:h-[66dvh]"
 				} rounded-md border p-2 bg-white `}>
 				<ul ref={parent} role='list' className='w-full bg-white rounded-lg flex flex-col justify-between'>
 					{filteredData
@@ -725,15 +730,18 @@ function FiltersComponent({
 	setFilter,
 	savedFilters,
 	setSavedFilters,
+	defaultViewName,
 }: {
 	filter: Filter;
 	filterType: string;
 	setFilter: React.Dispatch<React.SetStateAction<Filter>>;
 	savedFilters: Filter[];
 	setSavedFilters: React.Dispatch<React.SetStateAction<Filter[]>>;
+	defaultViewName?: string;
 }) {
 	const [openSaveFilter, setOpenSaveFilter] = React.useState(false);
 	const { toast } = useToast();
+	const { user } = useUser();
 
 	const saveFilter = async () => {
 		toast({
@@ -746,7 +754,7 @@ function FiltersComponent({
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify({ ...filter, type: filterType }),
+			body: JSON.stringify({ ...filter, type: filterType, user: user?.sub }),
 		});
 		if (response.ok) {
 			const data = await response.json();
@@ -834,7 +842,7 @@ function FiltersComponent({
 							name: "",
 							type: "",
 							id: 0,
-							sort_by: "",
+							sort_by: "id",
 							sort_order: "desc",
 						}));
 					}}
@@ -845,7 +853,7 @@ function FiltersComponent({
 						<Separator orientation='vertical' className='mx-2 ml-4' />
 					</div>
 					<Tab value={0} className='pb-2'>
-						Alap nézet
+						{defaultViewName ?? "Alap nézet"}
 					</Tab>
 					<div className='flex items-center pb-2'>
 						<Separator orientation='vertical' className='mx-2 ml-4' />
@@ -1005,6 +1013,7 @@ function InputOptionChooser({
 		if (!options && !pagination) return null;
 		return (
 			<AutoComplete
+				inputWidth={deviceSize === "sm" ? "" : "250px"}
 				value={
 					pagination
 						? value

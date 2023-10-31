@@ -1,7 +1,11 @@
+"use client";
 import React from "react";
 import BaseComponentV2 from "./_components/BaseComponentV2";
 import { statusMap } from "./_utils/utils";
 import { Filter as OtherFilter } from "./products/page";
+import { useUserWithRole } from "@/lib/utils";
+import BaseComponentLoading from "./_components/BaseComponentLoading";
+import { FilterItem } from "./_components/StackedList";
 
 export interface Filter {
 	id: number;
@@ -10,8 +14,13 @@ export interface Filter {
 }
 
 export default function ClientPage({ allData, savedFilters }: { allData: any; savedFilters?: OtherFilter[] }) {
+	const { user, isLoading } = useUserWithRole();
+	if (isLoading) {
+		return <BaseComponentLoading />;
+	}
 	return (
 		<BaseComponentV2
+			defaultViewName={user?.role === "Felmérő" ? "Saját felmérések" : undefined}
 			title='Felmérések'
 			editHref='/'
 			editType='link'
@@ -28,20 +37,34 @@ export default function ClientPage({ allData, savedFilters }: { allData: any; sa
 				imgSrc: "IngatlanKepe",
 				status: "Státusz",
 			}}
-			filters={[
-				{ field: "Name", label: "Név", type: "select" },
-				{ field: "StatusId", label: "MiniCRM státusz", type: "select" },
-				{
-					field: "status",
-					label: "Státusz",
-					type: "select",
-					options: Object.entries(statusMap).map(([key, value]) => ({ value: key, label: value.name })),
-				},
-				{ field: "Felmérő", label: "Felmérő", type: "text" },
-				{ field: "Felmérés típusa", label: "Felmérés típusa", type: "select" },
-				{ field: "Teljes cím", label: "Cím", type: "select" },
-				{ field: "created_at", label: "Dátum", type: "daterange" },
-			]}
+			filters={
+				[
+					{ field: "Name", label: "Név", type: "select" },
+					{ field: "StatusId", label: "MiniCRM státusz", type: "select" },
+					{
+						field: "status",
+						label: "Státusz",
+						type: "select",
+						options: Object.entries(statusMap).map(([key, value]) => ({ value: key, label: value.name })),
+					},
+					{ field: "Felmérő", label: "Felmérő", type: "text" },
+					{ field: "Felmérés típusa", label: "Felmérés típusa", type: "select" },
+					{ field: "Teljes cím", label: "Cím", type: "select" },
+					{ field: "created_at", label: "Dátum", type: "daterange" },
+					user?.role === "Felmérő"
+						? {
+								field: "created_by",
+								label: "Saját",
+								value: user.role! === "Felmérő" ? user.sub! : "",
+								type: "select",
+								options: [
+									{ value: user.sub!, label: "Igen" },
+									{ value: "", label: "Nem" },
+								],
+						  }
+						: null,
+				].filter((filter) => filter) as FilterItem[]
+			}
 			savedFilters={savedFilters}
 		/>
 	);

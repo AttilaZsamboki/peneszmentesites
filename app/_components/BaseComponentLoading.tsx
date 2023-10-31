@@ -3,6 +3,7 @@ import Skeleton from "react-loading-skeleton";
 import LoadingDots from "./LoadingDots";
 import { usePathname } from "next/navigation";
 import Heading from "./Heading";
+import { Button } from "@/components/ui/button";
 
 export default function BaseComponentLoading() {
 	const pathname = usePathname();
@@ -24,30 +25,22 @@ export default function BaseComponentLoading() {
 			href: "/products",
 		},
 	];
+	const pageName = paths.find((path) => path.href === pathname)?.name ?? "";
 	return (
 		<main className='flex min-h-screen flex-col items-center justify-start w-full '>
 			<div className='flex flex-col items-center justify-start w-full border-b bg-white'>
 				<div className='lg:w-2/3 flex flex-row justify-between py-0'>
-					<div className='flex lg:flex-row flex-col justify-between items-center w-full mb-2 '>
-						<div className='flex flex-col justify-items items-center w-full'>
-							<div className='flex flex-col w-full px-2 lg:items-start sm:items-center justify-center mt-11 mb-8 lg:justify-between text-center'>
-								<Heading
-									border={false}
-									width='w-full'
-									title={paths.find((path) => path.href === pathname)?.name ?? ""}
-									marginY='mt-11 mb-8'
-									variant='h2'
-								/>
-							</div>
-						</div>
+					<Heading border={false} width='w-full' title={pageName} marginY='mt-11 mb-8' variant='h2'>
 						<div>
 							<div className='flex flex-row justify-end w-full relative top-3 z-50 items-center gap-3'>
-								<button className='text-sm ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 px-4 w-36 h-10 flex items-center justify-center py-4 rounded-md hover:shadow-none shadow-none font-semibold uppercase'>
-									<LoadingDots />
-								</button>
+								<Button
+									disabled
+									className='w-36 h-10 flex animate-pulse items-center justify-center py-4 rounded-md hover:shadow-none shadow-none font-semibold uppercase'>
+									Töltödik...
+								</Button>
 							</div>
 						</div>
-					</div>
+					</Heading>
 				</div>
 			</div>
 			<div className='flex flex-row justify-center w-full flex-wrap'>

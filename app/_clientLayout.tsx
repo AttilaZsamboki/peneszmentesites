@@ -9,7 +9,6 @@ import { ChevronDown, Menu, Search } from "lucide-react";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Separator } from "@/components/ui/separator";
 import useBreakpointValue from "./_components/useBreakpoint";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
 	DropdownMenu,
@@ -19,7 +18,8 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getCookie, createJWT, useLocalStorageState } from "@/lib/utils";
+import { getCookie, createJWT, useLocalStorageState, useUserWithRole, Role } from "@/lib/utils";
+import jwt from "jsonwebtoken";
 
 interface Progress {
 	percent: number;
@@ -129,17 +129,26 @@ function Navbar({ routes }: { routes: Route[] }) {
 			route.subRoutes.some((subRoute) => subRoute.href.includes("/" + routerBasePath)) ||
 			"/" + routerBasePath === route.href
 	);
-	const { user, error, isLoading } = useUser();
+	const { user, error, isLoading } = useUserWithRole();
 
 	if (!user && !isLoading) {
 		window.location.href = "/api/auth/login";
 		return null;
 	}
-	if (user && user.sub && !getCookie("jwt")) {
-		const jwt = createJWT(user.sub!);
-		document.cookie = `jwt=${jwt}; path=/`;
+	if (user && user.sub) {
+		const JWT = getCookie("jwt");
+		if (!JWT) {
+			document.cookie = `jwt=${createJWT(user.sub!)}; path=/`;
+		} else if (JWT) {
+			try {
+				jwt.verify(JWT, process.env.NEXT_PUBLIC_SECRET as string);
+			} catch (err) {
+				if (err instanceof jwt.TokenExpiredError) {
+					document.cookie = `jwt=${createJWT(user.sub!)}; path=/`;
+				}
+			}
+		}
 	}
-
 	return (
 		<div className='flex' ref={ref}>
 			{!openNav ? (
@@ -331,19 +340,23 @@ function Navbar({ routes }: { routes: Route[] }) {
 												<AvatarImage src={user.picture ?? ""} />
 												<AvatarFallback>{user.nickname}</AvatarFallback>
 											</Avatar>
-											<DropdownMenu></DropdownMenu>
-											<DropdownMenu>
-												<DropdownMenuTrigger>{user.name}</DropdownMenuTrigger>
-												<DropdownMenuContent>
-													<DropdownMenuLabel>Fiókom</DropdownMenuLabel>
-													<DropdownMenuSeparator />
-													<a href='/api/auth/logout'>
-														<DropdownMenuItem className='text-red-700 hover:text-red-700 font-semibold'>
-															Kijelentkezés
-														</DropdownMenuItem>
-													</a>
-												</DropdownMenuContent>
-											</DropdownMenu>
+											<div className='flex flex-col'>
+												<DropdownMenu>
+													<DropdownMenuTrigger>{user.name}</DropdownMenuTrigger>
+													<DropdownMenuContent>
+														<DropdownMenuLabel>Fiókom</DropdownMenuLabel>
+														<DropdownMenuSeparator />
+														<a href='/api/auth/logout'>
+															<DropdownMenuItem className='text-red-700 hover:text-red-700 font-semibold'>
+																Kijelentkezés
+															</DropdownMenuItem>
+														</a>
+													</DropdownMenuContent>
+												</DropdownMenu>
+												<p className='text-sm text-muted-foreground text-right'>
+													{user.role as unknown as Role}
+												</p>
+											</div>
 										</div>
 									)}
 								</div>

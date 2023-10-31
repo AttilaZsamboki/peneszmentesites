@@ -91,67 +91,8 @@ export default async function Home() {
 				"created_at": formattedDate,
 			};
 		});
-		const filters: Filter[] = await fetch("https://pen.dataupload.xyz/filters?type=Felmérések")
-			.then(async (resp) => await resp.json())
-			.catch((err) => {
-				console.log(err);
-				return [];
-			});
 
-		const savedFilters = await Promise.all(
-			filters.map(async (item) => {
-				const response = await fetch("https://pen.dataupload.xyz/filter_items?filter=" + item.id);
-				if (response.ok) {
-					const data: FilterItem[] = await response.json();
-					return {
-						...item,
-						filters: data.map((item) =>
-							item.type === "daterange"
-								? {
-										...item,
-										value: item.value
-											? {
-													from: new Date(
-														JSON.parse(
-															item.value
-																? (item.value as unknown as string).replace(/'/g, '"')
-																: "{}"
-														).from
-													),
-													to:
-														item.value &&
-														JSON.parse((item.value as unknown as string).replace(/'/g, '"'))
-															.to
-															? new Date(
-																	JSON.parse(
-																		item.value
-																			? (item.value as unknown as string).replace(
-																					/'/g,
-																					'"'
-																			  )
-																			: "{}"
-																	).to
-															  )
-															: (null as unknown as Date),
-											  }
-											: undefined,
-								  }
-								: item
-						),
-					};
-				}
-			})
-		);
-		return (
-			<ClientPage
-				allData={allData}
-				savedFilters={
-					savedFilters.map((filter) =>
-						filter ? (filter as Filter) : { id: 0, filters: [], name: "", type: "" }
-					) as Filter[]
-				}
-			/>
-		);
+		return <ClientPage allData={allData} />;
 	} else {
 		return (
 			<main className='flex min-h-screen flex-col items-center justify-start p-2'>

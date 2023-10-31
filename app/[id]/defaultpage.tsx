@@ -7,6 +7,7 @@ import EditClientPage from "./edit/clientPage";
 import { notFound } from "next/navigation";
 import { Product } from "../products/page";
 import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
 
 export default async function DefaultPage({ params, edit }: { params: { id: string }; edit: boolean }) {
 	const felmeresId = params.id;
@@ -23,10 +24,15 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 		});
 
 	const cookieStore = cookies();
+	const JsonWebToken = cookieStore.get("jwt")?.value;
+	if (!JsonWebToken) {
+		return <div>Nincs bejelentkezve</div>;
+	}
+
 	const felmeres: BaseFelmeresData = await fetch("https://pen.dataupload.xyz/felmeresek/" + felmeresId, {
 		next: { tags: [encodeURIComponent(felmeresId)], revalidate: 60 },
 		headers: {
-			Authorization: `Bearer ${cookieStore.get("jwt")?.value}`,
+			Authorization: `Bearer ${JsonWebToken}`,
 		},
 	})
 		.then((res) => res.json())

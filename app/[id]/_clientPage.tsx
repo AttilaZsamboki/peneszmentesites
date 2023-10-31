@@ -23,7 +23,7 @@ import { FelmeresStatus, statusMap } from "@/app/_utils/utils";
 import { toast } from "@/components/ui/use-toast";
 import useBreakpointValue from "../_components/useBreakpoint";
 import { Separator } from "@/components/ui/separator";
-import { CalendarDays, Check, Download, FileEdit, IterationCw, Lock, X } from "lucide-react";
+import { CalendarDays, Check, Download, FileEdit, IterationCw, Lock, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { Page2 } from "../new/Page2";
 import _ from "lodash";
@@ -39,10 +39,22 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+import { cn, getCookie, useUserWithRole } from "@/lib/utils";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { concatAddress } from "../_utils/MiniCRM";
+import { cookies } from "next/headers";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export function isJSONParsable(str: string) {
 	try {
@@ -119,6 +131,7 @@ export default function ClientPage({
 	const [selectedSection, setSelectedSection] = React.useState<SectionName>("");
 	const [statePictures, setStatePictures] = React.useState(pictures);
 	const [stateChat, setStateChat] = React.useState<Chat[]>(chat);
+	const { user } = useUserWithRole();
 
 	const handleSeenChat = async () => {
 		const response = await fetch(`https://pen.dataupload.xyz/felmeres-notes/?felmeres_id=${felmeresId}`, {
@@ -336,6 +349,27 @@ export default function ClientPage({
 			),
 		});
 	};
+	const handleDelete = async () => {
+		const cookie = getCookie("jwt");
+		if (!cookie || !user || user.role !== "Admin") return;
+		const response = await fetch(`https://pen.dataupload.xyz/felmeresek/${felmeresId}/`, {
+			method: "DELETE",
+			headers: {
+				"Content-Type": "application/json",
+				"Authorization": `Bearer ${cookie}`,
+			},
+		});
+		if (response.ok) {
+			await fetch("/api/revalidate?tag=felmeresek");
+			window.location.href = "/";
+		} else {
+			toast({
+				title: "Hiba",
+				description: response.status === 403 ? "Nem engedélyezett művelet" : "Hiba történt a törlés során",
+				variant: "destructive",
+			});
+		}
+	};
 
 	return (
 		<div className='w-full overflow-y-scroll overflow-x-hidden lg:h-[98dvh] h-[92dvh]'>
@@ -447,6 +481,31 @@ export default function ClientPage({
 										) : (
 											<EditButton onClick={handleChangeEditing} />
 										)}
+										{user?.role === "Admin" && felmeres.created_by === user.sub ? (
+											<AlertDialog>
+												<AlertDialogTrigger asChild>
+													<Button variant='destructive' size='icon' className='shadow-md'>
+														<Trash2 />
+													</Button>
+												</AlertDialogTrigger>
+												<AlertDialogContent>
+													<AlertDialogHeader>
+														<AlertDialogTitle>
+															Biztos hogy törölni akarod a felmérést?
+														</AlertDialogTitle>
+														<AlertDialogDescription>
+															Ez a művelet nem visszavonható.
+														</AlertDialogDescription>
+													</AlertDialogHeader>
+													<AlertDialogFooter>
+														<AlertDialogAction onClick={handleDelete}>
+															Törlés
+														</AlertDialogAction>
+														<AlertDialogCancel>Mégse</AlertDialogCancel>
+													</AlertDialogFooter>
+												</AlertDialogContent>
+											</AlertDialog>
+										) : null}
 									</div>
 								</div>
 							</div>

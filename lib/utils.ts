@@ -4,6 +4,7 @@ import React from "react";
 import { twMerge } from "tailwind-merge";
 import jwt from "jsonwebtoken";
 import * as dotenv from "dotenv";
+import { UserContext, UserProfile, useUser } from "@auth0/nextjs-auth0/client";
 dotenv.config();
 
 export function cn(...inputs: ClassValue[]) {
@@ -64,7 +65,7 @@ export function createJWT(user: string) {
 	const payload = {
 		sub: user, // Subject (user ID)
 		iat: Math.floor(Date.now() / 1000), // Issued at time
-		exp: Math.floor(Date.now() / 1000) + 30 * 60,
+		exp: Math.floor(Date.now() / 1000) + 3600,
 		aud: "penész-frontend", // Audience
 		iss: "penészmentesítés", // Issuer
 	};
@@ -92,4 +93,35 @@ export function getCookie(name: string) {
 		}
 	}
 	return null;
+}
+
+export type Role = "User" | "Admin" | "Felmérő" | "Beépítő" | undefined;
+
+interface User extends UserContext {
+	user: UserWithRole;
+}
+interface UserWithRole extends UserProfile {
+	role: Role;
+}
+
+export function useUserWithRole(): User | UserContext {
+	const [role, setRole] = React.useState<Role | undefined>(undefined);
+	const [roleLoading, setRoleLoading] = React.useState(true);
+	const user = useUser();
+	React.useEffect(() => {
+		if (!user.user?.sub) {
+			return;
+		}
+		fetch(`https://pen.dataupload.xyz/user-role/${user.user.sub}`)
+			.then((res) => res.json())
+			.then((data) => {
+				setRole(data.name);
+				setRoleLoading(false);
+			});
+	}, [user.user?.sub]);
+
+	if (user.user) {
+		return { ...user, user: { ...user.user, role }, isLoading: user.isLoading || roleLoading };
+	}
+	return user;
 }

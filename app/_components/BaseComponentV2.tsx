@@ -19,6 +19,7 @@ export default function BaseComponentV2({
 	pagination = { numPages: 0, active: false },
 	filters = [],
 	savedFilters = [],
+	defaultViewName,
 }: {
 	data: any;
 	title: string;
@@ -32,6 +33,7 @@ export default function BaseComponentV2({
 	pagination?: PaginationOptions;
 	filters?: FilterItem[];
 	savedFilters?: Filter[];
+	defaultViewName?: string;
 }) {
 	return (
 		<main className='flex min-h-screen flex-col items-center justify-start w-full'>
@@ -62,6 +64,7 @@ export default function BaseComponentV2({
 			</div>
 			<div className='flex flex-row justify-center w-full flex-wrap'>
 				<StackedList
+					defaultViewName={defaultViewName}
 					onEditItem={onEditItem}
 					filters={filters}
 					data={data}

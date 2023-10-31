@@ -16,6 +16,7 @@ import { ProductAttributes } from "@/app/products/_clientPage";
 import { ToDo, assembleOfferXML, fetchMiniCRM, list_to_dos } from "@/app/_utils/MiniCRM";
 import { AdatlapDetails } from "../_utils/types";
 import { useSearchParams } from "next/navigation";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { useGlobalState } from "@/app/_clientLayout";
 
 import { Page2 } from "./Page2";
@@ -62,6 +63,7 @@ export interface BaseFelmeresData {
 	description: string;
 	offer_status?: "Elfogadott ajánlat" | "Sikeres megrendelés" | null;
 	subject: string;
+	created_by: string;
 }
 
 export interface FelmeresItem {
@@ -122,6 +124,7 @@ export default function Page({
 	editPictures?: FelmeresPictures[];
 }) {
 	const { setProgress } = useGlobalState();
+	const { user } = useUser();
 	const searchParams = useSearchParams();
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>(
 		editFelmeres
@@ -135,6 +138,7 @@ export default function Page({
 					created_at: "",
 					description: "",
 					subject: "",
+					created_by: user?.sub ?? "",
 			  }
 	);
 	const [items, setItems] = React.useState<FelmeresItem[]>(
@@ -1060,6 +1064,7 @@ export default function Page({
 								<AlertDialogCancel>Mégsem</AlertDialogCancel>
 								<AlertDialogAction
 									className='bg-red-800 hover:bg-red-800/90'
+									type='submit'
 									onClick={() => CreateFelmeres()}>
 									Folytatás
 								</AlertDialogAction>
@@ -1069,6 +1074,7 @@ export default function Page({
 				) : (
 					<Button
 						className='bg-green-500 hover:bg-green-500/90'
+						type='submit'
 						color='green'
 						onClick={() => CreateFelmeres()}
 						disabled={pageClass.isDisabled()}>
@@ -1079,7 +1085,10 @@ export default function Page({
 					<TooltipProvider>
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<Button onClick={() => CreateFelmeres(false)} disabled={pageClass.isDisabled()}>
+								<Button
+									type='submit'
+									onClick={() => CreateFelmeres(false)}
+									disabled={pageClass.isDisabled()}>
 									Mentés
 								</Button>
 							</TooltipTrigger>
