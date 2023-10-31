@@ -29,7 +29,7 @@ import { QuestionPage } from "../../components/QuestionPage";
 import { TooltipTrigger, Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import Link from "next/link";
 import { FelmeresStatus, statusMap, useCreateQueryString } from "../_utils/utils";
-import { calculatePercentageValue, cn } from "@/lib/utils";
+import { calculatePercentageValue, cn, createJWT } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import {
 	AlertDialog,
@@ -330,6 +330,7 @@ export default function Page({
 			":" +
 			("0" + date.getSeconds()).slice(-2);
 		const fetchFelmeres = async () => {
+			let respGlobal = null;
 			if (createType2.FELMERES === "UPDATE") {
 				const resp = await fetch("https://pen.dataupload.xyz/felmeresek/" + editFelmeres!.id + "/", {
 					method: "PUT",
@@ -342,8 +343,9 @@ export default function Page({
 					}),
 				});
 				await fetch("/api/revalidate?tag=" + editFelmeres!.id);
-				return resp;
-			} else {
+				respGlobal = resp;
+			}
+			if (createType2.FELMERES === "CREATE" || createType2.CANCEL_OLD_OFFER) {
 				const resp = await fetch("https://pen.dataupload.xyz/felmeresek/", {
 					method: "POST",
 					headers: {
@@ -357,9 +359,10 @@ export default function Page({
 				});
 				if (resp.ok) {
 					await fetch("/api/revalidate?tag=felmeresek");
-					return resp;
+					respGlobal = resp;
 				}
 			}
+			return respGlobal;
 		};
 		const res = await fetchFelmeres();
 		updateStatus(57);
@@ -382,7 +385,10 @@ export default function Page({
 						adatlap: felmeresResponseData.id,
 						netPrice: item.netPrice,
 						// ez annyit jelent hogy ha null az id akkor létrehozza az adatbázisban egyébként frissíti a meglévő tételeket
-						id: createType2.FELMERES === "UPDATE" && item.id ? item.id : null,
+						id:
+							createType2.FELMERES === "UPDATE" && item.id && !createType2.CANCEL_OLD_OFFER
+								? item.id
+								: null,
 					}))
 				),
 			});
@@ -392,7 +398,6 @@ export default function Page({
 			// -- END -- //
 
 			// Kérdések mentése //
-			let status = 1;
 			data.filter((question) => question.value).map(async (question) => {
 				const originaQuestion = questions.find((q) => q.id === question.question);
 				let question_id = question.question;
@@ -433,9 +438,6 @@ export default function Page({
 						}),
 					}
 				);
-				if (!resQuestions.ok) {
-					status = 0;
-				}
 			});
 			updateStatus(203);
 			const createQuestions = performance.now();
@@ -839,7 +841,7 @@ export default function Page({
 						currentPage === "Tételek" ? "lg:w-full" : currentPage === "Alapadatok" ? "lg:w-1/4" : "lg:w-2/3"
 					}`}>
 					<Card className='lg:rounded-md rounded-none lg:border border-0'>
-						<div className='sticky top-0 bg-white z-40'>
+						<div className='sticky top-0 bg-white z-40 rounded-t-md'>
 							<CardHeader className='flex flex-row items-center justify-between p-0 pr-2'>
 								<div className='flex flex-col items-start pl-10 py-3'>
 									<div className='flex flex-row gap-2 items-center'>
@@ -857,7 +859,7 @@ export default function Page({
 									<DialogTrigger>
 										<MenuSquare />
 									</DialogTrigger>
-									<DialogContent className='h-[100dvh] w-full p-0 flex flex-col gap-0 '>
+									<DialogContent className='h-[100dvh] w-full p-0 flex flex-col gap-0 lg:h-[90dvh]'>
 										<div className='border-b'>
 											<DialogHeader className='flex flex-col items-start'>
 												<div className='flex flex-row gap-2 items-center'>
@@ -873,7 +875,7 @@ export default function Page({
 												</DialogDescription>
 											</DialogHeader>
 										</div>
-										<ul className='grid w-[400px] gap-3 md:w-[500px] md:grid-cols-2 lg:w-[600px] p-6 pt-0 overflow-y-scroll'>
+										<ul className='flex flex-col gap-3 lg:w-full p-6 pt-2 overflow-y-scroll lg:pt-4'>
 											{pageClass.sections.map((section, index) => {
 												if (section.subSections) {
 													return (
@@ -884,7 +886,7 @@ export default function Page({
 															className='w-full flex flex-row justify-start'
 															defaultValue='item-1'>
 															<AccordionItem className='border-b-0' value='item-1'>
-																<AccordionTrigger className='hover:no-underline rounded-md text-left pb-1'>
+																<AccordionTrigger className='hover:no-underline font-normal rounded-md text-left pb-1'>
 																	<ListItem
 																		description={section.description ?? ""}
 																		title={section.title}
@@ -994,18 +996,16 @@ export default function Page({
 	);
 	function ListItem({ title, description, sub = false }: { title: string; description: string; sub?: boolean }) {
 		return (
-			<li className='row-span-3'>
-				<div className='block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'>
-					<div className={cn(sub ? "text-sm" : "text-base", "font-medium leading-none")}>{title}</div>
-					<p
-						className={cn(
-							sub ? "text-xs w-52 text-ellipsis" : "text-sm",
-							"line-clamp-2 leading-snug text-muted-foreground"
-						)}>
-						{description}
-					</p>
-				</div>
-			</li>
+			<div className='block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'>
+				<div className={cn(sub ? "text-sm" : "text-base", "font-medium leading-none")}>{title}</div>
+				<p
+					className={cn(
+						sub ? "text-xs w-52 text-ellipsis" : "text-sm",
+						"line-clamp-2 leading-snug text-muted-foreground"
+					)}>
+					{description}
+				</p>
+			</div>
 		);
 	}
 

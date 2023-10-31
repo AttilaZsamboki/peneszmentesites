@@ -2,7 +2,7 @@
 import React from "react";
 import { ArchiveBoxIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import CircularProgressBar from "./_components/CircularProgressBar";
 import { Toaster } from "@/components/ui/toaster";
 import { ChevronDown, Menu, Search } from "lucide-react";
@@ -19,7 +19,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useLocalStorageState } from "@/lib/utils";
+import { getCookie, createJWT, useLocalStorageState } from "@/lib/utils";
 
 interface Progress {
 	percent: number;
@@ -135,6 +135,11 @@ function Navbar({ routes }: { routes: Route[] }) {
 		window.location.href = "/api/auth/login";
 		return null;
 	}
+	if (user && user.sub && !getCookie("jwt")) {
+		const jwt = createJWT(user.sub!);
+		document.cookie = `jwt=${jwt}; path=/`;
+	}
+
 	return (
 		<div className='flex' ref={ref}>
 			{!openNav ? (
