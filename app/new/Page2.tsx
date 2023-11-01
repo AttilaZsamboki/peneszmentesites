@@ -330,7 +330,7 @@ export function Page2({
 				</CustomDialog>
 			) : null}
 			<div id='Tételek'>
-				{isEdit ? (
+				{!readonly ? (
 					<div className='flex flex-row justify-between w-full items-start flex-wrap'>
 						<div className='flex flex-row gap-4 items-center'>
 							<div className='flex flex-row items-center gap-2 flex-wrap'>
