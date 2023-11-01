@@ -69,7 +69,7 @@ export function Page2({
 	const [isAddingNewOtherMaterial, setIsAddingNewOtherMaterial] = React.useState(false);
 	const [isAddingNewOtherItem, setIsAddingNewOtherItem] = React.useState(false);
 	const [newOtherItem, setNewOtherItem] = React.useState<OtherFelmeresItem>();
-	const [isEditingItems, setIsEditingItems] = React.useState(!readonly && !isEdit);
+	const [isEditingItems, setIsEditingItems] = React.useState(!readonly);
 	const [isEditingOtherMaterials, setIsEditingOtherMaterials] = React.useState(false);
 	const [isEditingOtherItems, setIsEditingOtherItems] = React.useState(false);
 	const [templates, setTemplates] = React.useState<Template[]>(originalTemplates ?? []);

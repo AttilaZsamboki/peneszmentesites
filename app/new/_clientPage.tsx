@@ -30,7 +30,7 @@ import { QuestionPage } from "../../components/QuestionPage";
 import { TooltipTrigger, Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import Link from "next/link";
 import { FelmeresStatus, statusMap, useCreateQueryString } from "../_utils/utils";
-import { calculatePercentageValue, cn, createJWT } from "@/lib/utils";
+import { calculatePercentageValue, cn, createJWT, getCookie } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import {
 	AlertDialog,
@@ -290,6 +290,7 @@ export default function Page({
 	const template = templates.find((template) => template.id === felmeres.template);
 
 	const CreateFelmeres = async (sendOffer: boolean = true) => {
+		setOpenPageDialog(false);
 		const createType2 = createType(sendOffer);
 		const start = performance.now();
 		const percent = (num: number) => Math.floor((num / 3400) * 100);
@@ -340,6 +341,7 @@ export default function Page({
 					method: "PUT",
 					headers: {
 						"Content-Type": "application/json",
+						"Authorization": "Bearer " + getCookie("jwt"),
 					},
 					body: JSON.stringify({
 						...felmeres,
@@ -354,6 +356,7 @@ export default function Page({
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
+						"Authorization": "Bearer " + getCookie("jwt"),
 					},
 					body: JSON.stringify({
 						...felmeres,
@@ -846,7 +849,7 @@ export default function Page({
 					}`}>
 					<Card className='lg:rounded-md rounded-none lg:border border-0'>
 						<div className='sticky top-0 bg-white z-40 rounded-t-md'>
-							<CardHeader className='flex flex-row items-center justify-between p-0 pr-2'>
+							<CardHeader className='flex flex-row items-center justify-between p-0 pr-4'>
 								<div className='flex flex-col items-start pl-10 py-3'>
 									<div className='flex flex-row gap-2 items-center'>
 										<CardTitle>{adatlap?.Name ?? ""}</CardTitle>
@@ -860,7 +863,7 @@ export default function Page({
 									open={openPageDialog}
 									defaultOpen
 									onOpenChange={() => setOpenPageDialog((prev) => !prev)}>
-									<DialogTrigger>
+									<DialogTrigger className='pr-2'>
 										<MenuSquare />
 									</DialogTrigger>
 									<DialogContent className='h-[100dvh] w-full p-0 flex flex-col gap-0 lg:h-[90dvh]'>
@@ -1161,6 +1164,7 @@ function Page1({
 		<div className='flex flex-col items-center gap-5'>
 			<QuestionTemplate title='Adatlap'>
 				<AutoComplete
+					inputWidth='250px'
 					options={adatlapok
 						.sort((a, b) => a.Name.localeCompare(b.Name))
 						.map((adatlap) => ({

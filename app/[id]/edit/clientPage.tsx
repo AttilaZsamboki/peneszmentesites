@@ -19,23 +19,13 @@ export default async function Page({
 	products: Product[];
 	pictures: FelmeresPictures[];
 }) {
-	var myHeaders = new Headers();
-	myHeaders.append("Authorization", "Basic MTE5OkQwNlBVTE9JM2VUUkJLY2xqQUdRWWJkNEZFcHVWeTFn");
-	myHeaders.append("Content-Type", "application/json");
-
-	var requestOptions: RequestInit = {
-		cache: "force-cache",
-		method: "GET",
-		headers: myHeaders,
-	};
-
-	const adatlapok = await fetch("https://r3.minicrm.hu/Api/R3/Project?CategoryId=23", requestOptions)
+	const adatlapok = await fetch(`https://pen.dataupload.xyz/minicrm-adatlapok/${felmeres.adatlap_id}`)
 		.then((response) => response.json())
 		.catch((error) => {
 			console.error("error", error);
 			return { Results: {} };
 		})
-		.then((result: Adatlap) => Object.values(result.Results).filter((adatlap) => adatlap.Deleted === 0));
+		.then((data) => [data]);
 	const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates")
 		.then((response) => response.json())
 		.catch((error) => console.error("error", error));

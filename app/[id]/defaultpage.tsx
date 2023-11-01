@@ -32,7 +32,8 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 	const felmeres: BaseFelmeresData = await fetch("https://pen.dataupload.xyz/felmeresek/" + felmeresId, {
 		next: { tags: [encodeURIComponent(felmeresId)], revalidate: 60 },
 		headers: {
-			Authorization: `Bearer ${JsonWebToken}`,
+			"Content-Type": "application/json",
+			"Authorization": `Bearer ${JsonWebToken}`,
 		},
 	})
 		.then((res) => res.json())

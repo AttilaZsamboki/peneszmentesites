@@ -62,6 +62,23 @@ export async function fetchMiniCRM(endpoint: string, id?: string, method?: "POST
 		next: { revalidate: 360 },
 	};
 	if (method === "GET" || !method) {
+		if (endpoint === "Project" || !endpoint) {
+			const resp = await fetch(`https://pen.dataupload.xyz/minicrm-adatlapok/${id ? id : ""}`);
+			if (resp.ok) {
+				const data: AdatlapDetails[] = await resp.json();
+				if (id) {
+					return data;
+				}
+				const filteredData = data.map((item) => {
+					const filteredItem = Object.entries(item)
+						.map(([key, value]) => (value ? { [key]: key === "Id" ? parseInt(value) : value } : null))
+						.filter((value) => value !== null);
+					return Object.assign({}, ...filteredItem);
+				});
+
+				return filteredData;
+			}
+		}
 		// if called from client and needed as proxy
 		if (typeof window !== "undefined") {
 			const resp = await fetch(
@@ -228,7 +245,7 @@ export async function assembleOfferXML(
                 </Products>
 				<Project>
 					<Felmeresid>${felmeresId}</Felmeresid>
-					<UserId>${adatlap.Felmero2}</UserId>
+					<UserId>${adatlap.Felmero2 ?? ""}</UserId>
 					<KapcsolodoFelmeres>https://app.peneszmentesites.hu/${felmeresId}</KapcsolodoFelmeres>
 					<ArajanlatMegjegyzes>${description}</ArajanlatMegjegyzes>
 				</Project>

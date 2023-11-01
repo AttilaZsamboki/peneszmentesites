@@ -41,9 +41,23 @@ export default async function Home() {
 	if (data.ok) {
 		const felmeresek: BaseFelmeresData[] = await data.json().catch((err) => console.log(err));
 		const adatlapIds = Array.from(new Set(felmeresek.map((felmeres) => felmeres.adatlap_id.toString())));
-		const adatlapok: (AdatlapDetails | null)[] = await Promise.all(
-			adatlapIds.map(async (id) => fetchAdatlapDetails(id))
-		).then((adatlapok) => adatlapok.filter((adatlap) => adatlap !== undefined));
+		const adatlapok: AdatlapDetails[] = await fetch(
+			"https://pen.dataupload.xyz/minicrm-adatlapok/?id=" + adatlapIds.join(","),
+			{
+				next: { tags: ["adatlapok"], revalidate: 60 },
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+				},
+			}
+		)
+			.then((res) => res.json())
+			.catch((err) => {
+				console.log(err);
+				return [];
+			})
+			.then((data: AdatlapDetails[]) => data.filter((adatlap) => adatlap));
+
 		const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates/")
 			.then((res) => res.json())
 			.catch((err) => {
