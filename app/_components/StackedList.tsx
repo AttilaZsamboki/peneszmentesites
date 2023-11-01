@@ -7,7 +7,7 @@ import { DefaultPagination } from "./Pagination";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
-import { EllipsisVerticalIcon, PlusIcon } from "@heroicons/react/20/solid";
+import { BookmarkSquareIcon, EllipsisVerticalIcon, PlusIcon } from "@heroicons/react/20/solid";
 import Menu from "../_components/Menu";
 import CustomDialog from "./CustomDialog";
 import Input from "./Input";
@@ -905,9 +905,17 @@ function FiltersComponent({
 												});
 											}
 										}}
-										onSave={async () => {
-											await onSaveFilter();
-										}}>
+										dropdownMenuItems={[
+											{
+												value: "delete",
+												onClick: onSaveFilter,
+												icon: (
+													<BookmarkSquareIcon className='mr-2 h-5 w-5' aria-hidden='true' />
+												),
+												shortcut: "Ctrl + S",
+											},
+										]}
+										onSave={async () => await onSaveFilter()}>
 										<EllipsisVerticalIcon className='w-5 h-5' />
 									</Menu>
 									<Separator orientation='vertical' className='mx-2 ml-4' />

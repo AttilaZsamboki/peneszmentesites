@@ -26,7 +26,10 @@ export default async function Page({
 			return { Results: {} };
 		})
 		.then((data) => [data]);
-	const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates")
+
+	const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates", {
+		next: { tags: ["templates"], revalidate: 300 },
+	})
 		.then((response) => response.json())
 		.catch((error) => console.error("error", error));
 

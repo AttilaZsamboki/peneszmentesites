@@ -388,7 +388,7 @@ export function Page2({
 											}}
 											value={selectedTemplate.name}
 										/>
-										<div className='mt-0 lg:mt-3'>
+										<div>
 											{readonly ? null : felmeres.template !== selectedTemplate.id ? (
 												<Button size='icon' variant='outline' onClick={onSelectTemplate}>
 													<Plus className='w-4 h-4 text-gray-700' />
@@ -459,6 +459,7 @@ export function Page2({
 													...prev,
 													description: felmeres.subject,
 												}));
+												await fetch("/api/revalidate?tag=templates");
 												return;
 											}
 											toast({

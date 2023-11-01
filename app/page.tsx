@@ -58,7 +58,9 @@ export default async function Home() {
 			})
 			.then((data: AdatlapDetails[]) => data.filter((adatlap) => adatlap));
 
-		const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates/")
+		const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates/", {
+			next: { tags: ["templates"], revalidate: 300 },
+		})
 			.then((res) => res.json())
 			.catch((err) => {
 				console.log(err);

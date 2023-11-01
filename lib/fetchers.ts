@@ -22,6 +22,7 @@ export const createTemplate = async (items: string[], template: Template) => {
 					})
 			)
 		);
+		await fetch("/api/revalidate?tag=templates");
 		return templateResponseData;
 	}
 };

@@ -53,7 +53,7 @@ export default function DropdownMenu({
 								<BookmarkSquareIcon className='mr-2 h-5 w-5' aria-hidden='true' />
 								Mentés
 							</div>
-							<DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+							<DropdownMenuShortcut>Ctrl+S</DropdownMenuShortcut>
 						</DropdownMenuItem>
 					) : null}
 					{dropdownMenuItems ? (

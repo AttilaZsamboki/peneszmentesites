@@ -686,6 +686,7 @@ export default function Page({
 	const adatlap = adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id);
 
 	const [currentPage, setCurrentPage] = React.useState<SectionName>(isEdit ? "Tételek" : "Alapadatok");
+	const createQueryString = useCreateQueryString(useSearchParams());
 	class PageMapClass {
 		sections: PageMap[];
 
@@ -771,7 +772,7 @@ export default function Page({
 			const newIndex = currentIndex + increment;
 			if (newIndex >= 0 && newIndex < flatArray.length) {
 				setCurrentPage(flatArray[newIndex].id);
-				router.push("?page=" + newIndex);
+				router.push("?" + createQueryString([{ name: "page", value: newIndex.toString() }]));
 			}
 		}
 
@@ -787,9 +788,10 @@ export default function Page({
 			return this.getPageNum() === this.flat().length - 1;
 		}
 
-		isDisabled(page: SectionName = currentPage) {
+		isDisabled(page?: SectionName) {
 			const isProductDisabled = (product: number) => {
 				const relatedFields = data.filter((field) => field.product === product);
+				console.log(relatedFields);
 				const mandatoryQuestions = questions.filter(
 					(question) => question.mandatory && question.connection === "Termék"
 				);
@@ -809,6 +811,7 @@ export default function Page({
 				(acc, product) => ({ ...acc, [product ?? ""]: !isProductDisabled(product ?? 0) }),
 				{}
 			);
+			console.log(productStatuses);
 
 			const isDisabled: { [key: string]: boolean } = {
 				Alapadatok: !felmeres.adatlap_id,
@@ -816,7 +819,10 @@ export default function Page({
 				...productStatuses,
 			};
 
-			return isDisabled[page];
+			if (page) {
+				return isDisabled[page];
+			}
+			return Object.values(isDisabled).some((value) => value);
 		}
 
 		getPageDetails(page: SectionName) {
@@ -845,7 +851,11 @@ export default function Page({
 			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-0 lg:mt-2'>
 				<div
 					className={`lg:mt-6 lg:px-10 px-0 w-full ${
-						currentPage === "Tételek" ? "lg:w-full" : currentPage === "Alapadatok" ? "lg:w-1/4" : "lg:w-2/3"
+						currentPage === "Tételek"
+							? "lg:w-full"
+							: currentPage === "Alapadatok"
+							? "lg:w-[28%]"
+							: "lg:w-2/3"
 					}`}>
 					<Card className='lg:rounded-md rounded-none lg:border border-0'>
 						<div className='sticky top-0 bg-white z-40 rounded-t-md'>
@@ -895,6 +905,7 @@ export default function Page({
 															<AccordionItem className='border-b-0' value='item-1'>
 																<AccordionTrigger className='hover:no-underline font-normal rounded-md text-left pb-1'>
 																	<ListItem
+																		id={section.id}
 																		description={section.description ?? ""}
 																		title={section.title}
 																	/>
@@ -924,6 +935,7 @@ export default function Page({
 																							setOpenPageDialog(false);
 																						}}>
 																						<ListItem
+																							id={section.id}
 																							sub
 																							description={
 																								section.description ??
@@ -952,6 +964,7 @@ export default function Page({
 														}}
 														href={"?page=" + pageClass.getPageNum(section.id)}>
 														<ListItem
+															id={section.id}
 															description={section.description ?? ""}
 															title={section.title}
 														/>
@@ -1001,10 +1014,27 @@ export default function Page({
 			</div>
 		</div>
 	);
-	function ListItem({ title, description, sub = false }: { title: string; description: string; sub?: boolean }) {
+	function ListItem({
+		title,
+		description,
+		sub = false,
+		id,
+	}: {
+		title: string;
+		description: string;
+		sub?: boolean;
+		id: SectionName;
+	}) {
 		return (
 			<div className='block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'>
-				<div className={cn(sub ? "text-sm" : "text-base", "font-medium leading-none")}>{title}</div>
+				<div
+					className={cn(
+						sub ? "text-sm" : "text-base",
+						"font-medium leading-none",
+						pageClass.isDisabled(id as SectionName) ? "text-red-800" : ""
+					)}>
+					{title}
+				</div>
 				<p
 					className={cn(
 						sub ? "text-xs w-52 text-ellipsis" : "text-sm",

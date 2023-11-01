@@ -43,7 +43,6 @@ export default async function QuestionsFetch() {
 	const allData = data.map((question) => {
 		return {
 			...question,
-			Név: question.question,
 			Termék:
 				question.connection === "Fix"
 					? "Fix"

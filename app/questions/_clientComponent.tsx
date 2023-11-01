@@ -82,7 +82,6 @@ export default function ClientComponent({ data, products }: { data: any; product
 							: products.find(getFirstProduct(question))?.sku +
 							  " - " +
 							  products.find(getFirstProduct(question))?.name,
-					Név: question.question,
 					Típus: (typeMap as any)[question.type] || "Nincs típus",
 					Kötelező: question.mandatory ? "Kötelező" : "Nem kötelező",
 					id: data.id,
@@ -181,7 +180,7 @@ export default function ClientComponent({ data, products }: { data: any; product
 				editType='dialog'
 				itemContent={{
 					id: "id",
-					title: "Név",
+					title: "question",
 					subtitle2: "Termék",
 					subtitle: "Típus",
 					subtitle3: "Kötelező",
