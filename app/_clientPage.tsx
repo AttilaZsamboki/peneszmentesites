@@ -51,7 +51,7 @@ export default function ClientPage({ allData, savedFilters }: { allData: any; sa
 					{ field: "Felmérés típusa", label: "Felmérés típusa", type: "select" },
 					{ field: "Teljes cím", label: "Cím", type: "select" },
 					{ field: "created_at", label: "Dátum", type: "daterange" },
-					user?.role === "Felmérő"
+					user?.role === "Felmérő" || user?.role === "Admin"
 						? {
 								field: "created_by",
 								label: "Saját",

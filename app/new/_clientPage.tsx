@@ -30,7 +30,7 @@ import { QuestionPage } from "../../components/QuestionPage";
 import { TooltipTrigger, Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import Link from "next/link";
 import { FelmeresStatus, statusMap, useCreateQueryString } from "../_utils/utils";
-import { calculatePercentageValue, cn, createJWT, getCookie } from "@/lib/utils";
+import { calculatePercentageValue, cn, getCookie } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import {
 	AlertDialog,
