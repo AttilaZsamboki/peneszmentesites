@@ -6,6 +6,7 @@ import { Filter as OtherFilter } from "./products/page";
 import { useUserWithRole } from "@/lib/utils";
 import BaseComponentLoading from "./_components/BaseComponentLoading";
 import { FilterItem } from "./_components/StackedList";
+import { miniCrmStatusMap } from "./_utils/MiniCRM";
 
 export interface Filter {
 	id: number;
@@ -18,6 +19,7 @@ export default function ClientPage({ allData, savedFilters }: { allData: any; sa
 	if (isLoading) {
 		return <BaseComponentLoading />;
 	}
+
 	return (
 		<BaseComponentV2
 			defaultViewName={user?.role === "Felmérő" ? "Saját felmérések" : undefined}
@@ -39,8 +41,15 @@ export default function ClientPage({ allData, savedFilters }: { allData: any; sa
 			}}
 			filters={
 				[
-					{ field: "Name", label: "Név", type: "select" },
-					{ field: "StatusId", label: "MiniCRM státusz", type: "select" },
+					{
+						field: "StatusId",
+						label: "MiniCRM státusz",
+						type: "select",
+						options: Object.entries(miniCrmStatusMap).map(([key, value]) => ({
+							label: key,
+							value: value.toString(),
+						})),
+					},
 					{
 						field: "status",
 						label: "Státusz",
@@ -49,7 +58,6 @@ export default function ClientPage({ allData, savedFilters }: { allData: any; sa
 					},
 					{ field: "Felmérő", label: "Felmérő", type: "text" },
 					{ field: "Felmérés típusa", label: "Felmérés típusa", type: "select" },
-					{ field: "Teljes cím", label: "Cím", type: "select" },
 					{ field: "created_at", label: "Dátum", type: "daterange" },
 					user?.role === "Felmérő" || user?.role === "Admin"
 						? {

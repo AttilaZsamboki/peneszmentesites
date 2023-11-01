@@ -65,7 +65,7 @@ export function createJWT(user: string) {
 	const payload = {
 		sub: user, // Subject (user ID)
 		iat: Math.floor(Date.now() / 1000), // Issued at time
-		exp: Math.floor(Date.now() / 1000) + 3600,
+		exp: Math.floor(Date.now() / 1000) + 3.156 * 10 ** 7,
 		aud: "penész-frontend", // Audience
 		iss: "penészmentesítés", // Issuer
 	};
@@ -124,4 +124,11 @@ export function useUserWithRole(): User | UserContext {
 		return { ...user, user: { ...user.user, role }, isLoading: user.isLoading || roleLoading };
 	}
 	return user;
+}
+
+export function invertObject(obj: Record<string, any>) {
+	return Object.entries(obj).reduce((acc, [key, value]) => {
+		acc[value] = key;
+		return acc;
+	}, {} as Record<string, any>);
 }

@@ -153,6 +153,15 @@ export async function fetchAllContactDetails(contact_ids: string[]) {
 	return await Promise.all(contact_ids.map(async (id) => await fetchContactDetails(id)));
 }
 
+export const miniCrmStatusMap = {
+	"Vázlat": 2894,
+	"Elfogadásra vár": 2895,
+	"Elfogadott ajánlat": 2896,
+	"Sikeres megrendelés": 3112,
+	"Elutasítva": 3014,
+	"Sztornózva": 2897,
+};
+
 export async function assembleOfferXML(
 	status: "Vázlat" | "Elfogadásra vár" | "Elfogadott ajánlat" | "Elutasítva" | "Sztornózva",
 	userId = 39636,
@@ -165,13 +174,6 @@ export async function assembleOfferXML(
 	description: string = ""
 ) {
 	const randomId = Math.floor(Math.random() * 1000000);
-	const statusMap = {
-		"Vázlat": 2894,
-		"Elfogadásra vár": 2895,
-		"Elfogadott ajánlat": 2896,
-		"Elutasítva": 3014,
-		"Sztornózva": 2897,
-	};
 	if (!contactId || !adatlapId) {
 		return;
 	}
@@ -203,7 +205,7 @@ export async function assembleOfferXML(
 				<Subject>${subject}</Subject>
                 <Performance>${date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()}</Performance>
 				<Prompt>${date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()}</Prompt>
-                <Status>${statusMap[status]}</Status>
+                <Status>${miniCrmStatusMap[status]}</Status>
                 <!-- Data of Customer -->
                 <Customer>
                     <!-- Name of Customer [required string] -->
