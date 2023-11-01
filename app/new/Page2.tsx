@@ -556,7 +556,7 @@ export function Page2({
 																	<Button
 																		variant='link'
 																		className='text-black justify-start lg:px-4 px-3 active:text-black hover:text-black hover:no-underline active:no-underline'>
-																		<div className='max-w-[100px] truncate'>
+																		<div className='max-w-[150px] truncate'>
 																			{sku}
 																		</div>
 																	</Button>

@@ -791,7 +791,6 @@ export default function Page({
 		isDisabled(page?: SectionName) {
 			const isProductDisabled = (product: number) => {
 				const relatedFields = data.filter((field) => field.product === product);
-				console.log(relatedFields);
 				const mandatoryQuestions = questions.filter(
 					(question) => question.mandatory && question.connection === "Termék"
 				);
@@ -811,7 +810,6 @@ export default function Page({
 				(acc, product) => ({ ...acc, [product ?? ""]: !isProductDisabled(product ?? 0) }),
 				{}
 			);
-			console.log(productStatuses);
 
 			const isDisabled: { [key: string]: boolean } = {
 				Alapadatok: !felmeres.adatlap_id,
@@ -1050,25 +1048,20 @@ export default function Page({
 		const isItemsEqual = _.isEqual(
 			editFelmeresItems
 				?.map((item) => ({
-					...item,
-					id: 0,
 					inputValues: item.inputValues.map((value) => value.ammount),
 					sku: item.sku ?? "",
-					source: "",
-					adatlap: "",
+					netTotal: item.netPrice,
 				}))
 				.sort((a, b) => a.sku.localeCompare(b.sku)),
 			submitItems
 				.map((item) => ({
-					...item,
-					id: 0,
 					inputValues: item.inputValues.map((value) => value.ammount),
-					source: "",
 					sku: item.sku ?? "",
-					adatlap: "",
+					netTotal: item.netPrice,
 				}))
 				.sort((a, b) => a.sku.localeCompare(b.sku))
 		);
+
 		return (
 			<div className='flex flex-row px-4 items-center justify-center gap-3'>
 				{!items
