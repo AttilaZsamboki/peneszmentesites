@@ -1055,6 +1055,29 @@ export default function Page({
 
 		return (
 			<div className='flex flex-row px-4 items-center justify-center gap-3'>
+				<div>
+					<AlertDialog>
+						<AlertDialogTrigger asChild>
+							<Button variant={"destructive"}>Mégsem</Button>
+						</AlertDialogTrigger>
+						<AlertDialogContent>
+							<AlertDialogHeader>
+								<AlertDialogTitle>Biztos vagy benne?</AlertDialogTitle>
+								<AlertDialogDescription>
+									A változtatások elfognak veszni, ha nem mented el őket.
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+							<AlertDialogFooter>
+								<AlertDialogCancel>Mégsem</AlertDialogCancel>
+								<Link href={"/" + editFelmeres?.id ?? ""}>
+									<AlertDialogAction className='bg-red-800 w-full hover:bg-red-800/90' type='submit'>
+										Biztos
+									</AlertDialogAction>
+								</Link>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
+				</div>
 				{!items
 					.map((item) => item.inputValues.map((value) => value.ammount).every((value) => value > 0))
 					.every((value) => value === true) ||
