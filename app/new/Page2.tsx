@@ -66,11 +66,10 @@ export function Page2({
 	readonly?: boolean;
 	isEdit?: boolean;
 }) {
-	const [isAddingNewOtherItem, setIsAddingNewOtherItem] = React.useState(false);
 	const [newOtherItem, setNewOtherItem] = React.useState<OtherFelmeresItem>();
 	const [isEditingItems, setIsEditingItems] = React.useState(!readonly);
 	const [isEditingOtherMaterials, setIsEditingOtherMaterials] = React.useState(true);
-	const [isEditingOtherItems, setIsEditingOtherItems] = React.useState(false);
+	const [isEditingOtherItems, setIsEditingOtherItems] = React.useState(true);
 	const [templates, setTemplates] = React.useState<Template[]>(originalTemplates ?? []);
 	const [selectedTemplate, setSelectedTemplate] = React.useState<Template>(
 		templates?.find((template) => template.id === felmeres.template) ?? {
@@ -638,24 +637,10 @@ export function Page2({
 											</tr>
 										))}
 									<tr>
-										{!isEditingOtherItems ? null : !isAddingNewOtherItem ? (
-											<>
-												<td></td>
-												<td></td>
-												<td></td>
-												<td className='p-4 border-b border-blue-gray-50'>
-													<PlusCircleIcon
-														className='w-7 h-7 text-green-600 cursor-pointer'
-														onClick={() => {
-															setIsAddingNewOtherItem(true);
-														}}
-													/>
-												</td>
-											</>
-										) : (
+										{!isEditingOtherItems ? null : (
 											<>
 												<td className='p-4 border-b border-blue-gray-50'>
-													<div className='flex flex-row w-full gap-4'>
+													<div className='flex flex-row w-3/4 lg:w-full gap-4'>
 														<Input
 															variant='simple'
 															label='Név'
@@ -699,7 +684,6 @@ export function Page2({
 														variant={"ghost"}
 														disabled={!newOtherItem?.name || !newOtherItem?.type}
 														onClick={() => {
-															setIsAddingNewOtherItem(false);
 															if (!setOtherItems) return;
 															setOtherItems((prev) => [
 																...prev,
