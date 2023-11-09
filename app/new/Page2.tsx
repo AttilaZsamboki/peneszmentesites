@@ -50,7 +50,6 @@ export function Page2({
 	discount,
 	setDiscount,
 	readonly,
-	isEdit,
 }: {
 	felmeres: BaseFelmeresData;
 	setFelmeres?: React.Dispatch<React.SetStateAction<BaseFelmeresData>>;
@@ -64,12 +63,11 @@ export function Page2({
 	discount: number;
 	setDiscount?: React.Dispatch<React.SetStateAction<number>>;
 	readonly?: boolean;
-	isEdit?: boolean;
 }) {
 	const [newOtherItem, setNewOtherItem] = React.useState<OtherFelmeresItem>();
 	const [isEditingItems, setIsEditingItems] = React.useState(!readonly);
 	const [isEditingOtherMaterials, setIsEditingOtherMaterials] = React.useState(true);
-	const [isEditingOtherItems, setIsEditingOtherItems] = React.useState(true);
+	const [isEditingOtherItems, setIsEditingOtherItems] = React.useState(!readonly);
 	const [templates, setTemplates] = React.useState<Template[]>(originalTemplates ?? []);
 	const [selectedTemplate, setSelectedTemplate] = React.useState<Template>(
 		templates?.find((template) => template.id === felmeres.template) ?? {

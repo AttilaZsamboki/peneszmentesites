@@ -287,6 +287,11 @@ export default function Page({
 			fetchAdatlapData();
 		}
 	}, [felmeres.adatlap_id]);
+	React.useEffect(() => {
+		if (user && user.sub) {
+			setFelmeres((prev) => ({ ...prev, created_by: user.sub! }));
+		}
+	}, [user?.sub]);
 	const template = templates.find((template) => template.id === felmeres.template);
 
 	const CreateFelmeres = async (sendOffer: boolean = true) => {
@@ -298,20 +303,7 @@ export default function Page({
 			toast({
 				title: percent(num) === 100 ? "Felmérés létrehozva" : "Felmérés létrehozása",
 				description:
-					percent(num) === 100 ? (
-						createType2.FELMERES === "UPDATE" ? (
-							<div>Felmérés módosítva</div>
-						) : (
-							<Link
-								href={"/" + id}
-								className='flex flex-row gap-2 items-center justify-start cursor-pointer pt-2'>
-								<CornerUpLeft className='w-4 h-4 text-gray-800' />
-								<div className='font-bold text-xs text-gray-700'>Megnyitás</div>
-							</Link>
-						)
-					) : (
-						"Felmérés létrehozása folyamatban..."
-					),
+					percent(num) === 100 ? <div>Felmérés módosítva</div> : "Felmérés létrehozása folyamatban...",
 				duration: 5000,
 				action: percent(num) === 100 ? <Checkmark width={50} height={50} /> : <div>{percent(num)}%</div>,
 			});
@@ -712,7 +704,6 @@ export default function Page({
 								setOtherItems={setOtherItems}
 								discount={discount}
 								setDiscount={setDiscount}
-								isEdit={isEdit}
 							/>
 						),
 						title: "Tételek",
