@@ -22,7 +22,9 @@ export interface AdatlapData {
 }
 
 export default async function Page() {
-	const adatlapok = await fetch("https://pen.dataupload.xyz/minicrm-adatlapok/")
+	const adatlapok = await fetch(
+		"https://pen.dataupload.xyz/minicrm-adatlapok/?CategoryId=23&StatusId=3082,3079,3083,3023,3084"
+	)
 		.then((response) => response.json())
 		.catch((error) => {
 			console.error("error", error);
