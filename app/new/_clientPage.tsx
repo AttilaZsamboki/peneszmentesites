@@ -969,7 +969,7 @@ export default function Page({
 							</CardHeader>
 							<Separator className='mb-4' />
 						</div>
-						<CardContent className={`${currentPage !== "Tételek" ? "p-8" : "lg:p-6 px-4 pt-0"} transform`}>
+						<CardContent className={currentPage !== "Tételek" ? "p-8" : "lg:p-6 px-4 pt-0"}>
 							{
 								pageClass.sections
 									.map((section) =>
