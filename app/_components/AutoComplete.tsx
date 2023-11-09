@@ -42,7 +42,7 @@ export default function AutoComplete({
 					role='combobox'
 					aria-expanded={open}
 					style={{ width: inputWidth }}
-					className='justify-between'>
+					className='justify-between truncate'>
 					{value ? options.find((option) => option.label === value)?.label : label ?? "Keress.."}
 					<div className='flex items-center'>
 						{value && deselectable && (
