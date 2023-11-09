@@ -143,10 +143,10 @@ export default function ChatComponent({
 					<section className='flex flex-col flex-auto'>
 						<div className='chat-body p-4 flex-1 overflow-y-scroll'>
 							{groupMessages(chat).map((group) => (
-								<div key={group[0].id} className='flex flex-col gap-[2px]'>
+								<div key={group[0].id} className='flex flex-col gap-1'>
 									<div
 										className={cn(
-											"text-sm -mb-1 text-gray-800",
+											"text-sm  text-gray-800",
 											group[0].user_id === user?.name ? "hidden" : ""
 										)}>
 										{group[0].user_id}
@@ -172,12 +172,12 @@ export default function ChatComponent({
 																				id={message.id}
 																				className={cn(
 																					index === group.length - 1
-																						? "rounded-br-full"
+																						? "rounded-br-[18px]"
 																						: "",
 																					index === 0
-																						? "rounded-tr-full"
+																						? "rounded-tr-[18px]"
 																						: "",
-																					"px-4 py-2 rounded-l-full bg-blue-700 max-w-xs lg:max-w-md"
+																					"px-4 py-2 rounded-l-[18px] bg-blue-700 max-w-xs lg:max-w-md"
 																				)}>
 																				{message.value}
 																			</div>
@@ -195,7 +195,7 @@ export default function ChatComponent({
 																	</div>
 																</ReplyBubble>
 															) : (
-																<div className='flex items-center flex-row-reverse group'>
+																<div className='flex items-center flex-row-reverse group '>
 																	{message.type === "image" ? (
 																		<ImageMessage message={message} />
 																	) : (
@@ -203,10 +203,10 @@ export default function ChatComponent({
 																			id={message.id}
 																			className={cn(
 																				index === group.length - 1
-																					? "rounded-br-full"
+																					? "rounded-br-[18px]"
 																					: "",
-																				index === 0 ? "rounded-tr-full" : "",
-																				"px-4 py-2 rounded-l-full bg-blue-700 max-w-xs lg:max-w-md"
+																				index === 0 ? "rounded-tr-[18px]" : "",
+																				"px-4 py-2 rounded-l-[18px] bg-blue-700 max-w-xs lg:max-w-md"
 																			)}>
 																			{message.value}
 																		</p>
@@ -374,9 +374,9 @@ export default function ChatComponent({
 					<p
 						id={message.id}
 						className={cn(
-							index === group.length - 1 ? "rounded-bl-full" : "",
-							index === 0 ? "rounded-tl-full" : "",
-							"px-4 py-2 rounded-r-full bg-gray-200 max-w-xs lg:max-w-md text-gray-900"
+							index === group.length - 1 ? "rounded-bl-[18px]" : "",
+							index === 0 ? "rounded-tl-[18px]" : "",
+							"px-4 py-2 rounded-r-[18px] bg-gray-200 max-w-xs lg:max-w-md text-gray-900"
 						)}>
 						{message.value}
 					</p>
@@ -404,7 +404,7 @@ export default function ChatComponent({
 	}) {
 		const replyMessage = stateChat.find((message2) => message2.id === message.reply_to);
 		return (
-			<div className=' bg-gray-200 rounded-xl p-2 mt-2 flex flex-col gap-1'>
+			<div className=' bg-gray-200 rounded-xl p-2 flex flex-col gap-1'>
 				<Link
 					href={`${window ? window.location.href.split("#")[0] : "https://app.peneszmentesites.hu"}#${
 						replyMessage?.id
