@@ -482,7 +482,7 @@ export default function ClientPage({
 										) : (
 											<EditButton onClick={handleChangeEditing} />
 										)}
-										{user?.role === "Admin" && felmeres.created_by === user.sub ? (
+										{user?.role === "Admin" ? (
 											<AlertDialog>
 												<AlertDialogTrigger asChild>
 													<Button variant='destructive' size='icon' className='shadow-md'>
