@@ -2,9 +2,16 @@ import { FilePond, registerPlugin } from "react-filepond";
 import React from "react";
 import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orientation";
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
+import { FilePondErrorDescription, FilePondFile } from "filepond";
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 
-export default function FileUpload({ onUpload }: { onUpload?: (file: any) => void }) {
+export default function FileUpload({
+	onUpload,
+	onUploadSuccess,
+}: {
+	onUpload?: (file: any) => void;
+	onUploadSuccess?: (error: FilePondErrorDescription | null, file: FilePondFile) => void;
+}) {
 	return (
 		<FilePond
 			allowMultiple={true}
@@ -18,6 +25,7 @@ export default function FileUpload({ onUpload }: { onUpload?: (file: any) => voi
 			server={{
 				url: "https://pen.dataupload.xyz/save-image/",
 			}}
+			onprocessfile={(error, file) => (onUploadSuccess ? onUploadSuccess(error, file) : {})}
 			allowReorder={true}
 			allowProcess={true}
 			allowBrowse={true}

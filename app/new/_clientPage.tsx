@@ -678,6 +678,7 @@ export default function Page({
 	const adatlap = adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id);
 
 	const [currentPage, setCurrentPage] = React.useState<SectionName>(isEdit ? "Tételek" : "Alapadatok");
+	const [isUploadingFile, setIsUploadingFile] = React.useState<string[]>([]);
 	const createQueryString = useCreateQueryString(useSearchParams());
 	class PageMapClass {
 		sections: PageMap[];
@@ -742,6 +743,10 @@ export default function Page({
 								felmeresId={felmeres.id}
 								pictures={pictures}
 								setPictures={setPictures}
+								onUpload={(file) => setIsUploadingFile((prev) => [...prev, file.filename as string])}
+								onUploadSuccess={(file) =>
+									setIsUploadingFile((prev) => [...prev.filter((f) => f !== file.filename)])
+								}
 							/>
 						),
 						id: "Kép",
@@ -806,6 +811,7 @@ export default function Page({
 				Alapadatok: !felmeres.adatlap_id,
 				Tételek: false,
 				...productStatuses,
+				Képek: isUploadingFile.length > 0,
 			};
 
 			if (page) {
@@ -826,6 +832,7 @@ export default function Page({
 			return this.flat().findIndex((page2) => page2.id === page);
 		}
 	}
+	console.log(isUploadingFile);
 
 	const pageClass = new PageMapClass(isEdit ? ["Alapadatok"] : []);
 

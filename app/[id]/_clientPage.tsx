@@ -774,11 +774,15 @@ export function FelmeresPicturesComponent({
 	setPictures,
 	felmeresId,
 	save = true,
+	onUploadSuccess,
+	onUpload,
 }: {
 	pictures: FelmeresPictures[];
 	setPictures: React.Dispatch<React.SetStateAction<FelmeresPictures[]>>;
 	felmeresId: number;
 	save?: boolean;
+	onUploadSuccess?: (file: any) => void;
+	onUpload?: (file: any) => void;
 }) {
 	return (
 		<div className='flex flex-col gap-2 w-full'>
@@ -807,7 +811,9 @@ export function FelmeresPicturesComponent({
 				}}
 			/>
 			<FileUpload
+				onUploadSuccess={(e, file) => (onUploadSuccess ? onUploadSuccess(file) : undefined)}
 				onUpload={async (file) => {
+					onUpload ? onUpload(file) : {};
 					if (!save) {
 						setPictures((prev) => [
 							...prev,
