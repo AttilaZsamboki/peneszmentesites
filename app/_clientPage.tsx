@@ -14,7 +14,7 @@ export interface Filter {
 	searchField: string;
 }
 
-export default function ClientPage({ allData, savedFilters }: { allData: any; savedFilters?: OtherFilter[] }) {
+export default function ClientPage({ allData }: { allData: any }) {
 	const { user, isLoading } = useUserWithRole();
 	if (isLoading) {
 		return <BaseComponentLoading />;
@@ -73,7 +73,6 @@ export default function ClientPage({ allData, savedFilters }: { allData: any; sa
 						: null,
 				].filter((filter) => filter) as FilterItem[]
 			}
-			savedFilters={savedFilters}
 		/>
 	);
 }

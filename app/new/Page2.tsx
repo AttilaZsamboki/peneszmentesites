@@ -1140,9 +1140,10 @@ export function Page2({
 															options={[
 																{ value: "fixed", label: "Összeg" },
 																{ value: "percent", label: "Százalék" },
+																{ value: "", label: "" },
 															]}
 															value={
-																newOtherItem
+																newOtherItem && newOtherItem.type
 																	? newOtherItem.type === "fixed"
 																		? "Összeg"
 																		: "Százalék"
@@ -1154,8 +1155,10 @@ export function Page2({
 												<td></td>
 												<td></td>
 												<td className='p-4 border-b border-blue-gray-50'>
-													<CheckCircleIcon
-														className='w-7 h-7 text-green-600 cursor-pointer'
+													<Button
+														size={"icon"}
+														variant={"ghost"}
+														disabled={!newOtherItem?.name || !newOtherItem?.type}
 														onClick={() => {
 															setIsAddingNewOtherItem(false);
 															if (!setOtherItems) return;
@@ -1168,8 +1171,9 @@ export function Page2({
 																},
 															]);
 															setNewOtherItem(undefined);
-														}}
-													/>
+														}}>
+														<CheckCircleIcon className='w-7 h-7 text-green-600 cursor-pointer' />
+													</Button>
 												</td>
 											</>
 										)}

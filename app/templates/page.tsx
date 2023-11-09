@@ -11,7 +11,7 @@ export interface Template {
 
 export default async function Page() {
 	const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates", {
-		next: { tags: ["templates"] },
+		next: { tags: ["templates"], revalidate: 600 },
 	}).then((resp) => resp.json());
 
 	const products: Product[] = await fetch("https://pen.dataupload.xyz/products?all=true", {
