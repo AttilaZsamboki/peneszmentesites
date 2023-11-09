@@ -1072,16 +1072,19 @@ export function Page2({
 							{items
 								.sort((a, b) => (a.sort_number ?? 0) - (b.sort_number ?? 0))
 								.map(
-									({
-										name,
-										place,
-										placeOptions: place_options,
-										inputValues,
-										netPrice,
-										sku,
-										attributeId,
-										product,
-									}) => {
+									(
+										{
+											name,
+											place,
+											placeOptions: place_options,
+											inputValues,
+											netPrice,
+											sku,
+											attributeId,
+											product,
+										},
+										index
+									) => {
 										const classes = "p-4 ";
 
 										return (
@@ -1101,10 +1104,13 @@ export function Page2({
 															</div>
 														</div>
 													</HoverCardContent>
-													<tr key={name} className='border-b border-blue-gray-50'>
+													<tr
+														key={name}
+														className={cn(index % 2 !== 0 ? "bg-gray-200/60" : "bg-white")}>
 														<th
 															className={cn(
-																"table-cell bg-white sticky z-[1] left-0 border-r "
+																"table-cell sticky z-[1] left-0 border-r ",
+																index % 2 !== 0 ? "bg-gray-100" : "bg-white"
 															)}>
 															<HoverCardTrigger asChild>
 																<Button
