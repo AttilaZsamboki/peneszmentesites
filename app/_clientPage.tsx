@@ -36,7 +36,6 @@ export default function ClientPage({ allData }: { allData: any }) {
 				subtitle2: "Felmérés típusa",
 				subtitle3: "Felmérő",
 				subtitle4: "created_at",
-				imgSrc: "IngatlanKepe",
 				status: "Státusz",
 			}}
 			filters={

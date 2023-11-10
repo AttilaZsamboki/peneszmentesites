@@ -43,7 +43,6 @@ import { cn, getCookie, useUserWithRole } from "@/lib/utils";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { concatAddress } from "../_utils/MiniCRM";
-import { cookies } from "next/headers";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -390,10 +389,6 @@ export default function ClientPage({
 										</HoverCardTrigger>
 										<HoverCardContent className='w-80'>
 											<div className='flex justify-between space-x-4'>
-												<Avatar className='w-12 h-12'>
-													<AvatarImage src={adatlap.IngatlanKepe} />
-													<AvatarFallback>VC</AvatarFallback>
-												</Avatar>
 												<div className='prose prose-slate space-y-1'>
 													<h4 className='text-sm font-semibold hover:underline cursor-pointer'>
 														<a
