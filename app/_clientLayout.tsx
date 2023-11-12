@@ -136,7 +136,8 @@ function Navbar({ routes }: { routes: Route[] }) {
 	);
 	const { user, error, isLoading } = useUserWithRole();
 
-	const isStaging = typeof window !== "undefined" ? window.location.href.split("-") : [];
+	const isStaging =
+		typeof window !== "undefined" ? window.location.href.split("-") : [process.env.NEXT_PUBLIC_STAGING];
 	if (!user && !isLoading && isStaging[isStaging.length - 1] !== process.env.NEXT_PUBLIC_STAGING) {
 		window.location.href = "/api/auth/login";
 		return null;
@@ -175,7 +176,7 @@ function Navbar({ routes }: { routes: Route[] }) {
 								</div>
 								<div className='self-center'>
 									<a href='/'>
-										<Image src='/logo.jpg' alt='logo' className='w-15 h-5' />
+										<Image src='/logo.jpg' alt='logo' height={20} width={56} />
 									</a>
 								</div>
 
