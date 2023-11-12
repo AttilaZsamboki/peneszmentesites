@@ -138,6 +138,7 @@ function Navbar({ routes }: { routes: Route[] }) {
 
 	const isStaging =
 		typeof window !== "undefined" ? window.location.href.split("-") : [process.env.NEXT_PUBLIC_STAGING];
+	console.log(isStaging[isStaging.length - 1]);
 	if (!user && !isLoading && isStaging[isStaging.length - 1] !== process.env.NEXT_PUBLIC_STAGING) {
 		window.location.href = "/api/auth/login";
 		return null;
