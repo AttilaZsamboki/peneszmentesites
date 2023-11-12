@@ -7,7 +7,6 @@ import EditClientPage from "./edit/clientPage";
 import { notFound } from "next/navigation";
 import { Product } from "../products/page";
 import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
 
 export default async function DefaultPage({ params, edit }: { params: { id: string }; edit: boolean }) {
 	const felmeresId = params.id;

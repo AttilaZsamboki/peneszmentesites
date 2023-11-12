@@ -140,16 +140,16 @@ function Navbar({ routes }: { routes: Route[] }) {
 		window.location.href = "/api/auth/login";
 		return null;
 	}
-	if (user && user.sub) {
+	if ((user && user.sub) || isStaging[isStaging.length] === process.env.NEXT_PUBLIC_STAGING) {
 		const JWT = getCookie("jwt");
 		if (!JWT) {
-			document.cookie = `jwt=${createJWT(user.sub!)}; path=/`;
+			document.cookie = `jwt=${createJWT(user?.sub ?? process.env.NEXT_PUBLIC_STAGING_SUB!)}; path=/`;
 		} else if (JWT) {
 			try {
 				jwt.verify(JWT, process.env.NEXT_PUBLIC_SECRET as string);
 			} catch (err) {
 				if (err instanceof jwt.TokenExpiredError) {
-					document.cookie = `jwt=${createJWT(user.sub!)}; path=/`;
+					document.cookie = `jwt=${createJWT(user?.sub ?? process.env.NEXT_PUBLIC_STAGING_SUB!)}; path=/`;
 				}
 			}
 		}
