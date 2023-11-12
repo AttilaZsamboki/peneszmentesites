@@ -142,7 +142,7 @@ function Navbar({ routes }: { routes: Route[] }) {
 		window.location.href = "/api/auth/login";
 		return null;
 	}
-	if ((user && user.sub) || isStaging) {
+	if ((user && user.sub) || (isStaging && typeof window !== "undefined")) {
 		const JWT = getCookie("jwt");
 		if (!JWT) {
 			document.cookie = `jwt=${createJWT(user?.sub ?? process.env.NEXT_PUBLIC_STAGING_SUB!)}; path=/`;
