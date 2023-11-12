@@ -142,7 +142,10 @@ function Navbar({ routes }: { routes: Route[] }) {
 		window.location.href = "/api/auth/login";
 		return null;
 	}
-	if ((user && user.sub) || isStaging[isStaging.length - 1] === process.env.NEXT_PUBLIC_STAGING) {
+	if (
+		(user && user.sub) ||
+		(isStaging[isStaging.length - 1] === process.env.NEXT_PUBLIC_STAGING && typeof window !== "undefined")
+	) {
 		const JWT = getCookie("jwt");
 		if (!JWT) {
 			document.cookie = `jwt=${createJWT(user?.sub ?? process.env.NEXT_PUBLIC_STAGING_SUB!)}; path=/`;
