@@ -72,6 +72,10 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 					name: "Sablonok",
 					href: ["/templates"],
 				},
+				{
+					name: "Munkadíjak",
+					href: ["/munkadij"],
+				},
 			],
 		},
 		{

@@ -832,7 +832,6 @@ export default function Page({
 			return this.flat().findIndex((page2) => page2.id === page);
 		}
 	}
-	console.log(isUploadingFile);
 
 	const pageClass = new PageMapClass(isEdit ? ["Alapadatok"] : []);
 
