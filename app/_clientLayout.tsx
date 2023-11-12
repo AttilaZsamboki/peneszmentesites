@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getCookie, createJWT, useLocalStorageState, useUserWithRole, Role } from "@/lib/utils";
 import jwt from "jsonwebtoken";
+import Image from "next/image";
 
 interface Progress {
 	percent: number;
@@ -135,14 +136,12 @@ function Navbar({ routes }: { routes: Route[] }) {
 	);
 	const { user, error, isLoading } = useUserWithRole();
 
-	const isStaging =
-		typeof window !== "undefined" ? window.location.href.split("-") : [process.env.NEXT_PUBLIC_STAGING];
-	console.log(isStaging[isStaging.length]);
-	if (!user && !isLoading && isStaging[isStaging.length] !== process.env.NEXT_PUBLIC_STAGING) {
+	const isStaging = typeof window !== "undefined" ? window.location.href.split("-") : [];
+	if (!user && !isLoading && isStaging[isStaging.length - 1] !== process.env.NEXT_PUBLIC_STAGING) {
 		window.location.href = "/api/auth/login";
 		return null;
 	}
-	if ((user && user.sub) || isStaging[isStaging.length] === process.env.NEXT_PUBLIC_STAGING) {
+	if ((user && user.sub) || isStaging[isStaging.length - 1] === process.env.NEXT_PUBLIC_STAGING) {
 		const JWT = getCookie("jwt");
 		if (!JWT) {
 			document.cookie = `jwt=${createJWT(user?.sub ?? process.env.NEXT_PUBLIC_STAGING_SUB!)}; path=/`;
@@ -176,7 +175,7 @@ function Navbar({ routes }: { routes: Route[] }) {
 								</div>
 								<div className='self-center'>
 									<a href='/'>
-										<img src='/logo.jpg' className='w-15 h-5' />
+										<Image src='/logo.jpg' alt='logo' className='w-15 h-5' />
 									</a>
 								</div>
 

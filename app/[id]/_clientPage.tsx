@@ -258,7 +258,7 @@ export default function ClientPage({
 		if (isAll) {
 			setSelectedSection(sections[0].id as SectionName);
 		}
-	}, [isAll]);
+	}, [isAll, sections]);
 	React.useEffect(() => {
 		setFilteredData(
 			originalData.filter((field) =>
