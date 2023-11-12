@@ -137,16 +137,12 @@ function Navbar({ routes }: { routes: Route[] }) {
 	const { user, error, isLoading } = useUserWithRole();
 
 	const isStaging =
-		typeof window !== "undefined" ? window.location.href.split("-") : [process.env.NEXT_PUBLIC_STAGING];
-	console.log(isStaging[isStaging.length - 1]);
-	if (!user && !isLoading && isStaging[isStaging.length - 1] !== process.env.NEXT_PUBLIC_STAGING) {
+		typeof window !== "undefined" ? window.location.href.includes(process.env.NEXT_PUBLIC_STAGING!) : true;
+	if (!user && !isLoading && isStaging) {
 		window.location.href = "/api/auth/login";
 		return null;
 	}
-	if (
-		(user && user.sub) ||
-		(isStaging[isStaging.length - 1] === process.env.NEXT_PUBLIC_STAGING && typeof window !== "undefined")
-	) {
+	if ((user && user.sub) || isStaging) {
 		const JWT = getCookie("jwt");
 		if (!JWT) {
 			document.cookie = `jwt=${createJWT(user?.sub ?? process.env.NEXT_PUBLIC_STAGING_SUB!)}; path=/`;
