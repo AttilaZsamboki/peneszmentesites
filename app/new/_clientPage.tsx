@@ -790,6 +790,7 @@ export default function Page({
 				const mandatoryQuestions = questions.filter(
 					(question) => question.mandatory && question.connection === "Termék"
 				);
+				if (!relatedFields.length && mandatoryQuestions.length) return false;
 
 				return relatedFields.every((field) => {
 					const isQuestionMandatory = mandatoryQuestions.some((question) => {
@@ -801,7 +802,11 @@ export default function Page({
 				});
 			};
 
-			const uniqueProducts = Array.from(new Set(data.map((field) => field.product)));
+			const uniqueProducts = Array.from(
+				new Set(
+					questions.filter((question) => question.connection === "Termék").map((question) => question.product)
+				)
+			);
 			const productStatuses = uniqueProducts.reduce(
 				(acc, product) => ({ ...acc, [product ?? ""]: !isProductDisabled(product ?? 0) }),
 				{}
@@ -832,7 +837,6 @@ export default function Page({
 			return this.flat().findIndex((page2) => page2.id === page);
 		}
 	}
-	console.log(isUploadingFile);
 
 	const pageClass = new PageMapClass(isEdit ? ["Alapadatok"] : []);
 
@@ -999,9 +1003,7 @@ export default function Page({
 								{pageClass.isLast() ? (
 									<SubmitOptions />
 								) : (
-									<Button onClick={() => pageClass.nextPage()} disabled={pageClass.isDisabled()}>
-										Következő
-									</Button>
+									<Button onClick={() => pageClass.nextPage()}>Következő</Button>
 								)}
 							</div>
 						</CardContent>
@@ -1027,7 +1029,9 @@ export default function Page({
 					className={cn(
 						sub ? "text-sm" : "text-base",
 						"font-medium leading-none",
-						pageClass.isDisabled(id as SectionName) ? "text-red-800" : ""
+						pageClass.isDisabled(id as SectionName) || (title === "Tételek" ? isOfferFilledOut() : false)
+							? "text-red-800"
+							: ""
 					)}>
 					{title}
 				</div>
@@ -1085,12 +1089,8 @@ export default function Page({
 						</AlertDialogContent>
 					</AlertDialog>
 				</div>
-				{!items
-					.map((item) => item.inputValues.map((value) => value.ammount).every((value) => value > 0))
-					.every((value) => value === true) ||
-				!items.length ||
-				!felmeres.subject ||
-				(isItemsEqual && felmeres.status !== "DRAFT") ? null : isEdit && felmeres.status !== "DRAFT" ? (
+				{isOfferFilledOut() || (isItemsEqual && felmeres.status !== "DRAFT") ? null : isEdit &&
+				  felmeres.status !== "DRAFT" ? (
 					<AlertDialog>
 						<AlertDialogTrigger asChild>
 							<Button
@@ -1146,6 +1146,16 @@ export default function Page({
 					</TooltipProvider>
 				)}
 			</div>
+		);
+	}
+
+	function isOfferFilledOut() {
+		return (
+			!items
+				.map((item) => item.inputValues.map((value) => value.ammount).every((value) => value > 0))
+				.every((value) => value === true) ||
+			!items.length ||
+			!felmeres.subject
 		);
 	}
 }
