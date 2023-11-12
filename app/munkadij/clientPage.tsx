@@ -37,7 +37,7 @@ export default function ClientPage({ munkadijak, products }: { munkadijak: Munka
 	};
 	const updateMunkadíj = async () => {
 		const response = await fetch(`https://pen.dataupload.xyz/munkadij/${selected?.id}/`, {
-			method: "PATCH",
+			method: "PUT",
 			body: JSON.stringify(selected),
 			headers: {
 				"Content-Type": "application/json",
