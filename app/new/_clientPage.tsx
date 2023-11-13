@@ -1097,22 +1097,23 @@ export default function Page({
 	}
 
 	function SubmitOptions() {
-		const isItemsEqual = _.isEqual(
-			editFelmeresItems
-				?.map((item) => ({
-					inputValues: item.inputValues.map((value) => value.ammount),
-					sku: item.sku ?? "",
-					netTotal: item.netPrice,
-				}))
-				.sort((a, b) => a.sku.localeCompare(b.sku)),
-			submitItems
-				.map((item) => ({
-					inputValues: item.inputValues.map((value) => value.ammount),
-					sku: item.sku ?? "",
-					netTotal: item.netPrice,
-				}))
-				.sort((a, b) => a.sku.localeCompare(b.sku))
-		);
+		const isItemsEqual =
+			_.isEqual(
+				editFelmeresItems
+					?.map((item) => ({
+						inputValues: item.inputValues.map((value) => value.ammount),
+						sku: item.sku ?? "",
+						netTotal: item.netPrice,
+					}))
+					.sort((a, b) => a.sku.localeCompare(b.sku)),
+				submitItems
+					.map((item) => ({
+						inputValues: item.inputValues.map((value) => value.ammount),
+						sku: item.sku ?? "",
+						netTotal: item.netPrice,
+					}))
+					.sort((a, b) => a.sku.localeCompare(b.sku))
+			) && _.isEqual(editFelmeresMunkadíjak, felmeresMunkadíjak);
 
 		return (
 			<div className='flex flex-row px-4 items-center justify-center gap-3'>

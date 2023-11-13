@@ -601,7 +601,7 @@ export function Page2({
 															<Button
 																onClick={() =>
 																	setFelmeresMunkadíjak!((prev) =>
-																		prev.filter((f) => f.id !== fee.id)
+																		prev.filter((f) => f.munkadij !== fee.munkadij)
 																	)
 																}
 																variant={"destructive"}
@@ -639,7 +639,7 @@ export function Page2({
 															{
 																amount: 0,
 																munkadij: parseInt(value),
-																order_id: felmeresMunkadíjak.length,
+																order_id: prev.length ?? 0,
 																value:
 																	munkadíjak.find((md) => md.id === parseInt(value))
 																		?.value ?? 0,
