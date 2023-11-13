@@ -811,11 +811,19 @@ export default function Page({
 				(acc, product) => ({ ...acc, [product ?? ""]: !isProductDisabled(product ?? 0) }),
 				{}
 			);
+			const fixQuestions = questions.filter((question) => question.connection === "Fix" && question.mandatory);
+			console.log(fixQuestions);
+			const isFixQuestionsDisabled = fixQuestions.every((question) => {
+				const relatedFields = data.filter((field) => field.question === question.id);
+				if (!relatedFields.length) return true;
+				return relatedFields.some((field) => field.value.toString() === "" || !field.value.length);
+			});
 
 			const isDisabled: { [key: string]: boolean } = {
 				Alapadatok: !felmeres.adatlap_id,
 				Tételek: false,
 				...productStatuses,
+				Fix: isFixQuestionsDisabled,
 				Képek: isUploadingFile.length > 0,
 			};
 
