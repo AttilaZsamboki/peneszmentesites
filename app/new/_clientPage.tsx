@@ -812,7 +812,6 @@ export default function Page({
 				{}
 			);
 			const fixQuestions = questions.filter((question) => question.connection === "Fix" && question.mandatory);
-			console.log(fixQuestions);
 			const isFixQuestionsDisabled = fixQuestions.every((question) => {
 				const relatedFields = data.filter((field) => field.question === question.id);
 				if (!relatedFields.length) return true;
@@ -1088,7 +1087,7 @@ export default function Page({
 							</AlertDialogHeader>
 							<AlertDialogFooter>
 								<AlertDialogCancel>Mégsem</AlertDialogCancel>
-								<Link href={"/" + editFelmeres?.id ?? ""}>
+								<Link href={"/" + (editFelmeres?.id ?? "")}>
 									<AlertDialogAction className='bg-red-800 w-full hover:bg-red-800/90' type='submit'>
 										Biztos
 									</AlertDialogAction>
