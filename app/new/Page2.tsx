@@ -1,13 +1,11 @@
 "use client";
 import dynamic from "next/dynamic";
 import { Typography } from "@material-tailwind/react";
-import { Card } from "@/components/ui/card";
-const Heading = dynamic(() => import("@/app/_components/Heading"));
 import React from "react";
 const AutoComplete = dynamic(() => import("@/app/_components/AutoComplete"));
 import { Product } from "@/app/products/page";
 import { isJSONParsable } from "../[id]/_clientPage";
-import { CheckCircleIcon, MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
+import { MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
 import Counter from "@/app/_components/Counter";
 import { ProductAttributes } from "@/app/products/_clientPage";
 import {
@@ -159,11 +157,16 @@ export function Page2({
 	const TABLE_HEAD_OTHER = ["Név", "Nettó egységár", "Nettó összesen"];
 	const TABLE_HEAD_OTHER_MATERIAL = ["Név", "Darab", "Nettó egységár", "Nettó összesen"];
 
+	const munkadíjNetTotal = felmeresMunkadíjak.map((fee) => fee.value * fee.amount).reduce((a, b) => a + b, 0);
 	const netTotal = (type?: "Other Material" | "Item") => {
-		return items
+		const baseTotal = items
 			.filter((item) => (type ? item.type === type : true))
 			.map(({ inputValues, netPrice }) => netPrice * inputValues.reduce((a, b) => a + b.ammount, 0))
-			.reduce((a, b) => a + b, 0);
+			.reduce((a, b) => a + b, 1);
+		if (!type) {
+			return baseTotal + munkadíjNetTotal;
+		}
+		return baseTotal;
 	};
 	const otherItemsNetTotal = otherItems
 		.filter((item) => !isNaN(item.value))
@@ -263,7 +266,6 @@ export function Page2({
 		});
 	};
 
-	const munkadíjNetTotal = felmeresMunkadíjak.map((fee) => fee.value * fee.ammount).reduce((a, b) => a + b, 0);
 	return (
 		<>
 			{openTemplateDialog ? (
@@ -486,7 +488,12 @@ export function Page2({
 				) : null}
 				<Accordion type='multiple'>
 					<AccordionItem value='Tételek'>
-						<AccordionTrigger>Tételek</AccordionTrigger>
+						<AccordionTrigger className='relative'>
+							<div>Tételek</div>
+							<div className='absolute right-4 text-xs font-medium text-gray-700 mr-2'>
+								{hufFormatter.format(netTotal("Item"))}
+							</div>
+						</AccordionTrigger>
 						<AccordionContent>
 							<CustomItemTable
 								globalSpace
@@ -499,7 +506,12 @@ export function Page2({
 						</AccordionContent>
 					</AccordionItem>
 					<AccordionItem value='Munkadíjak'>
-						<AccordionTrigger>Munkadíjak</AccordionTrigger>
+						<AccordionTrigger className='relative'>
+							<div>Munkadíjak</div>
+							<div className='absolute right-4 text-xs font-medium text-gray-700 mr-2'>
+								{hufFormatter.format(munkadíjNetTotal)}
+							</div>
+						</AccordionTrigger>
 						<AccordionContent>
 							<Table>
 								<TableHeader>
@@ -514,7 +526,7 @@ export function Page2({
 								</TableHeader>
 								<TableBody>
 									{felmeresMunkadíjak
-										.sort((a, b) => (a.order_id ?? a.id!) - (b.order_id ?? a.id!))
+										.sort((a, b) => (a.id ? a.id : a.order_id!) - (b.id ? b.id : b.order_id!))
 										.map((fee) => {
 											const munkadíj = munkadíjak.find(
 												(munkadíj) => munkadíj.id === fee.munkadij
@@ -527,16 +539,27 @@ export function Page2({
 													</TableCell>
 													<TableCell>
 														{readonly ? (
-															fee.ammount
+															fee.amount
 														) : (
 															<Input
 																className='w-[60px]'
+																value={fee.amount}
 																onChange={(e) =>
 																	setFelmeresMunkadíjak!((prev) => [
 																		...prev.filter(
 																			(f) => f.munkadij !== fee.munkadij
 																		),
-																		{ ...fee, ammount: parseInt(e.target.value) },
+																		{
+																			...fee,
+																			amount: e.target.value
+																				? parseInt(
+																						e.target.value.replace(
+																							/[^\d-]/g,
+																							""
+																						)
+																				  )
+																				: 0,
+																		},
 																	])
 																}
 															/>
@@ -544,24 +567,34 @@ export function Page2({
 													</TableCell>
 													<TableCell>
 														{readonly ? (
-															hufFormatter.format(munkadíj.value)
+															hufFormatter.format(fee.value)
 														) : (
 															<Input
 																className='w-[100px]'
-																value={fee.value}
+																value={numberFormatter.format(fee.value)}
 																onChange={(e) =>
 																	setFelmeresMunkadíjak!((prev) => [
 																		...prev.filter(
 																			(f) => f.munkadij !== fee.munkadij
 																		),
-																		{ ...fee, value: parseInt(e.target.value) },
+																		{
+																			...fee,
+																			value: e.target.value
+																				? parseInt(
+																						e.target.value.replace(
+																							/[^\d-]/g,
+																							""
+																						)
+																				  )
+																				: 0,
+																		},
 																	])
 																}
 															/>
 														)}
 													</TableCell>
 													<TableCell className='text-right'>
-														{hufFormatter.format(fee.ammount * fee.value)}
+														{hufFormatter.format(fee.amount * fee.value)}
 													</TableCell>
 													{readonly ? null : (
 														<TableCell className='flex justify-end flex-row '>
@@ -604,7 +637,7 @@ export function Page2({
 														setFelmeresMunkadíjak!((prev) => [
 															...prev,
 															{
-																ammount: 0,
+																amount: 0,
 																munkadij: parseInt(value),
 																order_id: felmeresMunkadíjak.length,
 																value:
@@ -624,11 +657,11 @@ export function Page2({
 										<TableCell className='text-right'>
 											{hufFormatter.format(
 												felmeresMunkadíjak
-													.map((fee) => fee.value * fee.ammount)
+													.map((fee) => fee.value * fee.amount)
 													.reduce((a, b) => a + b, 0)
 											)}
 										</TableCell>
-										<TableCell className='w-[10px]'></TableCell>
+										{readonly ? null : <TableCell className='w-[10px]'></TableCell>}
 									</TableRow>
 								</TableFooter>
 							</Table>
@@ -636,7 +669,12 @@ export function Page2({
 					</AccordionItem>
 					{/* fees */}
 					<AccordionItem value='Díjak'>
-						<AccordionTrigger>Díjak</AccordionTrigger>
+						<AccordionTrigger className='relative'>
+							<div>Díjak</div>
+							<div className='absolute right-4 text-xs font-medium text-gray-700 mr-2'>
+								{hufFormatter.format(otherItemsNetTotal)}
+							</div>
+						</AccordionTrigger>
 						<AccordionContent>
 							<Table>
 								<TableHeader>
@@ -804,7 +842,9 @@ export function Page2({
 																...prev,
 																{
 																	...(newOtherItem as OtherFelmeresItem),
-																	id: Math.max(...prev.map((item) => item.id)) + 1,
+																	id: prev.length
+																		? Math.max(...prev.map((item) => item.id)) + 1
+																		: 0,
 																	value: 0,
 																},
 															]);
@@ -821,7 +861,9 @@ export function Page2({
 									<TableRow>
 										<TableCell>Össz:</TableCell>
 										<TableCell></TableCell>
-										<TableCell>{hufFormatter.format(otherItemsNetTotal)}</TableCell>
+										<TableCell className='text-right'>
+											{hufFormatter.format(otherItemsNetTotal)}
+										</TableCell>
 										{readonly ? null : <TableCell></TableCell>}
 									</TableRow>
 								</TableFooter>
@@ -830,7 +872,12 @@ export function Page2({
 					</AccordionItem>
 					{/* other material */}
 					<AccordionItem value='Egyéb szerelési anyag'>
-						<AccordionTrigger>Szerelési segédanyagok</AccordionTrigger>
+						<AccordionTrigger className='relative'>
+							<div>Szerelési segédanyag</div>
+							<div className='absolute right-4 text-xs font-medium text-gray-700 mr-2'>
+								{hufFormatter.format(netTotal("Other Material"))}
+							</div>
+						</AccordionTrigger>
 						<AccordionContent>
 							<CustomItemTable
 								globalSpace={false}
@@ -842,9 +889,14 @@ export function Page2({
 							/>
 						</AccordionContent>
 					</AccordionItem>
-					<div className='mt-8'>
-						<Heading title='Összesítés' variant='h5' marginY='lg:my-4' border={false} />
-						<div className='w-full lg:overflow-hidden overflow-x-scroll rounded-md'>
+					<AccordionItem value='Összesítés'>
+						<AccordionTrigger className='relative'>
+							<div>Összesítés</div>
+							<div className='absolute right-4 text-xs font-medium text-gray-700 mr-2'>
+								{hufFormatter.format(otherItemsNetTotal + netTotal())}
+							</div>
+						</AccordionTrigger>
+						<AccordionContent>
 							<Table>
 								<TableHeader>
 									<TableRow>
@@ -894,9 +946,9 @@ export function Page2({
 										<TableCell></TableCell>
 										<TableCell></TableCell>
 										<TableCell>
-											<div className=''>
+											<div>
 												{readonly ? (
-													<div className='font-extralight text-gray-500 flex flex-row items-center gap-2'>
+													<div className='font-extralight text-gray-500 flex flex-row items-center justify-end gap-2'>
 														<Typography
 															variant='small'
 															color='blue-gray'
@@ -909,9 +961,7 @@ export function Page2({
 															className={`font-extralight text-gray-500 `}>
 															(
 															{hufFormatter.format(
-																(otherItemsNetTotal * 1.27 +
-																	netTotal() * 1.27 +
-																	munkadíjNetTotal * 1.27) *
+																(otherItemsNetTotal * 1.27 + netTotal() * 1.27) *
 																	(discount / 100)
 															)}
 															)
@@ -946,9 +996,7 @@ export function Page2({
 															className={`font-extralight text-gray-500 `}>
 															(
 															{hufFormatter.format(
-																(otherItemsNetTotal * 1.27 +
-																	netTotal() * 1.27 +
-																	munkadíjNetTotal * 1.27) *
+																(otherItemsNetTotal * 1.27 + netTotal() * 1.27) *
 																	(discount / 100)
 															)}
 															)
@@ -962,31 +1010,22 @@ export function Page2({
 								<TableFooter className='bg-secondary text-gray-700'>
 									<TableRow>
 										<TableCell>Össz:</TableCell>
+										<TableCell>{hufFormatter.format(otherItemsNetTotal + netTotal())}</TableCell>
 										<TableCell>
-											{hufFormatter.format(otherItemsNetTotal + netTotal() + munkadíjNetTotal)}
+											{hufFormatter.format(otherItemsNetTotal * 0.27 + netTotal() * 0.27)}
 										</TableCell>
-										<TableCell>
-											{hufFormatter.format(
-												otherItemsNetTotal * 0.27 + netTotal() * 0.27 + munkadíjNetTotal * 0.27
-											)}
-										</TableCell>
-										<TableCell>
+										<TableCell className='text-right'>
 											{hufFormatter.format(
 												otherItemsNetTotal * 1.27 +
-													netTotal() * 1.27 +
-													munkadíjNetTotal * 1.27 -
-													((otherItemsNetTotal * 1.27 +
-														netTotal() * 1.27 +
-														munkadíjNetTotal * 1.27) *
-														discount) /
-														100
+													netTotal() * 1.27 -
+													((otherItemsNetTotal * 1.27 + netTotal() * 1.27) * discount) / 100
 											)}
 										</TableCell>
 									</TableRow>
 								</TableFooter>
 							</Table>
-						</div>
-					</div>
+						</AccordionContent>
+					</AccordionItem>
 				</Accordion>
 				<div className='mt-8'>
 					<Label htmlFor='description'>Megjegyzés</Label>
@@ -1146,7 +1185,7 @@ export function Page2({
 																)}
 															</TableCell>
 															{place && globalSpace ? (
-																<TableCell className=' flex flex-row w-full items-center gap-2'>
+																<TableCell className='flex flex-row w-full items-center gap-2'>
 																	<div className='font-normal flex flex-col gap-2 max-w-[17rem]'>
 																		<div className='flex-row flex items-center gap-2'>
 																			{readonly ? null : (
@@ -1315,7 +1354,7 @@ export function Page2({
 						{readonly ? null : (
 							<>
 								<TableRow>
-									<TableCell className='sticky left-0' colSpan={headers.length}>
+									<TableCell className='sticky left-0'>
 										<AutoComplete
 											label='Hozzáad'
 											inputWidth={deviceSize !== "sm" ? "300px" : "100px"}
@@ -1399,7 +1438,7 @@ export function Page2({
 						</TableCell>
 						<TableCell></TableCell>
 						<TableCell></TableCell>
-						<TableCell>{hufFormatter.format(netTotal)}</TableCell>
+						<TableCell className='text-right'>{hufFormatter.format(netTotal)}</TableCell>
 						{readonly ? null : <TableCell></TableCell>}
 					</TableRow>
 				</TableFooter>

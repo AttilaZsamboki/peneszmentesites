@@ -1,10 +1,10 @@
 import { Template } from "@/app/templates/page";
-import ClientPage, { BaseFelmeresData, FelmeresItem } from "@/app/new/_clientPage";
+import ClientPage, { BaseFelmeresData, FelmeresItem, FelmeresMunkadíj } from "@/app/new/_clientPage";
 import { Product } from "@/app/products/page";
 import { ProductAttributes } from "@/app/products/_clientPage";
-import { Adatlap } from "@/app/new/page";
 import { FelmeresQuestion } from "@/app/page";
 import { FelmeresPictures } from "../_clientPage";
+import { Munkadíj } from "@/app/munkadij/page";
 
 export default async function Page({
 	felmeres,
@@ -12,12 +12,16 @@ export default async function Page({
 	felmeresQuestions,
 	products,
 	pictures,
+	felmeresMunkadíjak,
+	munkadíjak,
 }: {
 	felmeres: BaseFelmeresData;
 	felmeresItems: FelmeresItem[];
 	felmeresQuestions: FelmeresQuestion[];
 	products: Product[];
 	pictures: FelmeresPictures[];
+	felmeresMunkadíjak: FelmeresMunkadíj[];
+	munkadíjak: Munkadíj[];
 }) {
 	const adatlapok = await fetch(`https://pen.dataupload.xyz/minicrm-adatlapok/${felmeres.adatlap_id}`)
 		.then((response) => response.json())
@@ -41,6 +45,8 @@ export default async function Page({
 
 	return (
 		<ClientPage
+			editFelmeresMunkadíjak={felmeresMunkadíjak}
+			munkadíjak={munkadíjak}
 			editPictures={pictures}
 			editFelmeresItems={felmeresItems}
 			editFelmeres={felmeres}

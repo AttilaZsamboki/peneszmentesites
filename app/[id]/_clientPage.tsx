@@ -11,7 +11,7 @@ import { Typography, Spinner, Tabs, TabsHeader, Tab } from "@material-tailwind/r
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BaseFelmeresData, FelmeresItem, QuestionTemplate } from "../new/_clientPage";
+import { BaseFelmeresData, FelmeresItem, FelmeresMunkadíj, QuestionTemplate } from "../new/_clientPage";
 import { QuestionPage } from "../../components/QuestionPage";
 
 import { Question } from "@/app/questions/page";
@@ -53,6 +53,7 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Munkadíj } from "../munkadij/page";
 
 export function isJSONParsable(str: string) {
 	try {
@@ -96,6 +97,8 @@ export default function ClientPage({
 	products,
 	pictures,
 	chat,
+	munkadíjak,
+	felmeresMunkadíjak,
 }: {
 	felmeresQuestions: FelmeresQuestion[];
 	felmeresId: string;
@@ -106,6 +109,8 @@ export default function ClientPage({
 	products: Product[];
 	pictures: FelmeresPictures[];
 	chat: Chat[];
+	munkadíjak: Munkadíj[];
+	felmeresMunkadíjak: FelmeresMunkadíj[];
 }) {
 	const [felmeres, setFelmeres] = React.useState(
 		felmeresNonState
@@ -151,6 +156,8 @@ export default function ClientPage({
 			{
 				component: (
 					<Page2
+						felmeresMunkadíjak={felmeresMunkadíjak}
+						munkadíjak={munkadíjak}
 						felmeres={felmeres}
 						readonly={true}
 						items={felmeresItems.filter((item) => item.type === "Item" || item.type === "Other Material")}
