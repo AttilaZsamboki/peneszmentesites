@@ -10,12 +10,12 @@ import { isJSONParsable } from "../[id]/_clientPage";
 import { CheckCircleIcon, MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
 import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import Counter from "@/app/_components/Counter";
-import Input from "@/app/_components/Input";
 import { ProductAttributes } from "@/app/products/_clientPage";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import {
 	BaseFelmeresData,
 	FelmeresItem,
+	FelmeresMunkadíj,
 	OtherFelmeresItem,
 	ProductTemplate,
 	QuestionTemplate,
@@ -25,7 +25,7 @@ import {
 import { Template } from "../templates/page";
 import DropdownMenu from "../_components/Menu";
 import { Button } from "@/components/ui/button";
-import { Banknote, Check, Plus, Save, SaveAll } from "lucide-react";
+import { Banknote, Check, Plus, Save, SaveAll, Trash, Trash2 } from "lucide-react";
 import CustomDialog from "../_components/CustomDialog";
 import { createTemplate, updateTemplate } from "../../lib/fetchers";
 import { Form } from "../templates/_clientPage";
@@ -36,6 +36,12 @@ import { Label } from "@/components/ui/label";
 import { calculatePercentageValue, cn } from "@/lib/utils";
 import useBreakpointValue from "../_components/useBreakpoint";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Separator } from "@radix-ui/react-dropdown-menu";
+import { Munkadíj } from "../munkadij/page";
+import { Input } from "@/components/ui/input";
+import {} from "@radix-ui/react-alert-dialog";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export function Page2({
 	felmeres,
@@ -50,6 +56,9 @@ export function Page2({
 	discount,
 	setDiscount,
 	readonly,
+	munkadíjak,
+	felmeresMunkadíjak,
+	setFelmeresMunkadíjak,
 }: {
 	felmeres: BaseFelmeresData;
 	setFelmeres?: React.Dispatch<React.SetStateAction<BaseFelmeresData>>;
@@ -63,6 +72,9 @@ export function Page2({
 	discount: number;
 	setDiscount?: React.Dispatch<React.SetStateAction<number>>;
 	readonly?: boolean;
+	munkadíjak: Munkadíj[];
+	felmeresMunkadíjak: FelmeresMunkadíj[];
+	setFelmeresMunkadíjak?: React.Dispatch<React.SetStateAction<FelmeresMunkadíj[]>>;
 }) {
 	const [newOtherItem, setNewOtherItem] = React.useState<OtherFelmeresItem>();
 	const [isEditingItems, setIsEditingItems] = React.useState(!readonly);
@@ -258,6 +270,7 @@ export function Page2({
 		});
 	};
 
+	const munkadíjNetTotal = felmeresMunkadíjak.map((fee) => fee.value * fee.ammount).reduce((a, b) => a + b, 0);
 	return (
 		<>
 			{openTemplateDialog ? (
@@ -478,531 +491,734 @@ export function Page2({
 						</div>
 					</div>
 				) : null}
-				<CustomItemTable
-					products={products?.filter((item) => item.category !== "Egyéb szerelési anyag")}
-					type='Item'
-					headers={TABLE_HEAD_ITEMS}
-					items={items.filter((item) => item.type === "Item")}
-					setIsEditingItems={setIsEditingItems}
-					setItems={setItems}
-				/>
-				{/* fees */}
-				<div className='mt-8'>
-					<Heading title='Díjak' variant='h5' marginY='lg:my-4' border={false} />
-					<Card>
-						<div className='w-full lg:overflow-hidden overflow-x-scroll rounded-md'>
-							<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
-								<thead>
-									<tr>
-										{TABLE_HEAD_OTHER.map((head) => (
-											<th
-												key={head}
-												className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+				<Accordion type='multiple'>
+					<AccordionItem value='Tételek'>
+						<AccordionTrigger>Tételek</AccordionTrigger>
+						<AccordionContent>
+							<CustomItemTable
+								products={products?.filter((item) => item.category !== "Egyéb szerelési anyag")}
+								type='Item'
+								headers={TABLE_HEAD_ITEMS}
+								items={items.filter((item) => item.type === "Item")}
+								setIsEditingItems={setIsEditingItems}
+								setItems={setItems}
+							/>
+						</AccordionContent>
+					</AccordionItem>
+					<AccordionItem value='Munkadíjak'>
+						<AccordionTrigger>Munkadíjak</AccordionTrigger>
+						<AccordionContent>
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>Típus</TableHead>
+										<TableHead>Leírás</TableHead>
+										<TableHead className='w-[60px] '>Darab</TableHead>
+										<TableHead className='w-[100px] '>Nettó egységár</TableHead>
+										<TableHead className='text-right'>Nettó összesen</TableHead>
+										{readonly ? null : <TableHead className='w-[10px]'></TableHead>}
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{felmeresMunkadíjak
+										.sort((a, b) => (a.order_id ?? a.id!) - (b.order_id ?? a.id!))
+										.map((fee) => {
+											const munkadíj = munkadíjak.find(
+												(munkadíj) => munkadíj.id === fee.munkadij
+											)!;
+											return (
+												<TableRow key={fee.id}>
+													<TableCell className='font-medium'>{munkadíj.type}</TableCell>
+													<TableCell className='lg:w-1/3 w-[80px] truncate'>
+														{munkadíj.description}
+													</TableCell>
+													<TableCell>
+														{readonly ? (
+															fee.ammount
+														) : (
+															<Input
+																className='w-[60px]'
+																onChange={(e) =>
+																	setFelmeresMunkadíjak!((prev) => [
+																		...prev.filter(
+																			(f) => f.munkadij !== fee.munkadij
+																		),
+																		{ ...fee, ammount: parseInt(e.target.value) },
+																	])
+																}
+															/>
+														)}
+													</TableCell>
+													<TableCell>
+														{readonly ? (
+															hufFormatter.format(munkadíj.value)
+														) : (
+															<Input
+																className='w-[100px]'
+																value={fee.value}
+																onChange={(e) =>
+																	setFelmeresMunkadíjak!((prev) => [
+																		...prev.filter(
+																			(f) => f.munkadij !== fee.munkadij
+																		),
+																		{ ...fee, value: parseInt(e.target.value) },
+																	])
+																}
+															/>
+														)}
+													</TableCell>
+													<TableCell className='text-right'>
+														{hufFormatter.format(fee.ammount * fee.value)}
+													</TableCell>
+													{readonly ? null : (
+														<TableCell className='flex justify-end flex-row '>
+															<Button
+																onClick={() =>
+																	setFelmeresMunkadíjak!((prev) =>
+																		prev.filter((f) => f.id !== fee.id)
+																	)
+																}
+																variant={"destructive"}
+																size={"icon"}>
+																<Trash2 />
+															</Button>
+														</TableCell>
+													)}
+												</TableRow>
+											);
+										})}
+									<Separator />
+									{!readonly ? (
+										<TableRow>
+											<TableCell colSpan={6}>
+												<AutoComplete
+													inputWidth={"300px"}
+													width='300px'
+													label='Hozzáad'
+													options={munkadíjak
+														.filter(
+															(fee) =>
+																!felmeresMunkadíjak
+																	.map((mf) => mf.munkadij)
+																	.includes(fee.id)
+														)
+														.map((fee) => ({
+															label: fee.type,
+															value: fee.id.toString(),
+														}))}
+													value=''
+													onSelect={(value) =>
+														setFelmeresMunkadíjak!((prev) => [
+															...prev,
+															{
+																ammount: 0,
+																munkadij: parseInt(value),
+																order_id: felmeresMunkadíjak.length,
+																value:
+																	munkadíjak.find((md) => md.id === parseInt(value))
+																		?.value ?? 0,
+															},
+														])
+													}
+												/>
+											</TableCell>
+										</TableRow>
+									) : null}
+								</TableBody>
+								<TableFooter>
+									<TableRow>
+										<TableCell colSpan={4}>Össz:</TableCell>
+										<TableCell className='text-right'>
+											{hufFormatter.format(
+												felmeresMunkadíjak
+													.map((fee) => fee.value * fee.ammount)
+													.reduce((a, b) => a + b, 0)
+											)}
+										</TableCell>
+										<TableCell className='w-[10px]'></TableCell>
+									</TableRow>
+								</TableFooter>
+							</Table>
+						</AccordionContent>
+					</AccordionItem>
+					{/* fees */}
+					<AccordionItem value='Díjak'>
+						<AccordionTrigger>Díjak</AccordionTrigger>
+						<AccordionContent>
+							<Card>
+								<div className='w-full lg:overflow-hidden overflow-x-scroll rounded-md'>
+									<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
+										<thead>
+											<tr>
+												{TABLE_HEAD_OTHER.map((head) => (
+													<th
+														key={head}
+														className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+														<Typography
+															variant='small'
+															color='blue-gray'
+															className='font-normal leading-none opacity-70'>
+															{head}
+														</Typography>
+													</th>
+												))}
+												{!readonly ? (
+													<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+														<PencilSquareIcon
+															className='w-5 h-5 cursor-pointer'
+															onClick={() => setIsEditingOtherItems(!isEditingOtherItems)}
+														/>
+													</th>
+												) : null}
+											</tr>
+										</thead>
+										<tbody ref={otherItemsTableRef}>
+											{otherItems
+												.sort((a, b) => a.id - b.id)
+												.map((item) => (
+													<tr key={item.id}>
+														<td className='p-4 border-b border-blue-gray-50'>
+															<Typography
+																variant='small'
+																color='blue-gray'
+																className='font-normal max-w-[30rem]'>
+																{item.name}
+															</Typography>
+														</td>
+														<td className='mr-5 p-4 pr-8 border-b border-blue-gray-50 w-40'>
+															{readonly && item.type === "fixed" ? null : (
+																<div className='relative'>
+																	{readonly ? (
+																		<Typography
+																			variant='small'
+																			color='blue-gray'
+																			className='font-normal max-w-[30rem]'>
+																			{item.type === "percent" ? (
+																				<div>
+																					{item.value}{" "}
+																					<span className='font-extralight text-gray-500'>
+																						%
+																					</span>
+																				</div>
+																			) : (
+																				numberFormatter.format(item.value)
+																			)}
+																		</Typography>
+																	) : (
+																		<>
+																			<Input
+																				value={
+																					item.type === "percent" ||
+																					item.value ===
+																						("-" as unknown as number)
+																						? item.value
+																						: numberFormatter.format(
+																								item.value
+																						  )
+																				}
+																				onChange={(e) => {
+																					if (!setOtherItems) return;
+																					setOtherItems((prev) => [
+																						...prev.filter(
+																							(prevItem) =>
+																								item.id !== prevItem.id
+																						),
+																						{
+																							...prev.find(
+																								(prevItem) =>
+																									prevItem.id ===
+																									item.id
+																							)!,
+																							value: e.target.value
+																								? e.target.value === "-"
+																									? ("-" as unknown as number)
+																									: parseInt(
+																											e.target.value.replace(
+																												/[^\d-]/g,
+																												""
+																											)
+																									  )
+																								: 0,
+																						},
+																					]);
+																				}}
+																			/>
+																			<Typography
+																				variant='small'
+																				className={`font-extralight text-gray-500 absolute top-2
+																		} right-2 max-w-[30rem]`}>
+																				{item.type === "percent" ? "%" : "Ft"}
+																			</Typography>
+																		</>
+																	)}
+																</div>
+															)}
+														</td>
+														<td className='p-4 border-b border-blue-gray-50 w-40'>
+															<Typography
+																variant='small'
+																color='blue-gray'
+																className='font-normal max-w-[30rem]'>
+																{hufFormatter.format(
+																	item.type === "fixed"
+																		? isNaN(item.value)
+																			? 0
+																			: item.value
+																		: calculatePercentageValue(
+																				netTotal(),
+																				otherItems,
+																				item.value
+																		  )
+																)}
+															</Typography>
+														</td>
+														{!readonly ? (
+															<td className='p-4 border-b border-blue-gray-50 w-10'>
+																{isEditingOtherItems ? (
+																	<MinusCircleIcon
+																		className='w-7 h-7 text-red-600 cursor-pointer'
+																		onClick={() =>
+																			!setOtherItems
+																				? null
+																				: setOtherItems((prev) =>
+																						prev.filter(
+																							(prevItem) =>
+																								prevItem.name !==
+																								item.name
+																						)
+																				  )
+																		}
+																	/>
+																) : null}
+															</td>
+														) : null}
+													</tr>
+												))}
+											<tr>
+												{!isEditingOtherItems ? null : (
+													<>
+														<td className='p-4 border-b border-blue-gray-50'>
+															<div className='flex flex-row w-3/4 lg:w-full gap-4'>
+																<Input
+																	value={newOtherItem?.name || ""}
+																	onChange={(e) => {
+																		setNewOtherItem((prev) => ({
+																			...(prev as OtherFelmeresItem),
+																			name: e.target.value,
+																		}));
+																	}}
+																/>
+																<AutoComplete
+																	inputWidth='300px'
+																	label='Típus'
+																	onSelect={(value) => {
+																		setNewOtherItem((prev) => ({
+																			...(prev as OtherFelmeresItem),
+																			type: value as "fixed" | "percent",
+																		}));
+																	}}
+																	options={[
+																		{ value: "fixed", label: "Összeg" },
+																		{ value: "percent", label: "Százalék" },
+																		{ value: "", label: "" },
+																	]}
+																	value={
+																		newOtherItem && newOtherItem.type
+																			? newOtherItem.type === "fixed"
+																				? "Összeg"
+																				: "Százalék"
+																			: ""
+																	}
+																/>
+															</div>
+														</td>
+														<td></td>
+														<td></td>
+														<td className='p-4 border-b border-blue-gray-50'>
+															<Button
+																size={"icon"}
+																variant={"ghost"}
+																disabled={!newOtherItem?.name || !newOtherItem?.type}
+																onClick={() => {
+																	if (!setOtherItems) return;
+																	setOtherItems((prev) => [
+																		...prev,
+																		{
+																			...(newOtherItem as OtherFelmeresItem),
+																			id:
+																				Math.max(
+																					...prev.map((item) => item.id)
+																				) + 1,
+																			value: 0,
+																		},
+																	]);
+																	setNewOtherItem(undefined);
+																}}>
+																<CheckCircleIcon className='w-7 h-7 text-green-600 cursor-pointer' />
+															</Button>
+														</td>
+													</>
+												)}
+											</tr>
+										</tbody>
+										<tfoot className='bg-gray'>
+											<tr>
+												<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+													<Typography
+														variant='small'
+														color='blue-gray'
+														className='font-normal leading-none opacity-70'>
+														Össz:
+													</Typography>
+												</td>
+												<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
+												<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+													<Typography
+														variant='small'
+														color='blue-gray'
+														className='font-normal leading-none opacity-70'>
+														{hufFormatter.format(otherItemsNetTotal)}
+													</Typography>
+												</td>
+												{readonly ? null : (
+													<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
+												)}
+											</tr>
+										</tfoot>
+									</table>
+								</div>
+							</Card>
+						</AccordionContent>
+					</AccordionItem>
+					{/* other material */}
+					<AccordionItem value='Egyéb szerelési anyag'>
+						<AccordionTrigger>Szerelési segédanyagok</AccordionTrigger>
+						<AccordionContent>
+							<CustomItemTable
+								products={products?.filter((item) => item.category === "Egyéb szerelési anyag")}
+								type='Other Material'
+								items={items.filter((item) => item.type === "Other Material")}
+								setItems={setItems}
+								headers={TABLE_HEAD_OTHER_MATERIAL}
+								setIsEditingItems={setIsEditingOtherMaterials}
+							/>
+						</AccordionContent>
+					</AccordionItem>
+					<div className='mt-8'>
+						<Heading title='Összesítés' variant='h5' marginY='lg:my-4' border={false} />
+						<Card>
+							<div className='w-full lg:overflow-hidden overflow-x-scroll rounded-md'>
+								<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
+									<thead>
+										<tr>
+											<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
 												<Typography
 													variant='small'
 													color='blue-gray'
 													className='font-normal leading-none opacity-70'>
-													{head}
+													Név
 												</Typography>
 											</th>
-										))}
-										{!readonly ? (
 											<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-												<PencilSquareIcon
-													className='w-5 h-5 cursor-pointer'
-													onClick={() => setIsEditingOtherItems(!isEditingOtherItems)}
-												/>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal leading-none opacity-70'>
+													Nettó
+												</Typography>
 											</th>
-										) : null}
-									</tr>
-								</thead>
-								<tbody ref={otherItemsTableRef}>
-									{otherItems
-										.sort((a, b) => a.id - b.id)
-										.map((item) => (
-											<tr key={item.id}>
-												<td className='p-4 border-b border-blue-gray-50'>
-													<Typography
-														variant='small'
-														color='blue-gray'
-														className='font-normal max-w-[30rem]'>
-														{item.name}
-													</Typography>
-												</td>
-												<td className='mr-5 p-4 pr-8 border-b border-blue-gray-50 w-40'>
-													{readonly && item.type === "fixed" ? null : (
-														<div className='relative'>
-															{readonly ? (
-																<Typography
-																	variant='small'
-																	color='blue-gray'
-																	className='font-normal max-w-[30rem]'>
-																	{item.type === "percent" ? (
-																		<div>
-																			{item.value}{" "}
-																			<span className='font-extralight text-gray-500'>
-																				%
-																			</span>
-																		</div>
-																	) : (
-																		numberFormatter.format(item.value)
-																	)}
-																</Typography>
-															) : (
-																<>
-																	<Input
-																		variant='simple'
-																		value={
-																			item.type === "percent" ||
-																			item.value === ("-" as unknown as number)
-																				? item.value
-																				: numberFormatter.format(item.value)
-																		}
-																		onChange={(e) => {
-																			if (!setOtherItems) return;
-																			setOtherItems((prev) => [
-																				...prev.filter(
-																					(prevItem) =>
-																						item.id !== prevItem.id
-																				),
-																				{
-																					...prev.find(
-																						(prevItem) =>
-																							prevItem.id === item.id
-																					)!,
-																					value: e.target.value
-																						? e.target.value === "-"
-																							? ("-" as unknown as number)
-																							: parseInt(
-																									e.target.value.replace(
-																										/[^\d-]/g,
-																										""
-																									)
-																							  )
-																						: 0,
-																				},
-																			]);
-																		}}
-																	/>
-																	<Typography
-																		variant='small'
-																		className={`font-extralight text-gray-500 absolute top-2
-																		} right-2 max-w-[30rem]`}>
-																		{item.type === "percent" ? "%" : "Ft"}
-																	</Typography>
-																</>
-															)}
-														</div>
-													)}
-												</td>
-												<td className='p-4 border-b border-blue-gray-50 w-40'>
-													<Typography
-														variant='small'
-														color='blue-gray'
-														className='font-normal max-w-[30rem]'>
-														{hufFormatter.format(
-															item.type === "fixed"
-																? isNaN(item.value)
-																	? 0
-																	: item.value
-																: calculatePercentageValue(
-																		netTotal(),
-																		otherItems,
-																		item.value
-																  )
-														)}
-													</Typography>
-												</td>
-												{!readonly ? (
-													<td className='p-4 border-b border-blue-gray-50 w-10'>
-														{isEditingOtherItems ? (
-															<MinusCircleIcon
-																className='w-7 h-7 text-red-600 cursor-pointer'
-																onClick={() =>
-																	!setOtherItems
-																		? null
-																		: setOtherItems((prev) =>
-																				prev.filter(
-																					(prevItem) =>
-																						prevItem.name !== item.name
-																				)
-																		  )
-																}
-															/>
-														) : null}
-													</td>
-												) : null}
-											</tr>
-										))}
-									<tr>
-										{!isEditingOtherItems ? null : (
-											<>
-												<td className='p-4 border-b border-blue-gray-50'>
-													<div className='flex flex-row w-3/4 lg:w-full gap-4'>
-														<Input
-															variant='simple'
-															label='Név'
-															value={newOtherItem?.name || ""}
-															onChange={(e) => {
-																setNewOtherItem((prev) => ({
-																	...(prev as OtherFelmeresItem),
-																	name: e.target.value,
-																}));
-															}}
-														/>
-														<AutoComplete
-															inputWidth='300px'
-															label='Típus'
-															onSelect={(value) => {
-																setNewOtherItem((prev) => ({
-																	...(prev as OtherFelmeresItem),
-																	type: value as "fixed" | "percent",
-																}));
-															}}
-															options={[
-																{ value: "fixed", label: "Összeg" },
-																{ value: "percent", label: "Százalék" },
-																{ value: "", label: "" },
-															]}
-															value={
-																newOtherItem && newOtherItem.type
-																	? newOtherItem.type === "fixed"
-																		? "Összeg"
-																		: "Százalék"
-																	: ""
-															}
-														/>
-													</div>
-												</td>
-												<td></td>
-												<td></td>
-												<td className='p-4 border-b border-blue-gray-50'>
-													<Button
-														size={"icon"}
-														variant={"ghost"}
-														disabled={!newOtherItem?.name || !newOtherItem?.type}
-														onClick={() => {
-															if (!setOtherItems) return;
-															setOtherItems((prev) => [
-																...prev,
-																{
-																	...(newOtherItem as OtherFelmeresItem),
-																	id: Math.max(...prev.map((item) => item.id)) + 1,
-																	value: 0,
-																},
-															]);
-															setNewOtherItem(undefined);
-														}}>
-														<CheckCircleIcon className='w-7 h-7 text-green-600 cursor-pointer' />
-													</Button>
-												</td>
-											</>
-										)}
-									</tr>
-								</tbody>
-								<tfoot className='bg-gray'>
-									<tr>
-										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												Össz:
-											</Typography>
-										</td>
-										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
-										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												{hufFormatter.format(otherItemsNetTotal)}
-											</Typography>
-										</td>
-										{readonly ? null : (
-											<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
-										)}
-									</tr>
-								</tfoot>
-							</table>
-						</div>
-					</Card>
-				</div>
-				{/* other material */}
-				<div className='mt-8'>
-					<Heading title='Szerelési segédanyagok' variant='h5' marginY='lg:my-4' border={false} />
-					<CustomItemTable
-						products={products?.filter((item) => item.category === "Egyéb szerelési anyag")}
-						type='Other Material'
-						items={items.filter((item) => item.type === "Other Material")}
-						setItems={setItems}
-						headers={TABLE_HEAD_OTHER_MATERIAL}
-						setIsEditingItems={setIsEditingOtherMaterials}
-					/>
-				</div>
-				<div className='mt-8'>
-					<Heading title='Összesítés' variant='h5' marginY='lg:my-4' border={false} />
-					<Card>
-						<div className='w-full lg:overflow-hidden overflow-x-scroll rounded-md'>
-							<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
-								<thead>
-									<tr>
-										<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												Név
-											</Typography>
-										</th>
-										<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												Nettó
-											</Typography>
-										</th>
-										<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												ÁFA
-											</Typography>
-										</th>
-										<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												Bruttó
-											</Typography>
-										</th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												Tételek
-											</Typography>
-										</td>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(netTotal("Item"))}
-											</Typography>
-										</td>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(netTotal("Item") * 0.27)}
-											</Typography>
-										</td>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(netTotal("Item") * 1.27)}
-											</Typography>
-										</td>
-									</tr>
-									<tr>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												Egyéb
-											</Typography>
-										</td>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(otherItemsNetTotal)}
-											</Typography>
-										</td>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(otherItemsNetTotal * 0.27)}
-											</Typography>
-										</td>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(otherItemsNetTotal * 1.27)}
-											</Typography>
-										</td>
-									</tr>
-									<tr>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												Egyéb szerelési segédanyagok
-											</Typography>
-										</td>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(netTotal("Other Material"))}
-											</Typography>
-										</td>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(netTotal("Other Material") * 0.27)}
-											</Typography>
-										</td>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(netTotal("Other Material") * 1.27)}
-											</Typography>
-										</td>
-									</tr>
-									<tr>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												Kedvezmény
-											</Typography>
-										</td>
-										<td></td>
-										<td></td>
-										<td className='p-4 border-b pr-8 border-blue-gray-50 w-60'>
-											<div className=''>
-												{readonly ? (
-													<div className='font-extralight text-gray-500 flex flex-row items-center gap-2'>
-														<Typography
-															variant='small'
-															color='blue-gray'
-															className='font-normal max-w-[30rem]'>
-															{discount}
-															<span>%</span>
-														</Typography>
-														<Typography
-															variant='small'
-															className={`font-extralight text-gray-500 `}>
-															(
-															{hufFormatter.format(
-																(otherItemsNetTotal * 1.27 + netTotal() * 1.27) *
-																	(discount / 100)
-															)}
-															)
-														</Typography>
-													</div>
-												) : (
-													<div className='font-extralight text-gray-500 flex flex-row items-center gap-2'>
-														<div className='relative'>
-															<Input
-																variant='simple'
-																value={discount}
-																onChange={(e) => {
-																	if (!setDiscount) return;
-																	setDiscount(
-																		parseInt(e.target.value.replace(/\D/g, "")) <=
-																			100
-																			? parseInt(
-																					e.target.value.replace(/\D/g, "")
-																			  )
-																			: 0
-																	);
-																}}
-															/>
+											<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal leading-none opacity-70'>
+													ÁFA
+												</Typography>
+											</th>
+											<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal leading-none opacity-70'>
+													Bruttó
+												</Typography>
+											</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													Tételek
+												</Typography>
+											</td>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													{hufFormatter.format(netTotal("Item"))}
+												</Typography>
+											</td>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													{hufFormatter.format(netTotal("Item") * 0.27)}
+												</Typography>
+											</td>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													{hufFormatter.format(netTotal("Item") * 1.27)}
+												</Typography>
+											</td>
+										</tr>
+										<tr>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													Munkadíjak
+												</Typography>
+											</td>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													{hufFormatter.format(munkadíjNetTotal)}
+												</Typography>
+											</td>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													{hufFormatter.format(munkadíjNetTotal * 0.27)}
+												</Typography>
+											</td>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													{hufFormatter.format(munkadíjNetTotal * 1.27)}
+												</Typography>
+											</td>
+										</tr>
+										<tr>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													Díjak
+												</Typography>
+											</td>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													{hufFormatter.format(otherItemsNetTotal)}
+												</Typography>
+											</td>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													{hufFormatter.format(otherItemsNetTotal * 0.27)}
+												</Typography>
+											</td>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													{hufFormatter.format(otherItemsNetTotal * 1.27)}
+												</Typography>
+											</td>
+										</tr>
+										<tr>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													Szerelési segédanyagok
+												</Typography>
+											</td>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													{hufFormatter.format(netTotal("Other Material"))}
+												</Typography>
+											</td>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													{hufFormatter.format(netTotal("Other Material") * 0.27)}
+												</Typography>
+											</td>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													{hufFormatter.format(netTotal("Other Material") * 1.27)}
+												</Typography>
+											</td>
+										</tr>
+										<tr>
+											<td className='p-4 border-b border-blue-gray-50'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal max-w-[30rem]'>
+													Kedvezmény
+												</Typography>
+											</td>
+											<td></td>
+											<td></td>
+											<td className='p-4 border-b pr-8 border-blue-gray-50 w-60'>
+												<div className=''>
+													{readonly ? (
+														<div className='font-extralight text-gray-500 flex flex-row items-center gap-2'>
 															<Typography
 																variant='small'
-																className={`font-extralight text-gray-500 absolute right-2 top-2 `}>
-																%
+																color='blue-gray'
+																className='font-normal max-w-[30rem]'>
+																{discount}
+																<span>%</span>
+															</Typography>
+															<Typography
+																variant='small'
+																className={`font-extralight text-gray-500 `}>
+																(
+																{hufFormatter.format(
+																	(otherItemsNetTotal * 1.27 +
+																		netTotal() * 1.27 +
+																		munkadíjNetTotal * 1.27) *
+																		(discount / 100)
+																)}
+																)
 															</Typography>
 														</div>
+													) : (
+														<div className='font-extralight text-gray-500 flex flex-row items-center gap-2'>
+															<div className='relative'>
+																<Input
+																	value={discount}
+																	onChange={(e) => {
+																		if (!setDiscount) return;
+																		setDiscount(
+																			parseInt(
+																				e.target.value.replace(/\D/g, "")
+																			) <= 100
+																				? parseInt(
+																						e.target.value.replace(
+																							/\D/g,
+																							""
+																						)
+																				  )
+																				: 0
+																		);
+																	}}
+																/>
+																<Typography
+																	variant='small'
+																	className={`font-extralight text-gray-500 absolute right-2 top-2 `}>
+																	%
+																</Typography>
+															</div>
 
-														<Typography
-															variant='small'
-															className={`font-extralight text-gray-500 `}>
-															(
-															{hufFormatter.format(
-																(otherItemsNetTotal * 1.27 + netTotal() * 1.27) *
-																	(discount / 100)
-															)}
-															)
-														</Typography>
-													</div>
-												)}
-											</div>
-										</td>
-									</tr>
-								</tbody>
-								<tfoot className='bg-gray'>
-									<tr>
-										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												Össz:
-											</Typography>
-										</td>
-										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												{hufFormatter.format(otherItemsNetTotal + netTotal())}
-											</Typography>
-										</td>
-										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												{hufFormatter.format(otherItemsNetTotal * 0.27 + netTotal() * 0.27)}
-											</Typography>
-										</td>
-										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												{hufFormatter.format(
-													otherItemsNetTotal * 1.27 +
-														netTotal() * 1.27 -
-														((otherItemsNetTotal * 1.27 + netTotal() * 1.27) * discount) /
-															100
-												)}
-											</Typography>
-										</td>
-									</tr>
-								</tfoot>
-							</table>
-						</div>
-					</Card>
-				</div>
+															<Typography
+																variant='small'
+																className={`font-extralight text-gray-500 `}>
+																(
+																{hufFormatter.format(
+																	(otherItemsNetTotal * 1.27 +
+																		netTotal() * 1.27 +
+																		munkadíjNetTotal * 1.27) *
+																		(discount / 100)
+																)}
+																)
+															</Typography>
+														</div>
+													)}
+												</div>
+											</td>
+										</tr>
+									</tbody>
+									<tfoot className='bg-gray'>
+										<tr>
+											<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal leading-none opacity-70'>
+													Össz:
+												</Typography>
+											</td>
+											<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal leading-none opacity-70'>
+													{hufFormatter.format(
+														otherItemsNetTotal + netTotal() + munkadíjNetTotal
+													)}
+												</Typography>
+											</td>
+											<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal leading-none opacity-70'>
+													{hufFormatter.format(
+														otherItemsNetTotal * 0.27 +
+															netTotal() * 0.27 +
+															munkadíjNetTotal * 0.27
+													)}
+												</Typography>
+											</td>
+											<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
+												<Typography
+													variant='small'
+													color='blue-gray'
+													className='font-normal leading-none opacity-70'>
+													{hufFormatter.format(
+														otherItemsNetTotal * 1.27 +
+															netTotal() * 1.27 +
+															munkadíjNetTotal * 1.27 -
+															((otherItemsNetTotal * 1.27 +
+																netTotal() * 1.27 +
+																munkadíjNetTotal * 1.27) *
+																discount) /
+																100
+													)}
+												</Typography>
+											</td>
+										</tr>
+									</tfoot>
+								</table>
+							</div>
+						</Card>
+					</div>
+				</Accordion>
 				<div className='mt-8'>
 					<Label htmlFor='description'>Megjegyzés</Label>
 					<Textarea

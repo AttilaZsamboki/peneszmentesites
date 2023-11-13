@@ -47,6 +47,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } 
 import { DialogFooter, DialogHeader } from "@material-tailwind/react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import { Munkadíj } from "../munkadij/page";
 
 export interface ProductTemplate {
 	product: number;
@@ -100,6 +101,15 @@ export interface OtherFelmeresItem {
 	id: number;
 }
 
+export interface FelmeresMunkadíj {
+	id?: number;
+	felmeres?: number;
+	munkadij: number;
+	ammount: number;
+	order_id?: number;
+	value: number;
+}
+
 export default function Page({
 	adatlapok,
 	templates,
@@ -111,6 +121,7 @@ export default function Page({
 	startPage,
 	isEdit,
 	editPictures,
+	munkadíjak,
 }: {
 	adatlapok: AdatlapData[];
 	templates: Template[];
@@ -122,6 +133,7 @@ export default function Page({
 	startPage?: SectionName;
 	isEdit?: boolean;
 	editPictures?: FelmeresPictures[];
+	munkadíjak: Munkadíj[];
 }) {
 	const { setProgress } = useGlobalState();
 	const { user } = useUser();
@@ -190,6 +202,7 @@ export default function Page({
 	);
 	const [pictures, setPictures] = React.useState<FelmeresPictures[]>(editPictures ?? []);
 	const [openPageDialog, setOpenPageDialog] = React.useState(false);
+	const [felmeresMunkadíjak, setFelmeresMunkadíjak] = React.useState<FelmeresMunkadíj[]>([]);
 
 	const createType = (
 		sendOffer?: boolean
@@ -694,6 +707,9 @@ export default function Page({
 					{
 						component: (
 							<Page2
+								felmeresMunkadíjak={felmeresMunkadíjak}
+								setFelmeresMunkadíjak={setFelmeresMunkadíjak}
+								munkadíjak={munkadíjak}
 								products={products}
 								felmeres={felmeres}
 								items={items}

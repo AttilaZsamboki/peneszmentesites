@@ -52,6 +52,11 @@ export default async function Page() {
 	})
 		.then((response) => response.json())
 		.catch((error) => console.error("error", error));
+	const munkadíjak = await fetch("https://pen.dataupload.xyz/munkadij", {
+		next: { tags: ["munkadijak"] },
+	})
+		.then((response) => response.json())
+		.catch((error) => console.error("error", error));
 
 	return (
 		<ClientPage
@@ -59,6 +64,7 @@ export default async function Page() {
 			templates={templates}
 			products={products}
 			productAttributes={productAttributes}
+			munkadíjak={munkadíjak}
 		/>
 	);
 }
