@@ -2,10 +2,12 @@ import { Template } from "@/app/templates/page";
 import ClientPage from "./_clientPage";
 import { Product } from "@/app/products/page";
 import { ProductAttributes } from "@/app/products/_clientPage";
+import { AdatlapData } from "../_utils/types";
 
 export default async function Page() {
-	const adatlapok = await fetch(
-		"https://pen.dataupload.xyz/minicrm-adatlapok/?CategoryId=23&StatusId=3082,3079,3083,3023,3084,2933"
+	const adatlapok: AdatlapData[] = await fetch(
+		"https://pen.dataupload.xyz/minicrm-adatlapok/?CategoryId=23&StatusId=3082,3079,3083,3023,3084,2933",
+		{ cache: "no-store" }
 	)
 		.then((response) => response.json())
 		.catch((error) => {
