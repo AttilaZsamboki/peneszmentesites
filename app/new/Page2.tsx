@@ -651,19 +651,6 @@ export function Page2({
 										</TableRow>
 									) : null}
 								</TableBody>
-								<TableFooter className='bg-secondary text-gray-700'>
-									<TableRow>
-										<TableCell colSpan={4}>Össz:</TableCell>
-										<TableCell className='text-right'>
-											{hufFormatter.format(
-												felmeresMunkadíjak
-													.map((fee) => fee.value * fee.amount)
-													.reduce((a, b) => a + b, 0)
-											)}
-										</TableCell>
-										{readonly ? null : <TableCell className='w-[10px]'></TableCell>}
-									</TableRow>
-								</TableFooter>
 							</Table>
 						</AccordionContent>
 					</AccordionItem>
@@ -857,16 +844,6 @@ export function Page2({
 										)}
 									</TableRow>
 								</TableBody>
-								<TableFooter className='bg-secondary text-gray-700'>
-									<TableRow>
-										<TableCell>Össz:</TableCell>
-										<TableCell></TableCell>
-										<TableCell className='text-right'>
-											{hufFormatter.format(otherItemsNetTotal)}
-										</TableCell>
-										{readonly ? null : <TableCell></TableCell>}
-									</TableRow>
-								</TableFooter>
 							</Table>
 						</AccordionContent>
 					</AccordionItem>
@@ -1431,17 +1408,6 @@ export function Page2({
 						)}
 					</TableRow>
 				</TableBody>
-				<TableFooter className='bg-secondary text-gray-700'>
-					<TableRow>
-						<TableCell className='sticky left-0 z-10' style={{ borderTopWidth: 0 }}>
-							Össz:
-						</TableCell>
-						<TableCell></TableCell>
-						<TableCell></TableCell>
-						<TableCell className='text-right'>{hufFormatter.format(netTotal)}</TableCell>
-						{readonly ? null : <TableCell></TableCell>}
-					</TableRow>
-				</TableFooter>
 			</Table>
 		);
 	}
