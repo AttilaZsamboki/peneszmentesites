@@ -919,9 +919,8 @@ export function Page2({
 										</TableCell>
 									</TableRow>
 									<TableRow>
-										<TableCell>Kedvezmény</TableCell>
-										<TableCell></TableCell>
-										<TableCell></TableCell>
+										<TableCell colSpan={3}>Kedvezmény</TableCell>
+
 										<TableCell>
 											<div>
 												{readonly ? (
@@ -945,7 +944,7 @@ export function Page2({
 														</Typography>
 													</div>
 												) : (
-													<div className='font-extralight text-gray-500 flex flex-row items-center gap-2'>
+													<div className='font-extralight text-gray-500 flex flex-row items-center gap-2 w-[200px]'>
 														<div className='relative'>
 															<Input
 																value={discount}
