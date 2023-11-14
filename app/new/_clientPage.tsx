@@ -843,7 +843,7 @@ export default function Page({
 			const isProductDisabled = (product: number) => {
 				const relatedFields = data.filter((field) => field.product === product);
 				const mandatoryQuestions = questions.filter(
-					(question) => question.mandatory && question.connection === "Termék"
+					(question) => question.mandatory && question.connection === "Termék" && question.product === product
 				);
 				if (!relatedFields.length && mandatoryQuestions.length) return false;
 
@@ -964,21 +964,21 @@ export default function Page({
 															collapsible
 															className='w-full flex flex-row justify-start'
 															defaultValue='item-1'>
-															<AccordionItem className='border-b-0' value='item-1'>
-																<AccordionTrigger className='hover:no-underline font-normal rounded-md text-left pb-1'>
+															<AccordionItem className='border-b-0 w-full' value='item-1'>
+																<AccordionTrigger className='hover:no-underline font-normal rounded-md text-left pb-1 w-full'>
 																	<ListItem
 																		id={section.id}
 																		description={section.description ?? ""}
 																		title={section.title}
 																	/>
 																</AccordionTrigger>
-																<AccordionContent className='pb-0'>
+																<AccordionContent className='pb-0 w-full'>
 																	<div className='flex flex-row w-full px-1 gap-2 pl-3'>
 																		<Separator
 																			orientation='vertical'
 																			className='shrink-0 bg-border h-auto w-[3px]'
 																		/>
-																		<div className='flex flex-col gap-2 '>
+																		<div className='flex flex-col gap-2 w-full'>
 																			{section.subSections!.map(
 																				(section, index2) => (
 																					<Link
@@ -1086,7 +1086,7 @@ export default function Page({
 		id: SectionName;
 	}) {
 		return (
-			<div className='block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'>
+			<div className='block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground w-full'>
 				<div
 					className={cn(
 						sub ? "text-sm" : "text-base",
@@ -1099,7 +1099,7 @@ export default function Page({
 				</div>
 				<p
 					className={cn(
-						sub ? "text-xs w-52 text-ellipsis" : "text-sm",
+						sub ? "text-xs w-full text-ellipsis" : "text-sm",
 						"line-clamp-2 leading-snug text-muted-foreground"
 					)}>
 					{description}
@@ -1218,7 +1218,8 @@ export default function Page({
 				.map((item) => item.inputValues.map((value) => value.ammount).every((value) => value > 0))
 				.every((value) => value === true) ||
 			!items.length ||
-			!felmeres.subject
+			!felmeres.subject ||
+			!felmeresMunkadíjak.map((item) => item.amount && item.value).every((value) => value)
 		);
 	}
 }
