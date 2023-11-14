@@ -52,6 +52,14 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 			console.error(err);
 			return [];
 		});
+	const felmeresMunkadíjak = await fetch("https://pen.dataupload.xyz/felmeres-munkadij?felmeres=" + felmeresId, {
+		next: { tags: [encodeURIComponent(felmeresId)], revalidate: 60 },
+	})
+		.then((res) => res.json())
+		.catch((err) => {
+			console.error(err);
+			return [];
+		});
 	const products: Product[] = await fetch("https://pen.dataupload.xyz/products?all=true", {
 		next: { tags: ["products"] },
 	}).then((response) => (response.ok ? response.json() : []));
@@ -63,10 +71,17 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 			console.error(err);
 			return [];
 		});
+	const munkadíjak = await fetch("https://pen.dataupload.xyz/munkadij", {
+		next: { tags: ["munkadijak"] },
+	})
+		.then((response) => response.json())
+		.catch((error) => console.error("error", error));
 
 	if (edit) {
 		return (
 			<EditClientPage
+				munkadíjak={munkadíjak}
+				felmeresMunkadíjak={felmeresMunkadíjak}
 				pictures={pictures}
 				felmeres={felmeres}
 				felmeresItems={felmeresItems}
@@ -117,6 +132,8 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 	if (adatlap) {
 		return (
 			<ClientPage
+				felmeresMunkadíjak={felmeresMunkadíjak}
+				munkadíjak={munkadíjak}
 				pictures={pictures}
 				felmeresQuestions={formattedFelmeres}
 				felmeresItems={felmeresItems}

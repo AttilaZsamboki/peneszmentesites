@@ -23,7 +23,8 @@ export interface AdatlapData {
 
 export default async function Page() {
 	const adatlapok = await fetch(
-		"https://pen.dataupload.xyz/minicrm-adatlapok/?CategoryId=23&StatusId=3082,3079,3083,3023,3084"
+		"https://pen.dataupload.xyz/minicrm-adatlapok/?CategoryId=23&StatusId=3082,3079,3083,3023,3084",
+		{ next: { revalidate: 3600 } }
 	)
 		.then((response) => response.json())
 		.catch((error) => {
@@ -51,6 +52,11 @@ export default async function Page() {
 	})
 		.then((response) => response.json())
 		.catch((error) => console.error("error", error));
+	const munkadíjak = await fetch("https://pen.dataupload.xyz/munkadij", {
+		next: { tags: ["munkadijak"] },
+	})
+		.then((response) => response.json())
+		.catch((error) => console.error("error", error));
 
 	return (
 		<ClientPage
@@ -58,6 +64,7 @@ export default async function Page() {
 			templates={templates}
 			products={products}
 			productAttributes={productAttributes}
+			munkadíjak={munkadíjak}
 		/>
 	);
 }

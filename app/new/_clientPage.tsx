@@ -47,6 +47,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } 
 import { DialogFooter, DialogHeader } from "@material-tailwind/react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import { Munkadíj } from "../munkadij/page";
 
 export interface ProductTemplate {
 	product: number;
@@ -100,6 +101,15 @@ export interface OtherFelmeresItem {
 	id: number;
 }
 
+export interface FelmeresMunkadíj {
+	id?: number;
+	felmeres?: number;
+	munkadij: number;
+	amount: number;
+	order_id?: number;
+	value: number;
+}
+
 export default function Page({
 	adatlapok,
 	templates,
@@ -111,6 +121,8 @@ export default function Page({
 	startPage,
 	isEdit,
 	editPictures,
+	munkadíjak,
+	editFelmeresMunkadíjak,
 }: {
 	adatlapok: AdatlapData[];
 	templates: Template[];
@@ -122,6 +134,8 @@ export default function Page({
 	startPage?: SectionName;
 	isEdit?: boolean;
 	editPictures?: FelmeresPictures[];
+	munkadíjak: Munkadíj[];
+	editFelmeresMunkadíjak?: FelmeresMunkadíj[];
 }) {
 	const { setProgress } = useGlobalState();
 	const { user } = useUser();
@@ -168,16 +182,10 @@ export default function Page({
 					}))
 			: [
 					{
-						name: "Munkadíj",
-						value: 0,
-						type: "percent",
-						id: 0,
-					},
-					{
 						name: "Jóváírás (helyszíni felmérés díj)",
 						value: -20000,
 						type: "fixed",
-						id: 3,
+						id: 0,
 					},
 			  ]
 	);
@@ -190,6 +198,9 @@ export default function Page({
 	);
 	const [pictures, setPictures] = React.useState<FelmeresPictures[]>(editPictures ?? []);
 	const [openPageDialog, setOpenPageDialog] = React.useState(false);
+	const [felmeresMunkadíjak, setFelmeresMunkadíjak] = React.useState<FelmeresMunkadíj[]>(
+		editFelmeresMunkadíjak ?? []
+	);
 
 	const createType = (
 		sendOffer?: boolean
@@ -269,7 +280,7 @@ export default function Page({
 			}
 		};
 		fetchQuestions();
-	}, [items]);
+	}, [items.length]);
 	React.useEffect(() => {
 		if (felmeres.adatlap_id && !editFelmeresItems) {
 			const fetchAdatlapData = async () => {
@@ -396,6 +407,23 @@ export default function Page({
 			console.log("Tételek mentése: " + (saveOfferItems - start) + "ms");
 			// -- END -- //
 
+			// -- Munkadíj mentése -- //
+			await fetch("https://pen.dataupload.xyz/felmeres-munkadij/", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(
+					felmeresMunkadíjak.map((munkadíj) => ({
+						...munkadíj,
+						felmeres: felmeresResponseData.id,
+						id: munkadíj.id ? munkadíj.id : null,
+					}))
+				),
+			});
+			updateStatus(210);
+			// -- END -- //
+
 			// Kérdések mentése //
 			data.filter((question) => question.value).map(async (question) => {
 				const originaQuestion = questions.find((q) => q.id === question.question);
@@ -422,21 +450,18 @@ export default function Page({
 						});
 					}
 				}
-				const resQuestions = await fetch(
-					"https://pen.dataupload.xyz/felmeres_questions/" + (question.id ? question.id + "/" : ""),
-					{
-						method: question.id ? "PUT" : "POST",
-						headers: {
-							"Content-Type": "application/json",
-						},
-						body: JSON.stringify({
-							...question,
-							adatlap: felmeresResponseData.id,
-							value: Array.isArray(question.value) ? JSON.stringify(question.value) : question.value,
-							question: question_id,
-						}),
-					}
-				);
+				await fetch("https://pen.dataupload.xyz/felmeres_questions/" + (question.id ? question.id + "/" : ""), {
+					method: question.id ? "PUT" : "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						...question,
+						adatlap: felmeresResponseData.id,
+						value: Array.isArray(question.value) ? JSON.stringify(question.value) : question.value,
+						question: question_id,
+					}),
+				});
 			});
 			updateStatus(203);
 			const createQuestions = performance.now();
@@ -467,49 +492,72 @@ export default function Page({
 					adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)
 						? adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)!.ContactId.toString()
 						: "",
-					items
-						.filter((item) => item.type === "Other Material")
-						.map((item) => item.netPrice)
-						.reduce((a, b) => a + b, 0) > 0
-						? [
-								...submitItems
+					[
+						...(items
+							.filter((item) => item.type === "Other Material")
+							.map((item) => item.netPrice)
+							.reduce((a, b) => a + b, 0) > 0
+							? [
+									...submitItems
+										.filter((item) => item.type !== "Other Material" && item.netPrice)
+										.map((item) => ({
+											...item,
+											netPrice:
+												item.valueType === "percent"
+													? item.type === "Fee"
+														? calculatePercentageValue(
+																netTotal + munkadíjNetTotal,
+																otherItems,
+																item.netPrice
+														  )
+														: item.type === "Discount"
+														? -(
+																(otherItemsNetTotal + netTotal + munkadíjNetTotal) *
+																(item.netPrice / 100)
+														  )
+														: item.netPrice
+													: item.netPrice,
+										})),
+									{
+										netPrice: items
+											.filter((item) => item.type === "Other Material")
+											.map(
+												(item) =>
+													item.netPrice * item.inputValues.reduce((a, b) => a + b.ammount, 0)
+											)
+											.reduce((a, b) => a + b, 0),
+										name: "Egyéb szerelési segédanyagok",
+										inputValues: [{ ammount: 1, id: 0, value: "" }],
+									} as unknown as FelmeresItem,
+							  ]
+							: submitItems
 									.filter((item) => item.type !== "Other Material" && item.netPrice)
 									.map((item) => ({
 										...item,
 										netPrice:
 											item.valueType === "percent"
 												? item.type === "Fee"
-													? calculatePercentageValue(netTotal, otherItems, item.netPrice)
+													? calculatePercentageValue(
+															netTotal + munkadíjNetTotal,
+															otherItems,
+															item.netPrice
+													  )
 													: item.type === "Discount"
-													? -((otherItemsNetTotal + netTotal) * (item.netPrice / 100))
+													? -(
+															(otherItemsNetTotal + netTotal + munkadíjNetTotal) *
+															(item.netPrice / 100)
+													  )
 													: item.netPrice
 												: item.netPrice,
-									})),
-								{
-									netPrice: items
-										.filter((item) => item.type === "Other Material")
-										.map(
-											(item) =>
-												item.netPrice * item.inputValues.reduce((a, b) => a + b.ammount, 0)
-										)
-										.reduce((a, b) => a + b, 0),
-									name: "Egyéb szerelési segédanyagok",
-									inputValues: [{ ammount: 1, id: 0, value: "" }],
-								} as unknown as FelmeresItem,
-						  ]
-						: submitItems
-								.filter((item) => item.type !== "Other Material" && item.netPrice)
-								.map((item) => ({
-									...item,
-									netPrice:
-										item.valueType === "percent"
-											? item.type === "Fee"
-												? calculatePercentageValue(netTotal, otherItems, item.netPrice)
-												: item.type === "Discount"
-												? -((otherItemsNetTotal + netTotal) * (item.netPrice / 100))
-												: item.netPrice
-											: item.netPrice,
-								})),
+									}))),
+						{
+							netPrice: felmeresMunkadíjak
+								.map((munkadíj) => munkadíj.value * munkadíj.amount)
+								.reduce((a, b) => a + b, 0),
+							name: "Munkadíj",
+							inputValues: [{ ammount: 1, id: 0, value: "" }],
+						} as unknown as FelmeresItem,
+					],
 					felmeres.adatlap_id.toString(),
 					felmeres.subject,
 					template?.name,
@@ -662,6 +710,10 @@ export default function Page({
 	const netTotal = items
 		.map(({ inputValues, netPrice }) => netPrice * inputValues.reduce((a, b) => a + b.ammount, 0))
 		.reduce((a, b) => a + b, 0);
+
+	const munkadíjNetTotal = felmeresMunkadíjak
+		.map((munkadíj) => munkadíj.amount * munkadíj.value)
+		.reduce((a, b) => a + b, 0);
 	const otherItemsNetTotal = otherItems
 		.filter((item) => !isNaN(item.value))
 		.map((item) =>
@@ -670,13 +722,13 @@ export default function Page({
 				: (netTotal +
 						otherItems
 							.filter((item) => item.type !== "percent" && !isNaN(item.value))
-							.reduce((a, b) => a + b.value, 0)) *
+							.reduce((a, b) => a + b.value, 0) +
+						munkadíjNetTotal) *
 				  (item.value / 100)
 		)
 		.reduce((a, b) => a + b, 0);
 
 	const adatlap = adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id);
-
 	const [currentPage, setCurrentPage] = React.useState<SectionName>(isEdit ? "Tételek" : "Alapadatok");
 	const [isUploadingFile, setIsUploadingFile] = React.useState<string[]>([]);
 	const createQueryString = useCreateQueryString(useSearchParams());
@@ -694,6 +746,9 @@ export default function Page({
 					{
 						component: (
 							<Page2
+								felmeresMunkadíjak={felmeresMunkadíjak}
+								setFelmeresMunkadíjak={setFelmeresMunkadíjak}
+								munkadíjak={munkadíjak}
 								products={products}
 								felmeres={felmeres}
 								items={items}
@@ -987,7 +1042,7 @@ export default function Page({
 							</CardHeader>
 							<Separator className='mb-4' />
 						</div>
-						<CardContent className={currentPage !== "Tételek" ? "p-8" : "lg:p-6 px-4 pt-0"}>
+						<CardContent className={currentPage !== "Tételek" ? "p-8" : "lg:p-6 px-2 pt-0"}>
 							{
 								pageClass.sections
 									.map((section) =>
@@ -1054,22 +1109,23 @@ export default function Page({
 	}
 
 	function SubmitOptions() {
-		const isItemsEqual = _.isEqual(
-			editFelmeresItems
-				?.map((item) => ({
-					inputValues: item.inputValues.map((value) => value.ammount),
-					sku: item.sku ?? "",
-					netTotal: item.netPrice,
-				}))
-				.sort((a, b) => a.sku.localeCompare(b.sku)),
-			submitItems
-				.map((item) => ({
-					inputValues: item.inputValues.map((value) => value.ammount),
-					sku: item.sku ?? "",
-					netTotal: item.netPrice,
-				}))
-				.sort((a, b) => a.sku.localeCompare(b.sku))
-		);
+		const isItemsEqual =
+			_.isEqual(
+				editFelmeresItems
+					?.map((item) => ({
+						inputValues: item.inputValues.map((value) => value.ammount),
+						sku: item.sku ?? "",
+						netTotal: item.netPrice,
+					}))
+					.sort((a, b) => a.sku.localeCompare(b.sku)),
+				submitItems
+					.map((item) => ({
+						inputValues: item.inputValues.map((value) => value.ammount),
+						sku: item.sku ?? "",
+						netTotal: item.netPrice,
+					}))
+					.sort((a, b) => a.sku.localeCompare(b.sku))
+			) && _.isEqual(editFelmeresMunkadíjak, felmeresMunkadíjak);
 
 		return (
 			<div className='flex flex-row px-4 items-center justify-center gap-3'>

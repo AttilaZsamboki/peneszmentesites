@@ -4,13 +4,10 @@ import ClientPage from "./_clientPage";
 
 import { BaseFelmeresData } from "./new/_clientPage";
 
-import { fetchAdatlapDetails } from "./_utils/MiniCRM";
 import { AdatlapDetails } from "./_utils/types";
 import { statusMap } from "./_utils/utils";
 
 import { Template } from "./templates/page";
-import { FilterItem } from "./_components/StackedList";
-import { Filter } from "./products/page";
 
 export interface GridOptions {
 	rows: string[];

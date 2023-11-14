@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getCookie, createJWT, useLocalStorageState, useUserWithRole, Role } from "@/lib/utils";
 import jwt from "jsonwebtoken";
+import Image from "next/image";
 
 interface Progress {
 	percent: number;
@@ -71,6 +72,10 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 				{
 					name: "Sablonok",
 					href: ["/templates"],
+				},
+				{
+					name: "Munkadíjak",
+					href: ["/munkadij"],
 				},
 			],
 		},
@@ -171,7 +176,7 @@ function Navbar({ routes }: { routes: Route[] }) {
 								</div>
 								<div className='self-center'>
 									<a href='/'>
-										<img src='/logo.jpg' className='w-15 h-5' />
+										<Image src='/logo.jpg' alt='logo' height={20} width={56} />
 									</a>
 								</div>
 

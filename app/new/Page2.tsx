@@ -1,21 +1,17 @@
 "use client";
 import dynamic from "next/dynamic";
 import { Typography } from "@material-tailwind/react";
-import { Card } from "@/components/ui/card";
-const Heading = dynamic(() => import("@/app/_components/Heading"));
 import React from "react";
 const AutoComplete = dynamic(() => import("@/app/_components/AutoComplete"));
 import { Product } from "@/app/products/page";
 import { isJSONParsable } from "../[id]/_clientPage";
-import { CheckCircleIcon, MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
-import { PencilSquareIcon } from "@heroicons/react/24/outline";
+import { MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
 import Counter from "@/app/_components/Counter";
-import Input from "@/app/_components/Input";
 import { ProductAttributes } from "@/app/products/_clientPage";
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import {
 	BaseFelmeresData,
 	FelmeresItem,
+	FelmeresMunkadíj,
 	OtherFelmeresItem,
 	ProductTemplate,
 	QuestionTemplate,
@@ -25,7 +21,7 @@ import {
 import { Template } from "../templates/page";
 import DropdownMenu from "../_components/Menu";
 import { Button } from "@/components/ui/button";
-import { Banknote, Check, Plus, Save, SaveAll } from "lucide-react";
+import { Banknote, Check, Plus, Save, SaveAll, Trash2 } from "lucide-react";
 import CustomDialog from "../_components/CustomDialog";
 import { createTemplate, updateTemplate } from "../../lib/fetchers";
 import { Form } from "../templates/_clientPage";
@@ -36,6 +32,11 @@ import { Label } from "@/components/ui/label";
 import { calculatePercentageValue, cn } from "@/lib/utils";
 import useBreakpointValue from "../_components/useBreakpoint";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Separator } from "@radix-ui/react-dropdown-menu";
+import { Munkadíj } from "../munkadij/page";
+import { Input } from "@/components/ui/input";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 export function Page2({
 	felmeres,
@@ -50,6 +51,9 @@ export function Page2({
 	discount,
 	setDiscount,
 	readonly,
+	munkadíjak,
+	felmeresMunkadíjak,
+	setFelmeresMunkadíjak,
 }: {
 	felmeres: BaseFelmeresData;
 	setFelmeres?: React.Dispatch<React.SetStateAction<BaseFelmeresData>>;
@@ -63,10 +67,11 @@ export function Page2({
 	discount: number;
 	setDiscount?: React.Dispatch<React.SetStateAction<number>>;
 	readonly?: boolean;
+	munkadíjak: Munkadíj[];
+	felmeresMunkadíjak: FelmeresMunkadíj[];
+	setFelmeresMunkadíjak?: React.Dispatch<React.SetStateAction<FelmeresMunkadíj[]>>;
 }) {
 	const [newOtherItem, setNewOtherItem] = React.useState<OtherFelmeresItem>();
-	const [isEditingItems, setIsEditingItems] = React.useState(!readonly);
-	const [isEditingOtherMaterials, setIsEditingOtherMaterials] = React.useState(true);
 	const [isEditingOtherItems, setIsEditingOtherItems] = React.useState(!readonly);
 	const [templates, setTemplates] = React.useState<Template[]>(originalTemplates ?? []);
 	const [selectedTemplate, setSelectedTemplate] = React.useState<Template>(
@@ -80,8 +85,6 @@ export function Page2({
 	const [openTemplateDialog, setOpenTemplateDialog] = React.useState(false);
 
 	const deviceSize = useBreakpointValue();
-
-	const [otherItemsTableRef] = useAutoAnimate();
 
 	const fetchTemplateItems = async (felmeres: BaseFelmeresData) => {
 		if (!setItems) return;
@@ -154,11 +157,16 @@ export function Page2({
 	const TABLE_HEAD_OTHER = ["Név", "Nettó egységár", "Nettó összesen"];
 	const TABLE_HEAD_OTHER_MATERIAL = ["Név", "Darab", "Nettó egységár", "Nettó összesen"];
 
+	const munkadíjNetTotal = felmeresMunkadíjak.map((fee) => fee.value * fee.amount).reduce((a, b) => a + b, 0);
 	const netTotal = (type?: "Other Material" | "Item") => {
-		return items
+		const baseTotal = items
 			.filter((item) => (type ? item.type === type : true))
 			.map(({ inputValues, netPrice }) => netPrice * inputValues.reduce((a, b) => a + b.ammount, 0))
-			.reduce((a, b) => a + b, 0);
+			.reduce((a, b) => a + b, 1);
+		if (!type) {
+			return baseTotal + munkadíjNetTotal;
+		}
+		return baseTotal;
 	};
 	const otherItemsNetTotal = otherItems
 		.filter((item) => !isNaN(item.value))
@@ -478,80 +486,218 @@ export function Page2({
 						</div>
 					</div>
 				) : null}
-				<CustomItemTable
-					products={products?.filter((item) => item.category !== "Egyéb szerelési anyag")}
-					type='Item'
-					headers={TABLE_HEAD_ITEMS}
-					items={items.filter((item) => item.type === "Item")}
-					setIsEditingItems={setIsEditingItems}
-					setItems={setItems}
-				/>
-				{/* fees */}
-				<div className='mt-8'>
-					<Heading title='Díjak' variant='h5' marginY='lg:my-4' border={false} />
-					<Card>
-						<div className='w-full lg:overflow-hidden overflow-x-scroll rounded-md'>
-							<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
-								<thead>
-									<tr>
-										{TABLE_HEAD_OTHER.map((head) => (
-											<th
-												key={head}
-												className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-												<Typography
-													variant='small'
-													color='blue-gray'
-													className='font-normal leading-none opacity-70'>
-													{head}
-												</Typography>
-											</th>
-										))}
-										{!readonly ? (
-											<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-												<PencilSquareIcon
-													className='w-5 h-5 cursor-pointer'
-													onClick={() => setIsEditingOtherItems(!isEditingOtherItems)}
+				<Accordion type='multiple'>
+					<AccordionItem value='Tételek'>
+						<AccordionTrigger className='relative'>
+							<div>Tételek</div>
+							<div className='absolute right-4 text-xs font-medium text-gray-700 mr-2'>
+								{hufFormatter.format(netTotal("Item"))}
+							</div>
+						</AccordionTrigger>
+						<AccordionContent>
+							<CustomItemTable
+								globalSpace
+								products={products?.filter((item) => item.category !== "Egyéb szerelési anyag")}
+								type='Item'
+								headers={TABLE_HEAD_ITEMS}
+								items={items.filter((item) => item.type === "Item")}
+								setItems={setItems}
+							/>
+						</AccordionContent>
+					</AccordionItem>
+					<AccordionItem value='Munkadíjak'>
+						<AccordionTrigger className='relative'>
+							<div>Munkadíjak</div>
+							<div className='absolute right-4 text-xs font-medium text-gray-700 mr-2'>
+								{hufFormatter.format(munkadíjNetTotal)}
+							</div>
+						</AccordionTrigger>
+						<AccordionContent>
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>Típus</TableHead>
+										<TableHead>Leírás</TableHead>
+										<TableHead className='w-[60px] '>Darab</TableHead>
+										<TableHead className='w-[100px] '>Nettó egységár</TableHead>
+										<TableHead className='text-right'>Nettó összesen</TableHead>
+										{readonly ? null : <TableHead className='w-[10px]'></TableHead>}
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{felmeresMunkadíjak
+										.sort((a, b) => (a.id ? a.id : a.order_id!) - (b.id ? b.id : b.order_id!))
+										.map((fee) => {
+											const munkadíj = munkadíjak.find(
+												(munkadíj) => munkadíj.id === fee.munkadij
+											)!;
+											return (
+												<TableRow key={fee.id}>
+													<TableCell className='font-medium'>{munkadíj.type}</TableCell>
+													<TableCell className='lg:w-1/3 w-[80px] truncate'>
+														{munkadíj.description}
+													</TableCell>
+													<TableCell>
+														{readonly ? (
+															fee.amount
+														) : (
+															<Input
+																className='w-[60px]'
+																value={fee.amount}
+																onChange={(e) =>
+																	setFelmeresMunkadíjak!((prev) => [
+																		...prev.filter(
+																			(f) => f.munkadij !== fee.munkadij
+																		),
+																		{
+																			...fee,
+																			amount: e.target.value
+																				? parseInt(
+																						e.target.value.replace(
+																							/[^\d-]/g,
+																							""
+																						)
+																				  )
+																				: 0,
+																		},
+																	])
+																}
+															/>
+														)}
+													</TableCell>
+													<TableCell>
+														{readonly ? (
+															hufFormatter.format(fee.value)
+														) : (
+															<Input
+																className='w-[100px]'
+																value={numberFormatter.format(fee.value)}
+																onChange={(e) =>
+																	setFelmeresMunkadíjak!((prev) => [
+																		...prev.filter(
+																			(f) => f.munkadij !== fee.munkadij
+																		),
+																		{
+																			...fee,
+																			value: e.target.value
+																				? parseInt(
+																						e.target.value.replace(
+																							/[^\d-]/g,
+																							""
+																						)
+																				  )
+																				: 0,
+																		},
+																	])
+																}
+															/>
+														)}
+													</TableCell>
+													<TableCell className='text-right'>
+														{hufFormatter.format(fee.amount * fee.value)}
+													</TableCell>
+													{readonly ? null : (
+														<TableCell className='flex justify-end flex-row '>
+															<Button
+																onClick={() =>
+																	setFelmeresMunkadíjak!((prev) =>
+																		prev.filter((f) => f.munkadij !== fee.munkadij)
+																	)
+																}
+																variant={"destructive"}
+																size={"icon"}>
+																<Trash2 />
+															</Button>
+														</TableCell>
+													)}
+												</TableRow>
+											);
+										})}
+									{!readonly ? (
+										<TableRow>
+											<TableCell colSpan={6}>
+												<AutoComplete
+													inputWidth={"300px"}
+													width='300px'
+													label='Hozzáad'
+													options={munkadíjak
+														.filter(
+															(fee) =>
+																!felmeresMunkadíjak
+																	.map((mf) => mf.munkadij)
+																	.includes(fee.id)
+														)
+														.map((fee) => ({
+															label: fee.type,
+															value: fee.id.toString(),
+														}))}
+													value=''
+													onSelect={(value) =>
+														setFelmeresMunkadíjak!((prev) => [
+															...prev,
+															{
+																amount: 0,
+																munkadij: parseInt(value),
+																order_id: prev.length ?? 0,
+																value:
+																	munkadíjak.find((md) => md.id === parseInt(value))
+																		?.value ?? 0,
+															},
+														])
+													}
 												/>
-											</th>
-										) : null}
-									</tr>
-								</thead>
-								<tbody ref={otherItemsTableRef}>
+											</TableCell>
+										</TableRow>
+									) : null}
+								</TableBody>
+							</Table>
+						</AccordionContent>
+					</AccordionItem>
+					{/* fees */}
+					<AccordionItem value='Díjak'>
+						<AccordionTrigger className='relative'>
+							<div>Díjak</div>
+							<div className='absolute right-4 text-xs font-medium text-gray-700 mr-2'>
+								{hufFormatter.format(otherItemsNetTotal)}
+							</div>
+						</AccordionTrigger>
+						<AccordionContent>
+							<Table>
+								<TableHeader>
+									<TableRow>
+										{TABLE_HEAD_OTHER.map((head, index) => (
+											<TableHead
+												key={head}
+												className={index === TABLE_HEAD_OTHER.length - 1 ? "text-right" : ""}>
+												{head}
+											</TableHead>
+										))}
+										{!readonly ? <TableHead className='w-[10px]'></TableHead> : null}
+									</TableRow>
+								</TableHeader>
+								<TableBody>
 									{otherItems
 										.sort((a, b) => a.id - b.id)
 										.map((item) => (
-											<tr key={item.id}>
-												<td className='p-4 border-b border-blue-gray-50'>
-													<Typography
-														variant='small'
-														color='blue-gray'
-														className='font-normal max-w-[30rem]'>
-														{item.name}
-													</Typography>
-												</td>
-												<td className='mr-5 p-4 pr-8 border-b border-blue-gray-50 w-40'>
+											<TableRow key={item.id}>
+												<TableCell className='font-medium'>{item.name}</TableCell>
+												<TableCell>
 													{readonly && item.type === "fixed" ? null : (
 														<div className='relative'>
 															{readonly ? (
-																<Typography
-																	variant='small'
-																	color='blue-gray'
-																	className='font-normal max-w-[30rem]'>
-																	{item.type === "percent" ? (
-																		<div>
-																			{item.value}{" "}
-																			<span className='font-extralight text-gray-500'>
-																				%
-																			</span>
-																		</div>
-																	) : (
-																		numberFormatter.format(item.value)
-																	)}
-																</Typography>
+																item.type === "percent" ? (
+																	<div>
+																		{item.value}{" "}
+																		<span className='font-extralight text-gray-500'>
+																			%
+																		</span>
+																	</div>
+																) : (
+																	numberFormatter.format(item.value)
+																)
 															) : (
 																<>
 																	<Input
-																		variant='simple'
 																		value={
 																			item.type === "percent" ||
 																			item.value === ("-" as unknown as number)
@@ -594,30 +740,24 @@ export function Page2({
 															)}
 														</div>
 													)}
-												</td>
-												<td className='p-4 border-b border-blue-gray-50 w-40'>
-													<Typography
-														variant='small'
-														color='blue-gray'
-														className='font-normal max-w-[30rem]'>
-														{hufFormatter.format(
-															item.type === "fixed"
-																? isNaN(item.value)
-																	? 0
-																	: item.value
-																: calculatePercentageValue(
-																		netTotal(),
-																		otherItems,
-																		item.value
-																  )
-														)}
-													</Typography>
-												</td>
+												</TableCell>
+												<TableCell className='text-right'>
+													{hufFormatter.format(
+														item.type === "fixed"
+															? isNaN(item.value)
+																? 0
+																: item.value
+															: calculatePercentageValue(
+																	netTotal(),
+																	otherItems,
+																	item.value
+															  )
+													)}
+												</TableCell>
 												{!readonly ? (
-													<td className='p-4 border-b border-blue-gray-50 w-10'>
+													<TableCell>
 														{isEditingOtherItems ? (
-															<MinusCircleIcon
-																className='w-7 h-7 text-red-600 cursor-pointer'
+															<Button
 																onClick={() =>
 																	!setOtherItems
 																		? null
@@ -628,20 +768,21 @@ export function Page2({
 																				)
 																		  )
 																}
-															/>
+																variant={"destructive"}
+																size={"icon"}>
+																<Trash2 />
+															</Button>
 														) : null}
-													</td>
+													</TableCell>
 												) : null}
-											</tr>
+											</TableRow>
 										))}
-									<tr>
+									<TableRow>
 										{!isEditingOtherItems ? null : (
 											<>
-												<td className='p-4 border-b border-blue-gray-50'>
+												<TableCell>
 													<div className='flex flex-row w-3/4 lg:w-full gap-4'>
 														<Input
-															variant='simple'
-															label='Név'
 															value={newOtherItem?.name || ""}
 															onChange={(e) => {
 																setNewOtherItem((prev) => ({
@@ -673,13 +814,13 @@ export function Page2({
 															}
 														/>
 													</div>
-												</td>
-												<td></td>
-												<td></td>
-												<td className='p-4 border-b border-blue-gray-50'>
+												</TableCell>
+												<TableCell></TableCell>
+												<TableCell></TableCell>
+												<TableCell className='p-4 border-b border-blue-gray-50'>
 													<Button
 														size={"icon"}
-														variant={"ghost"}
+														className='bg-green-600 hover:bg-green-600/80 cursor-pointer'
 														disabled={!newOtherItem?.name || !newOtherItem?.type}
 														onClick={() => {
 															if (!setOtherItems) return;
@@ -687,218 +828,102 @@ export function Page2({
 																...prev,
 																{
 																	...(newOtherItem as OtherFelmeresItem),
-																	id: Math.max(...prev.map((item) => item.id)) + 1,
+																	id: prev.length
+																		? Math.max(...prev.map((item) => item.id)) + 1
+																		: 0,
 																	value: 0,
 																},
 															]);
 															setNewOtherItem(undefined);
 														}}>
-														<CheckCircleIcon className='w-7 h-7 text-green-600 cursor-pointer' />
+														<Plus />
 													</Button>
-												</td>
+												</TableCell>
 											</>
 										)}
-									</tr>
-								</tbody>
-								<tfoot className='bg-gray'>
-									<tr>
-										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												Össz:
-											</Typography>
-										</td>
-										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
-										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												{hufFormatter.format(otherItemsNetTotal)}
-											</Typography>
-										</td>
-										{readonly ? null : (
-											<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
-										)}
-									</tr>
-								</tfoot>
-							</table>
-						</div>
-					</Card>
-				</div>
-				{/* other material */}
-				<div className='mt-8'>
-					<Heading title='Szerelési segédanyagok' variant='h5' marginY='lg:my-4' border={false} />
-					<CustomItemTable
-						products={products?.filter((item) => item.category === "Egyéb szerelési anyag")}
-						type='Other Material'
-						items={items.filter((item) => item.type === "Other Material")}
-						setItems={setItems}
-						headers={TABLE_HEAD_OTHER_MATERIAL}
-						setIsEditingItems={setIsEditingOtherMaterials}
-					/>
-				</div>
-				<div className='mt-8'>
-					<Heading title='Összesítés' variant='h5' marginY='lg:my-4' border={false} />
-					<Card>
-						<div className='w-full lg:overflow-hidden overflow-x-scroll rounded-md'>
-							<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll'>
-								<thead>
-									<tr>
-										<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												Név
-											</Typography>
-										</th>
-										<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												Nettó
-											</Typography>
-										</th>
-										<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												ÁFA
-											</Typography>
-										</th>
-										<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												Bruttó
-											</Typography>
-										</th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												Tételek
-											</Typography>
-										</td>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(netTotal("Item"))}
-											</Typography>
-										</td>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(netTotal("Item") * 0.27)}
-											</Typography>
-										</td>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(netTotal("Item") * 1.27)}
-											</Typography>
-										</td>
-									</tr>
-									<tr>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												Egyéb
-											</Typography>
-										</td>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(otherItemsNetTotal)}
-											</Typography>
-										</td>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(otherItemsNetTotal * 0.27)}
-											</Typography>
-										</td>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(otherItemsNetTotal * 1.27)}
-											</Typography>
-										</td>
-									</tr>
-									<tr>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												Egyéb szerelési segédanyagok
-											</Typography>
-										</td>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(netTotal("Other Material"))}
-											</Typography>
-										</td>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(netTotal("Other Material") * 0.27)}
-											</Typography>
-										</td>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												{hufFormatter.format(netTotal("Other Material") * 1.27)}
-											</Typography>
-										</td>
-									</tr>
-									<tr>
-										<td className='p-4 border-b border-blue-gray-50'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal max-w-[30rem]'>
-												Kedvezmény
-											</Typography>
-										</td>
-										<td></td>
-										<td></td>
-										<td className='p-4 border-b pr-8 border-blue-gray-50 w-60'>
-											<div className=''>
+									</TableRow>
+								</TableBody>
+							</Table>
+						</AccordionContent>
+					</AccordionItem>
+					{/* other material */}
+					<AccordionItem value='Egyéb szerelési anyag'>
+						<AccordionTrigger className='relative'>
+							<div>Szerelési segédanyag</div>
+							<div className='absolute right-4 text-xs font-medium text-gray-700 mr-2'>
+								{hufFormatter.format(netTotal("Other Material"))}
+							</div>
+						</AccordionTrigger>
+						<AccordionContent>
+							<CustomItemTable
+								globalSpace={false}
+								products={products?.filter((item) => item.category === "Egyéb szerelési anyag")}
+								type='Other Material'
+								items={items.filter((item) => item.type === "Other Material")}
+								setItems={setItems}
+								headers={TABLE_HEAD_OTHER_MATERIAL}
+							/>
+						</AccordionContent>
+					</AccordionItem>
+					<AccordionItem value='Összesítés'>
+						<AccordionTrigger className='relative'>
+							<div>Összesítés</div>
+							<div className='absolute right-4 text-xs font-medium text-gray-700 mr-2'>
+								{hufFormatter.format(otherItemsNetTotal + netTotal())}
+							</div>
+						</AccordionTrigger>
+						<AccordionContent>
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>Név</TableHead>
+										<TableHead>Nettó</TableHead>
+										<TableHead>ÁFA</TableHead>
+										<TableHead className='w-[200px] text-right'>Bruttó</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									<TableRow>
+										<TableCell>Tételek</TableCell>
+										<TableCell>{hufFormatter.format(netTotal("Item"))}</TableCell>
+										<TableCell>{hufFormatter.format(netTotal("Item") * 0.27)}</TableCell>
+										<TableCell className='text-right'>
+											{hufFormatter.format(netTotal("Item") * 1.27)}
+										</TableCell>
+									</TableRow>
+									<TableRow>
+										<TableCell>Munkadíjak</TableCell>
+										<TableCell>{hufFormatter.format(munkadíjNetTotal)}</TableCell>
+										<TableCell>{hufFormatter.format(munkadíjNetTotal * 0.27)}</TableCell>
+										<TableCell className='text-right'>
+											{hufFormatter.format(munkadíjNetTotal * 1.27)}
+										</TableCell>
+									</TableRow>
+									<TableRow>
+										<TableCell>Díjak</TableCell>
+										<TableCell>{hufFormatter.format(otherItemsNetTotal)}</TableCell>
+										<TableCell>{hufFormatter.format(otherItemsNetTotal * 0.27)}</TableCell>
+
+										<TableCell className='text-right'>
+											{hufFormatter.format(otherItemsNetTotal * 1.27)}
+										</TableCell>
+									</TableRow>
+									<TableRow>
+										<TableCell>Szerelési segédanyagok</TableCell>
+										<TableCell>{hufFormatter.format(netTotal("Other Material"))}</TableCell>
+										<TableCell>{hufFormatter.format(netTotal("Other Material") * 0.27)}</TableCell>
+
+										<TableCell className='text-right'>
+											{hufFormatter.format(netTotal("Other Material") * 1.27)}
+										</TableCell>
+									</TableRow>
+									<TableRow>
+										<TableCell colSpan={3}>Kedvezmény</TableCell>
+
+										<TableCell>
+											<div>
 												{readonly ? (
-													<div className='font-extralight text-gray-500 flex flex-row items-center gap-2'>
+													<div className='font-extralight text-gray-500 flex flex-row items-center justify-end gap-2'>
 														<Typography
 															variant='small'
 															color='blue-gray'
@@ -918,10 +943,9 @@ export function Page2({
 														</Typography>
 													</div>
 												) : (
-													<div className='font-extralight text-gray-500 flex flex-row items-center gap-2'>
+													<div className='font-extralight text-gray-500 flex flex-row items-center gap-2 w-[200px]'>
 														<div className='relative'>
 															<Input
-																variant='simple'
 																value={discount}
 																onChange={(e) => {
 																	if (!setDiscount) return;
@@ -955,54 +979,29 @@ export function Page2({
 													</div>
 												)}
 											</div>
-										</td>
-									</tr>
-								</tbody>
-								<tfoot className='bg-gray'>
-									<tr>
-										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												Össz:
-											</Typography>
-										</td>
-										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												{hufFormatter.format(otherItemsNetTotal + netTotal())}
-											</Typography>
-										</td>
-										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												{hufFormatter.format(otherItemsNetTotal * 0.27 + netTotal() * 0.27)}
-											</Typography>
-										</td>
-										<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-											<Typography
-												variant='small'
-												color='blue-gray'
-												className='font-normal leading-none opacity-70'>
-												{hufFormatter.format(
-													otherItemsNetTotal * 1.27 +
-														netTotal() * 1.27 -
-														((otherItemsNetTotal * 1.27 + netTotal() * 1.27) * discount) /
-															100
-												)}
-											</Typography>
-										</td>
-									</tr>
-								</tfoot>
-							</table>
-						</div>
-					</Card>
-				</div>
+										</TableCell>
+									</TableRow>
+								</TableBody>
+								<TableFooter className='bg-secondary text-gray-700'>
+									<TableRow>
+										<TableCell>Össz:</TableCell>
+										<TableCell>{hufFormatter.format(otherItemsNetTotal + netTotal())}</TableCell>
+										<TableCell>
+											{hufFormatter.format(otherItemsNetTotal * 0.27 + netTotal() * 0.27)}
+										</TableCell>
+										<TableCell className='text-right'>
+											{hufFormatter.format(
+												otherItemsNetTotal * 1.27 +
+													netTotal() * 1.27 -
+													((otherItemsNetTotal * 1.27 + netTotal() * 1.27) * discount) / 100
+											)}
+										</TableCell>
+									</TableRow>
+								</TableFooter>
+							</Table>
+						</AccordionContent>
+					</AccordionItem>
+				</Accordion>
 				<div className='mt-8'>
 					<Label htmlFor='description'>Megjegyzés</Label>
 					<Textarea
@@ -1021,147 +1020,184 @@ export function Page2({
 
 	function CustomItemTable({
 		headers,
-		setIsEditingItems,
 		items,
 		setItems,
 		type,
 		products,
+		globalSpace = true,
 	}: {
 		headers: string[];
-		setIsEditingItems: React.Dispatch<React.SetStateAction<boolean>>;
 		items: FelmeresItem[];
 		setItems?: React.Dispatch<React.SetStateAction<FelmeresItem[]>>;
 		products?: Product[];
 		type: string;
+		globalSpace: boolean;
 	}) {
 		const netTotal = items
 			.map(({ inputValues, netPrice }) => netPrice * inputValues.reduce((a, b) => a + b.ammount, 0))
 			.reduce((a, b) => a + b, 0);
 		return (
-			<Card className='my-5'>
-				<div className='w-full overflow-x-auto rounded-md'>
-					<table className='w-full min-w-max table-auto text-left max-w-20 overflow-x-scroll border-separate border-spacing-0'>
-						<thead>
-							<tr>
-								{headers.map((head, index) => (
-									<th
-										key={head}
-										className={cn(
-											index === 0 ? "sticky left-0 z-10 border-r" : "",
-											"border-b border-blue-gray-100 bg-blue-gray-50 p-4 "
-										)}>
-										<Typography
-											variant='small'
-											color='blue-gray'
-											className={"font-normal leading-none opacity-70"}>
-											{head}
-										</Typography>
-									</th>
-								))}
-								{!readonly ? (
-									<th className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-										<PencilSquareIcon
-											className='w-5 h-5 cursor-pointer'
-											onClick={() => setIsEditingItems((prev) => !prev)}
-										/>
-									</th>
-								) : null}
-							</tr>
-						</thead>
-						<tbody className=''>
-							{items
-								.sort((a, b) => (a.sort_number ?? 0) - (b.sort_number ?? 0))
-								.map(
-									(
-										{
-											name,
-											place,
-											placeOptions: place_options,
-											inputValues,
-											netPrice,
-											sku,
-											attributeId,
-											product,
-										},
-										index
-									) => {
-										const classes = "p-4 ";
-
-										return (
-											<>
-												<HoverCard>
-													<HoverCardContent className='w-80 z-[99999]'>
-														<div className='flex justify-between space-x-4'>
-															<div className='space-y-1'>
-																<h4 className='text-sm font-semibold'>{sku}</h4>
-																<p className='text-sm'>{name}</p>
-																<div className='flex items-center pt-2'>
-																	<Banknote className='mr-2 h-4 w-4 opacity-70' />{" "}
-																	<span className='text-xs text-muted-foreground'>
-																		{hufFormatter.format(netPrice)}
-																	</span>
-																</div>
-															</div>
+			<Table>
+				<TableHeader>
+					<TableRow>
+						{headers.map((head, index) => (
+							<TableHead
+								key={head}
+								className={cn(
+									index === 0
+										? "sticky left-0 z-10  bg-white"
+										: index === headers.length - 1
+										? "text-right"
+										: ""
+								)}>
+								{head}
+							</TableHead>
+						))}
+						{!readonly ? <TableHead className='w-[10px]'></TableHead> : null}
+					</TableRow>
+				</TableHeader>
+				<TableBody>
+					{items
+						.sort((a, b) => (a.sort_number ?? 0) - (b.sort_number ?? 0))
+						.map(
+							(
+								{
+									name,
+									place,
+									placeOptions: place_options,
+									inputValues,
+									netPrice,
+									sku,
+									attributeId,
+									product,
+								},
+								index
+							) => {
+								return (
+									<>
+										<HoverCard key={index}>
+											<HoverCardContent className='w-80 z-[99999]'>
+												<div className='flex justify-between space-x-4'>
+													<div className='space-y-1'>
+														<h4 className='text-sm font-semibold'>{sku}</h4>
+														<p className='text-sm'>{name}</p>
+														<div className='flex items-center pt-2'>
+															<Banknote className='mr-2 h-4 w-4 opacity-70' />{" "}
+															<span className='text-xs text-muted-foreground'>
+																{hufFormatter.format(netPrice)}
+															</span>
 														</div>
-													</HoverCardContent>
-													<tr
-														key={name}
-														className={cn(index % 2 !== 0 ? "bg-gray-200/60" : "bg-white")}>
-														<th
-															className={cn(
-																"table-cell sticky z-[1] left-0 border-r ",
-																index % 2 !== 0 ? "bg-gray-100" : "bg-white"
-															)}>
-															<HoverCardTrigger asChild>
-																<Button
-																	variant='link'
-																	className='text-black justify-start lg:px-4 px-3 active:text-black hover:text-black hover:no-underline active:no-underline'>
-																	<div className='max-w-[150px] truncate'>{sku}</div>
-																</Button>
-															</HoverCardTrigger>
-														</th>
+													</div>
+												</div>
+											</HoverCardContent>
+											<TableRow>
+												<TableCell className='sticky z-[1] table-cell left-0 bg-white'>
+													<HoverCardTrigger asChild>
+														<Button
+															variant='link'
+															className='text-black justify-start lg:px-4 px-3 active:text-black hover:text-black hover:no-underline active:no-underline'>
+															<div className='lg:max-w-[150px] max-w-[80px] truncate'>
+																{sku}
+															</div>
+														</Button>
+													</HoverCardTrigger>
+												</TableCell>
 
-														{inputValues
-															.sort((a, b) => a.id - b.id)
-															.map((inputValue) => (
-																<div
-																	key={inputValue.id}
-																	className='flex flex-row items-center'>
-																	<td className={classes}>
-																		{readonly ? (
-																			<Typography
-																				variant='small'
-																				color='blue-gray'
-																				className='font-normal w-80 flex flex-row gap-4 '>
-																				<span className='break-keep '>
-																					{inputValue.ammount} darab
+												{inputValues
+													.sort((a, b) => a.id - b.id)
+													.map((inputValue) => (
+														<div key={inputValue.id} className='flex flex-row items-center'>
+															<TableCell key={inputValue.id}>
+																{readonly ? (
+																	<Typography
+																		variant='small'
+																		color='blue-gray'
+																		className='font-normal w-80 flex flex-row gap-4 '>
+																		<span className='break-keep '>
+																			{inputValue.ammount} darab
+																		</span>
+																		{place && globalSpace ? (
+																			<>
+																				-
+																				<span className='w-2/3'>
+																					{inputValue.value}
 																				</span>
-																				{place ? (
-																					<>
-																						-
-																						<span className='w-2/3'>
-																							{inputValue.value}
-																						</span>
-																					</>
-																				) : null}
-																			</Typography>
-																		) : (
-																			<Counter
-																				maxWidth='max-w-[10rem]'
-																				value={inputValue.ammount}
-																				onChange={(value) =>
-																					!setItems
-																						? null
-																						: setItems((items) => [
+																			</>
+																		) : null}
+																	</Typography>
+																) : (
+																	<Counter
+																		maxWidth='max-w-[10rem]'
+																		value={inputValue.ammount}
+																		onChange={(value) =>
+																			!setItems
+																				? null
+																				: setItems((items) => [
+																						...items.filter(
+																							(i) => i.product !== product
+																						),
+																						{
+																							...items.find(
+																								(i) =>
+																									i.product ===
+																									product
+																							)!,
+																							inputValues: [
+																								...inputValues.filter(
+																									(value) =>
+																										value.id !==
+																										inputValue.id
+																								),
+																								{
+																									...inputValue,
+																									ammount: value,
+																								},
+																							],
+																						},
+																				  ])
+																		}
+																	/>
+																)}
+															</TableCell>
+															{place && globalSpace ? (
+																<TableCell className='flex flex-row w-full items-center gap-2'>
+																	<div className='font-normal flex flex-col gap-2 max-w-[17rem]'>
+																		<div className='flex-row flex items-center gap-2'>
+																			{readonly ? null : (
+																				<>
+																					<AutoComplete
+																						options={place_options.map(
+																							(option) => ({
+																								label: option,
+																								value: option,
+																							})
+																						)}
+																						inputWidth='300px'
+																						value={inputValue.value}
+																						create={true}
+																						onSelect={(e) => {
+																							if (
+																								!place_options.includes(
+																									e
+																								)
+																							) {
+																								createNewPlaceOption(
+																									e,
+																									attributeId,
+																									product
+																								);
+																							}
+																							if (!setItems) return;
+																							setItems([
 																								...items.filter(
-																									(i) =>
-																										i.product !==
+																									(item) =>
+																										item.product !==
 																										product
 																								),
 																								{
 																									...items.find(
-																										(i) =>
-																											i.product ===
+																										(item) =>
+																											item.product ===
 																											product
 																									)!,
 																									inputValues: [
@@ -1171,52 +1207,22 @@ export function Page2({
 																												inputValue.id
 																										),
 																										{
-																											...inputValue,
+																											value: e,
+																											id: inputValue.id,
 																											ammount:
-																												value,
+																												inputValue.ammount,
 																										},
 																									],
 																								},
-																						  ])
-																				}
-																			/>
-																		)}
-																	</td>
-																	{place ? (
-																		<td
-																			className={
-																				classes +
-																				" flex flex-row w-full items-center gap-2"
-																			}>
-																			<div className='font-normal flex flex-col gap-2 max-w-[17rem]'>
-																				<div className='flex-row flex items-center gap-2'>
-																					{readonly ? null : (
-																						<>
-																							<AutoComplete
-																								options={place_options.map(
-																									(option) => ({
-																										label: option,
-																										value: option,
-																									})
-																								)}
-																								inputWidth='300px'
-																								value={inputValue.value}
-																								create={true}
-																								onSelect={(e) => {
-																									if (
-																										!place_options.includes(
-																											e
-																										)
-																									) {
-																										createNewPlaceOption(
-																											e,
-																											attributeId,
-																											product
-																										);
-																									}
-																									if (!setItems)
-																										return;
-																									setItems([
+																							]);
+																						}}
+																					/>
+																					<PlusCircleIcon
+																						className='w-7 h-7 cursor-pointer'
+																						onClick={() =>
+																							!setItems
+																								? null
+																								: setItems([
 																										...items.filter(
 																											(item) =>
 																												item.product !==
@@ -1232,265 +1238,175 @@ export function Page2({
 																											)!,
 																											inputValues:
 																												[
-																													...inputValues.filter(
-																														(
-																															value
-																														) =>
-																															value.id !==
-																															inputValue.id
-																													),
+																													...inputValues,
 																													{
-																														value: e,
-																														id: inputValue.id,
-																														ammount:
-																															inputValue.ammount,
+																														value: "",
+																														id:
+																															Math.max(
+																																...inputValues.map(
+																																	(
+																																		value
+																																	) =>
+																																		value.id
+																																)
+																															) +
+																															1,
+																														ammount: 0,
 																													},
 																												],
 																										},
-																									]);
-																								}}
-																							/>
-																							<PlusCircleIcon
-																								className='w-7 h-7 cursor-pointer'
-																								onClick={() =>
-																									!setItems
-																										? null
-																										: setItems([
-																												...items.filter(
-																													(
-																														item
-																													) =>
-																														item.product !==
-																														product
-																												),
-																												{
-																													...items.find(
-																														(
-																															item
-																														) =>
-																															item.product ===
-																															product
-																													)!,
-																													inputValues:
-																														[
-																															...inputValues,
-																															{
-																																value: "",
-																																id:
-																																	Math.max(
-																																		...inputValues.map(
-																																			(
-																																				value
-																																			) =>
-																																				value.id
-																																		)
-																																	) +
-																																	1,
-																																ammount: 0,
-																															},
-																														],
-																												},
-																										  ])
-																								}
-																							/>
-																						</>
-																					)}
-																					{!readonly &&
-																					inputValues.length > 1 ? (
-																						<MinusCircleIcon
-																							className='w-7 h-7 cursor-pointer'
-																							onClick={() => {
-																								if (!setItems) return;
-																								setItems([
-																									...items.filter(
-																										(item) =>
-																											item.product !==
-																											product
+																								  ])
+																						}
+																					/>
+																				</>
+																			)}
+																			{!readonly && inputValues.length > 1 ? (
+																				<MinusCircleIcon
+																					className='w-7 h-7 cursor-pointer'
+																					onClick={() => {
+																						if (!setItems) return;
+																						setItems([
+																							...items.filter(
+																								(item) =>
+																									item.product !==
+																									product
+																							),
+																							{
+																								...items.find(
+																									(item) =>
+																										item.product ===
+																										product
+																								)!,
+																								inputValues: [
+																									...inputValues.filter(
+																										(value) =>
+																											value.id !==
+																											inputValue.id
 																									),
-																									{
-																										...items.find(
-																											(item) =>
-																												item.product ===
-																												product
-																										)!,
-																										inputValues: [
-																											...inputValues.filter(
-																												(
-																													value
-																												) =>
-																													value.id !==
-																													inputValue.id
-																											),
-																										],
-																									},
-																								]);
-																							}}
-																						/>
-																					) : null}
-																				</div>
-																			</div>
-																		</td>
-																	) : (
-																		<td className={classes + " w-full"}></td>
-																	)}
-																</div>
-															))}
-														<td className={classes}>
-															<Typography
-																variant='small'
-																color='blue-gray'
-																className='font-normal max-w-[30rem]'>
-																{hufFormatter.format(netPrice)}
-															</Typography>
-														</td>
-														<td className={classes}>
-															<Typography
-																variant='small'
-																color='blue-gray'
-																className='font-normal max-w-[30rem]'>
-																{hufFormatter.format(
-																	netPrice *
-																		inputValues.reduce((a, b) => a + b.ammount, 0)
-																)}
-															</Typography>
-														</td>
-														{!readonly ? (
-															<td className={classes}>
-																{isEditingItems ? (
-																	<MinusCircleIcon
-																		className='w-7 h-7 text-red-600 cursor-pointer'
-																		onClick={() =>
-																			!setItems
-																				? null
-																				: setItems((prev) =>
-																						prev.filter(
-																							(item) => item.name !== name
-																						)
-																				  )
-																		}
-																	/>
-																) : null}
-															</td>
-														) : null}
-													</tr>
-												</HoverCard>
-											</>
-										);
-									}
-								)}
-							<tr>
-								{!isEditingItems ? null : (
-									<>
-										<td className='p-4 px-2 border-b border-blue-gray-50 border-r sticky left-0'>
-											<AutoComplete
-												label='Hozzáad'
-												inputWidth={deviceSize !== "sm" ? "300px" : "100px"}
-												width='300px'
-												options={
-													!products
-														? []
-														: products
-																.filter(
-																	(product) =>
-																		!items
-																			.map((item) => item.product)
-																			.includes(product.id)
-																)
-																.sort((a, b) => a.sku.localeCompare(b.sku))
-																.map((product) => ({
-																	label: product.sku + " - " + product.name,
-																	value: product.id.toString(),
-																}))
-												}
-												value={items.find((item) => item.product === 0)?.name || ""}
-												onSelect={(value) => {
-													if (!setItems || !products || !productAttributes) return;
-													const product = products.find(
-														(product) => product.id === parseInt(value)
-													)!;
-													const productAttribute = productAttributes.find(
-														(attribute) => attribute.product === parseInt(value)
-													);
-													if (!product) return;
-													setItems((prev) => [
-														...prev.filter((item) => item.product.toString() !== value),
-														{
-															...prev[prev.length - 1],
-															id: 0,
-															sort_number: prev.length
-																? Math.max(
-																		...prev.map((item) => item.sort_number ?? 0)
-																  ) + 1
-																: 0,
-															adatlap: felmeres.adatlap_id,
-															product: parseInt(value),
-															name: product.name,
-															sku: product.sku,
-															place: productAttribute ? productAttribute!.place : true,
-															inputValues: [
-																{
-																	value: "",
-																	id: 0,
-																	ammount: 0,
-																},
-															],
-															netPrice: product.price_list_alapertelmezett_net_price_huf,
-															source: "Manual",
-															type: type as unknown as "Item",
-															attributeId: productAttribute
-																? productAttribute!.id ?? 0
-																: 0,
-															placeOptions: productAttribute
-																? JSON.parse(
-																		(
-																			productAttribute!
-																				.place_options as unknown as string
-																		).replace(/'/g, '"')
-																  )
-																: [],
-														},
-													]);
-												}}
-											/>
-										</td>
-										<td className='p-4 border-b border-blue-gray-50'></td>
-										<td className='p-4 border-b border-blue-gray-50'></td>
-										<td className='p-4 border-b border-blue-gray-50'></td>
-										<td className='p-4 border-b border-blue-gray-50'></td>
+																								],
+																							},
+																						]);
+																					}}
+																				/>
+																			) : null}
+																		</div>
+																	</div>
+																</TableCell>
+															) : (
+																<TableCell className=' w-full'></TableCell>
+															)}
+														</div>
+													))}
+												<TableCell>{hufFormatter.format(netPrice)}</TableCell>
+												<TableCell className='text-right'>
+													{hufFormatter.format(
+														netPrice * inputValues.reduce((a, b) => a + b.ammount, 0)
+													)}
+												</TableCell>
+												{!readonly ? (
+													<TableCell>
+														<Button
+															onClick={() =>
+																!setItems
+																	? null
+																	: setItems((prev) =>
+																			prev.filter((item) => item.name !== name)
+																	  )
+															}
+															variant={"destructive"}
+															size={"icon"}>
+															<Trash2 />
+														</Button>
+													</TableCell>
+												) : null}
+											</TableRow>
+										</HoverCard>
 									</>
-								)}
-							</tr>
-						</tbody>
-						<tfoot className='bg-gray'>
-							<tr>
-								<td
-									className='border-b border-r sticky left-0 border-blue-gray-100 bg-blue-gray-50 p-4 z-10'
-									style={{ borderTopWidth: 0 }}>
-									<Typography
-										variant='small'
-										color='blue-gray'
-										className='font-normal leading-none opacity-70 z-[1]'>
-										Össz:
-									</Typography>
-								</td>
-								<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
-								<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
-								<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'>
-									<Typography
-										variant='small'
-										color='blue-gray'
-										className='font-normal leading-none opacity-70'>
-										{hufFormatter.format(netTotal)}
-									</Typography>
-								</td>
-								{readonly ? null : (
-									<td className='border-b border-blue-gray-100 bg-blue-gray-50 p-4'></td>
-								)}
-							</tr>
-						</tfoot>
-					</table>
-				</div>
-			</Card>
+								);
+							}
+						)}
+					<TableRow>
+						{readonly ? null : (
+							<>
+								<TableRow>
+									<TableCell className='sticky left-0'>
+										<AutoComplete
+											label='Hozzáad'
+											inputWidth={deviceSize !== "sm" ? "300px" : "100px"}
+											width='300px'
+											options={
+												!products
+													? []
+													: products
+															.filter(
+																(product) =>
+																	!items
+																		.map((item) => item.product)
+																		.includes(product.id)
+															)
+															.sort((a, b) => a.sku.localeCompare(b.sku))
+															.map((product) => ({
+																label: product.sku + " - " + product.name,
+																value: product.id.toString(),
+															}))
+											}
+											value={items.find((item) => item.product === 0)?.name || ""}
+											onSelect={(value) => {
+												if (!setItems || !products || !productAttributes) return;
+												const product = products.find(
+													(product) => product.id === parseInt(value)
+												)!;
+												const productAttribute = productAttributes.find(
+													(attribute) => attribute.product === parseInt(value)
+												);
+												if (!product) return;
+												setItems((prev) => [
+													...prev.filter((item) => item.product.toString() !== value),
+													{
+														...prev[prev.length - 1],
+														id: 0,
+														sort_number: prev.length
+															? Math.max(...prev.map((item) => item.sort_number ?? 0)) + 1
+															: 0,
+														adatlap: felmeres.adatlap_id,
+														product: parseInt(value),
+														name: product.name,
+														sku: product.sku,
+														place: productAttribute ? productAttribute!.place : true,
+														inputValues: [
+															{
+																value: "",
+																id: 0,
+																ammount: 0,
+															},
+														],
+														netPrice: product.price_list_alapertelmezett_net_price_huf,
+														source: "Manual",
+														type: type as unknown as "Item",
+														attributeId: productAttribute ? productAttribute!.id ?? 0 : 0,
+														placeOptions: productAttribute
+															? JSON.parse(
+																	(
+																		productAttribute!
+																			.place_options as unknown as string
+																	).replace(/'/g, '"')
+															  )
+															: [],
+													},
+												]);
+											}}
+										/>
+									</TableCell>
+								</TableRow>
+								<TableRow></TableRow>
+								<TableRow></TableRow>
+								<TableRow></TableRow>
+								<TableRow></TableRow>
+							</>
+						)}
+					</TableRow>
+				</TableBody>
+			</Table>
 		);
 	}
 }
