@@ -2,7 +2,7 @@ import { Question } from "@/app/questions/page";
 import { FelmeresQuestion } from "../page";
 import ClientPage from "./_clientPage";
 import { BaseFelmeresData, FelmeresItem } from "../new/_clientPage";
-import { fetchAdatlapDetails } from "@/app/_utils/MiniCRM";
+import { fetchAdatlapData } from "@/app/_utils/MiniCRM";
 import EditClientPage from "./edit/clientPage";
 import { notFound } from "next/navigation";
 import { Product } from "../products/page";
@@ -118,7 +118,7 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 		notFound();
 	}
 
-	const adatlap = await fetchAdatlapDetails(felmeres.adatlap_id.toString());
+	const adatlap = await fetchAdatlapData(felmeres.adatlap_id.toString());
 
 	const chat = await fetch("https://pen.dataupload.xyz/felmeres-notes?felmeres_id=" + felmeres.id, {
 		next: { tags: [encodeURIComponent(felmeresId)] },

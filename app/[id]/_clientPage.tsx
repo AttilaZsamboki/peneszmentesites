@@ -1,6 +1,6 @@
 "use client";
 import { FelmeresQuestion, GridOptions } from "../page";
-import { AdatlapDetails } from "../_utils/types";
+import { AdatlapData } from "../_utils/types";
 
 import Heading from "../_components/Heading";
 const Sections = React.lazy(() => import("../_components/Sections"));
@@ -105,7 +105,7 @@ export default function ClientPage({
 	felmeresNonState: BaseFelmeresData;
 	felmeresItems: FelmeresItem[];
 	questions: Question[];
-	adatlap: AdatlapDetails;
+	adatlap: AdatlapData;
 	products: Product[];
 	pictures: FelmeresPictures[];
 	chat: Chat[];
