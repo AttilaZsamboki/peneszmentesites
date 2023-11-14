@@ -33,7 +33,6 @@ import { calculatePercentageValue, cn } from "@/lib/utils";
 import useBreakpointValue from "../_components/useBreakpoint";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Separator } from "@radix-ui/react-dropdown-menu";
 import { Munkadíj } from "../munkadij/page";
 import { Input } from "@/components/ui/input";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -517,7 +516,6 @@ export function Page2({
 								<TableHeader>
 									<TableRow>
 										<TableHead>Típus</TableHead>
-										<TableHead>Leírás</TableHead>
 										<TableHead className='w-[60px] '>Darab</TableHead>
 										<TableHead className='w-[100px] '>Nettó egységár</TableHead>
 										<TableHead className='text-right'>Nettó összesen</TableHead>
@@ -532,90 +530,120 @@ export function Page2({
 												(munkadíj) => munkadíj.id === fee.munkadij
 											)!;
 											return (
-												<TableRow key={fee.id}>
-													<TableCell className='font-medium'>{munkadíj.type}</TableCell>
-													<TableCell className='lg:w-1/3 w-[80px] truncate'>
-														{munkadíj.description}
-													</TableCell>
-													<TableCell>
-														{readonly ? (
-															fee.amount
-														) : (
-															<Input
-																className='w-[60px]'
-																value={fee.amount}
-																onChange={(e) =>
-																	setFelmeresMunkadíjak!((prev) => [
-																		...prev.filter(
-																			(f) => f.munkadij !== fee.munkadij
-																		),
-																		{
-																			...fee,
-																			amount: e.target.value
-																				? parseInt(
-																						e.target.value.replace(
-																							/[^\d-]/g,
-																							""
-																						)
-																				  )
-																				: 0,
-																		},
-																	])
-																}
-															/>
-														)}
-													</TableCell>
-													<TableCell>
-														{readonly ? (
-															hufFormatter.format(fee.value)
-														) : (
-															<Input
-																className='w-[100px]'
-																value={numberFormatter.format(fee.value)}
-																onChange={(e) =>
-																	setFelmeresMunkadíjak!((prev) => [
-																		...prev.filter(
-																			(f) => f.munkadij !== fee.munkadij
-																		),
-																		{
-																			...fee,
-																			value: e.target.value
-																				? parseInt(
-																						e.target.value.replace(
-																							/[^\d-]/g,
-																							""
-																						)
-																				  )
-																				: 0,
-																		},
-																	])
-																}
-															/>
-														)}
-													</TableCell>
-													<TableCell className='text-right'>
-														{hufFormatter.format(fee.amount * fee.value)}
-													</TableCell>
-													{readonly ? null : (
-														<TableCell className='flex justify-end flex-row '>
-															<Button
-																onClick={() =>
-																	setFelmeresMunkadíjak!((prev) =>
-																		prev.filter((f) => f.munkadij !== fee.munkadij)
-																	)
-																}
-																variant={"destructive"}
-																size={"icon"}>
-																<Trash2 />
-															</Button>
-														</TableCell>
-													)}
-												</TableRow>
+												<>
+													<HoverCard key={fee.id}>
+														<HoverCardContent className='w-80 z-[99999]'>
+															<div className='flex justify-between space-x-4'>
+																<div className='space-y-1'>
+																	<h4 className='text-sm font-semibold'>
+																		{munkadíj.type}
+																	</h4>
+																	<p className='text-sm'>{munkadíj.description}</p>
+																	<div className='flex items-center pt-2'>
+																		<Banknote className='mr-2 h-4 w-4 opacity-70' />{" "}
+																		<span className='text-xs text-muted-foreground'>
+																			{hufFormatter.format(munkadíj.value)}
+																		</span>
+																	</div>
+																</div>
+															</div>
+														</HoverCardContent>
+														<TableRow>
+															<TableCell className='font-medium'>
+																<HoverCardTrigger asChild>
+																	<Button
+																		variant='link'
+																		className='text-black justify-start lg:px-4 px-3 active:text-black hover:text-black hover:no-underline active:no-underline'>
+																		<div className='lg:max-w-[150px] max-w-[80px] truncate'>
+																			{munkadíj.type}
+																		</div>
+																	</Button>
+																</HoverCardTrigger>
+															</TableCell>
+
+															<TableCell>
+																{readonly ? (
+																	fee.amount
+																) : (
+																	<Input
+																		className='w-[60px]'
+																		value={fee.amount}
+																		onChange={(e) =>
+																			setFelmeresMunkadíjak!((prev) => [
+																				...prev.filter(
+																					(f) => f.munkadij !== fee.munkadij
+																				),
+																				{
+																					...fee,
+																					amount: e.target.value
+																						? parseInt(
+																								e.target.value.replace(
+																									/[^\d-]/g,
+																									""
+																								)
+																						  )
+																						: 0,
+																				},
+																			])
+																		}
+																	/>
+																)}
+															</TableCell>
+															<TableCell>
+																{readonly ? (
+																	hufFormatter.format(fee.value)
+																) : (
+																	<Input
+																		className='w-[100px]'
+																		value={numberFormatter.format(fee.value)}
+																		onChange={(e) =>
+																			setFelmeresMunkadíjak!((prev) => [
+																				...prev.filter(
+																					(f) => f.munkadij !== fee.munkadij
+																				),
+																				{
+																					...fee,
+																					value: e.target.value
+																						? parseInt(
+																								e.target.value.replace(
+																									/[^\d-]/g,
+																									""
+																								)
+																						  )
+																						: 0,
+																				},
+																			])
+																		}
+																	/>
+																)}
+															</TableCell>
+															<TableCell className='text-right'>
+																{hufFormatter.format(fee.amount * fee.value)}
+															</TableCell>
+															{readonly ? null : (
+																<TableCell className='flex justify-end flex-row '>
+																	<Button
+																		onClick={() =>
+																			setFelmeresMunkadíjak!((prev) =>
+																				prev.filter(
+																					(f) => f.munkadij !== fee.munkadij
+																				)
+																			)
+																		}
+																		variant={"destructive"}
+																		size={"icon"}>
+																		<Trash2 />
+																	</Button>
+																</TableCell>
+															)}
+														</TableRow>
+													</HoverCard>
+												</>
 											);
 										})}
 									{!readonly ? (
 										<TableRow>
-											<TableCell colSpan={6}>
+											<TableCell colSpan={5}>
 												<AutoComplete
 													inputWidth={"300px"}
 													width='300px'
@@ -1033,9 +1061,6 @@ export function Page2({
 		type: string;
 		globalSpace: boolean;
 	}) {
-		const netTotal = items
-			.map(({ inputValues, netPrice }) => netPrice * inputValues.reduce((a, b) => a + b.ammount, 0))
-			.reduce((a, b) => a + b, 0);
 		return (
 			<Table>
 				<TableHeader>
