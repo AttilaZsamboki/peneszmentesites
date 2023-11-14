@@ -613,7 +613,6 @@ export function Page2({
 												</TableRow>
 											);
 										})}
-									<Separator />
 									{!readonly ? (
 										<TableRow>
 											<TableCell colSpan={6}>
@@ -1117,7 +1116,7 @@ export function Page2({
 																		<span className='break-keep '>
 																			{inputValue.ammount} darab
 																		</span>
-																		{place ? (
+																		{place && globalSpace ? (
 																			<>
 																				-
 																				<span className='w-2/3'>

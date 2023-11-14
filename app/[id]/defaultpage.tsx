@@ -52,7 +52,7 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 			console.error(err);
 			return [];
 		});
-	const felmeresMunkadíjak = await fetch("https://pen.dataupload.xyz/felmeres-munkadij?felmeres_id=" + felmeresId, {
+	const felmeresMunkadíjak = await fetch("https://pen.dataupload.xyz/felmeres-munkadij?felmeres=" + felmeresId, {
 		next: { tags: [encodeURIComponent(felmeresId)], revalidate: 60 },
 	})
 		.then((res) => res.json())
