@@ -1,4 +1,3 @@
-import { Product } from "../products/page";
 import ClientPage from "./clientPage";
 
 export interface Munkadíj {
