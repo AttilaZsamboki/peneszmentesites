@@ -11,11 +11,11 @@ export interface Template {
 
 export default async function Page() {
 	const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates", {
-		next: { tags: ["templates"], revalidate: 600 },
+		cache: "no-cache",
 	}).then((resp) => resp.json());
 
 	const products: Product[] = await fetch("https://pen.dataupload.xyz/products?all=true", {
-		next: { tags: ["products"] },
+		next: { tags: ["products"], revalidate: 60 },
 	}).then((resp) => resp.json());
 	await Promise.all(
 		templates.map(async (template) => {

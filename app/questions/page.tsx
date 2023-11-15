@@ -23,8 +23,10 @@ export interface QuestionProducts {
 	product: number;
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function QuestionsFetch() {
-	const response = await fetch("https://pen.dataupload.xyz/questions", { next: { tags: ["questions"] } });
+	const response = await fetch("https://pen.dataupload.xyz/questions", { cache: "no-store" });
 	const data: Question[] = (await response.json()) as Question[];
 	const productData: Product[] = (await fetch("https://pen.dataupload.xyz/products?all=true").then((res) =>
 		res.json()
@@ -33,7 +35,7 @@ export default async function QuestionsFetch() {
 		data.map(async (question) => {
 			if (question.connection === "Fix") return;
 			const response = await fetch(`https://pen.dataupload.xyz/question_products/${question.id}`, {
-				next: { tags: ["questionproducts", "questions", "product-attributes"] },
+				cache: "no-store",
 			});
 			const dataLocal: QuestionProducts[] = (await response.json()) as QuestionProducts[];
 			const products = dataLocal.map((product) => product.product);

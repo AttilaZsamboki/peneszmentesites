@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-export default function ClientPage({ munkadijak, products }: { munkadijak: Munkadíj[]; products: Product[] }) {
+export default function ClientPage({ munkadijak }: { munkadijak: Munkadíj[] }) {
 	const [openDialog, setOpenDialog] = useState(false);
 	const nullSelected = { type: "", value: 0, product: 0, description: "", id: 0 };
 	const [selected, setSelected] = useState<Munkadíj>(nullSelected);
