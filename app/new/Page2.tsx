@@ -161,7 +161,7 @@ export function Page2({
 		const baseTotal = items
 			.filter((item) => (type ? item.type === type : true))
 			.map(({ inputValues, netPrice }) => netPrice * inputValues.reduce((a, b) => a + b.ammount, 0))
-			.reduce((a, b) => a + b, 1);
+			.reduce((a, b) => a + b, 0);
 		if (!type) {
 			return baseTotal + munkadíjNetTotal;
 		}
@@ -264,6 +264,7 @@ export function Page2({
 			duration: 2000,
 		});
 	};
+	console.log(felmeresMunkadíjak);
 
 	return (
 		<>
@@ -524,7 +525,7 @@ export function Page2({
 								</TableHeader>
 								<TableBody>
 									{felmeresMunkadíjak
-										.sort((a, b) => (a.id ? a.id : a.order_id!) - (b.id ? b.id : b.order_id!))
+										.sort((a, b) => a.order_id! - b.order_id!)
 										.map((fee) => {
 											const munkadíj = munkadíjak.find(
 												(munkadíj) => munkadíj.id === fee.munkadij

@@ -1,7 +1,7 @@
 import { Question } from "@/app/questions/page";
 import { FelmeresQuestion } from "../page";
 import ClientPage from "./_clientPage";
-import { BaseFelmeresData, FelmeresItem } from "../new/_clientPage";
+import { BaseFelmeresData, FelmeresItem, FelmeresMunkadíj } from "../new/_clientPage";
 import { fetchAdatlapDetails } from "@/app/_utils/MiniCRM";
 import EditClientPage from "./edit/clientPage";
 import { notFound } from "next/navigation";
@@ -52,9 +52,12 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 			console.error(err);
 			return [];
 		});
-	const felmeresMunkadíjak = await fetch("https://pen.dataupload.xyz/felmeres-munkadij?felmeres=" + felmeresId, {
-		next: { tags: [encodeURIComponent(felmeresId)], revalidate: 60 },
-	})
+	const felmeresMunkadíjak: FelmeresMunkadíj[] = await fetch(
+		"https://pen.dataupload.xyz/felmeres-munkadij?felmeres=" + felmeresId,
+		{
+			next: { tags: [encodeURIComponent(felmeresId)], revalidate: 60 },
+		}
+	)
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(err);
@@ -81,7 +84,7 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 		return (
 			<EditClientPage
 				munkadíjak={munkadíjak}
-				felmeresMunkadíjak={felmeresMunkadíjak}
+				felmeresMunkadíjak={felmeresMunkadíjak.map((munkadij, index) => ({ ...munkadij, order_id: index }))}
 				pictures={pictures}
 				felmeres={felmeres}
 				felmeresItems={felmeresItems}
