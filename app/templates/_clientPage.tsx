@@ -3,10 +3,8 @@
 import { Template } from "./page";
 import React from "react";
 import Input from "../_components/Input";
-import Select from "../_components/Select";
 import AutoComplete from "../_components/AutoComplete";
 import { Product } from "../products/page";
-import Heading from "../_components/Heading";
 import { XMarkIcon } from "@heroicons/react/20/solid";
 import { Button } from "@/components/ui/button";
 import BaseComponentV2 from "../_components/BaseComponentV2";
@@ -16,10 +14,23 @@ import { ToastAction } from "@/components/ui/toast";
 import { createTemplate, updateTemplate } from "@/lib/fetchers";
 import useBreakpointValue from "../_components/useBreakpoint";
 import { Textarea } from "@/components/ui/textarea";
+import { Munkadíj } from "../munkadij/page";
+import { SelectGroup, SelectTrigger, Select, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { ItemType, ProductTemplate } from "../new/_clientPage";
+import { Trash2 } from "lucide-react";
 
-export default function Page({ templates, products }: { templates: Template[]; products: Product[] }) {
+export default function Page({
+	templates,
+	products,
+	munkadíjak,
+}: {
+	templates: Template[];
+	products: Product[];
+	munkadíjak: Munkadíj[];
+}) {
 	const [template, setTemplate] = React.useState<Template>({ description: "", name: "", type: "", id: 0 });
-	const [items, setItems] = React.useState<string[]>([]);
+	const [items, setItems] = React.useState<ProductTemplate[]>([]);
 	const [upToDateTemplates, setUpToDateTemplates] = React.useState<any[]>(templates);
 	const [isNew, setIsNew] = React.useState(false);
 	const [openDialog, setOpenDialog] = React.useState(false);
@@ -28,14 +39,14 @@ export default function Page({ templates, products }: { templates: Template[]; p
 	React.useEffect(() => {
 		if (!isNew) {
 			const fetchItems = async () => {
-				const response: { product: number; template: number }[] = await fetch(
+				const response: ProductTemplate[] = await fetch(
 					`https://pen.dataupload.xyz/product_templates/${template.id}/`
 				).then((res) => res.json());
-				setItems(response.map((item: { product: number }) => item.product.toString()));
+				setItems(response);
 			};
 			fetchItems();
 		}
-	}, [template.id]);
+	}, [template.id, isNew]);
 
 	const createTemplateLocal = async () => {
 		const templateResponseData = await createTemplate(items, template);
@@ -43,7 +54,7 @@ export default function Page({ templates, products }: { templates: Template[]; p
 			...upToDateTemplates,
 			{
 				...templateResponseData,
-				firstProduct: products.find((product) => product.id.toString() === items[0])?.sku,
+				firstProduct: products.find((product) => product.id === items[0].product)?.sku,
 				jsonProducts: JSON.stringify(items),
 			},
 		]);
@@ -62,25 +73,28 @@ export default function Page({ templates, products }: { templates: Template[]; p
 	};
 	const updateTemplateLocal = async () => {
 		const response = await updateTemplate(template, items);
-		if (response.ok) {
+		if (response) {
 			await fetch("/api/revalidate?tag=templates");
 			setUpToDateTemplates((prev) => {
 				const index = prev.findIndex((item) => item.id === template.id);
 				const newArr = [...prev];
 				newArr[index] = {
 					...template,
-					firstProduct: products.find((product) => product.id.toString() === items[0])?.sku,
+					firstProduct: products.find((product) => product.id === items[0].product)?.sku,
 					jsonProducts: JSON.stringify(items),
 				};
 				return newArr;
 			});
 		}
 	};
-	const onClickSetItems = (e: string) => {
-		setItems((prevItems) => [...prevItems, e]);
+	const onClickSetItems = (e: string, type: ItemType | "Munkadíj") => {
+		setItems((prevItems) => [
+			...prevItems,
+			{ type: type, product: parseInt(e), template: template.id ?? undefined },
+		]);
 	};
-	const onClickDeleteItem = (item: string) => {
-		setItems((prevItems) => prevItems.filter((i) => i !== item));
+	const onClickDeleteItem = (item: ProductTemplate) => {
+		setItems((prevItems) => prevItems.filter((i) => i.product !== item.product));
 	};
 
 	return (
@@ -142,6 +156,7 @@ export default function Page({ templates, products }: { templates: Template[]; p
 				onCancel={resetTemplate}>
 				<Form
 					items={items}
+					munkadíjak={munkadíjak}
 					products={products}
 					onClickAddItem={onClickSetItems}
 					setTemplate={setTemplate}
@@ -164,17 +179,58 @@ export function Form({
 	items,
 	onClickAddItem,
 	onClickDeleteItem,
+	munkadíjak,
 }: {
 	template: Template;
 	setTemplate: React.Dispatch<React.SetStateAction<Template>>;
 	products: Product[];
-	items: string[];
-	onClickAddItem: (e: string) => void;
-	onClickDeleteItem: (e: string) => void;
+	items: ProductTemplate[];
+	onClickAddItem: (e: string, type: ItemType | "Munkadíj") => void;
+	onClickDeleteItem: (e: ProductTemplate) => void;
+	munkadíjak: Munkadíj[];
 }) {
 	const deviceSize = useBreakpointValue();
+	const isChosen = (products: any[], type: string) => {
+		const tItems = items
+			.filter((item) => item.type === type && item.template?.toString() === template.id.toString())
+			.map((item) => item.product.toString());
+		return products.filter((product) => !tItems.includes(product.id.toString()));
+	};
+
+	const itemTypes: { label: string; value: ItemType | "Munkadíj"; options: { value: string; label: string }[] }[] = [
+		{
+			label: "Termék",
+			value: "Item",
+			options: isChosen(products, "Item")
+				.filter((product) => product.category !== "Egyéb szerelési anyag")
+				.sort((a, b) => a.sku.localeCompare(b.sku))
+				.map((product) => ({
+					label: product.sku.trim() + " - " + product.name,
+					value: product.id.toString(),
+				})),
+		},
+		{
+			label: "Munkadíj",
+			value: "Munkadíj",
+			options: isChosen(munkadíjak, "Munkadíj").map((munkadíj) => ({
+				label: munkadíj.type,
+				value: munkadíj.id.toString(),
+			})),
+		},
+		{
+			label: "Szerelési segédanyag",
+			value: "Other Material",
+			options: isChosen(products, "Other Material")
+				.filter((product) => product.category === "Egyéb szerelési anyag")
+				.sort((a, b) => a.sku.localeCompare(b.sku))
+				.map((product) => ({
+					label: product.sku.trim() + " - " + product.name,
+					value: product.id.toString(),
+				})),
+		},
+	];
 	return (
-		<div className='flex flex-col w-full gap-5 h-full overflow-y-scroll px-3'>
+		<div className='flex flex-col w-full gap-5 h-full overflow-y-scroll pr-3 pl-1'>
 			<div className='flex flex-col gap-2'>
 				<div>Név</div>
 				<Input
@@ -184,19 +240,25 @@ export function Form({
 			</div>
 			<div className='flex flex-col gap-2'>
 				<div>Típus</div>
-				<Select
-					options={[
-						"Helyi elszívós rendszer",
-						"Központi ventillátoros",
-						"Passzív rendszer",
-						"Hővisszanyerős",
-					].map((type) => ({
-						label: type,
-						value: type,
-					}))}
-					onChange={(e) => setTemplate((prev) => ({ ...prev, type: e }))}
-					value={template.type}
-				/>
+				<Select onValueChange={(e) => setTemplate((prev) => ({ ...prev, type: e }))} value={template.type}>
+					<SelectTrigger>
+						<SelectValue placeholder='Válassz egy típust' />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectGroup>
+							{[
+								"Helyi elszívós rendszer",
+								"Központi ventillátoros",
+								"Passzív rendszer",
+								"Hővisszanyerős",
+							].map((type) => (
+								<SelectItem value={type} key={type}>
+									{type}
+								</SelectItem>
+							))}
+						</SelectGroup>
+					</SelectContent>
+				</Select>
 			</div>
 			<div className='flex flex-col gap-2'>
 				<div>Tárgy</div>
@@ -205,40 +267,60 @@ export function Form({
 					onChange={(e) => setTemplate((prev) => ({ ...prev, description: e.target.value }))}
 				/>
 			</div>
-			<div className='flex flex-col gap-2'>
-				<div className='-mt-0 lg:-mt-10'>
-					<Heading title='Tételek' variant='h4' border={false} />
-				</div>
-				<div className='lg:relative bottom-10'>
-					<AutoComplete
-						inputWidth={deviceSize === "sm" ? "300px" : "600px"}
-						options={products
-							.filter((product) => !items.map((item) => item).includes(product.id.toString()))
-							.sort((a, b) => a.sku.localeCompare(b.sku))
-							.map((product) => ({
-								label: product.sku.trim() + " - " + product.name,
-								value: product.id.toString(),
-							}))}
-						onSelect={onClickAddItem}
-						value=''
-					/>
-				</div>
-				<div className='flex flex-col gap-5'>
-					{items.map((item) => (
-						<div
-							key={item}
-							className='flex flex-row w-full items-center justify-between border-b pb-2 gap-3'>
+			<Accordion type='multiple' defaultValue={["Item", "Munkadíj", "Other Material"]}>
+				{itemTypes.map((itemType) => (
+					<AccordionItem key={itemType.value} value={itemType.value}>
+						<AccordionTrigger>{itemType.label}</AccordionTrigger>
+						<AccordionContent>
 							<div>
-								{products.find((product) => product.id.toString() === item)?.sku} -{" "}
-								{products.find((product) => product.id.toString() === item)?.name}
+								<AutoComplete
+									inputWidth={deviceSize === "sm" ? "300px" : "600px"}
+									options={itemType.options}
+									onSelect={(e) => onClickAddItem(e, itemType.value)}
+									value=''
+								/>
 							</div>
-							<Button variant='destructive' onClick={() => onClickDeleteItem(item)}>
-								<XMarkIcon className='w-5 h-5 text-white' />
-							</Button>
-						</div>
-					))}
-				</div>
-			</div>
+							<div className='flex flex-col gap-5 py-4 px-3'>
+								{items
+									.filter((item) => item.type === itemType.value)
+									.map((item) => (
+										<div
+											key={item.product}
+											className='flex flex-row w-full items-center justify-between gap-3'>
+											<div className='w-11/12'>
+												<Item itemType={itemType.value} item={item} />
+											</div>
+											<Button
+												size='icon'
+												className='w-1/12'
+												variant='destructive'
+												onClick={() => onClickDeleteItem(item)}>
+												<Trash2 />
+											</Button>
+										</div>
+									))}
+							</div>
+						</AccordionContent>
+					</AccordionItem>
+				))}
+			</Accordion>
 		</div>
 	);
+	function Item({ itemType, item }: { itemType: ItemType | "Munkadíj"; item: ProductTemplate }) {
+		if (itemType === "Munkadíj") {
+			const munkadíj = munkadíjak.find((munkadíj) => munkadíj.id === parseInt(item.product.toString()));
+			return (
+				<div>
+					<span className='font-medium'>{munkadíj?.type}</span>
+					{munkadíj?.description ? " - " + munkadíj!.description : ""}
+				</div>
+			);
+		}
+		return (
+			<>
+				<span className='font-medium'>{products.find((product) => product.id === item.product)?.sku}</span> -{" "}
+				{products.find((product) => product.id === item.product)?.name}
+			</>
+		);
+	}
 }

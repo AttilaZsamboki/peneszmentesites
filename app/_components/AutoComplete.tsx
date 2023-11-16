@@ -19,6 +19,7 @@ export default function AutoComplete({
 	disabled = false,
 	width,
 	className,
+	onCreate,
 }: {
 	options: { label: string; value: string }[];
 	value?: string;
@@ -32,6 +33,7 @@ export default function AutoComplete({
 	disabled?: boolean;
 	width?: string;
 	className?: string;
+	onCreate?: (value: string) => void;
 }) {
 	const [open, setOpen] = React.useState(false);
 	const [inputValue, setInputValue] = React.useState("");
@@ -85,15 +87,18 @@ export default function AutoComplete({
 					/>
 					<CommandEmpty>
 						{create && inputValue ? (
-							<div className='flex flex-row justify-between items-center px-4'>
+							<div
+								onClick={() => {
+									if (onCreate) {
+										onCreate(inputValue);
+										return;
+									}
+									onSelect ? onSelect(inputValue) : null;
+									setOpen(false);
+								}}
+								className='flex flex-row justify-between items-center px-4'>
 								<div>Létrehozás &ldquo;{inputValue}&rdquo;</div>
-								<Button
-									onClick={() => {
-										onSelect ? onSelect(inputValue) : null;
-										setOpen(false);
-									}}
-									size='icon'
-									variant='outline'>
+								<Button type='submit' size='icon' variant='outline'>
 									<Plus className='h-4 w-4' />
 								</Button>
 							</div>

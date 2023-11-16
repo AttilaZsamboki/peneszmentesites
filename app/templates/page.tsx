@@ -1,3 +1,4 @@
+import { Munkadíj } from "../munkadij/page";
 import { Product } from "../products/page";
 import ClientPage from "./_clientPage";
 
@@ -29,6 +30,10 @@ export default async function Page() {
 			) as Product[];
 		})
 	);
+	const munkadíjak: Munkadíj[] = await fetch("https://pen.dataupload.xyz/munkadij")
+		.then((resp) => resp.json())
+		.catch(() => []);
+
 	return (
 		<ClientPage
 			templates={
@@ -39,6 +44,7 @@ export default async function Page() {
 					jsonProducts: JSON.stringify(template.items),
 				})) as unknown as Template[]
 			}
+			munkadíjak={munkadíjak}
 			products={products}
 		/>
 	);

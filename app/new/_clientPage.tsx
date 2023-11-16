@@ -50,7 +50,8 @@ import { Munkadíj } from "../munkadij/page";
 
 export interface ProductTemplate {
 	product: number;
-	template: number;
+	template?: number;
+	type: ItemType | "Munkadíj";
 }
 
 export interface BaseFelmeresData {
@@ -66,6 +67,8 @@ export interface BaseFelmeresData {
 	created_by: string;
 }
 
+export type ItemType = "Item" | "Fee" | "Discount" | "Other Material";
+
 export interface FelmeresItem {
 	id?: number;
 	name: string;
@@ -77,7 +80,7 @@ export interface FelmeresItem {
 	adatlap: number;
 	sku: string;
 	attributeId: number;
-	type: "Item" | "Fee" | "Discount" | "Other Material";
+	type: ItemType;
 	valueType: "percent" | "fixed";
 	source: "Manual" | "Template";
 	category: string;
@@ -107,6 +110,7 @@ export interface FelmeresMunkadíj {
 	amount: number;
 	order_id?: number;
 	value: number;
+	source?: "Template" | "Manual";
 }
 
 export default function Page({
@@ -747,7 +751,7 @@ export default function Page({
 							<Page2
 								felmeresMunkadíjak={felmeresMunkadíjak}
 								setFelmeresMunkadíjak={setFelmeresMunkadíjak}
-								munkadíjak={munkadíjak}
+								originalMunkadíjak={munkadíjak}
 								products={products}
 								felmeres={felmeres}
 								items={items}
