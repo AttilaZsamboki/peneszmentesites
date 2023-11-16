@@ -12,6 +12,7 @@ import {
 	BaseFelmeresData,
 	FelmeresItem,
 	FelmeresMunkadíj,
+	ItemType,
 	OtherFelmeresItem,
 	ProductTemplate,
 	QuestionTemplate,
@@ -70,6 +71,7 @@ export function Page2({
 	felmeresMunkadíjak: FelmeresMunkadíj[];
 	setFelmeresMunkadíjak?: React.Dispatch<React.SetStateAction<FelmeresMunkadíj[]>>;
 }) {
+	const [openAccordions, setOpenAccordions] = React.useState<(ItemType | "Munkadíj" | "Összesítés")[]>([]);
 	const [newOtherItem, setNewOtherItem] = React.useState<OtherFelmeresItem>();
 	const [isEditingOtherItems, setIsEditingOtherItems] = React.useState(!readonly);
 	const [templates, setTemplates] = React.useState<Template[]>(originalTemplates ?? []);
@@ -103,6 +105,21 @@ export function Page2({
 							.includes(productTemplate.product)
 				)
 				.map(async (productTemplate) => {
+					!openAccordions.includes(productTemplate.type)
+						? setOpenAccordions((prev) => [...prev, productTemplate.type])
+						: null;
+					if (productTemplate.type === "Munkadíj") {
+						setFelmeresMunkadíjak!((prev) => [
+							...prev,
+							{
+								munkadij: productTemplate.product,
+								amount: 0,
+								order_id: prev.length ?? 0,
+								value: munkadíjak.find((fee) => fee.id === productTemplate.product)?.value ?? 0,
+								source: "Template",
+							},
+						]);
+					}
 					const productResp = await fetch("https://pen.dataupload.xyz/products/" + productTemplate.product);
 					if (productResp.ok) {
 						const productData: Product = await productResp.json();
@@ -140,7 +157,7 @@ export function Page2({
 									adatlap: felmeres.adatlap_id,
 									sku: productData.sku,
 									attributeId: productAttributeData ? productAttributeData.id : 0,
-									type: "Item",
+									type: productData.category === "Egyéb szerelési anyag" ? "Other Material" : "Item",
 									valueType: "fixed",
 									source: "Template",
 									category: productData.category ?? "",
@@ -242,14 +259,12 @@ export function Page2({
 		setFelmeres ? setFelmeres(newFelmeres) : null;
 		if (!setItems) return;
 		setItems((prev) => prev.filter((item) => item.source !== "Template"));
+		setFelmeresMunkadíjak!((prev) => prev.filter((fee) => fee.source !== "Template"));
 		await fetchTemplateItems(newFelmeres);
 	};
 	const saveTemplate = async () => {
-		const response = await updateTemplate(
-			selectedTemplate,
-			items.map((item) => item.product.toString())
-		);
-		if (response.ok) {
+		const response = await updateTemplate(selectedTemplate, templateProducts);
+		if (response) {
 			toast({
 				title: "Sablon sikeresen frissítve",
 				action: <Check className='w-5 h-5 text-green-700' />,
@@ -264,8 +279,26 @@ export function Page2({
 			duration: 2000,
 		});
 	};
-	console.log(felmeresMunkadíjak);
 
+	const templateProducts: ProductTemplate[] = [
+		...items.map((item) => ({
+			product: item.product,
+			type: item.type,
+			template: felmeres.template ?? 0,
+		})),
+		...felmeresMunkadíjak.map((fee) => ({
+			product: fee.munkadij,
+			type: "Munkadíj" as ItemType | "Munkadíj",
+			template: felmeres.template ?? 0,
+		})),
+	];
+	const handleOpenAccordion = (section: ItemType | "Munkadíj" | "Összesítés") => {
+		if (!openAccordions.includes(section)) {
+			setOpenAccordions((prev) => [...prev, section]);
+		} else {
+			setOpenAccordions((prev) => prev.filter((item) => item !== section));
+		}
+	};
 	return (
 		<>
 			{openTemplateDialog ? (
@@ -283,10 +316,7 @@ export function Page2({
 					}
 					onSave={async () => {
 						if (!setFelmeres) return;
-						const jsonResp = await createTemplate(
-							items.map((item) => (item.product ?? 0).toString()),
-							selectedTemplate
-						);
+						const jsonResp = await createTemplate(templateProducts, selectedTemplate);
 						setFelmeres((prev) => ({ ...prev, template: jsonResp.id }));
 						setSelectedTemplate((prev) => ({ ...prev, id: jsonResp.id }));
 						setTemplates((prev) => [...prev, jsonResp]);
@@ -298,9 +328,10 @@ export function Page2({
 						});
 					}}>
 					<Form
-						items={items.map((item) => (item.product ?? 0).toString())}
+						munkadíjak={munkadíjak}
+						items={templateProducts}
 						products={products ?? []}
-						onClickAddItem={(e) => {
+						onClickAddItem={(e, type) => {
 							if (!setItems) return;
 							setItems((prev) => [
 								...prev,
@@ -315,7 +346,7 @@ export function Page2({
 									adatlap: felmeres.adatlap_id,
 									sku: products!.find((product) => product.id.toString() === e)!.sku,
 									attributeId: 0,
-									type: "Item",
+									type: type as ItemType,
 									valueType: "fixed",
 									source: "Template",
 									category: "",
@@ -325,7 +356,11 @@ export function Page2({
 						}}
 						onClickDeleteItem={(e) => {
 							if (!setItems) return;
-							setItems((prev) => prev.filter((item) => item.product.toString() !== e));
+							if (e.type === "Munkadíj") {
+								setFelmeresMunkadíjak!((prev) => prev.filter((fee) => fee.munkadij !== e.product));
+								return;
+							}
+							setItems((prev) => prev.filter((item) => item.product !== e.product));
 						}}
 						setTemplate={setSelectedTemplate}
 						template={{ ...selectedTemplate, id: 0 }}
@@ -464,13 +499,15 @@ export function Page2({
 												}));
 												await fetch("/api/revalidate?tag=templates");
 												return;
+											} else {
+												console.log(resp.status);
+												toast({
+													title: "Leírás frissítése sikertelen",
+													description: "Kérlek próbáld újra később",
+													variant: "destructive",
+													duration: 2000,
+												});
 											}
-											toast({
-												title: "Leírás frissítése sikertelen",
-												description: "Kérlek próbáld újra később",
-												variant: "destructive",
-												duration: 2000,
-											});
 										}, 500);
 									}
 								}}
@@ -486,9 +523,9 @@ export function Page2({
 						</div>
 					</div>
 				) : null}
-				<Accordion type='multiple'>
-					<AccordionItem value='Tételek'>
-						<AccordionTrigger className='relative'>
+				<Accordion value={openAccordions} type='multiple'>
+					<AccordionItem value='Item'>
+						<AccordionTrigger onClick={() => handleOpenAccordion("Item")} className='relative'>
 							<div>Tételek</div>
 							<div className='absolute right-4 text-xs font-medium text-gray-700 mr-2'>
 								{hufFormatter.format(netTotal("Item"))}
@@ -505,8 +542,8 @@ export function Page2({
 							/>
 						</AccordionContent>
 					</AccordionItem>
-					<AccordionItem value='Munkadíjak'>
-						<AccordionTrigger className='relative'>
+					<AccordionItem value='Munkadíj'>
+						<AccordionTrigger onClick={() => handleOpenAccordion("Munkadíj")} className='relative'>
 							<div>Munkadíjak</div>
 							<div className='absolute right-4 text-xs font-medium text-gray-700 mr-2'>
 								{hufFormatter.format(munkadíjNetTotal)}
@@ -566,8 +603,8 @@ export function Page2({
 																{readonly ? (
 																	fee.amount
 																) : (
-																	<Input
-																		className='w-[60px]'
+																	<Counter
+																		maxWidth='max-w-[10rem]'
 																		value={fee.amount}
 																		onChange={(e) =>
 																			setFelmeresMunkadíjak!((prev) => [
@@ -576,14 +613,7 @@ export function Page2({
 																				),
 																				{
 																					...fee,
-																					amount: e.target.value
-																						? parseInt(
-																								e.target.value.replace(
-																									/[^\d-]/g,
-																									""
-																								)
-																						  )
-																						: 0,
+																					amount: e ?? 0,
 																				},
 																			])
 																		}
@@ -683,8 +713,8 @@ export function Page2({
 						</AccordionContent>
 					</AccordionItem>
 					{/* fees */}
-					<AccordionItem value='Díjak'>
-						<AccordionTrigger className='relative'>
+					<AccordionItem value='Fee'>
+						<AccordionTrigger onClick={() => handleOpenAccordion("Fee")} className='relative'>
 							<div>Díjak</div>
 							<div className='absolute right-4 text-xs font-medium text-gray-700 mr-2'>
 								{hufFormatter.format(otherItemsNetTotal)}
@@ -876,8 +906,8 @@ export function Page2({
 						</AccordionContent>
 					</AccordionItem>
 					{/* other material */}
-					<AccordionItem value='Egyéb szerelési anyag'>
-						<AccordionTrigger className='relative'>
+					<AccordionItem value='Other Material'>
+						<AccordionTrigger onClick={() => handleOpenAccordion("Other Material")} className='relative'>
 							<div>Szerelési segédanyag</div>
 							<div className='absolute right-4 text-xs font-medium text-gray-700 mr-2'>
 								{hufFormatter.format(netTotal("Other Material"))}
@@ -886,7 +916,7 @@ export function Page2({
 						<AccordionContent>
 							<CustomItemTable
 								globalSpace={false}
-								products={products?.filter((item) => item.category === "Egyéb szerelési anyag")}
+								products={products?.filter((product) => product.category === "Egyéb szerelési anyag")}
 								type='Other Material'
 								items={items.filter((item) => item.type === "Other Material")}
 								setItems={setItems}
@@ -895,7 +925,7 @@ export function Page2({
 						</AccordionContent>
 					</AccordionItem>
 					<AccordionItem value='Összesítés'>
-						<AccordionTrigger className='relative'>
+						<AccordionTrigger onClick={() => handleOpenAccordion("Összesítés")} className='relative'>
 							<div>Összesítés</div>
 							<div className='absolute right-4 text-xs font-medium text-gray-700 mr-2'>
 								{hufFormatter.format(otherItemsNetTotal + netTotal())}

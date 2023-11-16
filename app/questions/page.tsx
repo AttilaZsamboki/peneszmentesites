@@ -3,6 +3,7 @@ import Questions from "./_clientComponent";
 
 import { typeMap } from "../_utils/utils";
 import { getFirstProduct } from "../_utils/utils";
+import { ItemType } from "../new/_clientPage";
 
 export interface Question {
 	id: number;
@@ -18,7 +19,7 @@ export interface Question {
 	is_created?: boolean;
 }
 
-export interface QuestionProducts {
+export interface QuestionProduct {
 	question: number;
 	product: number;
 }
@@ -35,7 +36,7 @@ export default async function QuestionsFetch() {
 			const response = await fetch(`https://pen.dataupload.xyz/question_products/${question.id}`, {
 				next: { tags: ["questionproducts", "questions", "product-attributes"] },
 			});
-			const dataLocal: QuestionProducts[] = (await response.json()) as QuestionProducts[];
+			const dataLocal: QuestionProduct[] = (await response.json()) as QuestionProduct[];
 			const products = dataLocal.map((product) => product.product);
 			question.products = products;
 		})
