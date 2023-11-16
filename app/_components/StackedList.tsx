@@ -528,7 +528,7 @@ export default function StackedList({
 						.sort((a, b) => {
 							if (typeof a[filter.sort_by] === "string") {
 								return filter.sort_order === "desc"
-									? b[filter.sort_by]?.localeCompare(a[filter.sort_by])
+									? b[filter.sort_by]?.toString().localeCompare(a[filter.sort_by]?.toString())
 									: a[filter.sort_by]?.localeCompare(b[filter.sort_by]);
 							} else {
 								return filter.sort_order === "desc"

@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import React from "react";
 import { FelmeresQuestion } from "../page";
-import { AdatlapData } from "./page";
 import AutoComplete from "@/app/_components/AutoComplete";
 import { Template } from "@/app/templates/page";
 import { Product } from "@/app/products/page";
@@ -14,7 +13,7 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { useRouter } from "next/navigation";
 import { ProductAttributes } from "@/app/products/_clientPage";
 import { ToDo, assembleOfferXML, fetchMiniCRM, list_to_dos } from "@/app/_utils/MiniCRM";
-import { AdatlapDetails } from "../_utils/types";
+import { AdatlapData } from "../_utils/types";
 import { useSearchParams } from "next/navigation";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useGlobalState } from "@/app/_clientLayout";
@@ -288,7 +287,7 @@ export default function Page({
 	React.useEffect(() => {
 		if (felmeres.adatlap_id && !editFelmeresItems) {
 			const fetchAdatlapData = async () => {
-				const data: AdatlapDetails = await fetchMiniCRM("Project", felmeres.adatlap_id.toString(), "GET");
+				const data: AdatlapData = await fetchMiniCRM("Project", felmeres.adatlap_id.toString(), "GET");
 				setOtherItems((prev) => [
 					...prev.filter((item) => item.id !== 2),
 					{

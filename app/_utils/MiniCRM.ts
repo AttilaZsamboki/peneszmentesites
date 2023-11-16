@@ -1,5 +1,5 @@
 import { FelmeresItem } from "../new/_clientPage";
-import { AdatlapDetails } from "./types";
+import { AdatlapData } from "./types";
 
 export interface ContactDetails {
 	Id: number;
@@ -65,7 +65,7 @@ export async function fetchMiniCRM(endpoint: string, id?: string, method?: "POST
 		if (endpoint === "Project" || !endpoint) {
 			const resp = await fetch(`https://pen.dataupload.xyz/minicrm-adatlapok/${id ? id : ""}`);
 			if (resp.ok) {
-				const data: AdatlapDetails[] = await resp.json();
+				const data: AdatlapData[] = await resp.json();
 				if (id) {
 					return data;
 				}
@@ -141,7 +141,7 @@ export async function fetchMiniCRM(endpoint: string, id?: string, method?: "POST
 	}
 }
 
-export async function fetchAdatlapDetails(adatlap_id: string) {
+export async function fetchAdatlapData(adatlap_id: string) {
 	return await fetchMiniCRM("Project", adatlap_id, "GET");
 }
 
@@ -177,7 +177,7 @@ export async function assembleOfferXML(
 	if (!contactId || !adatlapId) {
 		return;
 	}
-	const adatlap: AdatlapDetails = await fetchAdatlapDetails(adatlapId);
+	const adatlap: AdatlapData = await fetchAdatlapData(adatlapId);
 	const contactData: ContactDetails = await fetchContactDetails(contactId);
 	const date = new Date(new Date().setDate(new Date().getDate() + 30));
 
@@ -272,6 +272,6 @@ export async function list_to_dos(adatlap_id: string, criteria?: (todo: ToDo) =>
 	return todos["Results"];
 }
 
-export function concatAddress(adatlap: AdatlapDetails) {
+export function concatAddress(adatlap: AdatlapData) {
 	return `${adatlap.Cim2} ${adatlap.Telepules} ${adatlap.Iranyitoszam}`;
 }
