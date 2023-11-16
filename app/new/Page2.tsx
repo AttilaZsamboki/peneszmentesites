@@ -376,7 +376,7 @@ export function Page2({
 							setItems((prev) => prev.filter((item) => item.product !== e.product));
 						}}
 						setTemplate={setSelectedTemplate}
-						template={{ ...selectedTemplate, id: 0 }}
+						template={{ ...selectedTemplate, id: 0, type: felmeres.type }}
 					/>
 				</CustomDialog>
 			) : null}
