@@ -111,7 +111,7 @@ body {
 	transform: rotate(180deg);
 }
 
-#no-refresh {
+html {
 	overflow: hidden;
 	overscroll-behavior: none;
 }
