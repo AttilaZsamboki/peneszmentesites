@@ -317,13 +317,26 @@ export function Page2({
 					onSave={async () => {
 						if (!setFelmeres) return;
 						const jsonResp = await createTemplate(templateProducts, selectedTemplate);
+						if (!jsonResp) {
+							toast({
+								title: "Sablon létrehozása sikertelen",
+								description: "Kérlek próbáld újra később",
+								variant: "destructive",
+								duration: 2000,
+							});
+							return;
+						}
 						setFelmeres((prev) => ({ ...prev, template: jsonResp.id }));
 						setSelectedTemplate((prev) => ({ ...prev, id: jsonResp.id }));
 						setTemplates((prev) => [...prev, jsonResp]);
 						toast({
 							title: "Sablon sikeresen létrehozva",
 							description: (
-								<OpenCreatedToast path={"/templates"} query={{ id: jsonResp.id }} inNewTab={true} />
+								<OpenCreatedToast
+									path={"/templates"}
+									query={{ id: jsonResp.id.toString() }}
+									inNewTab={true}
+								/>
 							),
 						});
 					}}>

@@ -74,7 +74,7 @@ export function FieldCreate({
 				},
 			]);
 		}
-	}, [product, question.id]);
+	}, [product, question.id, adatlap_id]);
 
 	const isTrue = (felmeres: FelmeresQuestion) => {
 		return (

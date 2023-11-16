@@ -46,7 +46,7 @@ export default function Page({
 			};
 			fetchItems();
 		}
-	}, [template.id]);
+	}, [template.id, isNew]);
 
 	const createTemplateLocal = async () => {
 		const templateResponseData = await createTemplate(items, template);
@@ -73,7 +73,7 @@ export default function Page({
 	};
 	const updateTemplateLocal = async () => {
 		const response = await updateTemplate(template, items);
-		if (response.ok) {
+		if (response) {
 			await fetch("/api/revalidate?tag=templates");
 			setUpToDateTemplates((prev) => {
 				const index = prev.findIndex((item) => item.id === template.id);
@@ -87,7 +87,7 @@ export default function Page({
 			});
 		}
 	};
-	const onClickSetItems = (e: string, type: string) => {
+	const onClickSetItems = (e: string, type: ItemType | "Munkadíj") => {
 		setItems((prevItems) => [
 			...prevItems,
 			{ type: type, product: parseInt(e), template: template.id ?? undefined },
@@ -185,7 +185,7 @@ export function Form({
 	setTemplate: React.Dispatch<React.SetStateAction<Template>>;
 	products: Product[];
 	items: ProductTemplate[];
-	onClickAddItem: (e: string, type: string) => void;
+	onClickAddItem: (e: string, type: ItemType | "Munkadíj") => void;
 	onClickDeleteItem: (e: ProductTemplate) => void;
 	munkadíjak: Munkadíj[];
 }) {
@@ -269,7 +269,7 @@ export function Form({
 			</div>
 			<Accordion type='multiple' defaultValue={["Item", "Munkadíj", "Other Material"]}>
 				{itemTypes.map((itemType) => (
-					<AccordionItem value={itemType.value}>
+					<AccordionItem key={itemType.value} value={itemType.value}>
 						<AccordionTrigger>{itemType.label}</AccordionTrigger>
 						<AccordionContent>
 							<div>
