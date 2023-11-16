@@ -2,7 +2,6 @@ import { Question } from "@/app/questions/page";
 import { FelmeresQuestion } from "../page";
 import ClientPage from "./_clientPage";
 import { BaseFelmeresData, FelmeresItem, FelmeresMunkadíj } from "../new/_clientPage";
-import { fetchAdatlapDetails } from "@/app/_utils/MiniCRM";
 import EditClientPage from "./edit/clientPage";
 import { notFound } from "next/navigation";
 import { Product } from "../products/page";
@@ -121,7 +120,12 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 		notFound();
 	}
 
-	const adatlap = await fetchAdatlapDetails(felmeres.adatlap_id.toString());
+	const adatlap = await fetch("https://pen.dataupload.xyz/minicrm-adatlapok/" + felmeres.adatlap_id.toString())
+		.then((res) => res.json())
+		.catch((err) => {
+			console.error(err);
+			return {};
+		});
 
 	const chat = await fetch("https://pen.dataupload.xyz/felmeres-notes?felmeres_id=" + felmeres.id, {
 		next: { tags: [encodeURIComponent(felmeresId)] },
