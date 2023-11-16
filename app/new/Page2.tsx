@@ -397,13 +397,13 @@ export function Page2({
 											label: option,
 											value: option,
 										}))}
-										value={felmeres.type}
+										value={selectedTemplate.type}
 										onSelect={(e) => {
 											setFelmeres ? setFelmeres({ ...felmeres, type: e, template: 0 }) : null;
 											setSelectedTemplate({
 												description: "",
 												name: "",
-												type: "",
+												type: e,
 												id: 0,
 											});
 										}}
