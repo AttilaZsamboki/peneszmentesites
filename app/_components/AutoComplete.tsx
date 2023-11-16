@@ -18,6 +18,8 @@ export default function AutoComplete({
 	label,
 	disabled = false,
 	width,
+	className,
+	onCreate,
 }: {
 	options: { label: string; value: string }[];
 	value?: string;
@@ -30,6 +32,8 @@ export default function AutoComplete({
 	label?: string;
 	disabled?: boolean;
 	width?: string;
+	className?: string;
+	onCreate?: (value: string) => void;
 }) {
 	const [open, setOpen] = React.useState(false);
 	const [inputValue, setInputValue] = React.useState("");
@@ -42,7 +46,7 @@ export default function AutoComplete({
 					role='combobox'
 					aria-expanded={open}
 					style={{ width: inputWidth }}
-					className='justify-between truncate'>
+					className={cn("justify-between truncate", className)}>
 					{value ? options.find((option) => option.label === value)?.label : label ?? "Keress.."}
 					<div className='flex items-center'>
 						{value && deselectable && (
@@ -83,15 +87,18 @@ export default function AutoComplete({
 					/>
 					<CommandEmpty>
 						{create && inputValue ? (
-							<div className='flex flex-row justify-between items-center px-4'>
+							<div
+								onClick={() => {
+									if (onCreate) {
+										onCreate(inputValue);
+										return;
+									}
+									onSelect ? onSelect(inputValue) : null;
+									setOpen(false);
+								}}
+								className='flex flex-row justify-between items-center px-4'>
 								<div>Létrehozás &ldquo;{inputValue}&rdquo;</div>
-								<Button
-									onClick={() => {
-										onSelect ? onSelect(inputValue) : null;
-										setOpen(false);
-									}}
-									size='icon'
-									variant='outline'>
+								<Button type='submit' size='icon' variant='outline'>
 									<Plus className='h-4 w-4' />
 								</Button>
 							</div>

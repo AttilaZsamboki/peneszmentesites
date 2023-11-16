@@ -1,13 +1,11 @@
 import { Question } from "@/app/questions/page";
 import { FelmeresQuestion } from "../page";
 import ClientPage from "./_clientPage";
-import { BaseFelmeresData, FelmeresItem } from "../new/_clientPage";
-import { fetchAdatlapDetails } from "@/app/_utils/MiniCRM";
+import { BaseFelmeresData, FelmeresItem, FelmeresMunkadíj } from "../new/_clientPage";
 import EditClientPage from "./edit/clientPage";
 import { notFound } from "next/navigation";
 import { Product } from "../products/page";
 import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
 
 export default async function DefaultPage({ params, edit }: { params: { id: string }; edit: boolean }) {
 	const felmeresId = params.id;
@@ -53,6 +51,17 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 			console.error(err);
 			return [];
 		});
+	const felmeresMunkadíjak: FelmeresMunkadíj[] = await fetch(
+		"https://pen.dataupload.xyz/felmeres-munkadij?felmeres=" + felmeresId,
+		{
+			next: { tags: [encodeURIComponent(felmeresId)], revalidate: 60 },
+		}
+	)
+		.then((res) => res.json())
+		.catch((err) => {
+			console.error(err);
+			return [];
+		});
 	const products: Product[] = await fetch("https://pen.dataupload.xyz/products?all=true", {
 		next: { tags: ["products"] },
 	}).then((response) => (response.ok ? response.json() : []));
@@ -64,10 +73,17 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 			console.error(err);
 			return [];
 		});
+	const munkadíjak = await fetch("https://pen.dataupload.xyz/munkadij", {
+		next: { tags: ["munkadijak"] },
+	})
+		.then((response) => response.json())
+		.catch((error) => console.error("error", error));
 
 	if (edit) {
 		return (
 			<EditClientPage
+				munkadíjak={munkadíjak}
+				felmeresMunkadíjak={felmeresMunkadíjak.map((munkadij, index) => ({ ...munkadij, order_id: index }))}
 				pictures={pictures}
 				felmeres={felmeres}
 				felmeresItems={felmeresItems}
@@ -103,8 +119,13 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 		console.log(felmeres);
 		notFound();
 	}
-
-	const adatlap = await fetchAdatlapDetails(felmeres.adatlap_id.toString());
+  
+	const adatlap = await fetch("https://pen.dataupload.xyz/minicrm-adatlapok/" + felmeres.adatlap_id.toString())
+		.then((res) => res.json())
+		.catch((err) => {
+			console.error(err);
+			return {};
+		});
 
 	const chat = await fetch("https://pen.dataupload.xyz/felmeres-notes?felmeres_id=" + felmeres.id, {
 		next: { tags: [encodeURIComponent(felmeresId)] },
@@ -118,6 +139,8 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 	if (adatlap) {
 		return (
 			<ClientPage
+				felmeresMunkadíjak={felmeresMunkadíjak}
+				munkadíjak={munkadíjak}
 				pictures={pictures}
 				felmeresQuestions={formattedFelmeres}
 				felmeresItems={felmeresItems}

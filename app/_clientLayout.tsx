@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getCookie, createJWT, useLocalStorageState, useUserWithRole, Role } from "@/lib/utils";
 import jwt from "jsonwebtoken";
+import Image from "next/image";
 
 interface Progress {
 	percent: number;
@@ -71,6 +72,10 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 				{
 					name: "Sablonok",
 					href: ["/templates"],
+				},
+				{
+					name: "Munkadíjak",
+					href: ["/munkadij"],
 				},
 			],
 		},
@@ -131,20 +136,22 @@ function Navbar({ routes }: { routes: Route[] }) {
 	);
 	const { user, error, isLoading } = useUserWithRole();
 
-	if (!user && !isLoading) {
+	const isStaging =
+		typeof window !== "undefined" ? window.location.href.includes(process.env.NEXT_PUBLIC_STAGING!) : true;
+	if (!user && !isLoading && !isStaging) {
 		window.location.href = "/api/auth/login";
 		return null;
 	}
-	if (user && user.sub) {
+	if ((user && user.sub) || (isStaging && typeof window !== "undefined")) {
 		const JWT = getCookie("jwt");
 		if (!JWT) {
-			document.cookie = `jwt=${createJWT(user.sub!)}; path=/`;
+			document.cookie = `jwt=${createJWT(user?.sub ?? process.env.NEXT_PUBLIC_STAGING_SUB!)}; path=/`;
 		} else if (JWT) {
 			try {
 				jwt.verify(JWT, process.env.NEXT_PUBLIC_SECRET as string);
 			} catch (err) {
 				if (err instanceof jwt.TokenExpiredError) {
-					document.cookie = `jwt=${createJWT(user.sub!)}; path=/`;
+					document.cookie = `jwt=${createJWT(user?.sub ?? process.env.NEXT_PUBLIC_STAGING_SUB!)}; path=/`;
 				}
 			}
 		}
@@ -169,7 +176,7 @@ function Navbar({ routes }: { routes: Route[] }) {
 								</div>
 								<div className='self-center'>
 									<a href='/'>
-										<img src='/logo.jpg' className='w-15 h-5' />
+										<Image src='/logo.jpg' alt='logo' height={20} width={56} />
 									</a>
 								</div>
 

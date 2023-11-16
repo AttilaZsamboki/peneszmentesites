@@ -1,3 +1,4 @@
+import { Munkadíj } from "../munkadij/page";
 import { Product } from "../products/page";
 import ClientPage from "./_clientPage";
 
@@ -11,11 +12,11 @@ export interface Template {
 
 export default async function Page() {
 	const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates", {
-		next: { tags: ["templates"], revalidate: 600 },
+		cache: "no-cache",
 	}).then((resp) => resp.json());
 
 	const products: Product[] = await fetch("https://pen.dataupload.xyz/products?all=true", {
-		next: { tags: ["products"] },
+		next: { tags: ["products"], revalidate: 60 },
 	}).then((resp) => resp.json());
 	await Promise.all(
 		templates.map(async (template) => {
@@ -29,6 +30,10 @@ export default async function Page() {
 			) as Product[];
 		})
 	);
+	const munkadíjak: Munkadíj[] = await fetch("https://pen.dataupload.xyz/munkadij")
+		.then((resp) => resp.json())
+		.catch(() => []);
+
 	return (
 		<ClientPage
 			templates={
@@ -39,6 +44,7 @@ export default async function Page() {
 					jsonProducts: JSON.stringify(template.items),
 				})) as unknown as Template[]
 			}
+			munkadíjak={munkadíjak}
 			products={products}
 		/>
 	);

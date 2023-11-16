@@ -16,9 +16,7 @@ interface Option {
 export default function Sections({
 	options,
 	setSelected,
-	filter,
 	setFilter,
-	disabled = false,
 	selected,
 	href,
 }: {
@@ -27,7 +25,6 @@ export default function Sections({
 	setSelected: React.Dispatch<React.SetStateAction<string | number>>;
 	filter: string;
 	setFilter: React.Dispatch<React.SetStateAction<string>>;
-	disabled?: boolean;
 	href?: (value: string) => string;
 }) {
 	return (

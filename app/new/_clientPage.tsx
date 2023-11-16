@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import React from "react";
 import { FelmeresQuestion } from "../page";
-import { AdatlapData } from "./page";
 import AutoComplete from "@/app/_components/AutoComplete";
 import { Template } from "@/app/templates/page";
 import { Product } from "@/app/products/page";
@@ -14,7 +13,7 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { useRouter } from "next/navigation";
 import { ProductAttributes } from "@/app/products/_clientPage";
 import { ToDo, assembleOfferXML, fetchMiniCRM, list_to_dos } from "@/app/_utils/MiniCRM";
-import { AdatlapDetails } from "../_utils/types";
+import { AdatlapData } from "../_utils/types";
 import { useSearchParams } from "next/navigation";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { useGlobalState } from "@/app/_clientLayout";
@@ -47,10 +46,12 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } 
 import { DialogFooter, DialogHeader } from "@material-tailwind/react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import { Munkadíj } from "../munkadij/page";
 
 export interface ProductTemplate {
 	product: number;
-	template: number;
+	template?: number;
+	type: ItemType | "Munkadíj";
 }
 
 export interface BaseFelmeresData {
@@ -66,6 +67,8 @@ export interface BaseFelmeresData {
 	created_by: string;
 }
 
+export type ItemType = "Item" | "Fee" | "Discount" | "Other Material";
+
 export interface FelmeresItem {
 	id?: number;
 	name: string;
@@ -77,7 +80,7 @@ export interface FelmeresItem {
 	adatlap: number;
 	sku: string;
 	attributeId: number;
-	type: "Item" | "Fee" | "Discount" | "Other Material";
+	type: ItemType;
 	valueType: "percent" | "fixed";
 	source: "Manual" | "Template";
 	category: string;
@@ -100,6 +103,16 @@ export interface OtherFelmeresItem {
 	id: number;
 }
 
+export interface FelmeresMunkadíj {
+	id?: number;
+	felmeres?: number;
+	munkadij: number;
+	amount: number;
+	order_id?: number;
+	value: number;
+	source?: "Template" | "Manual";
+}
+
 export default function Page({
 	adatlapok,
 	templates,
@@ -111,6 +124,8 @@ export default function Page({
 	startPage,
 	isEdit,
 	editPictures,
+	munkadíjak,
+	editFelmeresMunkadíjak,
 }: {
 	adatlapok: AdatlapData[];
 	templates: Template[];
@@ -122,6 +137,8 @@ export default function Page({
 	startPage?: SectionName;
 	isEdit?: boolean;
 	editPictures?: FelmeresPictures[];
+	munkadíjak: Munkadíj[];
+	editFelmeresMunkadíjak?: FelmeresMunkadíj[];
 }) {
 	const { setProgress } = useGlobalState();
 	const { user } = useUser();
@@ -168,16 +185,10 @@ export default function Page({
 					}))
 			: [
 					{
-						name: "Munkadíj",
-						value: 0,
-						type: "percent",
-						id: 0,
-					},
-					{
 						name: "Jóváírás (helyszíni felmérés díj)",
 						value: -20000,
 						type: "fixed",
-						id: 3,
+						id: 0,
 					},
 			  ]
 	);
@@ -190,6 +201,9 @@ export default function Page({
 	);
 	const [pictures, setPictures] = React.useState<FelmeresPictures[]>(editPictures ?? []);
 	const [openPageDialog, setOpenPageDialog] = React.useState(false);
+	const [felmeresMunkadíjak, setFelmeresMunkadíjak] = React.useState<FelmeresMunkadíj[]>(
+		editFelmeresMunkadíjak ?? []
+	);
 
 	const createType = (
 		sendOffer?: boolean
@@ -269,11 +283,11 @@ export default function Page({
 			}
 		};
 		fetchQuestions();
-	}, [items]);
+	}, [items.length]);
 	React.useEffect(() => {
 		if (felmeres.adatlap_id && !editFelmeresItems) {
 			const fetchAdatlapData = async () => {
-				const data: AdatlapDetails = await fetchMiniCRM("Project", felmeres.adatlap_id.toString(), "GET");
+				const data: AdatlapData = await fetchMiniCRM("Project", felmeres.adatlap_id.toString(), "GET");
 				setOtherItems((prev) => [
 					...prev.filter((item) => item.id !== 2),
 					{
@@ -396,6 +410,23 @@ export default function Page({
 			console.log("Tételek mentése: " + (saveOfferItems - start) + "ms");
 			// -- END -- //
 
+			// -- Munkadíj mentése -- //
+			await fetch("https://pen.dataupload.xyz/felmeres-munkadij/", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify(
+					felmeresMunkadíjak.map((munkadíj) => ({
+						...munkadíj,
+						felmeres: felmeresResponseData.id,
+						id: munkadíj.id ? munkadíj.id : null,
+					}))
+				),
+			});
+			updateStatus(210);
+			// -- END -- //
+
 			// Kérdések mentése //
 			data.filter((question) => question.value).map(async (question) => {
 				const originaQuestion = questions.find((q) => q.id === question.question);
@@ -422,21 +453,18 @@ export default function Page({
 						});
 					}
 				}
-				const resQuestions = await fetch(
-					"https://pen.dataupload.xyz/felmeres_questions/" + (question.id ? question.id + "/" : ""),
-					{
-						method: question.id ? "PUT" : "POST",
-						headers: {
-							"Content-Type": "application/json",
-						},
-						body: JSON.stringify({
-							...question,
-							adatlap: felmeresResponseData.id,
-							value: Array.isArray(question.value) ? JSON.stringify(question.value) : question.value,
-							question: question_id,
-						}),
-					}
-				);
+				await fetch("https://pen.dataupload.xyz/felmeres_questions/" + (question.id ? question.id + "/" : ""), {
+					method: question.id ? "PUT" : "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						...question,
+						adatlap: felmeresResponseData.id,
+						value: Array.isArray(question.value) ? JSON.stringify(question.value) : question.value,
+						question: question_id,
+					}),
+				});
 			});
 			updateStatus(203);
 			const createQuestions = performance.now();
@@ -467,49 +495,72 @@ export default function Page({
 					adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)
 						? adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)!.ContactId.toString()
 						: "",
-					items
-						.filter((item) => item.type === "Other Material")
-						.map((item) => item.netPrice)
-						.reduce((a, b) => a + b, 0) > 0
-						? [
-								...submitItems
+					[
+						...(items
+							.filter((item) => item.type === "Other Material")
+							.map((item) => item.netPrice)
+							.reduce((a, b) => a + b, 0) > 0
+							? [
+									...submitItems
+										.filter((item) => item.type !== "Other Material" && item.netPrice)
+										.map((item) => ({
+											...item,
+											netPrice:
+												item.valueType === "percent"
+													? item.type === "Fee"
+														? calculatePercentageValue(
+																netTotal + munkadíjNetTotal,
+																otherItems,
+																item.netPrice
+														  )
+														: item.type === "Discount"
+														? -(
+																(otherItemsNetTotal + netTotal + munkadíjNetTotal) *
+																(item.netPrice / 100)
+														  )
+														: item.netPrice
+													: item.netPrice,
+										})),
+									{
+										netPrice: items
+											.filter((item) => item.type === "Other Material")
+											.map(
+												(item) =>
+													item.netPrice * item.inputValues.reduce((a, b) => a + b.ammount, 0)
+											)
+											.reduce((a, b) => a + b, 0),
+										name: "Egyéb szerelési segédanyagok",
+										inputValues: [{ ammount: 1, id: 0, value: "" }],
+									} as unknown as FelmeresItem,
+							  ]
+							: submitItems
 									.filter((item) => item.type !== "Other Material" && item.netPrice)
 									.map((item) => ({
 										...item,
 										netPrice:
 											item.valueType === "percent"
 												? item.type === "Fee"
-													? calculatePercentageValue(netTotal, otherItems, item.netPrice)
+													? calculatePercentageValue(
+															netTotal + munkadíjNetTotal,
+															otherItems,
+															item.netPrice
+													  )
 													: item.type === "Discount"
-													? -((otherItemsNetTotal + netTotal) * (item.netPrice / 100))
+													? -(
+															(otherItemsNetTotal + netTotal + munkadíjNetTotal) *
+															(item.netPrice / 100)
+													  )
 													: item.netPrice
 												: item.netPrice,
-									})),
-								{
-									netPrice: items
-										.filter((item) => item.type === "Other Material")
-										.map(
-											(item) =>
-												item.netPrice * item.inputValues.reduce((a, b) => a + b.ammount, 0)
-										)
-										.reduce((a, b) => a + b, 0),
-									name: "Egyéb szerelési segédanyagok",
-									inputValues: [{ ammount: 1, id: 0, value: "" }],
-								} as unknown as FelmeresItem,
-						  ]
-						: submitItems
-								.filter((item) => item.type !== "Other Material" && item.netPrice)
-								.map((item) => ({
-									...item,
-									netPrice:
-										item.valueType === "percent"
-											? item.type === "Fee"
-												? calculatePercentageValue(netTotal, otherItems, item.netPrice)
-												: item.type === "Discount"
-												? -((otherItemsNetTotal + netTotal) * (item.netPrice / 100))
-												: item.netPrice
-											: item.netPrice,
-								})),
+									}))),
+						{
+							netPrice: felmeresMunkadíjak
+								.map((munkadíj) => munkadíj.value * munkadíj.amount)
+								.reduce((a, b) => a + b, 0),
+							name: "Munkadíj",
+							inputValues: [{ ammount: 1, id: 0, value: "" }],
+						} as unknown as FelmeresItem,
+					],
 					felmeres.adatlap_id.toString(),
 					felmeres.subject,
 					template?.name,
@@ -662,6 +713,10 @@ export default function Page({
 	const netTotal = items
 		.map(({ inputValues, netPrice }) => netPrice * inputValues.reduce((a, b) => a + b.ammount, 0))
 		.reduce((a, b) => a + b, 0);
+
+	const munkadíjNetTotal = felmeresMunkadíjak
+		.map((munkadíj) => munkadíj.amount * munkadíj.value)
+		.reduce((a, b) => a + b, 0);
 	const otherItemsNetTotal = otherItems
 		.filter((item) => !isNaN(item.value))
 		.map((item) =>
@@ -670,13 +725,13 @@ export default function Page({
 				: (netTotal +
 						otherItems
 							.filter((item) => item.type !== "percent" && !isNaN(item.value))
-							.reduce((a, b) => a + b.value, 0)) *
+							.reduce((a, b) => a + b.value, 0) +
+						munkadíjNetTotal) *
 				  (item.value / 100)
 		)
 		.reduce((a, b) => a + b, 0);
 
 	const adatlap = adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id);
-
 	const [currentPage, setCurrentPage] = React.useState<SectionName>(isEdit ? "Tételek" : "Alapadatok");
 	const [isUploadingFile, setIsUploadingFile] = React.useState<string[]>([]);
 	const createQueryString = useCreateQueryString(useSearchParams());
@@ -694,6 +749,9 @@ export default function Page({
 					{
 						component: (
 							<Page2
+								felmeresMunkadíjak={felmeresMunkadíjak}
+								setFelmeresMunkadíjak={setFelmeresMunkadíjak}
+								originalMunkadíjak={munkadíjak}
 								products={products}
 								felmeres={felmeres}
 								items={items}
@@ -788,8 +846,9 @@ export default function Page({
 			const isProductDisabled = (product: number) => {
 				const relatedFields = data.filter((field) => field.product === product);
 				const mandatoryQuestions = questions.filter(
-					(question) => question.mandatory && question.connection === "Termék"
+					(question) => question.mandatory && question.connection === "Termék" && question.product === product
 				);
+				if (!relatedFields.length && mandatoryQuestions.length) return false;
 
 				return relatedFields.every((field) => {
 					const isQuestionMandatory = mandatoryQuestions.some((question) => {
@@ -801,16 +860,27 @@ export default function Page({
 				});
 			};
 
-			const uniqueProducts = Array.from(new Set(data.map((field) => field.product)));
+			const uniqueProducts = Array.from(
+				new Set(
+					questions.filter((question) => question.connection === "Termék").map((question) => question.product)
+				)
+			);
 			const productStatuses = uniqueProducts.reduce(
 				(acc, product) => ({ ...acc, [product ?? ""]: !isProductDisabled(product ?? 0) }),
 				{}
 			);
+			const fixQuestions = questions.filter((question) => question.connection === "Fix" && question.mandatory);
+			const isFixQuestionsDisabled = fixQuestions.every((question) => {
+				const relatedFields = data.filter((field) => field.question === question.id);
+				if (!relatedFields.length) return true;
+				return relatedFields.some((field) => field.value.toString() === "" || !field.value.length);
+			});
 
 			const isDisabled: { [key: string]: boolean } = {
 				Alapadatok: !felmeres.adatlap_id,
 				Tételek: false,
 				...productStatuses,
+				Fix: isFixQuestionsDisabled,
 				Képek: isUploadingFile.length > 0,
 			};
 
@@ -832,7 +902,6 @@ export default function Page({
 			return this.flat().findIndex((page2) => page2.id === page);
 		}
 	}
-	console.log(isUploadingFile);
 
 	const pageClass = new PageMapClass(isEdit ? ["Alapadatok"] : []);
 
@@ -898,21 +967,21 @@ export default function Page({
 															collapsible
 															className='w-full flex flex-row justify-start'
 															defaultValue='item-1'>
-															<AccordionItem className='border-b-0' value='item-1'>
-																<AccordionTrigger className='hover:no-underline font-normal rounded-md text-left pb-1'>
+															<AccordionItem className='border-b-0 w-full' value='item-1'>
+																<AccordionTrigger className='hover:no-underline font-normal rounded-md text-left pb-1 w-full'>
 																	<ListItem
 																		id={section.id}
 																		description={section.description ?? ""}
 																		title={section.title}
 																	/>
 																</AccordionTrigger>
-																<AccordionContent className='pb-0'>
+																<AccordionContent className='pb-0 w-full'>
 																	<div className='flex flex-row w-full px-1 gap-2 pl-3'>
 																		<Separator
 																			orientation='vertical'
 																			className='shrink-0 bg-border h-auto w-[3px]'
 																		/>
-																		<div className='flex flex-col gap-2 '>
+																		<div className='flex flex-col gap-2 w-full'>
 																			{section.subSections!.map(
 																				(section, index2) => (
 																					<Link
@@ -976,7 +1045,7 @@ export default function Page({
 							</CardHeader>
 							<Separator className='mb-4' />
 						</div>
-						<CardContent className={currentPage !== "Tételek" ? "p-8" : "lg:p-6 px-4 pt-0"}>
+						<CardContent className={currentPage !== "Tételek" ? "p-8" : "lg:p-6 px-2 pt-0"}>
 							{
 								pageClass.sections
 									.map((section) =>
@@ -999,9 +1068,7 @@ export default function Page({
 								{pageClass.isLast() ? (
 									<SubmitOptions />
 								) : (
-									<Button onClick={() => pageClass.nextPage()} disabled={pageClass.isDisabled()}>
-										Következő
-									</Button>
+									<Button onClick={() => pageClass.nextPage()}>Következő</Button>
 								)}
 							</div>
 						</CardContent>
@@ -1022,18 +1089,20 @@ export default function Page({
 		id: SectionName;
 	}) {
 		return (
-			<div className='block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground'>
+			<div className='block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground w-full'>
 				<div
 					className={cn(
 						sub ? "text-sm" : "text-base",
 						"font-medium leading-none",
-						pageClass.isDisabled(id as SectionName) ? "text-red-800" : ""
+						pageClass.isDisabled(id as SectionName) || (title === "Tételek" ? isOfferFilledOut() : false)
+							? "text-red-800"
+							: ""
 					)}>
 					{title}
 				</div>
 				<p
 					className={cn(
-						sub ? "text-xs w-52 text-ellipsis" : "text-sm",
+						sub ? "text-xs w-full text-ellipsis" : "text-sm",
 						"line-clamp-2 leading-snug text-muted-foreground"
 					)}>
 					{description}
@@ -1043,22 +1112,23 @@ export default function Page({
 	}
 
 	function SubmitOptions() {
-		const isItemsEqual = _.isEqual(
-			editFelmeresItems
-				?.map((item) => ({
-					inputValues: item.inputValues.map((value) => value.ammount),
-					sku: item.sku ?? "",
-					netTotal: item.netPrice,
-				}))
-				.sort((a, b) => a.sku.localeCompare(b.sku)),
-			submitItems
-				.map((item) => ({
-					inputValues: item.inputValues.map((value) => value.ammount),
-					sku: item.sku ?? "",
-					netTotal: item.netPrice,
-				}))
-				.sort((a, b) => a.sku.localeCompare(b.sku))
-		);
+		const isItemsEqual =
+			_.isEqual(
+				editFelmeresItems
+					?.map((item) => ({
+						inputValues: item.inputValues.map((value) => value.ammount),
+						sku: item.sku ?? "",
+						netTotal: item.netPrice,
+					}))
+					.sort((a, b) => a.sku.localeCompare(b.sku)),
+				submitItems
+					.map((item) => ({
+						inputValues: item.inputValues.map((value) => value.ammount),
+						sku: item.sku ?? "",
+						netTotal: item.netPrice,
+					}))
+					.sort((a, b) => a.sku.localeCompare(b.sku))
+			) && _.isEqual(editFelmeresMunkadíjak, felmeresMunkadíjak);
 
 		return (
 			<div className='flex flex-row px-4 items-center justify-center gap-3'>
@@ -1076,7 +1146,7 @@ export default function Page({
 							</AlertDialogHeader>
 							<AlertDialogFooter>
 								<AlertDialogCancel>Mégsem</AlertDialogCancel>
-								<Link href={"/" + editFelmeres?.id ?? ""}>
+								<Link href={"/" + (editFelmeres?.id ?? "")}>
 									<AlertDialogAction className='bg-red-800 w-full hover:bg-red-800/90' type='submit'>
 										Biztos
 									</AlertDialogAction>
@@ -1085,12 +1155,8 @@ export default function Page({
 						</AlertDialogContent>
 					</AlertDialog>
 				</div>
-				{!items
-					.map((item) => item.inputValues.map((value) => value.ammount).every((value) => value > 0))
-					.every((value) => value === true) ||
-				!items.length ||
-				!felmeres.subject ||
-				(isItemsEqual && felmeres.status !== "DRAFT") ? null : isEdit && felmeres.status !== "DRAFT" ? (
+				{isOfferFilledOut() || (isItemsEqual && felmeres.status !== "DRAFT") ? null : isEdit &&
+				  felmeres.status !== "DRAFT" ? (
 					<AlertDialog>
 						<AlertDialogTrigger asChild>
 							<Button
@@ -1146,6 +1212,17 @@ export default function Page({
 					</TooltipProvider>
 				)}
 			</div>
+		);
+	}
+
+	function isOfferFilledOut() {
+		return (
+			!items
+				.map((item) => item.inputValues.map((value) => value.ammount).every((value) => value > 0))
+				.every((value) => value === true) ||
+			!items.length ||
+			!felmeres.subject ||
+			!felmeresMunkadíjak.map((item) => item.amount && item.value).every((value) => value)
 		);
 	}
 }

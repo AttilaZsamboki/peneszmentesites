@@ -1,6 +1,6 @@
 "use client";
 import { FelmeresQuestion, GridOptions } from "../page";
-import { AdatlapDetails } from "../_utils/types";
+import { AdatlapData } from "../_utils/types";
 
 import Heading from "../_components/Heading";
 const Sections = React.lazy(() => import("../_components/Sections"));
@@ -11,7 +11,7 @@ import { Typography, Spinner, Tabs, TabsHeader, Tab } from "@material-tailwind/r
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BaseFelmeresData, FelmeresItem, QuestionTemplate } from "../new/_clientPage";
+import { BaseFelmeresData, FelmeresItem, FelmeresMunkadíj, QuestionTemplate } from "../new/_clientPage";
 import { QuestionPage } from "../../components/QuestionPage";
 
 import { Question } from "@/app/questions/page";
@@ -41,7 +41,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn, getCookie, useUserWithRole } from "@/lib/utils";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { concatAddress } from "../_utils/MiniCRM";
 import {
 	AlertDialog,
@@ -54,6 +53,7 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Munkadíj } from "../munkadij/page";
 
 export function isJSONParsable(str: string) {
 	try {
@@ -97,16 +97,20 @@ export default function ClientPage({
 	products,
 	pictures,
 	chat,
+	munkadíjak,
+	felmeresMunkadíjak,
 }: {
 	felmeresQuestions: FelmeresQuestion[];
 	felmeresId: string;
 	felmeresNonState: BaseFelmeresData;
 	felmeresItems: FelmeresItem[];
 	questions: Question[];
-	adatlap: AdatlapDetails;
+	adatlap: AdatlapData;
 	products: Product[];
 	pictures: FelmeresPictures[];
 	chat: Chat[];
+	munkadíjak: Munkadíj[];
+	felmeresMunkadíjak: FelmeresMunkadíj[];
 }) {
 	const [felmeres, setFelmeres] = React.useState(
 		felmeresNonState
@@ -127,7 +131,6 @@ export default function ClientPage({
 			value: isJSONParsable(field.value) ? JSON.parse(field.value) : field.value,
 		}))
 	);
-	const [selectedSection, setSelectedSection] = React.useState<SectionName>("");
 	const [statePictures, setStatePictures] = React.useState(pictures);
 	const [stateChat, setStateChat] = React.useState<Chat[]>(chat);
 	const { user } = useUserWithRole();
@@ -148,117 +151,120 @@ export default function ClientPage({
 			await fetch("/api/revalidate?tag=" + felmeresId);
 		}
 	};
-	const sections: PageMap[] = [
-		{
-			component: (
-				<Page2
-					felmeres={felmeres}
-					readonly={true}
-					items={felmeresItems.filter((item) => item.type === "Item" || item.type === "Other Material")}
-					otherItems={felmeresItems
-						.filter((item) => item.type === "Fee")
-						.map((item) => ({
-							id: item.id ? item.id : 0,
-							name: item.name,
-							type: item.valueType ? item.valueType : "fixed",
-							value: item.netPrice,
-						}))}
-					discount={
-						felmeresItems.find((item) => item.type === "Discount")
-							? felmeresItems.find((item) => item.type === "Discount")!.netPrice
-							: 0
-					}
-				/>
-			),
-			title: "Tételek",
-			id: "Tételek",
-			onClick: () => setIsEditing(false),
-		},
-		{
-			component: <div></div>,
-			id: "Kérdések",
-			title: "Kérdések",
-			subSections: Array.from(
-				new Set(
-					felmeresQuestions
-						.filter((question) => question.value && question.value !== "")
-						.map((question) => question.product)
-				)
-			).map((product) => ({
-				component: isEditing ? (
-					<QuestionPage
-						questions={questions.filter((question) =>
-							felmeresQuestions
-								.filter((field) => field.product === product)
-								.map((field) => field.question)
-								.includes(question.id)
-						)}
-						setData={setFilteredData}
-						adatlap_id={felmeres.adatlap_id}
-						globalData={filteredData.map((field) => ({
-							...field,
-							value: isJSONParsable(field.value) ? JSON.parse(field.value) : field.value,
-						}))}
-						product={product}
-						key={product}
+	const sections: PageMap[] = React.useMemo(
+		() => [
+			{
+				component: (
+					<Page2
+						felmeresMunkadíjak={felmeresMunkadíjak}
+						originalMunkadíjak={munkadíjak}
+						felmeres={felmeres}
+						readonly={true}
+						items={felmeresItems.filter((item) => item.type === "Item" || item.type === "Other Material")}
+						otherItems={felmeresItems
+							.filter((item) => item.type === "Fee")
+							.map((item) => ({
+								id: item.id ? item.id : 0,
+								name: item.name,
+								type: item.valueType ? item.valueType : "fixed",
+								value: item.netPrice,
+							}))}
+						discount={
+							felmeresItems.find((item) => item.type === "Discount")
+								? felmeresItems.find((item) => item.type === "Discount")!.netPrice
+								: 0
+						}
 					/>
-				) : (
-					<QuestionPageRead product={product} questions={questions} data={originalData} key={product} />
 				),
-				title: products.find((p) => p.id === product)?.sku ?? "Fix kérdések",
-				id: product ?? ("Fix" as SectionName),
-			})),
-		},
-		{
-			component: (
-				<FelmeresPicturesComponent
-					felmeresId={parseInt(felmeresId)}
-					pictures={statePictures}
-					setPictures={setStatePictures}
-				/>
-			),
-			id: "Kép",
-			title: "Képek",
-		},
-		{
-			component: <ChatComponent id={felmeres.id.toString()} chat={stateChat} setChat={setStateChat} />,
-			id: "Megjegyzések",
-			title: "Megjegyzések",
-			label: (
-				<div className='flex flex-row justify-between w-full items-center gap-2'>
-					<div>Megjegyzések</div>
-					<TooltipProvider>
-						<Tooltip>
-							<TooltipTrigger>
-								<Badge
-									variant={
-										stateChat.filter((message) => !message.seen).length ? "destructive" : "outline"
-									}
-									onClick={handleSeenChat}>
-									{stateChat.filter((message) => !message.seen).length}
-								</Badge>
-							</TooltipTrigger>
-							<TooltipContent>
-								<p>Olvasottnak jelölés</p>
-							</TooltipContent>
-						</Tooltip>
-					</TooltipProvider>
-				</div>
-			),
-		},
-	];
+				title: "Tételek",
+				id: "Tételek",
+				onClick: () => setIsEditing(false),
+			},
+			{
+				component: <div></div>,
+				id: "Kérdések",
+				title: "Kérdések",
+				subSections: Array.from(
+					new Set(
+						felmeresQuestions
+							.filter((question) => question.value && question.value !== "")
+							.map((question) => question.product)
+					)
+				).map((product) => ({
+					component: isEditing ? (
+						<QuestionPage
+							questions={questions.filter((question) =>
+								felmeresQuestions
+									.filter((field) => field.product === product)
+									.map((field) => field.question)
+									.includes(question.id)
+							)}
+							setData={setFilteredData}
+							adatlap_id={felmeres.adatlap_id}
+							globalData={filteredData.map((field) => ({
+								...field,
+								value: isJSONParsable(field.value) ? JSON.parse(field.value) : field.value,
+							}))}
+							product={product}
+							key={product}
+						/>
+					) : (
+						<QuestionPageRead product={product} questions={questions} data={originalData} key={product} />
+					),
+					title: products.find((p) => p.id === product)?.sku ?? "Fix kérdések",
+					id: product ?? ("Fix" as SectionName),
+				})),
+			},
+			{
+				component: (
+					<FelmeresPicturesComponent
+						felmeresId={parseInt(felmeresId)}
+						pictures={statePictures}
+						setPictures={setStatePictures}
+					/>
+				),
+				id: "Kép",
+				title: "Képek",
+			},
+			{
+				component: <ChatComponent id={felmeres.id.toString()} chat={stateChat} setChat={setStateChat} />,
+				id: "Megjegyzések",
+				title: "Megjegyzések",
+				label: (
+					<div className='flex flex-row justify-between w-full items-center gap-2'>
+						<div>Megjegyzések</div>
+						<TooltipProvider>
+							<Tooltip>
+								<TooltipTrigger>
+									<Badge
+										variant={
+											stateChat.filter((message) => !message.seen).length
+												? "destructive"
+												: "outline"
+										}
+										onClick={handleSeenChat}>
+										{stateChat.filter((message) => !message.seen).length}
+									</Badge>
+								</TooltipTrigger>
+								<TooltipContent>
+									<p>Olvasottnak jelölés</p>
+								</TooltipContent>
+							</Tooltip>
+						</TooltipProvider>
+					</div>
+				),
+			},
+		],
+		[felmeres, isEditing, originalData, questions, stateChat, statePictures, products, filteredData]
+	);
+	const [isAll, setIsAll] = React.useState(true);
+	const [selectedSection, setSelectedSection] = React.useState<SectionName>(isAll ? sections[0].id : "");
 
 	const [filter, setFilter] = React.useState("");
 	const [isLoading, setIsLoading] = React.useState(true);
 
 	const deviceSize = useBreakpointValue();
-	const [isAll, setIsAll] = React.useState(true);
 
-	React.useEffect(() => {
-		if (isAll) {
-			setSelectedSection(sections[0].id as SectionName);
-		}
-	}, [isAll]);
 	React.useEffect(() => {
 		setFilteredData(
 			originalData.filter((field) =>
@@ -598,7 +604,6 @@ export default function ClientPage({
 									}
 									filter={filter}
 									setFilter={setFilter}
-									disabled={isLoading}
 								/>
 								{isLoading ? (
 									<div className='absolute top-1/3 left-1/2 h-10 w-10'>
@@ -617,7 +622,9 @@ export default function ClientPage({
 									disabled={isLoading}
 									onCheckedChange={() => {
 										setIsAll(!isAll);
-										setSelectedSection(isAll ? sections[0].id : "");
+										isAll
+											? setSelectedSection("")
+											: setSelectedSection(isAll ? sections[0].id : "");
 									}}
 								/>
 							</div>

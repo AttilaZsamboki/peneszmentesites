@@ -4,13 +4,10 @@ import ClientPage from "./_clientPage";
 
 import { BaseFelmeresData } from "./new/_clientPage";
 
-import { fetchAdatlapDetails } from "./_utils/MiniCRM";
-import { AdatlapDetails } from "./_utils/types";
+import { AdatlapData } from "./_utils/types";
 import { statusMap } from "./_utils/utils";
 
 import { Template } from "./templates/page";
-import { FilterItem } from "./_components/StackedList";
-import { Filter } from "./products/page";
 
 export interface GridOptions {
 	rows: string[];
@@ -41,7 +38,7 @@ export default async function Home() {
 	if (data.ok) {
 		const felmeresek: BaseFelmeresData[] = await data.json().catch((err) => console.log(err));
 		const adatlapIds = Array.from(new Set(felmeresek.map((felmeres) => felmeres.adatlap_id.toString())));
-		const adatlapok: AdatlapDetails[] = await fetch(
+		const adatlapok: AdatlapData[] = await fetch(
 			"https://pen.dataupload.xyz/minicrm-adatlapok/?id=" + adatlapIds.join(","),
 			{
 				next: { tags: ["adatlapok"], revalidate: 60 },
@@ -56,7 +53,7 @@ export default async function Home() {
 				console.log(err);
 				return [];
 			})
-			.then((data: AdatlapDetails[]) => data.filter((adatlap) => adatlap));
+			.then((data: AdatlapData[]) => data.filter((adatlap) => adatlap));
 
 		const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates/", {
 			next: { tags: ["templates"], revalidate: 300 },

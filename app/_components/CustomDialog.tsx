@@ -38,7 +38,7 @@ export default function CustomDialog({
 					<div className='max-h-[70dvh]'>{children}</div>
 				</div>
 				<DialogFooter>
-					<div className='flex pt-4 flex-row justify-end w-full gap-5'>
+					<div className='flex flex-row justify-end w-full gap-5'>
 						<Button
 							className={`${disabledSubmit ? "disabled" : ""}`}
 							disabled={disabledSubmit}
