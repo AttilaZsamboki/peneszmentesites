@@ -37,6 +37,7 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import { Munkadíj } from "../munkadij/page";
 import { Input } from "@/components/ui/input";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { MunkadíjForm } from "../munkadij/clientPage";
 
 export function Page2({
 	felmeres,
@@ -51,7 +52,7 @@ export function Page2({
 	discount,
 	setDiscount,
 	readonly,
-	munkadíjak,
+	originalMunkadíjak,
 	felmeresMunkadíjak,
 	setFelmeresMunkadíjak,
 }: {
@@ -67,7 +68,7 @@ export function Page2({
 	discount: number;
 	setDiscount?: React.Dispatch<React.SetStateAction<number>>;
 	readonly?: boolean;
-	munkadíjak: Munkadíj[];
+	originalMunkadíjak: Munkadíj[];
 	felmeresMunkadíjak: FelmeresMunkadíj[];
 	setFelmeresMunkadíjak?: React.Dispatch<React.SetStateAction<FelmeresMunkadíj[]>>;
 }) {
@@ -75,6 +76,7 @@ export function Page2({
 	const [newOtherItem, setNewOtherItem] = React.useState<OtherFelmeresItem>();
 	const [isEditingOtherItems, setIsEditingOtherItems] = React.useState(!readonly);
 	const [templates, setTemplates] = React.useState<Template[]>(originalTemplates ?? []);
+	const [munkadíjak, setMunkadíjak] = React.useState<Munkadíj[]>(originalMunkadíjak);
 	const [selectedTemplate, setSelectedTemplate] = React.useState<Template>(
 		templates?.find((template) => template.id === felmeres.template) ?? {
 			description: "",
@@ -83,7 +85,14 @@ export function Page2({
 			id: 0,
 		}
 	);
+	const [selectedMunkadíj, setSelectedMunkadíj] = React.useState<Munkadíj>({
+		description: "",
+		type: "",
+		value: 0,
+		id: 0,
+	});
 	const [openTemplateDialog, setOpenTemplateDialog] = React.useState(false);
+	const [openMunkadíjDialog, setOpenMunkadíjDialog] = React.useState(false);
 
 	const deviceSize = useBreakpointValue();
 
@@ -378,6 +387,57 @@ export function Page2({
 						setTemplate={setSelectedTemplate}
 						template={{ ...selectedTemplate, id: 0, type: felmeres.type }}
 					/>
+				</CustomDialog>
+			) : null}
+			{openMunkadíjDialog ? (
+				<CustomDialog
+					open={openMunkadíjDialog}
+					handler={() => {
+						setOpenMunkadíjDialog((prev) => !prev);
+					}}
+					title='Új munkadíj'
+					disabledSubmit={!selectedMunkadíj?.value || !selectedMunkadíj?.type}
+					onSave={async () => {
+						const jsonResp: Munkadíj = await fetch("https://pen.dataupload.xyz/munkadij/", {
+							method: "POST",
+							headers: {
+								"Content-Type": "application/json",
+							},
+							body: JSON.stringify(selectedMunkadíj),
+						}).then((res) => res.json());
+						if (!jsonResp) {
+							toast({
+								title: "Munkadíj létrehozása sikertelen",
+								description: "Kérlek próbáld újra később",
+								variant: "destructive",
+								duration: 2000,
+							});
+							return;
+						}
+						setSelectedMunkadíj({ description: "", type: "", value: 0, id: 0 });
+						setFelmeresMunkadíjak!((prev) => [
+							...prev,
+							{
+								amount: 0,
+								munkadij: jsonResp.id,
+								order_id: prev.length ?? 0,
+								value: jsonResp.value,
+								source: "Manual",
+							},
+						]);
+						setMunkadíjak((prev) => [...prev, jsonResp]);
+						toast({
+							title: "Munkadíj sikeresen létrehozva",
+							description: (
+								<OpenCreatedToast
+									path={"/munkadij"}
+									query={{ idStr: jsonResp.id.toString() }}
+									inNewTab={true}
+								/>
+							),
+						});
+					}}>
+					<MunkadíjForm munkadíj={selectedMunkadíj} setMunkadíj={setSelectedMunkadíj} />
 				</CustomDialog>
 			) : null}
 			<div id='Tételek'>
@@ -692,6 +752,11 @@ export function Page2({
 													inputWidth={"300px"}
 													width='300px'
 													label='Hozzáad'
+													create
+													onCreate={(value) => {
+														setOpenMunkadíjDialog(true);
+														setSelectedMunkadíj((prev) => ({ ...prev, type: value }));
+													}}
 													options={munkadíjak
 														.filter(
 															(fee) =>

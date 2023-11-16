@@ -157,7 +157,7 @@ export default function ClientPage({
 				component: (
 					<Page2
 						felmeresMunkadíjak={felmeresMunkadíjak}
-						munkadíjak={munkadíjak}
+						originalMunkadíjak={munkadíjak}
 						felmeres={felmeres}
 						readonly={true}
 						items={felmeresItems.filter((item) => item.type === "Item" || item.type === "Other Material")}

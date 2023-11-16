@@ -3,7 +3,6 @@ import { toast } from "@/components/ui/use-toast";
 import { hufFormatter } from "../[id]/_clientPage";
 import BaseComponentV2 from "../_components/BaseComponentV2";
 import CustomDialog from "../_components/CustomDialog";
-import { Product } from "../products/page";
 import { Munkadíj } from "./page";
 import { useState } from "react";
 import { ToastAction } from "@radix-ui/react-toast";
@@ -11,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 
-export default function ClientPage({ munkadijak, products }: { munkadijak: Munkadíj[]; products: Product[] }) {
+export default function ClientPage({ munkadijak }: { munkadijak: Munkadíj[] }) {
 	const [openDialog, setOpenDialog] = useState(false);
 	const nullSelected = { type: "", value: 0, product: 0, description: "", id: 0 };
 	const [selected, setSelected] = useState<Munkadíj>(nullSelected);
@@ -74,6 +73,7 @@ export default function ClientPage({ munkadijak, products }: { munkadijak: Munka
 	const formattedMunkadíjak = stateMunkadíjak.map((munkadíj) => ({
 		...munkadíj,
 		formattedValue: hufFormatter.format(munkadíj.value),
+		idStr: munkadíj.id.toString(),
 	}));
 	return (
 		<>
@@ -95,6 +95,17 @@ export default function ClientPage({ munkadijak, products }: { munkadijak: Munka
 					setSelected(item);
 					setOpenDialog(true);
 				}}
+				filters={[
+					{
+						field: "idStr",
+						label: "Munkadíj",
+						type: "select",
+						options: formattedMunkadíjak.map((munkadíj) => ({
+							label: munkadíj.type,
+							value: munkadíj.id.toString(),
+						})),
+					},
+				]}
 			/>
 			<CustomDialog
 				open={openDialog}
@@ -122,42 +133,54 @@ export default function ClientPage({ munkadijak, products }: { munkadijak: Munka
 				disabledSubmit={!selected?.type || !selected.value}
 				onSave={selected?.id ? updateMunkadíj : createMunkadíj}
 				onCancel={resetSelected}>
-				<div className='grid gap-4 py-4'>
-					<div className='grid grid-cols-4 items-center gap-4'>
-						<Label htmlFor='type' className='text-right'>
-							Típus
-						</Label>
-						<Input
-							id='type'
-							value={selected.type}
-							onChange={(e) => setSelected((prev) => ({ ...prev, type: e.target.value }))}
-							className='col-span-3'
-						/>
-					</div>
-					<div className='grid grid-cols-4 items-center gap-4'>
-						<Label htmlFor='value' className='text-right'>
-							Összeg
-						</Label>
-						<Input
-							id='value'
-							value={selected.value}
-							onChange={(e) => setSelected((prev) => ({ ...prev, value: parseInt(e.target.value) }))}
-							className='col-span-3'
-						/>
-					</div>
-
-					<div className='grid grid-cols-4 items-center gap-4'>
-						<Label htmlFor='description' className='text-right'>
-							Leírás
-						</Label>
-						<Textarea
-							value={selected.description}
-							onChange={(e) => setSelected((prev) => ({ ...prev, description: e.target.value }))}
-							className='col-span-3'
-						/>
-					</div>
-				</div>
+				<MunkadíjForm munkadíj={selected} setMunkadíj={setSelected} />
 			</CustomDialog>
 		</>
+	);
+}
+
+export function MunkadíjForm({
+	munkadíj,
+	setMunkadíj,
+}: {
+	munkadíj: Munkadíj;
+	setMunkadíj: React.Dispatch<React.SetStateAction<Munkadíj>>;
+}) {
+	return (
+		<div className='grid gap-4 py-4'>
+			<div className='grid grid-cols-4 items-center gap-4'>
+				<Label htmlFor='type' className='text-right'>
+					Típus
+				</Label>
+				<Input
+					id='type'
+					value={munkadíj?.type}
+					onChange={(e) => setMunkadíj((prev) => ({ ...prev, type: e.target.value }))}
+					className='col-span-3'
+				/>
+			</div>
+			<div className='grid grid-cols-4 items-center gap-4'>
+				<Label htmlFor='value' className='text-right'>
+					Összeg
+				</Label>
+				<Input
+					id='value'
+					value={munkadíj?.value}
+					onChange={(e) => setMunkadíj((prev) => ({ ...prev, value: parseInt(e.target.value) }))}
+					className='col-span-3'
+				/>
+			</div>
+
+			<div className='grid grid-cols-4 items-center gap-4'>
+				<Label htmlFor='description' className='text-right'>
+					Leírás
+				</Label>
+				<Textarea
+					value={munkadíj?.description}
+					onChange={(e) => setMunkadíj((prev) => ({ ...prev, description: e.target.value }))}
+					className='col-span-3'
+				/>
+			</div>
+		</div>
 	);
 }

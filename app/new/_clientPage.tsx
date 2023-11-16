@@ -752,7 +752,7 @@ export default function Page({
 							<Page2
 								felmeresMunkadíjak={felmeresMunkadíjak}
 								setFelmeresMunkadíjak={setFelmeresMunkadíjak}
-								munkadíjak={munkadíjak}
+								originalMunkadíjak={munkadíjak}
 								products={products}
 								felmeres={felmeres}
 								items={items}
