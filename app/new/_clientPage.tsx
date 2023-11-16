@@ -912,7 +912,7 @@ export default function Page({
 	}, [questions]);
 
 	return (
-		<div className='w-full overflow-y-scroll h-[100dvh] pb-0 mb-0 lg:pb-10 lg:mb-10'>
+		<div id="no-refresh" className='w-full overflow-y-scroll h-[100dvh] pb-0 mb-0 lg:pb-10 lg:mb-10'>
 			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-0 lg:mt-2'>
 				<div
 					className={`lg:mt-6 lg:px-10 px-0 w-full ${

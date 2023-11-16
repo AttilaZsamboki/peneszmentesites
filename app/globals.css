@@ -110,3 +110,8 @@ body {
 .rotate.up {
 	transform: rotate(180deg);
 }
+
+html {
+	overflow: hidden;
+	overscroll-behavior: none;
+}
