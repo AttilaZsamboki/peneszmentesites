@@ -841,12 +841,10 @@ export default function Page({
 										</SelectContent>
 									</Select>
 								</QuestionTemplate>
-								<QuestionTemplate
-									mandatory={felmeres.warranty !== "Nem adunk garanciát a rendszerre"}
-									title='Indoklás'>
+								<QuestionTemplate mandatory={felmeres.warranty !== "Teljes garancia"} title='Indoklás'>
 									<Textarea
 										value={felmeres.warranty_reason}
-										disabled={felmeres.warranty === "Nem adunk garanciát a rendszerre"}
+										disabled={felmeres.warranty === "Teljes garancia"}
 										onChange={(e) =>
 											setFelmeres((prev) => ({ ...prev, warranty_reason: e.target.value }))
 										}
@@ -1273,8 +1271,7 @@ export default function Page({
 			!felmeres.subject ||
 			!felmeresMunkadíjak.map((item) => item.amount && item.value).every((value) => value);
 		const warranty =
-			!felmeres.warranty ||
-			(felmeres.warranty !== "Nem adunk garanciát a rendszerre" ? !felmeres.warranty_reason : false);
+			!felmeres.warranty || (felmeres.warranty !== "Teljes garancia" ? !felmeres.warranty_reason : false);
 		if (type === "Tételek") {
 			return offer;
 		} else if (type === "Garancia") {
