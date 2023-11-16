@@ -2,13 +2,13 @@ import { DocumentDuplicateIcon, TrashIcon, BookmarkSquareIcon, PencilIcon } from
 import {
 	DropdownMenu as Dropdown,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuShortcut,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { DropdownMenuGroup } from "@radix-ui/react-dropdown-menu";
 import React from "react";
 import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
 import { useHotkeys } from "react-hotkeys-hook";

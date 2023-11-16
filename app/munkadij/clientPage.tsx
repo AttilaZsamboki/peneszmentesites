@@ -5,10 +5,10 @@ import BaseComponentV2 from "../_components/BaseComponentV2";
 import CustomDialog from "../_components/CustomDialog";
 import { Munkadíj } from "./page";
 import { useState } from "react";
-import { ToastAction } from "@radix-ui/react-toast";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ToastAction } from "@/components/ui/toast";
 
 export default function ClientPage({ munkadijak }: { munkadijak: Munkadíj[] }) {
 	const [openDialog, setOpenDialog] = useState(false);

@@ -69,7 +69,16 @@ export const hufFormatter = new Intl.NumberFormat("hu-HU", {
 	currency: "HUF",
 });
 
-export type SectionName = "" | "Tételek" | "Alapadatok" | "Fix" | "Kérdések" | "Kép" | "Megjegyzések" | number;
+export type SectionName =
+	| ""
+	| "Tételek"
+	| "Alapadatok"
+	| "Fix"
+	| "Kérdések"
+	| "Kép"
+	| "Megjegyzések"
+	| "Garancia"
+	| number;
 
 export interface PageMap {
 	component: JSX.Element;
@@ -225,6 +234,24 @@ export default function ClientPage({
 				),
 				id: "Kép",
 				title: "Képek",
+			},
+			{
+				component: (
+					<>
+						<QuestionTemplate title='Feltétel'>
+							<div className='mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 '>
+								{felmeres.warranty}
+							</div>
+						</QuestionTemplate>
+						<QuestionTemplate title='Indoklás'>
+							<div className='mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 '>
+								{felmeres.warranty_reason}
+							</div>
+						</QuestionTemplate>
+					</>
+				),
+				id: "Garancia",
+				title: "Garancia",
 			},
 			{
 				component: <ChatComponent id={felmeres.id.toString()} chat={stateChat} setChat={setStateChat} />,
