@@ -47,6 +47,8 @@ import { DialogFooter, DialogHeader } from "@material-tailwind/react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Munkadíj } from "../munkadij/page";
+import { Select, SelectValue, SelectContent, SelectGroup, SelectItem, SelectTrigger } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 export interface ProductTemplate {
 	product: number;
@@ -65,6 +67,8 @@ export interface BaseFelmeresData {
 	offer_status?: "Elfogadott ajánlat" | "Sikeres megrendelés" | null;
 	subject: string;
 	created_by: string;
+	warranty: string;
+	warranty_reason: string;
 }
 
 export type ItemType = "Item" | "Fee" | "Discount" | "Other Material";
@@ -156,6 +160,8 @@ export default function Page({
 					description: "",
 					subject: "",
 					created_by: user?.sub ?? "",
+					warranty: "",
+					warranty_reason: "",
 			  }
 	);
 	const [items, setItems] = React.useState<FelmeresItem[]>(
@@ -811,6 +817,46 @@ export default function Page({
 						title: "Képek",
 						description: "Töltsd fel a felméréshez szükséges képeket.",
 					},
+					{
+						component: (
+							<div className='flex flex-col gap-10'>
+								<QuestionTemplate title='Feltétel' mandatory>
+									<Select
+										value={felmeres.warranty}
+										onValueChange={(value) =>
+											setFelmeres((prev) => ({ ...prev, warranty: value }))
+										}>
+										<SelectTrigger>
+											<SelectValue placeholder='Válassz egy feltételt' />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectGroup>
+												<SelectItem value='Teljes garancia'>Teljes garancia</SelectItem>
+												<SelectItem value='Feltételes garancia'>Feltételes garancia</SelectItem>
+												<SelectItem value='Eszköz garancia'>Eszköz garancia</SelectItem>
+												<SelectItem value='Nem adunk garanciát a rendszerre'>
+													Nem adunk garanciát a rendszerre
+												</SelectItem>
+											</SelectGroup>
+										</SelectContent>
+									</Select>
+								</QuestionTemplate>
+								<QuestionTemplate mandatory={felmeres.warranty !== "Teljes garancia"} title='Indoklás'>
+									<Textarea
+										value={felmeres.warranty_reason}
+										disabled={felmeres.warranty === "Teljes garancia"}
+										onChange={(e) =>
+											setFelmeres((prev) => ({ ...prev, warranty_reason: e.target.value }))
+										}
+										id='warranty-reasoning'
+									/>
+								</QuestionTemplate>
+							</div>
+						),
+						id: "Garancia",
+						title: "Garancia",
+						description: "Garanciával kapcsolatos dolgokat itt tudod beállítani.",
+					},
 				] as PageMap[]
 			).filter((section) => !excludedPages.includes(section.id));
 		}
@@ -912,7 +958,7 @@ export default function Page({
 	}, [questions]);
 
 	return (
-		<div id="no-refresh" className='w-full overflow-y-scroll h-[100dvh] pb-0 mb-0 lg:pb-10 lg:mb-10'>
+		<div className='w-full overflow-y-scroll h-[100dvh] pb-0 mb-0 lg:pb-10 lg:mb-10'>
 			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-0 lg:mt-2'>
 				<div
 					className={`lg:mt-6 lg:px-10 px-0 w-full ${
@@ -1094,7 +1140,8 @@ export default function Page({
 					className={cn(
 						sub ? "text-sm" : "text-base",
 						"font-medium leading-none",
-						pageClass.isDisabled(id as SectionName) || (title === "Tételek" ? isOfferFilledOut() : false)
+						pageClass.isDisabled(id as SectionName) ||
+							(title === "Tételek" || title === "Garancia" ? isEverythingFilledOut(title) : false)
 							? "text-red-800"
 							: ""
 					)}>
@@ -1155,7 +1202,7 @@ export default function Page({
 						</AlertDialogContent>
 					</AlertDialog>
 				</div>
-				{isOfferFilledOut() || (isItemsEqual && felmeres.status !== "DRAFT") ? null : isEdit &&
+				{isEverythingFilledOut() || (isItemsEqual && felmeres.status !== "DRAFT") ? null : isEdit &&
 				  felmeres.status !== "DRAFT" ? (
 					<AlertDialog>
 						<AlertDialogTrigger asChild>
@@ -1215,15 +1262,25 @@ export default function Page({
 		);
 	}
 
-	function isOfferFilledOut() {
-		return (
+	function isEverythingFilledOut(type?: SectionName) {
+		const offer =
 			!items
 				.map((item) => item.inputValues.map((value) => value.ammount).every((value) => value > 0))
 				.every((value) => value === true) ||
 			!items.length ||
 			!felmeres.subject ||
-			!felmeresMunkadíjak.map((item) => item.amount && item.value).every((value) => value)
-		);
+			!felmeresMunkadíjak.map((item) => item.amount && item.value).every((value) => value);
+		const warranty =
+			!felmeres.warranty || (felmeres.warranty !== "Teljes garancia" ? !felmeres.warranty_reason : false);
+		if (type === "Tételek") {
+			return offer;
+		} else if (type === "Garancia") {
+			return warranty;
+		}
+		return offer || warranty;
+	}
+	function Garancia() {
+		return <></>;
 	}
 }
 
