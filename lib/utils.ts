@@ -16,7 +16,6 @@ export function calculatePercentageValue(netTotal: number, otherItems: any[], it
 	const totalOtherValues = otherItems
 		.filter((item) => item.type !== "percent" && !isNaN(item.value))
 		.reduce((a, b) => a + b.value, 0);
-		
 
 	return ((netTotal + totalOtherValues) * itemValue) / 100;
 }
@@ -132,4 +131,28 @@ export function invertObject(obj: Record<string, any>) {
 		acc[value] = key;
 		return acc;
 	}, {} as Record<string, any>);
+}
+
+export interface Settings {
+	[name: string]: string;
+}
+
+export function useSettings() {
+	const [settings, setSettings] = React.useState<Settings>();
+
+	React.useEffect(() => {
+		const fetchData = async () => {
+			const res = await fetch("https://pen.dataupload.xyz/settings");
+			if (res.ok) {
+				await res.json().then((data) => {
+					data.map((setting: { name: string; value: string }) => {
+						setSettings((prev) => ({ ...prev, [setting.name]: setting.value }));
+					});
+				});
+			}
+		};
+		fetchData();
+	}, []);
+
+	return settings;
 }

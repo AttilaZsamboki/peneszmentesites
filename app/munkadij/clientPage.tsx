@@ -3,16 +3,18 @@ import { toast } from "@/components/ui/use-toast";
 import { hufFormatter } from "../[id]/_clientPage";
 import BaseComponentV2 from "../_components/BaseComponentV2";
 import CustomDialog from "../_components/CustomDialog";
-import { Munkadíj } from "./page";
+import { Munkadíj, MunkadíjValueType } from "./page";
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ToastAction } from "@/components/ui/toast";
+import { SelectContent, SelectGroup, SelectItem, Select, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Settings, cn, useSettings } from "@/lib/utils";
 
 export default function ClientPage({ munkadijak }: { munkadijak: Munkadíj[] }) {
 	const [openDialog, setOpenDialog] = useState(false);
-	const nullSelected = { type: "", value: 0, product: 0, description: "", id: 0 };
+	const nullSelected: Munkadíj = { type: "", value: 0, description: "", id: 0, value_type: "hour" };
 	const [selected, setSelected] = useState<Munkadíj>(nullSelected);
 	const [stateMunkadíjak, setStateMunkadíjak] = useState<Munkadíj[]>(munkadijak);
 
@@ -37,7 +39,7 @@ export default function ClientPage({ munkadijak }: { munkadijak: Munkadíj[] }) 
 	const updateMunkadíj = async () => {
 		const response = await fetch(`https://pen.dataupload.xyz/munkadij/${selected?.id}/`, {
 			method: "PUT",
-			body: JSON.stringify(selected),
+			body: JSON.stringify({ ...selected, value: parseInt(selected.value.toString()) } as Munkadíj),
 			headers: {
 				"Content-Type": "application/json",
 			},
@@ -70,9 +72,12 @@ export default function ClientPage({ munkadijak }: { munkadijak: Munkadíj[] }) 
 		}
 	};
 
+	const settings = useSettings() ?? ({ Óradíj: "18000" } as Settings);
 	const formattedMunkadíjak = stateMunkadíjak.map((munkadíj) => ({
 		...munkadíj,
-		formattedValue: hufFormatter.format(munkadíj.value),
+		formattedValue: hufFormatter.format(
+			munkadíj.value_type === "fix" ? munkadíj.value : munkadíj.value * parseInt(settings["Óradíj"] ?? 0)
+		),
 		idStr: munkadíj.id.toString(),
 	}));
 	return (
@@ -146,6 +151,7 @@ export function MunkadíjForm({
 	munkadíj: Munkadíj;
 	setMunkadíj: React.Dispatch<React.SetStateAction<Munkadíj>>;
 }) {
+	const settings = useSettings() ?? ({ Óradíj: "18000" } as Settings);
 	return (
 		<div className='grid gap-4 py-4'>
 			<div className='grid grid-cols-4 items-center gap-4'>
@@ -160,15 +166,46 @@ export function MunkadíjForm({
 				/>
 			</div>
 			<div className='grid grid-cols-4 items-center gap-4'>
+				<Label htmlFor='value_type' className='text-right'>
+					Ősszeg típus
+				</Label>
+				<Select
+					onValueChange={(value) =>
+						setMunkadíj((prev) => ({ ...prev, value_type: value as MunkadíjValueType }))
+					}
+					value={munkadíj.value_type}>
+					<SelectTrigger className='w-full'>
+						<SelectValue />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectGroup>
+							<SelectItem value='hour'>Óradíj</SelectItem>
+							<SelectItem value='fix'>Fix összeg</SelectItem>
+						</SelectGroup>
+					</SelectContent>
+				</Select>
+			</div>
+			<div className={cn("grid-cols-4", "grid items-center gap-4")}>
 				<Label htmlFor='value' className='text-right'>
 					Összeg
 				</Label>
 				<Input
 					id='value'
+					type='text'
 					value={munkadíj?.value}
-					onChange={(e) => setMunkadíj((prev) => ({ ...prev, value: parseInt(e.target.value) }))}
-					className='col-span-3'
+					onChange={(e) =>
+						setMunkadíj((prev) => ({
+							...prev,
+							value: e.target.value as unknown as number,
+						}))
+					}
+					className={cn(munkadíj.value_type === "hour" ? "col-span-2" : "col-span-3")}
 				/>
+				{munkadíj.value_type === "hour" ? (
+					<p className='prose prose-sm'>
+						{hufFormatter.format(munkadíj.value * parseInt(settings["Óradíj"] ?? 0))}
+					</p>
+				) : null}
 			</div>
 
 			<div className='grid grid-cols-4 items-center gap-4'>

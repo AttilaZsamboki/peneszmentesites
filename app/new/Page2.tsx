@@ -30,7 +30,7 @@ import { toast } from "@/components/ui/use-toast";
 import { OpenCreatedToast } from "@/components/toasts";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { calculatePercentageValue, cn } from "@/lib/utils";
+import { calculatePercentageValue, cn, useSettings } from "@/lib/utils";
 import useBreakpointValue from "../_components/useBreakpoint";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -72,6 +72,7 @@ export function Page2({
 	felmeresMunkadíjak: FelmeresMunkadíj[];
 	setFelmeresMunkadíjak?: React.Dispatch<React.SetStateAction<FelmeresMunkadíj[]>>;
 }) {
+	const settings = useSettings();
 	const [openAccordions, setOpenAccordions] = React.useState<(ItemType | "Munkadíj" | "Összesítés")[]>([]);
 	const [newOtherItem, setNewOtherItem] = React.useState<OtherFelmeresItem>();
 	const [isEditingOtherItems, setIsEditingOtherItems] = React.useState(!readonly);
@@ -90,6 +91,7 @@ export function Page2({
 		type: "",
 		value: 0,
 		id: 0,
+		value_type: "hour",
 	});
 	const [openTemplateDialog, setOpenTemplateDialog] = React.useState(false);
 	const [openMunkadíjDialog, setOpenMunkadíjDialog] = React.useState(false);
@@ -414,7 +416,7 @@ export function Page2({
 							});
 							return;
 						}
-						setSelectedMunkadíj({ description: "", type: "", value: 0, id: 0 });
+						setSelectedMunkadíj({ description: "", type: "", value: 0, id: 0, value_type: "hour" });
 						setFelmeresMunkadíjak!((prev) => [
 							...prev,
 							{
@@ -653,7 +655,18 @@ export function Page2({
 																	<div className='flex items-center pt-2'>
 																		<Banknote className='mr-2 h-4 w-4 opacity-70' />{" "}
 																		<span className='text-xs text-muted-foreground'>
-																			{hufFormatter.format(munkadíj.value)}
+																			{hufFormatter.format(
+																				munkadíj.value_type === "fix"
+																					? munkadíj.value
+																					: munkadíj.value *
+																							(settings
+																								? parseFloat(
+																										settings[
+																											"Óradíj"
+																										] ?? 0
+																								  )
+																								: 0)
+																			)}
 																		</span>
 																	</div>
 																</div>
@@ -697,28 +710,63 @@ export function Page2({
 																{readonly ? (
 																	hufFormatter.format(fee.value)
 																) : (
-																	<Input
-																		className='w-[100px]'
-																		value={numberFormatter.format(fee.value)}
-																		onChange={(e) =>
-																			setFelmeresMunkadíjak!((prev) => [
-																				...prev.filter(
-																					(f) => f.munkadij !== fee.munkadij
-																				),
-																				{
-																					...fee,
-																					value: e.target.value
-																						? parseInt(
-																								e.target.value.replace(
-																									/[^\d-]/g,
-																									""
-																								)
-																						  )
-																						: 0,
-																				},
-																			])
-																		}
-																	/>
+																	<div className='flex flex-row justify-start items-center gap-2'>
+																		<Input
+																			className='w-[100px]'
+																			value={
+																				munkadíj.value_type === "fix"
+																					? numberFormatter.format(fee.value)
+																					: fee.value /
+																					  (settings
+																							? parseFloat(
+																									settings[
+																										"Óradíj"
+																									] ?? 0
+																							  )
+																							: 0)
+																			}
+																			onChange={(e) =>
+																				setFelmeresMunkadíjak!((prev) => [
+																					...prev.filter(
+																						(f) =>
+																							f.munkadij !== fee.munkadij
+																					),
+																					{
+																						...fee,
+																						value:
+																							munkadíj.value_type ===
+																							"fix"
+																								? e.target.value
+																									? parseInt(
+																											e.target.value.replace(
+																												/[^\d-]/g,
+																												""
+																											)
+																									  )
+																									: 0
+																								: e.target.value
+																								? parseFloat(
+																										e.target.value
+																								  ) *
+																								  parseFloat(
+																										settings
+																											? settings[
+																													"Óradíj"
+																											  ] ?? "0"
+																											: "0"
+																								  )
+																								: (e.target
+																										.value as unknown as number),
+																					},
+																				])
+																			}
+																		/>
+																		<p className='prose prose-slate'>
+																			{munkadíj.value_type === "fix"
+																				? "Ft"
+																				: "óra"}
+																		</p>
+																	</div>
 																)}
 															</TableCell>
 															<TableCell className='text-right'>
@@ -777,8 +825,16 @@ export function Page2({
 																munkadij: parseInt(value),
 																order_id: prev.length ?? 0,
 																value:
-																	munkadíjak.find((md) => md.id === parseInt(value))
-																		?.value ?? 0,
+																	(munkadíjak.find((md) => md.id === parseInt(value))
+																		?.value ?? 0) *
+																	(munkadíjak.find((md) => md.id === parseInt(value))
+																		?.value_type === "hour"
+																		? parseFloat(
+																				settings
+																					? settings["Óradíj"] ?? "0"
+																					: "0"
+																		  )
+																		: 1),
 															},
 														])
 													}

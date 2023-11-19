@@ -1,10 +1,13 @@
 import ClientPage from "./clientPage";
 
+export type MunkadíjValueType = "hour" | "fix";
+
 export interface Munkadíj {
 	id: number;
 	type: string;
 	value: number;
 	description: string;
+	value_type: MunkadíjValueType;
 }
 
 export default async function Page() {
