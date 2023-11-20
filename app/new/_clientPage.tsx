@@ -69,6 +69,7 @@ export interface BaseFelmeresData {
 	created_by: string;
 	warranty: string;
 	warranty_reason: string;
+	hourly_wage: number;
 }
 
 export type ItemType = "Item" | "Fee" | "Discount" | "Other Material";
@@ -162,6 +163,7 @@ export default function Page({
 					created_by: user?.sub ?? "",
 					warranty: "",
 					warranty_reason: "",
+					hourly_wage: 0,
 			  }
 	);
 	const [items, setItems] = React.useState<FelmeresItem[]>(

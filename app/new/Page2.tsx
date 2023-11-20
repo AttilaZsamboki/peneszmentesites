@@ -310,6 +310,12 @@ export function Page2({
 			setOpenAccordions((prev) => prev.filter((item) => item !== section));
 		}
 	};
+
+	React.useEffect(() => {
+		if (setFelmeres && settings && !felmeres.hourly_wage) {
+			setFelmeres((prev) => ({ ...prev, hourly_wage: parseFloat(settings["Óradíj"] ?? "0") }));
+		}
+	}, [settings]);
 	return (
 		<>
 			{openTemplateDialog ? (
@@ -659,13 +665,7 @@ export function Page2({
 																				munkadíj.value_type === "fix"
 																					? munkadíj.value
 																					: munkadíj.value *
-																							(settings
-																								? parseFloat(
-																										settings[
-																											"Óradíj"
-																										] ?? 0
-																								  )
-																								: 0)
+																							felmeres.hourly_wage
 																			)}
 																		</span>
 																	</div>
@@ -716,14 +716,7 @@ export function Page2({
 																			value={
 																				munkadíj.value_type === "fix"
 																					? numberFormatter.format(fee.value)
-																					: fee.value /
-																					  (settings
-																							? parseFloat(
-																									settings[
-																										"Óradíj"
-																									] ?? 0
-																							  )
-																							: 0)
+																					: fee.value / felmeres.hourly_wage
 																			}
 																			onChange={(e) =>
 																				setFelmeresMunkadíjak!((prev) => [
@@ -748,13 +741,7 @@ export function Page2({
 																								? parseFloat(
 																										e.target.value
 																								  ) *
-																								  parseFloat(
-																										settings
-																											? settings[
-																													"Óradíj"
-																											  ] ?? "0"
-																											: "0"
-																								  )
+																								  felmeres.hourly_wage
 																								: (e.target
 																										.value as unknown as number),
 																					},
@@ -829,11 +816,7 @@ export function Page2({
 																		?.value ?? 0) *
 																	(munkadíjak.find((md) => md.id === parseInt(value))
 																		?.value_type === "hour"
-																		? parseFloat(
-																				settings
-																					? settings["Óradíj"] ?? "0"
-																					: "0"
-																		  )
+																		? felmeres.hourly_wage
 																		: 1),
 															},
 														])
