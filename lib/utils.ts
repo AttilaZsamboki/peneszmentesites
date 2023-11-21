@@ -114,6 +114,11 @@ export function useUserWithRole(): User | UserContext {
 		}
 		fetch(`https://pen.dataupload.xyz/user-role/${user.user.sub}`)
 			.then((res) => res.json())
+			.catch((err) => {
+				console.error(err);
+				setRole("User");
+				setRoleLoading(false);
+			})
 			.then((data) => {
 				setRole(data.name);
 				setRoleLoading(false);
