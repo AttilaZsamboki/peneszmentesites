@@ -136,21 +136,19 @@ function Navbar({ routes }: { routes: Route[] }) {
 	);
 	const { user, error, isLoading } = useUserWithRole();
 
-	const isStaging =
-		typeof window !== "undefined" ? window.location.href.includes(process.env.NEXT_PUBLIC_STAGING!) : true;
-	if (!user && !isLoading && !isStaging) {
+	if (!user && !isLoading) {
 		window.location.href = "/api/auth/login";
 		return null;
 	}
-	if ((user && user.sub) || (isStaging && typeof window !== "undefined")) {
+	if (user && user.sub) {
 		const JWT = getCookie("jwt");
 		if (!JWT) {
-			document.cookie = `jwt=${createJWT(user?.sub ?? process.env.NEXT_PUBLIC_STAGING_SUB!)}; path=/`;
+			document.cookie = `jwt=${createJWT(user.sub)}; path=/`;
 		} else if (JWT) {
 			try {
 				jwt.verify(JWT, process.env.NEXT_PUBLIC_SECRET as string);
 			} catch (err) {
-				document.cookie = `jwt=${createJWT(user?.sub ?? process.env.NEXT_PUBLIC_STAGING_SUB!)}; path=/`;
+				document.cookie = `jwt=${createJWT(user.sub)}; path=/`;
 			}
 		}
 	}
