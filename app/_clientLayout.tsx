@@ -150,9 +150,7 @@ function Navbar({ routes }: { routes: Route[] }) {
 			try {
 				jwt.verify(JWT, process.env.NEXT_PUBLIC_SECRET as string);
 			} catch (err) {
-				if (err instanceof jwt.TokenExpiredError) {
-					document.cookie = `jwt=${createJWT(user?.sub ?? process.env.NEXT_PUBLIC_STAGING_SUB!)}; path=/`;
-				}
+				document.cookie = `jwt=${createJWT(user?.sub ?? process.env.NEXT_PUBLIC_STAGING_SUB!)}; path=/`;
 			}
 		}
 	}
