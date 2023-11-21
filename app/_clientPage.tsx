@@ -2,7 +2,6 @@
 import React from "react";
 import BaseComponentV2 from "./_components/BaseComponentV2";
 import { statusMap } from "./_utils/utils";
-import { Filter as OtherFilter } from "./products/page";
 import { useUserWithRole } from "@/lib/utils";
 import BaseComponentLoading from "./_components/BaseComponentLoading";
 import { FilterItem } from "./_components/StackedList";
