@@ -187,7 +187,7 @@ export function MunkadíjForm({
 			</div>
 			<div className={cn("grid-cols-4", "grid items-center gap-4")}>
 				<Label htmlFor='value' className='text-right'>
-					Összeg
+					{munkadíj.value_type === "fix" ? "Összeg" : "Óra"}
 				</Label>
 				<Input
 					id='value'

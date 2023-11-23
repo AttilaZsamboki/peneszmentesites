@@ -429,7 +429,10 @@ export function Page2({
 								amount: 0,
 								munkadij: jsonResp.id,
 								order_id: prev.length ?? 0,
-								value: jsonResp.value,
+								value:
+									jsonResp.value_type === "fix"
+										? jsonResp.value
+										: jsonResp.value * (settings ? parseFloat(settings["Óradíj"] ?? "1") : 1),
 								source: "Manual",
 							},
 						]);
