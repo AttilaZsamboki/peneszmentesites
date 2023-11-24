@@ -86,13 +86,15 @@ export function Page2({
 			id: 0,
 		}
 	);
-	const [selectedMunkadíj, setSelectedMunkadíj] = React.useState<Munkadíj>({
+	const nullMunkadij: Munkadíj = {
 		description: "",
 		type: "",
 		value: 0,
 		id: 0,
 		value_type: "hour",
-	});
+		num_people: 0,
+	};
+	const [selectedMunkadíj, setSelectedMunkadíj] = React.useState<Munkadíj>(nullMunkadij);
 	const [openTemplateDialog, setOpenTemplateDialog] = React.useState(false);
 	const [openMunkadíjDialog, setOpenMunkadíjDialog] = React.useState(false);
 
@@ -422,7 +424,7 @@ export function Page2({
 							});
 							return;
 						}
-						setSelectedMunkadíj({ description: "", type: "", value: 0, id: 0, value_type: "hour" });
+						setSelectedMunkadíj(nullMunkadij);
 						setFelmeresMunkadíjak!((prev) => [
 							...prev,
 							{
@@ -668,7 +670,8 @@ export function Page2({
 																				munkadíj.value_type === "fix"
 																					? munkadíj.value
 																					: munkadíj.value *
-																							felmeres.hourly_wage
+																							felmeres.hourly_wage *
+																							munkadíj.num_people
 																			)}
 																		</span>
 																	</div>
@@ -820,7 +823,9 @@ export function Page2({
 																	(munkadíjak.find((md) => md.id === parseInt(value))
 																		?.value_type === "hour"
 																		? felmeres.hourly_wage
-																		: 1),
+																		: 1) *
+																	(munkadíjak.find((md) => md.id === parseInt(value))
+																		?.num_people ?? 1),
 															},
 														])
 													}

@@ -8,6 +8,7 @@ export interface Munkadíj {
 	value: number;
 	description: string;
 	value_type: MunkadíjValueType;
+	num_people: number;
 }
 
 export default async function Page() {

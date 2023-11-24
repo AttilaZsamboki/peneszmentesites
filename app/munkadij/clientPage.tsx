@@ -10,11 +10,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ToastAction } from "@/components/ui/toast";
 import { SelectContent, SelectGroup, SelectItem, Select, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Settings, cn, useSettings } from "@/lib/utils";
+import { Settings, useSettings } from "@/lib/utils";
 
 export default function ClientPage({ munkadijak }: { munkadijak: Munkadíj[] }) {
 	const [openDialog, setOpenDialog] = useState(false);
-	const nullSelected: Munkadíj = { type: "", value: 0, description: "", id: 0, value_type: "hour" };
+	const nullSelected: Munkadíj = { type: "", value: 0, description: "", id: 0, value_type: "hour", num_people: 1 };
 	const [selected, setSelected] = useState<Munkadíj>(nullSelected);
 	const [stateMunkadíjak, setStateMunkadíjak] = useState<Munkadíj[]>(munkadijak);
 
@@ -79,6 +79,7 @@ export default function ClientPage({ munkadijak }: { munkadijak: Munkadíj[] }) 
 			munkadíj.value_type === "fix" ? munkadíj.value : munkadíj.value * parseInt(settings["Óradíj"] ?? 0)
 		),
 		idStr: munkadíj.id.toString(),
+		numPeople: munkadíj.value_type === "hour" ? `${munkadíj.value} óra` : "",
 	}));
 	return (
 		<>
@@ -87,9 +88,10 @@ export default function ClientPage({ munkadijak }: { munkadijak: Munkadíj[] }) 
 				editType='dialog'
 				itemContent={{
 					id: "id",
-					subtitle: "description",
+					subtitle3: "numPeople",
 					title: "type",
 					subtitle2: "formattedValue",
+					subtitle: "description",
 				}}
 				title='Munkadíjak'
 				createButtonTitle='Új munkadíj'
@@ -185,7 +187,7 @@ export function MunkadíjForm({
 					</SelectContent>
 				</Select>
 			</div>
-			<div className={cn("grid-cols-4", "grid items-center gap-4")}>
+			<div className='grid grid-cols-4 items-center gap-4'>
 				<Label htmlFor='value' className='text-right'>
 					{munkadíj.value_type === "fix" ? "Összeg" : "Óra"}
 				</Label>
@@ -199,14 +201,40 @@ export function MunkadíjForm({
 							value: e.target.value as unknown as number,
 						}))
 					}
-					className={cn(munkadíj.value_type === "hour" ? "col-span-2" : "col-span-3")}
+					className='col-span-3'
 				/>
-				{munkadíj.value_type === "hour" ? (
-					<p className='prose prose-sm'>
-						{hufFormatter.format(munkadíj.value * parseInt(settings["Óradíj"] ?? 0))}
-					</p>
-				) : null}
 			</div>
+			{munkadíj.value_type === "hour" ? (
+				<div className='grid grid-cols-4 items-center gap-4'>
+					<Label htmlFor='num_people' className='text-right'>
+						Ember
+					</Label>
+					<Input
+						id='num_people'
+						type='number'
+						value={munkadíj?.num_people}
+						onChange={(e) =>
+							setMunkadíj((prev) => ({
+								...prev,
+								num_people: e.target.value as unknown as number,
+							}))
+						}
+						className='col-span-3'
+					/>
+				</div>
+			) : null}
+			{munkadíj.value_type === "hour" ? (
+				<div className='grid grid-cols-4 items-center gap-4'>
+					<Label htmlFor='total' className='text-right'>
+						Összeg
+					</Label>
+					<p id='total' className='prose prose-sm col-span-1 text-left'>
+						{hufFormatter.format(
+							munkadíj.value * (munkadíj.num_people ?? 0) * parseInt(settings["Óradíj"] ?? 0)
+						)}
+					</p>
+				</div>
+			) : null}
 
 			<div className='grid grid-cols-4 items-center gap-4'>
 				<Label htmlFor='description' className='text-right'>
