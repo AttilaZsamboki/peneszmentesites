@@ -6,7 +6,7 @@ import { AdatlapData } from "../_utils/types";
 
 export default async function Page() {
 	const adatlapok: AdatlapData[] = await fetch(
-		"https://pen.dataupload.xyz/minicrm-adatlapok/?CategoryId=23&StatusId=3082,3079,3083,3023,3084,2933",
+		"https://pen.dataupload.xyz/minicrm-adatlapok/?CategoryId=23&StatusId=3082,3079,3083,3023,3084,2933,3086",
 		{ cache: "no-store" }
 	)
 		.then((response) => response.json())
