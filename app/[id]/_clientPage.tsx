@@ -243,9 +243,22 @@ export default function ClientPage({
 								{felmeres.warranty}
 							</div>
 						</QuestionTemplate>
-						<QuestionTemplate title='Indoklás'>
+						{felmeres.warranty_reason ? (
+							<QuestionTemplate title='Indoklás'>
+								<div className='mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 '>
+									{felmeres.warranty_reason}
+								</div>
+							</QuestionTemplate>
+						) : null}
+						<Separator className='my-2' />
+						<QuestionTemplate title='Feltétéles beépítés?'>
 							<div className='mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 '>
-								{felmeres.warranty_reason}
+								{felmeres.is_conditional ? "Igen" : "Nem"}
+							</div>
+						</QuestionTemplate>
+						<QuestionTemplate title='Feltétel oka'>
+							<div className='mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 '>
+								{felmeres.condition}
 							</div>
 						</QuestionTemplate>
 					</>
