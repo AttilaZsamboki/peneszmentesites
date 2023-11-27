@@ -1270,10 +1270,7 @@ export default function Page({
 					<TooltipProvider>
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<Button
-									type='submit'
-									onClick={() => CreateFelmeres(false)}
-									disabled={pageClass.isDisabled()}>
+								<Button type='submit' onClick={() => CreateFelmeres(false)}>
 									Mentés
 								</Button>
 							</TooltipTrigger>
