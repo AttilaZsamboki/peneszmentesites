@@ -345,9 +345,11 @@ function Navbar({ routes }: { routes: Route[] }) {
 											</Avatar>
 											<div className='flex flex-col'>
 												<DropdownMenu>
-													<DropdownMenuTrigger>{user.name}</DropdownMenuTrigger>
+													<DropdownMenuTrigger className='w-32 truncate'>
+														{user.name}
+													</DropdownMenuTrigger>
 													<DropdownMenuContent>
-														<DropdownMenuLabel>Fiókom</DropdownMenuLabel>
+														<DropdownMenuLabel>{user.name}</DropdownMenuLabel>
 														<DropdownMenuSeparator />
 														<a href='/api/auth/logout'>
 															<DropdownMenuItem className='text-red-700 hover:text-red-700 font-semibold'>

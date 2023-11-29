@@ -24,7 +24,7 @@ import { Checkmark } from "@/components/check";
 import { FelmeresPictures, FelmeresPicturesComponent, PageMap, SectionName, isJSONParsable } from "../[id]/_clientPage";
 import _ from "lodash";
 import { ToastAction } from "@/components/ui/toast";
-import { CornerUpLeft, IterationCw, MenuSquare } from "lucide-react";
+import { IterationCw, MenuSquare } from "lucide-react";
 import { QuestionPage } from "../../components/QuestionPage";
 import { TooltipTrigger, Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import Link from "next/link";
@@ -49,6 +49,7 @@ import { Badge } from "@/components/ui/badge";
 import { Munkadíj } from "../munkadij/page";
 import { Select, SelectValue, SelectContent, SelectGroup, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export interface ProductTemplate {
 	product: number;
@@ -70,6 +71,8 @@ export interface BaseFelmeresData {
 	warranty: string;
 	warranty_reason: string;
 	hourly_wage: number;
+	is_conditional: boolean;
+	condition: string;
 }
 
 export type ItemType = "Item" | "Fee" | "Discount" | "Other Material";
@@ -164,6 +167,8 @@ export default function Page({
 					warranty: "",
 					warranty_reason: "",
 					hourly_wage: 0,
+					is_conditional: false,
+					condition: "",
 			  }
 	);
 	const [items, setItems] = React.useState<FelmeresItem[]>(
@@ -581,7 +586,7 @@ export default function Page({
 				// -- END -- //
 
 				// MiniCRM ajánlat létrehozása //
-				await fetch(`/api/minicrm-proxy/${felmeres.adatlap_id}?endpoint=Project`, {
+				await fetch(`https://pen.dataupload.xyz/minicrm-proxy/${felmeres.adatlap_id}`, {
 					method: "PUT",
 					headers: {
 						"Content-Type": "application/json",
@@ -822,7 +827,7 @@ export default function Page({
 					{
 						component: (
 							<div className='flex flex-col gap-10'>
-								<QuestionTemplate title='Feltétel' mandatory>
+								<QuestionTemplate title='Garancia feltétele' mandatory>
 									<Select
 										value={felmeres.warranty}
 										onValueChange={(value) =>
@@ -851,6 +856,24 @@ export default function Page({
 											setFelmeres((prev) => ({ ...prev, warranty_reason: e.target.value }))
 										}
 										id='warranty-reasoning'
+									/>
+								</QuestionTemplate>
+								<Separator className='my-2' />
+								<QuestionTemplate title='Feltétéles beépítés?'>
+									<Checkbox
+										checked={felmeres.is_conditional}
+										onCheckedChange={() =>
+											setFelmeres((prev) => ({ ...prev, is_conditional: !prev.is_conditional }))
+										}
+									/>
+								</QuestionTemplate>
+								<QuestionTemplate title='Feltétel oka' mandatory={felmeres.is_conditional}>
+									<Textarea
+										disabled={!felmeres.is_conditional}
+										value={felmeres.condition}
+										onChange={(e) =>
+											setFelmeres((prev) => ({ ...prev, condition: e.target.value }))
+										}
 									/>
 								</QuestionTemplate>
 							</div>
@@ -1247,10 +1270,7 @@ export default function Page({
 					<TooltipProvider>
 						<Tooltip>
 							<TooltipTrigger asChild>
-								<Button
-									type='submit'
-									onClick={() => CreateFelmeres(false)}
-									disabled={pageClass.isDisabled()}>
+								<Button type='submit' onClick={() => CreateFelmeres(false)}>
 									Mentés
 								</Button>
 							</TooltipTrigger>
@@ -1273,16 +1293,15 @@ export default function Page({
 			!felmeres.subject ||
 			!felmeresMunkadíjak.map((item) => item.amount && item.value).every((value) => value);
 		const warranty =
-			!felmeres.warranty || (felmeres.warranty !== "Teljes garancia" ? !felmeres.warranty_reason : false);
+			!felmeres.warranty ||
+			(felmeres.warranty !== "Teljes garancia" ? !felmeres.warranty_reason : false) ||
+			(felmeres.is_conditional ? !felmeres.condition : false);
 		if (type === "Tételek") {
 			return offer;
 		} else if (type === "Garancia") {
 			return warranty;
 		}
 		return offer || warranty;
-	}
-	function Garancia() {
-		return <></>;
 	}
 }
 
