@@ -640,7 +640,7 @@ export function Page2({
 											const md = munkadíjak.find((md) => md.id === fmd.munkadij);
 											if (md) {
 												if (md.value_type === "hour") {
-													return md.value * fmd.amount;
+													return (fmd.value / felmeres.hourly_wage) * fmd.amount;
 												}
 											}
 											return 0;
@@ -737,9 +737,10 @@ export function Page2({
 																			value={
 																				munkadíj.value_type === "fix"
 																					? numberFormatter.format(fee.value)
-																					: fee.value / felmeres.hourly_wage
+																					: fee.hour ??
+																					  fee.value / felmeres.hourly_wage
 																			}
-																			onChange={(e) =>
+																			onChange={(e) => {
 																				setFelmeresMunkadíjak!((prev) => [
 																					...prev.filter(
 																						(f) =>
@@ -748,26 +749,13 @@ export function Page2({
 																					{
 																						...fee,
 																						value:
-																							munkadíj.value_type ===
-																							"fix"
-																								? e.target.value
-																									? parseInt(
-																											e.target.value.replace(
-																												/[^\d-]/g,
-																												""
-																											)
-																									  )
-																									: 0
-																								: e.target.value
-																								? parseFloat(
-																										e.target.value
-																								  ) *
-																								  felmeres.hourly_wage
-																								: (e.target
-																										.value as unknown as number),
+																							(e.target
+																								.value as unknown as number) *
+																							felmeres.hourly_wage,
+																						hour: e.target.value,
 																					},
-																				])
-																			}
+																				]);
+																			}}
 																		/>
 																		<p className='prose prose-slate'>
 																			{munkadíj.value_type === "fix"
