@@ -472,7 +472,7 @@ export function Page2({
 										}))}
 										value={selectedTemplate.type}
 										onSelect={(e) => {
-											setFelmeres ? setFelmeres({ ...felmeres, type: e, template: 0 }) : null;
+											setFelmeres ? setFelmeres({ ...felmeres, type: e }) : null;
 											setSelectedTemplate({
 												description: "",
 												name: "",
@@ -1540,7 +1540,7 @@ export function Page2({
 																		.map((item) => item.product)
 																		.includes(product.id)
 															)
-															.sort((a, b) => a.sku.localeCompare(b.sku))
+															.sort((a, b) => a.sku?.localeCompare(b.sku))
 															.map((product) => ({
 																label: product.sku + " - " + product.name,
 																value: product.id.toString(),
