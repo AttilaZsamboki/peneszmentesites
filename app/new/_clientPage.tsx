@@ -586,7 +586,7 @@ export default function Page({
 				// -- END -- //
 
 				// MiniCRM ajánlat létrehozása //
-				await fetch(`/api/minicrm-proxy/${felmeres.adatlap_id}?endpoint=Project`, {
+				await fetch(`https://pen.dataupload.xyz/minicrm-proxy/${felmeres.adatlap_id}`, {
 					method: "PUT",
 					headers: {
 						"Content-Type": "application/json",

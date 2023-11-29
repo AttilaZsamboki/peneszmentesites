@@ -631,8 +631,23 @@ export function Page2({
 					<AccordionItem value='Munkadíj'>
 						<AccordionTrigger onClick={() => handleOpenAccordion("Munkadíj")} className='relative'>
 							<div>Munkadíjak</div>
-							<div className='absolute right-4 text-xs font-medium text-gray-700 mr-2'>
-								{hufFormatter.format(munkadíjNetTotal)}
+							<div className='absolute right-4 flex flex-col gap-1 items-end justify-center text-xs font-medium text-gray-700 mr-2'>
+								<span>{hufFormatter.format(munkadíjNetTotal)}</span>
+								<span className='text-xs font-bold'>
+									(
+									{felmeresMunkadíjak
+										.map((fmd) => {
+											const md = munkadíjak.find((md) => md.id === fmd.munkadij);
+											if (md) {
+												if (md.value_type === "hour") {
+													return md.value * fmd.amount;
+												}
+											}
+											return 0;
+										})
+										.reduce((a, b) => a + b, 0)}{" "}
+									óra)
+								</span>
 							</div>
 						</AccordionTrigger>
 						<AccordionContent>
