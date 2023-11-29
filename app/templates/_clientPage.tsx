@@ -203,9 +203,9 @@ export function Form({
 			value: "Item",
 			options: isChosen(products, "Item")
 				.filter((product) => product.category !== "Egyéb szerelési anyag")
-				.sort((a, b) => a.sku.localeCompare(b.sku))
+				.sort((a, b) => a.sku?.localeCompare(b.sku))
 				.map((product) => ({
-					label: product.sku.trim() + " - " + product.name,
+					label: product.sku?.trim() + " - " + product.name,
 					value: product.id.toString(),
 				})),
 		},

@@ -119,6 +119,7 @@ export interface FelmeresMunkadíj {
 	order_id?: number;
 	value: number;
 	source?: "Template" | "Manual";
+	hour?: string;
 }
 
 export default function Page({
