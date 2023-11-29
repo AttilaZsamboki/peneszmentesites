@@ -494,6 +494,15 @@ export function Page2({
 													value: template.id.toString(),
 												}))}
 											onSelect={(e) => {
+												if (!e) {
+													setSelectedTemplate({
+														description: "",
+														name: "",
+														type: "",
+														id: 0,
+													});
+													return;
+												}
 												if (templates) {
 													if (templates.find((template) => template.id.toString() === e)) {
 														setSelectedTemplate(
@@ -513,7 +522,8 @@ export function Page2({
 											value={selectedTemplate.name}
 										/>
 										<div>
-											{readonly ? null : felmeres.template !== selectedTemplate.id ? (
+											{readonly ? null : felmeres.template !== selectedTemplate.id &&
+											  selectedTemplate.id ? (
 												<Button size='icon' variant='outline' onClick={onSelectTemplate}>
 													<Plus className='w-4 h-4 text-gray-700' />
 												</Button>
