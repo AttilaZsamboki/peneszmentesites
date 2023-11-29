@@ -61,7 +61,7 @@ export interface BaseFelmeresData {
 	id: number;
 	adatlap_id: number;
 	type: string;
-	template: number;
+	template?: number;
 	status: FelmeresStatus;
 	created_at: string;
 	description: string;
@@ -158,7 +158,6 @@ export default function Page({
 					id: 0,
 					adatlap_id: searchParams.get("adatlap_id") ? parseInt(searchParams.get("adatlap_id")!) : 0,
 					type: "",
-					template: 0,
 					status: "DRAFT",
 					created_at: "",
 					description: "",

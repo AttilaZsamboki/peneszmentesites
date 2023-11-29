@@ -124,7 +124,7 @@ export default function ClientPage({
 	const [felmeres, setFelmeres] = React.useState(
 		felmeresNonState
 			? felmeresNonState
-			: ({ adatlap_id: 0, status: "DRAFT", template: 0, type: "Helyi elszívós rendszer" } as BaseFelmeresData)
+			: ({ adatlap_id: 0, status: "DRAFT", type: "Helyi elszívós rendszer" } as BaseFelmeresData)
 	);
 
 	const [isEditing, setIsEditing] = React.useState(false);
