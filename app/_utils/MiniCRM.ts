@@ -181,6 +181,7 @@ export async function assembleOfferXML(
 	const contactData: ContactDetails = await fetchContactDetails(contactId);
 	const date = new Date(new Date().setDate(new Date().getDate() + 30));
 
+	const validityDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + (date.getDate() + 1);
 	const xmlString = `<?xml version="1.0" encoding="UTF-8"?>
 <Projects>
     <Project Id="${randomId}">
@@ -203,7 +204,7 @@ export async function assembleOfferXML(
 				<Number>${adatlap.Name} - ${templateName ? templateName.substring(0, 20) : "Egyéni"}</Number>
                 <CurrencyCode>HUF</CurrencyCode>
 				<Subject>${subject}</Subject>
-                <Performance>${date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()}</Performance>
+                <Performance>${validityDate}</Performance>
 				<Prompt>${date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate()}</Prompt>
                 <Status>${miniCrmStatusMap[status]}</Status>
                 <!-- Data of Customer -->
@@ -250,6 +251,8 @@ export async function assembleOfferXML(
 					<UserId>${adatlap.Felmero2 ?? ""}</UserId>
 					<KapcsolodoFelmeres>https://app.peneszmentesites.hu/${felmeresId}</KapcsolodoFelmeres>
 					<ArajanlatMegjegyzes>${description}</ArajanlatMegjegyzes>
+					<KiallitasDatuma5>${date.getFullYear() + "-" + date.getMonth() + "-" + (date.getDate() + 1)}</KiallitasDatuma5>
+					<Ervenyesseg>${validityDate}</Ervenyesseg>
 				</Project>
             </Offer>
         </Offers>
