@@ -11,7 +11,7 @@ import { UserProvider } from "@auth0/nextjs-auth0/client";
 import type { Metadata } from "next";
 
 import { GeistSans } from "geist/font";
-import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
 	title: "Penészmentesítés",
@@ -26,7 +26,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 			<UserProvider>
 				<body>
 					<RootLayoutClient>{children}</RootLayoutClient>
-					<Analytics />
+					<SpeedInsights />
 				</body>
 			</UserProvider>
 		</html>
