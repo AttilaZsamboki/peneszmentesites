@@ -258,7 +258,7 @@ export async function assembleOfferXML(
         </Offers>
     </Project>
 </Projects>`;
-	return await fetch("/api/minicrm-proxy?endpoint=XML", {
+	return await fetch("https://pen.dataupload.xyz/minicrm-proxy?endpoint=XML", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/xml",
