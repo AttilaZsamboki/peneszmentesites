@@ -171,7 +171,8 @@ export async function assembleOfferXML(
 	subject?: string,
 	templateName?: string,
 	felmeresId?: number,
-	description: string = ""
+	description: string = "",
+	projectData?: { [key: string]: string }
 ) {
 	const randomId = Math.floor(Math.random() * 1000000);
 	if (!contactId || !adatlapId) {
@@ -253,12 +254,15 @@ export async function assembleOfferXML(
 					<ArajanlatMegjegyzes>${description}</ArajanlatMegjegyzes>
 					<KiallitasDatuma5>${date.getFullYear() + "-" + date.getMonth() + "-" + (date.getDate() + 1)}</KiallitasDatuma5>
 					<Ervenyesseg>${validityDate}</Ervenyesseg>
+					${Object.entries(projectData ?? {})
+						?.map(([key, value]) => `<${key}>${value}</${key}>`)
+						.join("\n")}
 				</Project>
             </Offer>
         </Offers>
     </Project>
 </Projects>`;
-	return await fetch("https://pen.dataupload.xyz/minicrm-proxy?endpoint=XML", {
+	return await fetch("https://pen.dataupload.xyz/minicrm-proxy/?endpoint=XML", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/xml",

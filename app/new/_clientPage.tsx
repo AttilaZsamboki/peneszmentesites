@@ -217,6 +217,7 @@ export default function Page({
 	const [felmeresMunkadíjak, setFelmeresMunkadíjak] = React.useState<FelmeresMunkadíj[]>(
 		editFelmeresMunkadíjak ?? []
 	);
+	const [detailedOffer, setDetailedOffer] = React.useState(false);
 
 	const createType = (
 		sendOffer?: boolean
@@ -578,7 +579,8 @@ export default function Page({
 					felmeres.subject,
 					template?.name,
 					felmeresResponseData.id,
-					felmeres.description
+					felmeres.description,
+					{ ReszletesAjanlatotKert: detailedOffer ? "Igen" : "" }
 				);
 				updateStatus(2035);
 				const createXmlString = performance.now();
@@ -762,6 +764,7 @@ export default function Page({
 					{
 						component: (
 							<Page2
+								setDetailedOffer={setDetailedOffer}
 								felmeresMunkadíjak={felmeresMunkadíjak}
 								setFelmeresMunkadíjak={setFelmeresMunkadíjak}
 								originalMunkadíjak={munkadíjak}

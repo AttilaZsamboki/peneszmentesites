@@ -38,6 +38,7 @@ import { Munkadíj } from "../munkadij/page";
 import { Input } from "@/components/ui/input";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { MunkadíjForm } from "../munkadij/clientPage";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export function Page2({
 	felmeres,
@@ -55,6 +56,7 @@ export function Page2({
 	originalMunkadíjak,
 	felmeresMunkadíjak,
 	setFelmeresMunkadíjak,
+	setDetailedOffer,
 }: {
 	felmeres: BaseFelmeresData;
 	setFelmeres?: React.Dispatch<React.SetStateAction<BaseFelmeresData>>;
@@ -71,6 +73,7 @@ export function Page2({
 	originalMunkadíjak: Munkadíj[];
 	felmeresMunkadíjak: FelmeresMunkadíj[];
 	setFelmeresMunkadíjak?: React.Dispatch<React.SetStateAction<FelmeresMunkadíj[]>>;
+	setDetailedOffer?: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
 	const settings = useSettings();
 	const [openAccordions, setOpenAccordions] = React.useState<(ItemType | "Munkadíj" | "Összesítés")[]>([]);
@@ -455,7 +458,7 @@ export function Page2({
 			) : null}
 			<div id='Tételek'>
 				{!readonly ? (
-					<div className='flex flex-row justify-between w-full items-start flex-wrap'>
+					<div className='flex flex-row justify-between w-full items-start flex-wrap gap-3'>
 						<div className='flex flex-row gap-4 items-center'>
 							<div className='flex flex-row items-center gap-2 flex-wrap'>
 								<QuestionTemplate title='Milyen rendszert tervezel?'>
@@ -561,10 +564,18 @@ export function Page2({
 								</QuestionTemplate>
 							</div>
 						</div>
+						<div className='flex flex-col lg:flex-row items-start justify-center lg:items-center gap-2'>
+							<Label htmlFor='detailed-offer'>Tételes ajánlat</Label>
+
+							<Checkbox
+								onClick={() => (setDetailedOffer ? setDetailedOffer((prev) => !prev) : null)}
+								id='detailed-offer'
+								className='order-last lg:order-first'
+							/>
+						</div>
 
 						<div className='grid w-full lg:w-1/3 gap-1.5'>
 							<Label htmlFor='subject'>Tárgy</Label>
-
 							<Textarea
 								id='subject'
 								onBlur={() => {
