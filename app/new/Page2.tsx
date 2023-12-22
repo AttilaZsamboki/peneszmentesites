@@ -1382,14 +1382,14 @@ export function Page2({
 																								);
 																							}
 																							if (!setItems) return;
-																							setItems([
-																								...items.filter(
+																							setItems((prev) => [
+																								...prev.filter(
 																									(item) =>
 																										item.product !==
 																										product
 																								),
 																								{
-																									...items.find(
+																									...prev.find(
 																										(item) =>
 																											item.product ===
 																											product
