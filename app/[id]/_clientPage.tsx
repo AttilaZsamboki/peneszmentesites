@@ -240,13 +240,13 @@ export default function ClientPage({
 					<>
 						<QuestionTemplate title='Feltétel'>
 							<div className='mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 '>
-								{felmeres.warranty}
+								{felmeres.garancia}
 							</div>
 						</QuestionTemplate>
-						{felmeres.warranty_reason ? (
+						{felmeres.garancia_reason ? (
 							<QuestionTemplate title='Indoklás'>
 								<div className='mt-1 text-sm leading-6 text-gray-700 sm:col-span-2 sm:mt-0 '>
-									{felmeres.warranty_reason}
+									{felmeres.garancia_reason}
 								</div>
 							</QuestionTemplate>
 						) : null}

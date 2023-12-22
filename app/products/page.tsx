@@ -33,8 +33,8 @@ export interface Product {
 	quantity_multiplier?: string;
 	supplementary_unit?: string;
 	country_of_origin?: string;
-	warranty_period?: string;
-	warranty_period_unit?: string;
+	garancia_period?: string;
+	garancia_period_unit?: string;
 	virtual?: string;
 	fragile?: string;
 	product_class?: string;

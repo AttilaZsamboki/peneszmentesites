@@ -68,8 +68,8 @@ export interface BaseFelmeresData {
 	offer_status?: "Elfogadott ajánlat" | "Sikeres megrendelés" | null;
 	subject: string;
 	created_by: string;
-	warranty: string;
-	warranty_reason: string;
+	garancia: string;
+	garancia_reason: string;
 	hourly_wage: number;
 	is_conditional: boolean;
 	condition: string;
@@ -164,8 +164,8 @@ export default function Page({
 					description: "",
 					subject: "",
 					created_by: user?.sub ?? "",
-					warranty: "",
-					warranty_reason: "",
+					garancia: "",
+					garancia_reason: "",
 					hourly_wage: 0,
 					is_conditional: false,
 					condition: "",
@@ -829,9 +829,9 @@ export default function Page({
 							<div className='flex flex-col gap-10'>
 								<QuestionTemplate title='Garancia feltétele' mandatory>
 									<Select
-										value={felmeres.warranty}
+										value={felmeres.garancia}
 										onValueChange={(value) =>
-											setFelmeres((prev) => ({ ...prev, warranty: value }))
+											setFelmeres((prev) => ({ ...prev, garancia: value }))
 										}>
 										<SelectTrigger>
 											<SelectValue placeholder='Válassz egy feltételt' />
@@ -848,14 +848,14 @@ export default function Page({
 										</SelectContent>
 									</Select>
 								</QuestionTemplate>
-								<QuestionTemplate mandatory={felmeres.warranty !== "Teljes garancia"} title='Indoklás'>
+								<QuestionTemplate mandatory={felmeres.garancia !== "Teljes garancia"} title='Indoklás'>
 									<Textarea
-										value={felmeres.warranty_reason}
-										disabled={felmeres.warranty === "Teljes garancia"}
+										value={felmeres.garancia_reason}
+										disabled={felmeres.garancia === "Teljes garancia"}
 										onChange={(e) =>
-											setFelmeres((prev) => ({ ...prev, warranty_reason: e.target.value }))
+											setFelmeres((prev) => ({ ...prev, garancia_reason: e.target.value }))
 										}
-										id='warranty-reasoning'
+										id='garancia-reasoning'
 									/>
 								</QuestionTemplate>
 								<Separator className='my-2' />
@@ -1292,16 +1292,16 @@ export default function Page({
 			!items.length ||
 			!felmeres.subject ||
 			!felmeresMunkadíjak.map((item) => item.amount && item.value).every((value) => value);
-		const warranty =
-			!felmeres.warranty ||
-			(felmeres.warranty !== "Teljes garancia" ? !felmeres.warranty_reason : false) ||
+		const garancia =
+			!felmeres.garancia ||
+			(felmeres.garancia !== "Teljes garancia" ? !felmeres.garancia_reason : false) ||
 			(felmeres.is_conditional ? !felmeres.condition : false);
 		if (type === "Tételek") {
 			return offer;
 		} else if (type === "Garancia") {
-			return warranty;
+			return garancia;
 		}
-		return offer || warranty;
+		return offer || garancia;
 	}
 }
 
