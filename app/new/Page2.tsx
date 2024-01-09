@@ -131,7 +131,6 @@ export function Page2({
 								munkadij: productTemplate.product,
 								amount: 0,
 								order_id: prev.length ?? 0,
-								// value: munkadíjak.find((fee) => fee.id === productTemplate.product)?.value ?? 0,
 								value:
 									(munkadíjak.find((md) => md.id === productTemplate.product)?.value ?? 0) *
 									(munkadíjak.find((md) => md.id === productTemplate.product)?.value_type === "hour"
@@ -1435,14 +1434,14 @@ export function Page2({
 																						onClick={() =>
 																							!setItems
 																								? null
-																								: setItems([
-																										...items.filter(
+																								: setItems((prev) => [
+																										...prev.filter(
 																											(item) =>
 																												item.product !==
 																												product
 																										),
 																										{
-																											...items.find(
+																											...prev.find(
 																												(
 																													item
 																												) =>

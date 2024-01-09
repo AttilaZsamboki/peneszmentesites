@@ -398,156 +398,128 @@ export default function Page({
 		// -- END -- //
 
 		// Ha sikeresen ell lettek mentve a felmérés alapadatai
-		if (!res || res.ok) {
-			// Tételek mentése //
-			const felmeresResponseData: BaseFelmeresData = !res ? editFelmeres : await res.json();
-			await fetch("https://pen.dataupload.xyz/felmeres_items/", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(
-					submitItems.map((item) => ({
-						...item,
-						adatlap: felmeresResponseData.id,
-						netPrice: item.netPrice,
-						// ez annyit jelent hogy ha null az id akkor létrehozza az adatbázisban egyébként frissíti a meglévő tételeket
-						id:
-							createType2.FELMERES === "UPDATE" && item.id && !createType2.CANCEL_OLD_OFFER
-								? item.id
-								: null,
-					}))
-				),
+		if (res && !res.ok) {
+			toast({
+				title: "Hiba",
+				description: "Hiba akadt a felmérés alapadatainak mentése közben: " + res.statusText,
+				variant: "destructive",
 			});
-			updateStatus(196);
-			const saveOfferItems = performance.now();
-			console.log("Tételek mentése: " + (saveOfferItems - start) + "ms");
-			// -- END -- //
+			return;
+		}
+		// Tételek mentése //
+		const felmeresResponseData: BaseFelmeresData = !res ? editFelmeres : await res.json();
+		await fetch("https://pen.dataupload.xyz/felmeres_items/", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(
+				submitItems.map((item) => ({
+					...item,
+					adatlap: felmeresResponseData.id,
+					netPrice: item.netPrice,
+					// ez annyit jelent hogy ha null az id akkor létrehozza újra az adatbázisban egyébként frissíti a meglévő tételeket
+					id: createType2.FELMERES === "UPDATE" && item.id && !createType2.CANCEL_OLD_OFFER ? item.id : null,
+				}))
+			),
+		});
+		updateStatus(196);
+		const saveOfferItems = performance.now();
+		console.log("Tételek mentése: " + (saveOfferItems - start) + "ms");
+		// -- END -- //
 
-			// -- Munkadíj mentése -- //
-			await fetch("https://pen.dataupload.xyz/felmeres-munkadij/", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(
-					felmeresMunkadíjak.map((munkadíj) => ({
-						...munkadíj,
-						felmeres: felmeresResponseData.id,
-						id: munkadíj.id ? munkadíj.id : null,
-					}))
-				),
-			});
-			updateStatus(210);
-			// -- END -- //
+		// -- Munkadíj mentése -- //
+		await fetch("https://pen.dataupload.xyz/felmeres-munkadij/", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(
+				felmeresMunkadíjak.map((munkadíj) => ({
+					...munkadíj,
+					felmeres: felmeresResponseData.id,
+					id: munkadíj.id && !createType2.CANCEL_OLD_OFFER ? munkadíj.id : null,
+				}))
+			),
+		});
+		updateStatus(210);
+		// -- END -- //
 
-			// Kérdések mentése //
-			data.filter((question) => question.value).map(async (question) => {
-				const originaQuestion = questions.find((q) => q.id === question.question);
-				let question_id = question.question;
-				if (originaQuestion?.created_from === "Form" && !originaQuestion.is_created) {
-					const resp = await fetch("https://pen.dataupload.xyz/questions/", {
+		// Kérdések mentése //
+		data.filter((question) => question.value).map(async (question) => {
+			const originaQuestion = questions.find((q) => q.id === question.question);
+			let question_id = question.question;
+			if (originaQuestion?.created_from === "Form" && !originaQuestion.is_created) {
+				const resp = await fetch("https://pen.dataupload.xyz/questions/", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ ...originaQuestion, id: null }),
+				});
+				if (resp.ok) {
+					question_id = (await resp.json()).id;
+					await fetch("https://pen.dataupload.xyz/question_products/", {
 						method: "POST",
 						headers: {
 							"Content-Type": "application/json",
 						},
-						body: JSON.stringify({ ...originaQuestion, id: null }),
+						body: JSON.stringify({
+							question_id: question_id,
+							product_id: originaQuestion.product,
+						}),
 					});
-					if (resp.ok) {
-						question_id = (await resp.json()).id;
-						await fetch("https://pen.dataupload.xyz/question_products/", {
-							method: "POST",
-							headers: {
-								"Content-Type": "application/json",
-							},
-							body: JSON.stringify({
-								question_id: question_id,
-								product_id: originaQuestion.product,
-							}),
-						});
-					}
 				}
-				await fetch("https://pen.dataupload.xyz/felmeres_questions/" + (question.id ? question.id + "/" : ""), {
-					method: question.id ? "PUT" : "POST",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						...question,
-						adatlap: felmeresResponseData.id,
-						value: Array.isArray(question.value) ? JSON.stringify(question.value) : question.value,
-						question: question_id,
-					}),
-				});
+			}
+			await fetch("https://pen.dataupload.xyz/felmeres_questions/" + (question.id ? question.id + "/" : ""), {
+				method: question.id ? "PUT" : "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					...question,
+					adatlap: felmeresResponseData.id,
+					value: Array.isArray(question.value) ? JSON.stringify(question.value) : question.value,
+					question: question_id,
+				}),
 			});
-			updateStatus(203);
-			const createQuestions = performance.now();
-			console.log("Kérdések létrehozása: " + (createQuestions - start) + "ms");
-			// -- END -- //
+		});
+		updateStatus(203);
+		const createQuestions = performance.now();
+		console.log("Kérdések létrehozása: " + (createQuestions - start) + "ms");
+		// -- END -- //
 
-			// Képek mentése //
-			pictures
-				.filter((pic) => !pic.id)
-				.map(
-					async (pic) =>
-						await fetch("https://pen.dataupload.xyz/felmeres-pictures/", {
-							method: "POST",
-							headers: {
-								"Content-Type": "application/json",
-							},
-							body: JSON.stringify({ ...pic, felmeres: felmeresResponseData.id }),
-						})
-				);
-			// -- END -- //
+		// Képek mentése //
+		pictures
+			.filter((pic) => !pic.id || createType2.CANCEL_OLD_OFFER)
+			.map(
+				async (pic) =>
+					await fetch("https://pen.dataupload.xyz/felmeres-pictures/", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({ ...pic, felmeres: felmeresResponseData.id }),
+					})
+			);
+		// -- END -- //
 
-			// MiniCRM ajánlat létrehozása //
-			if (createType2.CREATE_OFFER) {
-				// XML string összeállítása
-				await assembleOfferXML(
-					"Elfogadásra vár",
-					39636,
-					adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)
-						? adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)!.ContactId.toString()
-						: "",
-					[
-						...(items
-							.filter((item) => item.type === "Other Material")
-							.map((item) => item.netPrice)
-							.reduce((a, b) => a + b, 0) > 0
-							? [
-									...submitItems
-										.filter((item) => item.type !== "Other Material" && item.netPrice)
-										.map((item) => ({
-											...item,
-											netPrice:
-												item.valueType === "percent"
-													? item.type === "Fee"
-														? calculatePercentageValue(
-																netTotal + munkadíjNetTotal,
-																otherItems,
-																item.netPrice
-														  )
-														: item.type === "Discount"
-														? -(
-																(otherItemsNetTotal + netTotal + munkadíjNetTotal) *
-																(item.netPrice / 100)
-														  )
-														: item.netPrice
-													: item.netPrice,
-										})),
-									{
-										netPrice: items
-											.filter((item) => item.type === "Other Material")
-											.map(
-												(item) =>
-													item.netPrice * item.inputValues.reduce((a, b) => a + b.ammount, 0)
-											)
-											.reduce((a, b) => a + b, 0),
-										name: "Egyéb szerelési segédanyagok",
-										inputValues: [{ ammount: 1, id: 0, value: "" }],
-									} as unknown as FelmeresItem,
-							  ]
-							: submitItems
+		// MiniCRM ajánlat létrehozása //
+		if (sendOffer) {
+			// XML string összeállítása
+			await assembleOfferXML(
+				"Elfogadásra vár",
+				39636,
+				adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)
+					? adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)!.ContactId.toString()
+					: "",
+				[
+					...(items
+						.filter((item) => item.type === "Other Material")
+						.map((item) => item.netPrice)
+						.reduce((a, b) => a + b, 0) > 0
+						? [
+								...submitItems
 									.filter((item) => item.type !== "Other Material" && item.netPrice)
 									.map((item) => ({
 										...item,
@@ -566,124 +538,155 @@ export default function Page({
 													  )
 													: item.netPrice
 												: item.netPrice,
-									}))),
-						{
-							netPrice: felmeresMunkadíjak
-								.map((munkadíj) => munkadíj.value * munkadíj.amount)
-								.reduce((a, b) => a + b, 0),
-							name: "Munkadíj",
-							inputValues: [{ ammount: 1, id: 0, value: "" }],
-						} as unknown as FelmeresItem,
-					],
-					felmeres.adatlap_id.toString(),
-					felmeres.subject,
-					template?.name,
-					felmeresResponseData.id,
-					felmeres.description,
-					{ ReszletesAjanlatotKert: detailedOffer ? "Igen" : "" }
-				);
-				updateStatus(2035);
-				const createXmlString = performance.now();
-				console.log("Ajánlat létrehozása: " + (createXmlString - start) + "ms");
-				// -- END -- //
+									})),
+								{
+									netPrice: items
+										.filter((item) => item.type === "Other Material")
+										.map(
+											(item) =>
+												item.netPrice * item.inputValues.reduce((a, b) => a + b.ammount, 0)
+										)
+										.reduce((a, b) => a + b, 0),
+									name: "Egyéb szerelési segédanyagok",
+									inputValues: [{ ammount: 1, id: 0, value: "" }],
+								} as unknown as FelmeresItem,
+						  ]
+						: submitItems
+								.filter((item) => item.type !== "Other Material" && item.netPrice)
+								.map((item) => ({
+									...item,
+									netPrice:
+										item.valueType === "percent"
+											? item.type === "Fee"
+												? calculatePercentageValue(
+														netTotal + munkadíjNetTotal,
+														otherItems,
+														item.netPrice
+												  )
+												: item.type === "Discount"
+												? -(
+														(otherItemsNetTotal + netTotal + munkadíjNetTotal) *
+														(item.netPrice / 100)
+												  )
+												: item.netPrice
+											: item.netPrice,
+								}))),
+					{
+						netPrice: felmeresMunkadíjak
+							.map((munkadíj) => munkadíj.value * munkadíj.amount)
+							.reduce((a, b) => a + b, 0),
+						name: "Munkadíj",
+						inputValues: [{ ammount: 1, id: 0, value: "" }],
+					} as unknown as FelmeresItem,
+				],
+				felmeres.adatlap_id.toString(),
+				felmeres.subject,
+				template?.name,
+				felmeresResponseData.id,
+				felmeres.description,
+				{ ReszletesAjanlatotKert: detailedOffer ? "Igen" : "" }
+			);
+			updateStatus(2035);
+			const createXmlString = performance.now();
+			console.log("Ajánlat létrehozása: " + (createXmlString - start) + "ms");
+			// -- END -- //
 
-				// MiniCRM ajánlat létrehozása //
-				await fetch(`https://pen.dataupload.xyz/minicrm-proxy/${felmeres.adatlap_id}`, {
-					method: "PUT",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						FelmeresAdatok: "https://app.peneszmentesites.hu/" + felmeresResponseData.id,
-						StatusId: "Elszámolásra vár",
-					}),
-				});
-				updateStatus(2961);
-				const createOffer = performance.now();
-				console.log("Ajánlat létrehozása: " + (createOffer - start) + "ms");
-				// -- END -- //
+			// MiniCRM ajánlat létrehozása //
+			await fetch(`https://pen.dataupload.xyz/minicrm-proxy/${felmeres.adatlap_id}`, {
+				method: "PUT",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					FelmeresAdatok: "https://app.peneszmentesites.hu/" + felmeresResponseData.id,
+					StatusId: "Elszámolásra vár",
+				}),
+			});
+			updateStatus(2961);
+			const createOffer = performance.now();
+			console.log("Ajánlat létrehozása: " + (createOffer - start) + "ms");
+			// -- END -- //
 
-				// Régi ajánlat stornózása
-				if (createType2.CANCEL_OLD_OFFER) {
-					const cancelOffer = async () => {
-						const resp = await fetch("https://pen.dataupload.xyz/cancel_offer/", {
-							method: "POST",
-							headers: {
-								"Content-Type": "application/json",
-							},
-							body: JSON.stringify({
-								adatlap_id: felmeres.id.toString(),
-							}),
+			// Régi ajánlat stornózása
+			if (createType2.CANCEL_OLD_OFFER) {
+				const cancelOffer = async () => {
+					const resp = await fetch("https://pen.dataupload.xyz/cancel_offer/", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify({
+							adatlap_id: felmeres.id.toString(),
+						}),
+					});
+					if (!resp.ok) {
+						toast({
+							title: "Hiba",
+							description: "Hiba akadt a régi adatlap sztornózása közben: " + resp.statusText,
+							variant: "destructive",
+							action: (
+								<div className='flex flex-col gap-2'>
+									<ToastAction
+										altText='Try again'
+										onClick={async () => {
+											const retryResp = await cancelOffer();
+											if (retryResp === "Error") {
+												return;
+											}
+											updateStatus(3400);
+											await fetch("/api/revalidate?tag=" + felmeres.id);
+											router.push("/");
+										}}>
+										<IterationCw className='w-5 h-5' />
+									</ToastAction>
+									<ToastAction
+										altText='skip'
+										onClick={async () => {
+											updateStatus(3400);
+											await fetch("/api/revalidate?tag=" + felmeres.id);
+											router.push("/");
+										}}>
+										Kihagyás
+									</ToastAction>
+								</div>
+							),
 						});
-						if (!resp.ok) {
-							toast({
-								title: "Hiba",
-								description: "Hiba akadt a régi adatlap sztornózása közben: " + resp.statusText,
-								variant: "destructive",
-								action: (
-									<div className='flex flex-col gap-2'>
-										<ToastAction
-											altText='Try again'
-											onClick={async () => {
-												const retryResp = await cancelOffer();
-												if (retryResp === "Error") {
-													return;
-												}
-												updateStatus(3400);
-												await fetch("/api/revalidate?tag=" + felmeres.id);
-												router.push("/");
-											}}>
-											<IterationCw className='w-5 h-5' />
-										</ToastAction>
-										<ToastAction
-											altText='skip'
-											onClick={async () => {
-												updateStatus(3400);
-												await fetch("/api/revalidate?tag=" + felmeres.id);
-												router.push("/");
-											}}>
-											Kihagyás
-										</ToastAction>
-									</div>
-								),
-							});
-							return "Error";
-						}
-					};
-					const resp = await cancelOffer();
-					if (resp === "Error") {
-						return;
+						return "Error";
 					}
-					updateStatus(3400);
-					await fetch("/api/revalidate?tag=" + felmeresResponseData.id);
-					window.location.href = "/";
+				};
+				const resp = await cancelOffer();
+				if (resp === "Error") {
+					return;
 				}
-
-				if (sendOffer) {
-					// Felmérés ToDo lezárása
-					const todo_criteria = (todo: ToDo) => {
-						return todo["Type"] === 225 && todo["Status"] === "Open";
-					};
-					const todo = await list_to_dos(felmeres.adatlap_id.toString(), todo_criteria);
-					if (todo.length) {
-						await fetchMiniCRM("ToDo", todo[0].Id.toString(), "PUT", { Status: "Closed" });
-					}
-					const closeTodo = performance.now();
-					console.log("ToDo lezárása: " + (closeTodo - start) + "ms");
-					updateStatus(3400);
-					await fetch("/api/revalidate?tag=" + felmeresResponseData.id);
-					window.location.href = "/";
-					// -- END -- //
-				}
-			}
-			updateStatus(3400, felmeresResponseData.id);
-			if (createType2.FELMERES === "UPDATE") {
-				await fetch("/api/revalidate?tag=" + felmeresResponseData.id);
-				window.location.href = "/" + felmeresResponseData.id;
-			} else {
+				updateStatus(3400);
 				await fetch("/api/revalidate?tag=" + felmeresResponseData.id);
 				window.location.href = "/";
 			}
+
+			if (sendOffer) {
+				// Felmérés ToDo lezárása
+				const todo_criteria = (todo: ToDo) => {
+					return todo["Type"] === 225 && todo["Status"] === "Open";
+				};
+				const todo = await list_to_dos(felmeres.adatlap_id.toString(), todo_criteria);
+				if (todo.length) {
+					await fetchMiniCRM("ToDo", todo[0].Id.toString(), "PUT", { Status: "Closed" });
+				}
+				const closeTodo = performance.now();
+				console.log("ToDo lezárása: " + (closeTodo - start) + "ms");
+				updateStatus(3400);
+				await fetch("/api/revalidate?tag=" + felmeresResponseData.id);
+				window.location.href = "/";
+				// -- END -- //
+			}
+		}
+		updateStatus(3400, felmeresResponseData.id);
+		if (createType2.FELMERES === "UPDATE") {
+			await fetch("/api/revalidate?tag=" + felmeresResponseData.id);
+			window.location.href = "/" + felmeresResponseData.id;
+		} else {
+			await fetch("/api/revalidate?tag=" + felmeresResponseData.id);
+			window.location.href = "/";
 		}
 	};
 
