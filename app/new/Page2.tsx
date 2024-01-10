@@ -131,7 +131,12 @@ export function Page2({
 								munkadij: productTemplate.product,
 								amount: 0,
 								order_id: prev.length ?? 0,
-								value: munkadíjak.find((fee) => fee.id === productTemplate.product)?.value ?? 0,
+								value:
+									(munkadíjak.find((md) => md.id === productTemplate.product)?.value ?? 0) *
+									(munkadíjak.find((md) => md.id === productTemplate.product)?.value_type === "hour"
+										? felmeres.hourly_wage
+										: 1) *
+									(munkadíjak.find((md) => md.id === productTemplate.product)?.num_people ?? 1),
 								source: "Template",
 							},
 						]);
@@ -266,17 +271,20 @@ export function Page2({
 		}
 	};
 	const onSelectTemplate = async () => {
+		const selectedTemplateData = templates!.find((template) => template.id === selectedTemplate.id);
+		if (!selectedTemplateData || !setFelmeres || !setItems || !setFelmeresMunkadíjak) return;
 		const newFelmeres = {
 			...felmeres,
-			template: templates!.find((template) => template.id === selectedTemplate.id)!
-				? templates!.find((template) => template.id === selectedTemplate.id)!.id
-				: 0,
+			template: selectedTemplateData.id,
 		};
-		setFelmeres ? setFelmeres(newFelmeres) : null;
-		if (!setItems) return;
-		setItems((prev) => prev.filter((item) => item.source !== "Template"));
-		setFelmeresMunkadíjak!((prev) => prev.filter((fee) => fee.source !== "Template"));
+		setFelmeres(newFelmeres);
+		setItems(filterPrevTemplate<FelmeresItem>());
+		setFelmeresMunkadíjak(filterPrevTemplate<FelmeresMunkadíj>());
 		await fetchTemplateItems(newFelmeres);
+
+		function filterPrevTemplate<T extends { source?: string }>(): React.SetStateAction<T[]> {
+			return (prev) => prev.filter((item) => item.source !== "Template");
+		}
 	};
 	const saveTemplate = async () => {
 		const response = await updateTemplate(selectedTemplate, templateProducts);
@@ -507,18 +515,17 @@ export function Page2({
 													return;
 												}
 												if (templates) {
-													if (templates.find((template) => template.id.toString() === e)) {
-														setSelectedTemplate(
-															templates.find((template) => template.id.toString() === e)!
-														);
-														setFelmeres
-															? setFelmeres((prev) => ({
-																	...prev,
-																	subject: templates.find(
-																		(template) => template.id.toString() === e
-																	)!.description,
-															  }))
-															: null;
+													const selectedTemplateTemp = templates.find(
+														(template) => template.id.toString() === e
+													);
+													if (selectedTemplateTemp) {
+														setSelectedTemplate(selectedTemplateTemp);
+														if (setFelmeres) {
+															setFelmeres((prev) => ({
+																...prev,
+																subject: selectedTemplateTemp.description,
+															}));
+														}
 													}
 												}
 											}}
@@ -1427,14 +1434,14 @@ export function Page2({
 																						onClick={() =>
 																							!setItems
 																								? null
-																								: setItems([
-																										...items.filter(
+																								: setItems((prev) => [
+																										...prev.filter(
 																											(item) =>
 																												item.product !==
 																												product
 																										),
 																										{
-																											...items.find(
+																											...prev.find(
 																												(
 																													item
 																												) =>
