@@ -1554,7 +1554,10 @@ export function Page2({
 																(product) =>
 																	!items
 																		.map((item) => item.product)
-																		.includes(product.id)
+																		.includes(product.id) &&
+																	!productAttributes?.find(
+																		(attribute) => attribute.product === product.id
+																	)?.archived
 															)
 															.sort((a, b) => a.sku?.localeCompare(b.sku))
 															.map((product) => ({
