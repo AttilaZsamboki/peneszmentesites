@@ -14,6 +14,7 @@ export interface Filter {
 }
 
 export default function ClientPage({ allData }: { allData: any }) {
+	React.useEffect(() => localStorage.clear(), []);
 	const { user, isLoading } = useUserWithRole();
 	if (isLoading) {
 		return <BaseComponentLoading />;

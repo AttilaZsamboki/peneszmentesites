@@ -56,7 +56,6 @@ export function Page2({
 	originalMunkadíjak,
 	felmeresMunkadíjak,
 	setFelmeresMunkadíjak,
-	setDetailedOffer,
 }: {
 	felmeres: BaseFelmeresData;
 	setFelmeres?: React.Dispatch<React.SetStateAction<BaseFelmeresData>>;
@@ -73,7 +72,6 @@ export function Page2({
 	originalMunkadíjak: Munkadíj[];
 	felmeresMunkadíjak: FelmeresMunkadíj[];
 	setFelmeresMunkadíjak?: React.Dispatch<React.SetStateAction<FelmeresMunkadíj[]>>;
-	setDetailedOffer?: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
 	const settings = useSettings();
 	const [openAccordions, setOpenAccordions] = React.useState<(ItemType | "Munkadíj" | "Összesítés")[]>([]);
@@ -575,7 +573,11 @@ export function Page2({
 							<Label htmlFor='detailed-offer'>Tételes ajánlat</Label>
 
 							<Checkbox
-								onClick={() => (setDetailedOffer ? setDetailedOffer((prev) => !prev) : null)}
+								onClick={() =>
+									setFelmeres
+										? setFelmeres((prev) => ({ ...prev, detailedOffer: !prev.detailedOffer }))
+										: null
+								}
 								id='detailed-offer'
 								className='order-last lg:order-first'
 							/>
