@@ -10,7 +10,7 @@ import { UserProvider } from "@auth0/nextjs-auth0/client";
 
 import type { Metadata } from "next";
 
-import { GeistSans } from "geist/font";
+import { GeistSans } from "geist/font/sans";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {

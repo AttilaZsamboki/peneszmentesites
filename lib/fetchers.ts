@@ -1,3 +1,4 @@
+import { AdatlapData } from "@/app/_utils/types";
 import { Template } from "../app/templates/page";
 import { ProductTemplate } from "@/app/new/_clientPage";
 
@@ -43,4 +44,20 @@ async function saveProducts(
 	);
 	await fetch("/api/revalidate?tag=templates");
 	return templateResponseData;
+}
+
+export async function getAdatlapok(adatlapIds?: number[] | string[]) {
+	return await fetch("https://pen.dataupload.xyz/minicrm-adatlapok/?id=" + (adatlapIds ?? []).join(","), {
+		next: { tags: ["adatlapok"], revalidate: 60 },
+		method: "GET",
+		headers: {
+			"Content-Type": "application/json",
+		},
+	})
+		.then((res) => res.json())
+		.catch((err) => {
+			console.log(err);
+			return [];
+		})
+		.then((data: AdatlapData[]) => data.filter((adatlap) => adatlap));
 }

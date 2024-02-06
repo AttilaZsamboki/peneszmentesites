@@ -333,7 +333,6 @@ export default function Page({
 	const template = templates.find((template) => template.id === felmeres.template);
 
 	const CreateFelmeres = async (sendOffer: boolean = true) => {
-		localStorage.clear();
 		setOpenPageDialog(false);
 		const createType2 = createType(sendOffer);
 		const start = performance.now();

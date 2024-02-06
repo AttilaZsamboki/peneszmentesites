@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import CircularProgressBar from "./_components/CircularProgressBar";
 import { Toaster } from "@/components/ui/toaster";
-import { ChevronDown, Menu, Search } from "lucide-react";
+import { ChevronDown, Menu, ShoppingCartIcon } from "lucide-react";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Separator } from "@/components/ui/separator";
 import useBreakpointValue from "./_components/useBreakpoint";
@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { getCookie, createJWT, useLocalStorageState, useUserWithRole, Role } from "@/lib/utils";
 import jwt from "jsonwebtoken";
-import Image from "next/image";
 
 interface Progress {
 	percent: number;
@@ -57,10 +56,14 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 
 	const routes: Route[] = [
 		{
-			name: "Felmérések",
-			href: "/",
-			icon: <Search className='w-5 h-5' />,
+			name: "Adatlapok",
+			href: "/adatlapok",
+			icon: <ShoppingCartIcon className='w-4 h-4' />,
 			subRoutes: [
+				{
+					name: "Adatlapok",
+					href: ["/adatlapok"],
+				},
 				{
 					name: "Felmérések",
 					href: ["/", "/new"],
@@ -82,7 +85,7 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 		{
 			name: "Készlet",
 			href: "/products",
-			icon: <ArchiveBoxIcon className='w-5 h-5' />,
+			icon: <ArchiveBoxIcon className='w-4 h-4' />,
 			subRoutes: [
 				{
 					name: "Termékek",
@@ -163,24 +166,19 @@ function Navbar({ routes }: { routes: Route[] }) {
 					</div>
 				) : (
 					<aside className='border-r'>
-						<div className='flex flex-col items-center w-16 h-screen py-8 space-y-8 bg-white dark:bg-gray-900 dark:border-gray-700 sticky top-0'>
+						<div className='flex flex-col items-center w-16 h-screen space-y-8 bg-white dark:bg-gray-900 dark:border-gray-700 sticky top-0'>
 							<div className='flex flex-col items-center w-16 h-screen py-8 space-y-8 bg-white dark:bg-gray-900 dark:border-gray-700 sticky top-0'>
 								<div
 									className='pb-2 active:bg-white cursor-pointer'
 									onClick={() => setOpenNav((prev) => !prev)}>
 									<Menu className='bg-white' />
 								</div>
-								<div className='self-center'>
-									<a href='/'>
-										<Image src='/logo.jpg' alt='logo' height={20} width={56} />
-									</a>
-								</div>
 
 								{routes.map((route) => (
 									<Link
 										key={route.href}
 										href={route.href}
-										className={`p-1.5 ${
+										className={`p-2 ${
 											route.subRoutes
 												? [...route.subRoutes.map((route) => route.href), route.href].includes(
 														"/" + pathname.split("/")[1]
@@ -188,7 +186,7 @@ function Navbar({ routes }: { routes: Route[] }) {
 													? "bg-gray-200"
 													: "text-gray-500 dark:text-gray-400 dark:hover:bg-gray-800 hover:bg-gray-100"
 												: ""
-										} focus:outline-nones transition-colors duration-200 rounded-lg`}>
+										} focus:outline-nones transition-colors duration-200 rounded-sm`}>
 										{route.icon}
 									</Link>
 								))}
@@ -242,75 +240,78 @@ function Navbar({ routes }: { routes: Route[] }) {
 			) : (
 				<div className='flex'>
 					<aside className='border-r'>
-						<div className='flex justify-between flex-col items-start w-[250px] lg:w-[300px] h-full py-8 space-y-8 bg-white dark:bg-gray-900 dark:border-gray-700 sticky top-0'>
+						<div className='flex justify-between flex-col items-start w-[250px] lg:w-[250px] h-full space-y-8 bg-white dark:bg-gray-900 dark:border-gray-700 sticky top-0'>
 							<div className='flex flex-col items-start w-full px-4 h-full bg-white dark:bg-gray-900 dark:border-gray-700 sticky top-0 gap-2'>
-								<div
-									className='pb-2 active:bg-white cursor-pointer justify-self-end self-end'
-									onClick={() => setOpenNav((prev) => !prev)}>
-									<Menu className='bg-white' />
-								</div>
-								<div className='self-center pb-6'>
-									<a href='/'>
-										<img src='/logo.jpg' className='w-full h-10' />
-									</a>
+								<div className='flex h-[60px] items-center w-full justify-between'>
+									<Link className='flex items-center w-full gap-2 font-semibold' href='#'>
+										<a href='/'>
+											<img src='/logo.jpg' className='w-full h-5' />
+										</a>
+										<span className=''>Acme Inc</span>
+									</Link>
+									<div onClick={() => setOpenNav((prev) => !prev)}>
+										<Menu className='bg-white' />
+									</div>
 								</div>
 
-								{routes.map((route) => {
-									return (
-										<div key={route.href} className='flex flex-col w-full'>
-											<div
-												className={`${
-													route.subRoutes
-														? pathname === route.href
-															? "bg-gray-200"
-															: "text-gray-500 dark:text-gray-400 dark:hover:bg-gray-800 hover:bg-gray-100"
-														: ""
-												} focus:outline-nones flex flex-row w-full p-2 items-center gap-5 transition-colors duration-200 rounded-lg relative`}>
-												<Link
-													key={route.href}
-													href={route.href}
-													className='w-full flex flex-row gap-5'>
-													<div>{route.icon}</div>
-													<div>{route.name}</div>
-												</Link>
-												<ChevronDown
-													className={`w-5 ${
-														route.subRoutes.length > 1 ? "" : "opacity-0"
-													} h-5 absolute right-3 transform transition-transform duration-300 cursor-pointer ${
-														open === route.name ? "rotate-180" : ""
-													}`}
-													onClick={() =>
-														handleSetOpen(activeRoute === route ? route.name : "")
-													}
-												/>
-											</div>
-											{open === route.name ? (
-												<div className='flex flex-row w-full px-3 gap-2 pt-2'>
-													<Separator
-														orientation='vertical'
-														className='w-[3px] text-gray-600'
+								<nav className='text-sm font-medium flex flex-col items-start w-full h-full bg-white dark:bg-gray-900 dark:border-gray-700 sticky top-0 gap-1'>
+									{routes.map((route) => {
+										return (
+											<div key={route.href} className='flex flex-col w-full'>
+												<div
+													className={`${
+														route.subRoutes
+															? pathname === route.href
+																? "bg-gray-200"
+																: "text-gray-500 dark:text-gray-400 dark:hover:bg-gray-800 hover:text-black"
+															: ""
+													} focus:outline-nones flex flex-row w-full p-2 items-center gap-5 transition-colors duration-200 rounded-sm relative`}>
+													<Link
+														key={route.href}
+														href={route.href}
+														className='w-full flex flex-row gap-5'>
+														<div>{route.icon}</div>
+														<div>{route.name}</div>
+													</Link>
+													<ChevronDown
+														className={`w-5 ${
+															route.subRoutes.length > 1 ? "" : "opacity-0"
+														} h-5 absolute right-3 transform transition-transform duration-300 cursor-pointer ${
+															open === route.name ? "rotate-180" : ""
+														}`}
+														onClick={() =>
+															handleSetOpen(activeRoute === route ? route.name : "")
+														}
 													/>
-													<div className='flex flex-col gap-1 w-full'>
-														{route.subRoutes.map((subRoute, index) =>
-															index === 0 ? null : (
-																<Link
-																	key={subRoute.href[0]}
-																	href={subRoute.href[0]}
-																	className={`${
-																		subRoute.href.includes(pathname)
-																			? "bg-gray-200"
-																			: "text-gray-500 dark:text-gray-400 dark:hover:bg-gray-800 hover:bg-gray-100"
-																	} focus:outline-nones flex flex-row w-full p-2 items-center gap-5 transition-colors duration-200 rounded-lg`}>
-																	<div className=''>{subRoute.name}</div>
-																</Link>
-															)
-														)}
-													</div>
 												</div>
-											) : null}
-										</div>
-									);
-								})}
+												{open === route.name ? (
+													<div className='flex flex-row w-full px-3 gap-2 pt-2'>
+														<Separator
+															orientation='vertical'
+															className='w-[3px] text-gray-600'
+														/>
+														<div className='flex flex-col gap-1 w-full'>
+															{route.subRoutes.map((subRoute, index) =>
+																index === 0 ? null : (
+																	<Link
+																		key={subRoute.href[0]}
+																		href={subRoute.href[0]}
+																		className={`${
+																			subRoute.href.includes(pathname)
+																				? "bg-gray-200"
+																				: "text-gray-500 dark:text-gray-400 dark:hover:bg-gray-800 hover:text-black"
+																		} focus:outline-nones flex flex-row w-full p-2 items-center gap-5 transition-colors duration-200 rounded-sm`}>
+																		<div className=''>{subRoute.name}</div>
+																	</Link>
+																)
+															)}
+														</div>
+													</div>
+												) : null}
+											</div>
+										);
+									})}
+								</nav>
 							</div>
 
 							<div className='flex w-full flex-col'>
