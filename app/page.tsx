@@ -27,6 +27,13 @@ export interface FelmeresQuestion {
 	product: number | null;
 }
 
+export interface Pagination<T> {
+	count: number;
+	next: string | null;
+	previous: string | null;
+	results: T[];
+}
+
 export default async function Home() {
 	const data = await fetch("https://pen.dataupload.xyz/felmeresek/", {
 		next: { tags: ["felmeresek"], revalidate: 60 },
