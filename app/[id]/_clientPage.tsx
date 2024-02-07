@@ -857,10 +857,7 @@ export function FelmeresPicturesComponent({
 				onUpload={async (file) => {
 					onUpload ? onUpload(file) : {};
 					const prefixFilename =
-						"https://felmeres-note-images.s3.eu-central-1.amazonaws.com/" +
-						felmeres.adatlap_id +
-						felmeres.id +
-						file.filename;
+						"https://felmeres-note-images.s3.eu-central-1.amazonaws.com/" + file.filename;
 					if (!save) {
 						setPictures((prev) => [
 							...prev,
