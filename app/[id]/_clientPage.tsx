@@ -853,11 +853,12 @@ export function FelmeresPicturesComponent({
 				}}
 			/>
 			<FileUpload
+				felmeresId={felmeres.id.toString()}
 				onUploadSuccess={(e, file) => (onUploadSuccess ? onUploadSuccess(file) : undefined)}
 				onUpload={async (file) => {
 					onUpload ? onUpload(file) : {};
 					const prefixFilename =
-						"https://felmeres-note-images.s3.eu-central-1.amazonaws.com/" + file.filename;
+						"https://felmeres-note-images.s3.eu-central-1.amazonaws.com/" + felmeres.id + file.filename;
 					if (!save) {
 						setPictures((prev) => [
 							...prev,
