@@ -36,7 +36,9 @@ export interface Pagination<T> {
 
 export default async function Home({ searchParams }: { searchParams: { page?: string; filter?: string } }) {
 	const data = await fetch(
-		`https://pen.dataupload.xyz/felmeresek/?page=${searchParams?.page ?? 1}&search=${searchParams.filter}`,
+		`https://pen.dataupload.xyz/felmeresek/?page=${searchParams?.page ?? 1}${
+			searchParams.filter ? "&search=" + searchParams.filter : ""
+		}`,
 		{
 			next: { tags: ["felmeresek"], revalidate: 60 },
 			method: "GET",
