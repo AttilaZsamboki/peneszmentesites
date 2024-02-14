@@ -1,27 +1,20 @@
+import { AdatlapData } from "@/app/_utils/types";
 import KanbanCard from "./kanban-card";
 
-export function Kanban() {
+export function Kanban({ data }: { data: AdatlapData[] }) {
 	return (
 		<main className='flex-1 overflow-auto py-4 px-4 bg-gray-100'>
 			<div className='flex space-x-4'>
-				<div className='w-72'>
+				<div>
 					<h2 className='mb-4 text-sm font-medium text-gray-400 dark:text-gray-300 flex items-center'>
 						<BackpackIcon className='mr-2 h-4 w-4' />
 						Backlog
 					</h2>
-					<div className='flex flex-col gap-2'>
-						<KanbanCard />
-						<div className='bg-white p-3 rounded-lg shadow-sm mb-4'>
-							<h3 className='text-sm font-semibold mb-1'>Task 2</h3>
-							<p className='text-sm text-gray-600 dark:text-gray-400'>
-								This is a description for task 2.
-							</p>
-						</div>
-						<div className='bg-white p-3 rounded-lg shadow-sm mb-4'>
-							<h3 className='text-sm font-semibold mb-1'>Task 3</h3>
-							<p className='text-sm text-gray-600 dark:text-gray-400'>
-								This is a description for task 3.
-							</p>
+					<div className='w-[350px] h-[85dvh] overflow-y-scroll'>
+						<div className='flex flex-col gap-2'>
+							{data.map((adatlap) => (
+								<KanbanCard data={adatlap} />
+							))}
 						</div>
 					</div>
 				</div>

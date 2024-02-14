@@ -46,14 +46,19 @@ async function saveProducts(
 	return templateResponseData;
 }
 
-export async function getAdatlapok(adatlapIds?: number[] | string[]) {
-	return await fetch("https://pen.dataupload.xyz/minicrm-adatlapok/?id=" + (adatlapIds ?? []).join(","), {
-		next: { tags: ["adatlapok"], revalidate: 60 },
-		method: "GET",
-		headers: {
-			"Content-Type": "application/json",
-		},
-	})
+export async function getAdatlapok(adatlapIds?: number[] | string[], categoryId?: number) {
+	return await fetch(
+		"https://pen.dataupload.xyz/minicrm-adatlapok/?CategoryId=29",
+		// (adatlapIds ? "?id=" + (adatlapIds ?? []).join(",") : "") +
+		// (categoryId ? "?CategoryId=" + categoryId : ""),
+		{
+			next: { tags: ["adatlapok"], revalidate: 120 },
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		}
+	)
 		.then((res) => res.json())
 		.catch((err) => {
 			console.log(err);
