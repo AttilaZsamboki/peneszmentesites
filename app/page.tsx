@@ -34,12 +34,9 @@ export interface Pagination<T> {
 	results: T[];
 }
 
-export default async function Home({ searchParams }: { searchParams: { page?: string } }) {
+export default async function Home({ searchParams }: { searchParams: { page?: string; filter?: string } }) {
 	const data = await fetch(
-		`https://pen.dataupload.xyz/felmeresek${Object.entries(searchParams)
-			.filter(([key, value]) => key !== "selectedFilter" && key !== "sort_by" && key !== "sort_order")
-			.map(([key, value]: string[], index) => `${index === 0 ? "?" : ""}${key}=${value}`)
-			.join("&")}`,
+		`https://pen.dataupload.xyz/felmeresek/?page=${searchParams?.page ?? 1}&search=${searchParams.filter}`,
 		{
 			next: { tags: ["felmeresek"], revalidate: 60 },
 			method: "GET",
