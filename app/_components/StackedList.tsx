@@ -191,7 +191,6 @@ export default function StackedList({
 	}, [parent.current]);
 
 	React.useEffect(() => {
-		// if (pagination.active) {
 		const params = new URLSearchParams();
 
 		filter.filters.forEach((filter) => {
@@ -521,7 +520,7 @@ export default function StackedList({
 			/>
 			<ScrollArea
 				className={`${
-					pagination.numPages ? "h-[50dvh] lg:h-[55dvh] pb-0" : "h-[57dvh] lg:h-[66dvh]"
+					pagination.numPages ? "h-[50dvh] lg:h-[64dvh] pb-0" : "h-[57dvh] lg:h-[66dvh]"
 				} rounded-md border p-2 bg-white `}>
 				<ul ref={parent} role='list' className='w-full bg-white rounded-lg flex flex-col justify-between'>
 					{filteredData

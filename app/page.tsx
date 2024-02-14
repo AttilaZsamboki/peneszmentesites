@@ -34,25 +34,26 @@ export interface Pagination<T> {
 	results: T[];
 }
 
-export default async function Home() {
-	const data = await fetch("https://pen.dataupload.xyz/felmeresek/", {
-		next: { tags: ["felmeresek"], revalidate: 60 },
-		method: "GET",
-		headers: {
-			"Content-Type": "application/json",
-		},
-	});
+export default async function Home({ searchParams }: { searchParams: { page?: string } }) {
+	const data = await fetch(
+		`https://pen.dataupload.xyz/felmeresek${Object.entries(searchParams)
+			.filter(([key, value]) => key !== "selectedFilter" && key !== "sort_by" && key !== "sort_order")
+			.map(([key, value]: string[], index) => `${index === 0 ? "?" : ""}${key}=${value}`)
+			.join("&")}`,
+		{
+			next: { tags: ["felmeresek"], revalidate: 60 },
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		}
+	);
 	if (data.ok) {
-		const felmeresek = await data
-			.json()
-			.then((data: Pagination<BaseFelmeresData>) => {
-				return data.results;
-			})
-			.catch((err) => {
-				console.log(err);
-				return [] as BaseFelmeresData[];
-			});
-		const adatlapIds = Array.from(new Set(felmeresek.map((felmeres) => felmeres.adatlap_id.toString())));
+		const felmeresek: Pagination<BaseFelmeresData> = await data.json().catch((err) => {
+			console.log(err);
+			return [];
+		});
+		const adatlapIds = Array.from(new Set(felmeresek.results.map((felmeres) => felmeres.adatlap_id.toString())));
 		const adatlapok = await fetch("https://pen.dataupload.xyz/minicrm-adatlapok/?Id=" + adatlapIds.join(","), {
 			next: { tags: ["adatlapok"], revalidate: 60 },
 			method: "GET",
@@ -78,9 +79,9 @@ export default async function Home() {
 				return [];
 			})
 			.then((data: Template[]) =>
-				data.filter((template) => felmeresek.map((felmeres) => felmeres.template).includes(template.id))
+				data.filter((template) => felmeresek.results.map((felmeres) => felmeres.template).includes(template.id))
 			);
-		const allData = felmeresek.map((felmeres) => {
+		const allData = felmeresek.results.map((felmeres) => {
 			const adatlap = adatlapok
 				.filter((adatlap) => adatlap)
 				.find((adatlap) => adatlap!.Id === felmeres.adatlap_id);
@@ -119,7 +120,12 @@ export default async function Home() {
 			};
 		});
 
-		return <ClientPage allData={allData} />;
+		return (
+			<ClientPage
+				allData={allData}
+				paginationData={{ active: true, numPages: Math.ceil(felmeresek.count / 10) }}
+			/>
+		);
 	} else {
 		return (
 			<main className='flex min-h-screen flex-col items-center justify-start p-2'>
