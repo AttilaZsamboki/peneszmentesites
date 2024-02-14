@@ -43,24 +43,31 @@ export default async function Home() {
 		},
 	});
 	if (data.ok) {
-		const felmeresek: BaseFelmeresData[] = await data.json().catch((err) => console.log(err));
+		const felmeresek = await data
+			.json()
+			.then((data: Pagination<BaseFelmeresData>) => {
+				return data.results;
+			})
+			.catch((err) => {
+				console.log(err);
+				return [] as BaseFelmeresData[];
+			});
 		const adatlapIds = Array.from(new Set(felmeresek.map((felmeres) => felmeres.adatlap_id.toString())));
-		const adatlapok: AdatlapData[] = await fetch(
-			"https://pen.dataupload.xyz/minicrm-adatlapok/?id=" + adatlapIds.join(","),
-			{
-				next: { tags: ["adatlapok"], revalidate: 60 },
-				method: "GET",
-				headers: {
-					"Content-Type": "application/json",
-				},
-			}
-		)
+		const adatlapok = await fetch("https://pen.dataupload.xyz/minicrm-adatlapok/?Id=" + adatlapIds.join(","), {
+			next: { tags: ["adatlapok"], revalidate: 60 },
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		})
 			.then((res) => res.json())
 			.catch((err) => {
 				console.log(err);
 				return [];
 			})
-			.then((data: AdatlapData[]) => data.filter((adatlap) => adatlap));
+			.then((data: AdatlapData[]) => {
+				return data.filter((adatlap) => adatlap);
+			});
 
 		const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates/", {
 			next: { tags: ["templates"], revalidate: 300 },
