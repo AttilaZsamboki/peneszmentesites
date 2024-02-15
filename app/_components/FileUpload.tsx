@@ -8,9 +8,11 @@ registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 export default function FileUpload({
 	onUpload,
 	onUploadSuccess,
+	felmeresId = "",
 }: {
 	onUpload?: (file: any) => void;
 	onUploadSuccess?: (error: FilePondErrorDescription | null, file: FilePondFile) => void;
+	felmeresId?: string;
 }) {
 	return (
 		<FilePond
@@ -23,7 +25,7 @@ export default function FileUpload({
 				onUpload ? onUpload(file) : {};
 			}}
 			server={{
-				url: "https://pen.dataupload.xyz/save-image/",
+				url: "https://pen.dataupload.xyz/save-image/?felmeres_id=" + felmeresId,
 			}}
 			onprocessfile={(error, file) => (onUploadSuccess ? onUploadSuccess(error, file) : {})}
 			allowReorder={true}

@@ -4,7 +4,7 @@ import BaseComponentV2 from "./_components/BaseComponentV2";
 import { statusMap } from "./_utils/utils";
 import { useUserWithRole } from "@/lib/utils";
 import BaseComponentLoading from "./_components/BaseComponentLoading";
-import { FilterItem } from "./_components/StackedList";
+import { FilterItem, PaginationOptions } from "./_components/StackedList";
 import { miniCrmStatusMap } from "./_utils/MiniCRM";
 
 export interface Filter {
@@ -13,7 +13,7 @@ export interface Filter {
 	searchField: string;
 }
 
-export default function ClientPage({ allData }: { allData: any }) {
+export default function ClientPage({ allData, paginationData }: { allData: any; paginationData: PaginationOptions }) {
 	React.useEffect(() => localStorage.clear(), []);
 	const { user, isLoading } = useUserWithRole();
 	if (isLoading) {
@@ -22,6 +22,7 @@ export default function ClientPage({ allData }: { allData: any }) {
 
 	return (
 		<BaseComponentV2
+			pagination={paginationData}
 			defaultViewName={user?.role === "Felmérő" ? "Saját felmérések" : undefined}
 			title='Felmérések'
 			editHref='/'

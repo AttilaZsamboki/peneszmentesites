@@ -119,7 +119,7 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 		console.log(felmeres);
 		notFound();
 	}
-  
+
 	const adatlap = await fetch("https://pen.dataupload.xyz/minicrm-adatlapok/" + felmeres.adatlap_id.toString())
 		.then((res) => res.json())
 		.catch((err) => {
