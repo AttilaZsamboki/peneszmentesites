@@ -5,8 +5,7 @@ import { getAdatlapok } from "@/lib/fetchers";
 import { AdatlapData } from "../_utils/types";
 
 export default async function Page({ searchParams }: { searchParams: { view: "grid" | "kanban" } }) {
-	const data = await getAdatlapok([], 29);
-	// Todo: Pagination
+	const data = await getAdatlapok({ CategoryId: "23", StatusIds: [3023, 3084, 3086] });
 	const LIMIT = 10;
 	return (
 		<div className='flex flex-col h-screen'>

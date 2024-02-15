@@ -1,3 +1,6 @@
+"use client";
+import { hufFormatter } from "@/app/[id]/_clientPage";
+import { concatAddress } from "@/app/_utils/MiniCRM";
 import { AdatlapData } from "@/app/_utils/types";
 import { TableHead, TableRow, TableHeader, TableCell, TableBody, Table } from "@/components/ui/table";
 
@@ -17,24 +20,17 @@ export function Grid({ data }: { data: AdatlapData[] }) {
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					<TableRow>
-						<TableCell className='font-medium'>Kiss József</TableCell>
-						<TableCell>{`Budapest, Fo\u{30b} utca 1.`}</TableCell>
-						<TableCell>Kovács Béla</TableCell>
-						<TableCell>Szabó Gábor, Tóth István</TableCell>
-						<TableCell>2024.02.01.</TableCell>
-						<TableCell>2024.02.10.</TableCell>
-						<TableCell className='text-right'>500.000 Ft</TableCell>
-					</TableRow>
-					<TableRow>
-						<TableCell className='font-medium'>Nagy Anna</TableCell>
-						<TableCell>Debrecen, Kossuth utca 20.</TableCell>
-						<TableCell>Szabó Gábor</TableCell>
-						<TableCell>Kovács Béla, Tóth István</TableCell>
-						<TableCell>2024.01.15.</TableCell>
-						<TableCell>2024.01.30.</TableCell>
-						<TableCell className='text-right'>450.000 Ft</TableCell>
-					</TableRow>
+					{data.map((adatlap) => (
+						<TableRow>
+							<TableCell className='font-medium'>{adatlap.Name}</TableCell>
+							<TableCell>{concatAddress(adatlap)}</TableCell>
+							<TableCell>{adatlap.Felmero2}</TableCell>
+							<TableCell>{adatlap.Beepitok}</TableCell>
+							<TableCell>{adatlap.FelmeresIdopontja2}</TableCell>
+							<TableCell>{adatlap.DateTime1953}</TableCell>
+							<TableCell className='text-right'>{hufFormatter.format(adatlap.Total)}</TableCell>
+						</TableRow>
+					))}
 				</TableBody>
 			</Table>
 		</main>

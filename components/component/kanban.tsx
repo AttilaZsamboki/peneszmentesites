@@ -1,67 +1,78 @@
+"use client";
 import { AdatlapData } from "@/app/_utils/types";
 import KanbanCard from "./kanban-card";
+import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
+import React from "react";
 
 export function Kanban({ data }: { data: AdatlapData[] }) {
+	const cols = [
+		{
+			id: "backlog",
+			title: "Backlog",
+			items: data,
+			icon: <BackpackIcon className='mr-2 h-4 w-4' />,
+		},
+		{
+			id: "todo",
+			title: "To Do",
+			items: data,
+			icon: <ListTodoIcon className='mr-2 h-4 w-4' />,
+		},
+		{
+			id: "inprogress",
+			title: "In Progress",
+			items: data,
+			icon: <ActivityIcon className='mr-2 h-4 w-4' />,
+		},
+		{
+			id: "done",
+			title: "Done",
+			items: data,
+			icon: <CheckIcon className='mr-2 h-4 w-4' />,
+		},
+	];
 	return (
-		<main className='flex-1 overflow-auto py-4 px-4 bg-gray-100'>
-			<div className='flex space-x-4'>
-				<div>
-					<h2 className='mb-4 text-sm font-medium text-gray-400 dark:text-gray-300 flex items-center'>
-						<BackpackIcon className='mr-2 h-4 w-4' />
-						Backlog
-					</h2>
-					<div className='w-[350px] h-[85dvh] overflow-y-scroll'>
-						<div className='flex flex-col gap-2'>
-							{data.map((adatlap) => (
-								<KanbanCard data={adatlap} />
-							))}
-						</div>
-					</div>
+		<DragDropContext
+			onDragEnd={() => {
+				console.log("drag started");
+			}}>
+			<main className='flex-1 overflow-auto py-4 px-4 bg-gray-100'>
+				<div className='flex space-x-4'>
+					{cols.map((col) => (
+						<Droppable droppableId={col.id}>
+							{(provided: any) => (
+								<div ref={provided.innerRef} {...provided.droppableProps}>
+									<h2 className='mb-4 text-sm font-medium text-gray-400 dark:text-gray-300 flex items-center'>
+										{col.icon}
+										{col.title}
+									</h2>
+									<div className='w-[350px] h-[85dvh] overflow-y-scroll'>
+										<div className='flex flex-col gap-2'>
+											{data.map((adatlap, index) => (
+												<Draggable
+													key={adatlap.Id}
+													draggableId={col.id + adatlap.Id.toString()}
+													index={index}>
+													{(provided) => (
+														<div
+															ref={provided.innerRef}
+															{...provided.draggableProps}
+															{...provided.dragHandleProps}>
+															<KanbanCard adatlap={adatlap} />
+														</div>
+													)}
+												</Draggable>
+											))}
+											{provided.placeholder}
+										</div>
+									</div>
+								</div>
+							)}
+						</Droppable>
+					))}
 				</div>
-				<div className='w-72'>
-					<h2 className='mb-4 text-sm font-medium text-gray-400 dark:text-gray-300 flex items-center'>
-						<ListTodoIcon className='mr-2 h-4 w-4' />
-						To Do
-					</h2>
-					<div className='bg-white p-3 rounded-lg shadow-sm mb-4'>
-						<h3 className='text-sm font-semibold mb-1'>Task 4</h3>
-						<p className='text-sm text-gray-600 dark:text-gray-400'>This is a description for task 4.</p>
-					</div>
-					<div className='bg-white p-3 rounded-lg shadow-sm mb-4'>
-						<h3 className='text-sm font-semibold mb-1'>Task 5</h3>
-						<p className='text-sm text-gray-600 dark:text-gray-400'>This is a description for task 5.</p>
-					</div>
-				</div>
-				<div className='w-72'>
-					<h2 className='mb-4 text-sm font-medium text-gray-400 dark:text-gray-300 flex items-center'>
-						<ActivityIcon className='mr-2 h-4 w-4' />
-						In Progress
-					</h2>
-					<div className='bg-white p-3 rounded-lg shadow-sm mb-4'>
-						<h3 className='text-sm font-semibold mb-1'>Task 6</h3>
-						<p className='text-sm text-gray-600 dark:text-gray-400'>This is a description for task 6.</p>
-					</div>
-					<div className='bg-white p-3 rounded-lg shadow-sm mb-4'>
-						<h3 className='text-sm font-semibold mb-1'>Task 7</h3>
-						<p className='text-sm text-gray-600 dark:text-gray-400'>This is a description for task 7.</p>
-					</div>
-				</div>
-				<div className='w-72'>
-					<h2 className='mb-4 text-sm font-medium text-gray-400 dark:text-gray-300 flex items-center'>
-						<CheckIcon className='mr-2 h-4 w-4' />
-						Done
-					</h2>
-					<div className='bg-white p-3 rounded-lg shadow-sm mb-4'>
-						<h3 className='text-sm font-semibold mb-1'>Task 8</h3>
-						<p className='text-sm text-gray-600 dark:text-gray-400'>This is a description for task 8.</p>
-					</div>
-					<div className='bg-white p-3 rounded-lg shadow-sm mb-4'>
-						<h3 className='text-sm font-semibold mb-1'>Task 9</h3>
-						<p className='text-sm text-gray-600 dark:text-gray-400'>This is a description for task 9.</p>
-					</div>
-				</div>
-			</div>
-		</main>
+			</main>
+		</DragDropContext>
 	);
 }
 

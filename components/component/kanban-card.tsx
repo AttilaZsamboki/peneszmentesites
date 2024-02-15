@@ -5,53 +5,56 @@ import { Button } from "@/components/ui/button";
 import { AtSign, Calendar, HardHat, Home, Phone, QrCode, Ruler } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { Badge } from "../ui/badge";
+import { concatAddress } from "@/app/_utils/MiniCRM";
 
-export default function KanbanCard({ data }: { data: AdatlapData }) {
+export default function KanbanCard({ adatlap }: { adatlap: AdatlapData }) {
 	return (
 		<div className='flex w-full overflow-hidden bg-white rounded-md border-gray-200 border'>
 			<div className='flex flex-col flex-shrink-0 w-full p-4 space-y-4'>
 				<div className='flex items-center justify-between'>
 					<div>
-						<h2 className='text-lg font-semibold w-40 truncate'>{data.Name}</h2>
-						<Badge className='text-xs'>Készpénz</Badge>
+						<h2 className='text-lg font-semibold w-40 truncate'>{adatlap.Name}</h2>
+						<Badge className='text-xs'>{adatlap.FizetesiMod2}</Badge>
 					</div>
-					<span className='px-3 py-1 text-sm font-semibold text-white bg-green-600 rounded-md'>
-						{hufFormatter.format(data.NetTotal)}
-					</span>
+					{adatlap.Total ? (
+						<span className='px-3 py-1 text-sm font-semibold text-white bg-green-600 rounded-md'>
+							{hufFormatter.format(adatlap.Total)}
+						</span>
+					) : null}
 				</div>
 				<Separator className='opacity-40' />
 				<div className='space-y-2'>
 					<div className='text-sm flex flex-row items-start'>
 						<Home className='w-4 h-4' />:{" "}
 						<div>
-							{data.FelmeresCim} <b>({data.Tavolsag} km)</b>
+							{concatAddress(adatlap)} <b>({adatlap.Tavolsag} km)</b>
 						</div>
 					</div>
 					<div className='text-sm flex flex-row items-center'>
-						<Phone className='w-4 h-4' />: {data.Phone}
+						<Phone className='w-4 h-4' />: {adatlap.Phone}
 					</div>
 					<div className='text-sm flex flex-row items-center'>
-						<AtSign className='w-4 h-4' />: {data.Email}
+						<AtSign className='w-4 h-4' />: {adatlap.Email}
 					</div>
 					<div className='text-sm flex flex-row items-center'>
-						<QrCode className='w-4 h-4' />: {data.RendelesSzama}
+						<QrCode className='w-4 h-4' />: {adatlap.RendelesSzama}
 					</div>
 					<Separator className='opacity-40' />
 					<div className='flex flex-col gap-1'>
 						<div className='text-xs flex flex-row items-center'>
-							<HardHat className='w-4 h-4' />: {data.RendelesSzama}
+							<HardHat className='w-4 h-4' />: {adatlap.Beepitok}
 						</div>
 						<div className='text-xs flex flex-row items-center'>
-							<Calendar className='w-4 h-4' />: {data.RendelesSzama}
+							<Calendar className='w-4 h-4' />: {adatlap.DateTime1953}
 						</div>
 					</div>
 					<Separator className='opacity-40' />
 					<div className='flex flex-col gap-1'>
 						<div className='text-xs flex flex-row items-center'>
-							<Ruler className='w-4 h-4' />: {data.RendelesSzama}
+							<Ruler className='w-4 h-4' />: {adatlap.Felmero2}
 						</div>
 						<div className='text-xs flex flex-row items-center'>
-							<Calendar className='w-4 h-4' />: {data.RendelesSzama}
+							<Calendar className='w-4 h-4' />: {adatlap.FelmeresIdopontja2}
 						</div>
 					</div>
 				</div>
@@ -59,7 +62,7 @@ export default function KanbanCard({ data }: { data: AdatlapData }) {
 					<Button
 						variant={"outline"}
 						className='border-blue-600 hover:border-blue-700 text-blue-600 hover:text-blue-700'>
-						Készpénz
+						Navigáció
 					</Button>
 					<Button
 						variant={"outline"}
