@@ -993,7 +993,7 @@ function FiltersComponent({
 	}
 }
 
-function InputOptionChooser({
+export function InputOptionChooser({
 	type,
 	options,
 	value,

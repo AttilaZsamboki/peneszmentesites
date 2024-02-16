@@ -20,4 +20,5 @@ export interface AdatlapData {
 	DateTime1953: string;
 	FelmeresIdopontja2: string;
 	RendelesSzama: string;
+	BeepitesDatuma?: Date;
 }

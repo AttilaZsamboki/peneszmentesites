@@ -8,7 +8,6 @@ import { AdatlapData } from "./_utils/types";
 import { statusMap } from "./_utils/utils";
 
 import { Template } from "./templates/page";
-import { getAdatlapok } from "@/lib/fetchers";
 
 export interface GridOptions {
 	rows: string[];

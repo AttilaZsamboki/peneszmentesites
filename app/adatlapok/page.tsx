@@ -1,27 +1,23 @@
-import { Kanban } from "@/components/component/kanban";
-import Header from "./Page.1";
-import { Grid } from "@/components/component/table";
-import { getAdatlapok } from "@/lib/fetchers";
 import { AdatlapData } from "../_utils/types";
+import { Pagination } from "../page";
+import Page1 from "./Page.1";
 
-export default async function Page({ searchParams }: { searchParams: { view: "grid" | "kanban" } }) {
-	const data = await getAdatlapok({ CategoryId: "23", StatusIds: [3023, 3084, 3086] });
-	const LIMIT = 10;
-	return (
-		<div className='flex flex-col h-screen'>
-			<header className='h-[60px] flex items-center shadow-none bg-white border-b'>
-				<Header searchParams={searchParams} />
-			</header>
-			<Body searchParams={searchParams} data={data.slice(0, LIMIT)} />
-		</div>
-	);
-}
-function Body({ searchParams, data }: { searchParams: { view: "grid" | "kanban" }; data: AdatlapData[] }) {
-	if (searchParams.view === "kanban") {
-		return <Kanban data={data} />;
-	} else if (searchParams.view === "grid") {
-		return <Grid data={data} />;
-	} else {
-		return <div>404</div>;
-	}
+export default async function Page({ searchParams }: { searchParams: { view: "grid" | "kanban"; search?: string } }) {
+	const data = await fetch(
+		`https://pen.dataupload.xyz/minicrm-adatlapok/v2/?CategoryId=23&StatusId=3023,3084,3086${
+			searchParams.search ? "&search=" + searchParams.search : ""
+		}`
+	)
+		.then((res) => res.json())
+		.catch((err) => {
+			console.log(err);
+			return [];
+		})
+		.then((data: Pagination<AdatlapData>) =>
+			data.results
+				.filter((adatlap) => adatlap)
+				.map((adatlap) => ({ ...adatlap, BeepitesDatuma: new Date(adatlap.DateTime1953) }))
+		);
+
+	return <Page1 data={data} searchParams={searchParams} />;
 }
