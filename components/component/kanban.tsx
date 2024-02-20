@@ -3,7 +3,7 @@ import { AdatlapData } from "@/app/_utils/types";
 import KanbanCard from "./kanban-card";
 import React from "react";
 import { Button } from "../ui/button";
-import { RefreshCwIcon } from "lucide-react";
+import { RefreshCwIcon, Send } from "lucide-react";
 import Link from "next/link";
 import { useCreateQueryString } from "@/app/_utils/utils";
 import { useSearchParams } from "next/navigation";
@@ -16,6 +16,14 @@ export function Kanban({ data, next }: { data: AdatlapData[]; next: string | nul
 			items: data,
 			icon: <BackpackIcon className='mr-2 h-4 w-4' />,
 			data: (data: AdatlapData[]) => data.filter((adatlap) => adatlap.StatusId === 3023),
+		},
+		{
+			id: "offer-sent",
+			title: "Ajánlat kiküldve",
+			items: data,
+			icon: <Send className='mr-2 h-4 w-4' />,
+			data: (data: AdatlapData[]) =>
+				data.filter((adatlap) => adatlap.AjanlatKikuldve && !adatlap.RendelesStatusz),
 		},
 		{
 			id: "todo",

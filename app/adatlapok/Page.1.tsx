@@ -14,9 +14,9 @@ import {
 import { useLocalStorageStateObject } from "@/lib/utils";
 import { FunnelIcon } from "@heroicons/react/24/outline";
 import { Tabs, TabsHeader, Tab } from "@material-tailwind/react";
-import { KanbanIcon, ListIcon, Router, SearchIcon } from "lucide-react";
+import { KanbanIcon, ListIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { isValidDate, useCreateQueryString } from "../_utils/utils";
 import React from "react";
 import { AdatlapData } from "../_utils/types";
@@ -39,14 +39,7 @@ function Body({ data, next }: { data: AdatlapData[]; next: string | null }) {
 	}
 }
 
-function Header({
-	setData,
-	data,
-}: {
-	setData: React.Dispatch<React.SetStateAction<AdatlapData[]>>;
-	data: AdatlapData[];
-}) {
-	const router = useRouter();
+function Header({ data }: { data: AdatlapData[] }) {
 	const searchParams = useSearchParams();
 
 	const filters: FilterItem[] = [
@@ -55,7 +48,7 @@ function Header({
 		{ id: 3, field: "Felmero2", label: "Felmérő", type: "text" },
 		{
 			id: 4,
-			field: "FizetesiMod2",
+			field: "FizetesiMod3",
 			label: "Fizetési mód",
 			type: "select",
 			options: [
@@ -114,12 +107,6 @@ function Header({
 	const [activeTab, setActiveTab] = useLocalStorageStateObject("kanban", "kanban");
 	const queryString = useCreateQueryString(searchParams);
 
-	React.useEffect(() => {
-		if (!searchParams.get("view")) {
-			router.push("/adatlapok?" + queryString([{ name: "view", value: "kanban" }]));
-		}
-	}, []);
-
 	const resetFilter = (exceptSearch: boolean) => {
 		setFilter((prev) => ({
 			...prev,
@@ -132,44 +119,9 @@ function Header({
 		}));
 	};
 
-	function refilterData(f: Filter = filter) {
-		setData(
-			data.filter((item: { [key: string]: any }) => {
-				return f.filters
-					.filter((filterItem) => filterItem.value)
-					.map((filterItem) => {
-						if ("text" === filterItem.type) {
-							return (filterItem.value as unknown as string)
-								.split(" ")
-								.map((searchWord: string) =>
-									JSON.stringify(filterItem.field === "search" ? item : item[filterItem.field])
-										.toLowerCase()
-										.includes(searchWord.toLowerCase())
-								)
-								.every((item: boolean) => item === true);
-						} else if (filterItem.type === "daterange") {
-							const value = filterItem.value as DateRange;
-							return (
-								new Date(item[filterItem.field]) >= value.from &&
-								new Date(item[filterItem.field]) <= value.to
-							);
-						} else if (filterItem.type === "select") {
-							return item[filterItem.field] === (filterItem.value as unknown as string);
-						}
-						return false;
-					})
-					.every((item: boolean) => item === true);
-			})
-		);
-	}
-
-	React.useEffect(() => {
-		refilterData(filter);
-	}, [filter, data]);
-
 	return (
 		<div className='flex flex-row w-full justify-between px-3 lg:px-6'>
-			<Tabs value={activeTab} className='flex flex-row w-full  items-center'>
+			<Tabs value={activeTab} className='flex flex-row w-full items-center'>
 				<TabsHeader
 					key='kanban'
 					className='rounded-none bg-transparent p-0'
@@ -212,22 +164,6 @@ function Header({
 						<Input
 							className='pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px] bg-white'
 							placeholder='Keress felmérésre...'
-							onChange={(e) => {
-								setData(() => {
-									const searchParams = e.target.value.toLowerCase().split(" ");
-									if (!searchParams.length) return data;
-									return data.filter((adatlap) => {
-										return searchParams.every((searchParam) => {
-											return Object.values(adatlap).some((value) => {
-												if (typeof value === "string") {
-													return value.toLowerCase().includes(searchParam);
-												}
-												return false;
-											});
-										});
-									});
-								});
-							}}
 							type='search'
 						/>
 					</div>
@@ -379,9 +315,11 @@ function Header({
 								</Link>
 							</SheetClose>
 							<SheetClose asChild>
-								<Button type='button' onClick={() => resetFilter(true)} variant='secondary'>
-									Mégse
-								</Button>
+								<Link href='/adatlapok'>
+									<Button type='button' onClick={() => resetFilter(true)} variant='secondary'>
+										Mégse
+									</Button>
+								</Link>
 							</SheetClose>
 						</SheetFooter>
 					</SheetContent>
@@ -392,30 +330,12 @@ function Header({
 }
 
 export default function Page1({ data }: { data: Pagination<AdatlapData> }) {
-	const [filteredData, setFilteredData] = React.useState<AdatlapData[]>([]);
-	const [page, setPage] = React.useState(1);
-	const searchParams = useSearchParams();
-	const router = useRouter();
-
-	React.useEffect(() => {
-		if (parseInt(searchParams.get("page") ?? "0") > page) {
-			setFilteredData([...filteredData, ...data.results]);
-		}
-		setPage(parseInt(searchParams.get("page") ?? "1"));
-	}, [data]);
-
-	React.useEffect(() => {
-		if (page.toString() !== searchParams.get("page")) {
-			router.push("/adatlapok");
-		}
-	}, []);
-
 	return (
 		<div className='flex flex-col h-screen'>
 			<header className='h-[60px] flex items-center shadow-none bg-white border-b'>
-				<Header data={data.results} setData={setFilteredData} />
+				<Header data={data.results} />
 			</header>
-			<Body data={filteredData} next={data.next} />
+			<Body data={data.results} next={data.next} />
 		</div>
 	);
 }

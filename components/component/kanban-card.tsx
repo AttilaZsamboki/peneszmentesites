@@ -80,7 +80,7 @@ export default function KanbanCard({ adatlap }: { adatlap: AdatlapData }) {
 	}
 
 	function NavButton() {
-		if (adatlap.RendelesStatusz === 3012) return;
+		if (adatlap.RendelesStatusz === 3012 || adatlap.AjanlatKikuldve) return;
 		return (
 			<Button
 				variant={"outline"}

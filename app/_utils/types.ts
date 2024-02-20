@@ -23,4 +23,5 @@ export interface AdatlapData {
 	BeepitesDatuma?: Date;
 	RendelesStatusz?: number;
 	FelmeresekSzama?: number;
+	AjanlatKikuldve?: number;
 }
