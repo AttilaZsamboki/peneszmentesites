@@ -14,7 +14,7 @@ import {
 import { useLocalStorageStateObject } from "@/lib/utils";
 import { FunnelIcon } from "@heroicons/react/24/outline";
 import { Tabs, TabsHeader, Tab } from "@material-tailwind/react";
-import { KanbanIcon, ListIcon, SearchIcon } from "lucide-react";
+import { KanbanIcon, ListIcon, Router, SearchIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { isValidDate, useCreateQueryString } from "../_utils/utils";
@@ -27,14 +27,15 @@ import { DateRange, FilterItem, InputOptionChooser } from "../_components/Stacke
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import AutoComplete from "../_components/AutoComplete";
+import { Pagination } from "../page";
 
-function Body({ searchParams, data }: { searchParams: { view: "grid" | "kanban" }; data: AdatlapData[] }) {
-	if (searchParams.view === "kanban") {
-		return <Kanban data={data} />;
-	} else if (searchParams.view === "grid") {
+function Body({ data, next }: { data: AdatlapData[]; next: string | null }) {
+	const searchParams = useSearchParams();
+
+	if (searchParams.get("view") === "grid") {
 		return <Grid data={data} />;
 	} else {
-		return <div>404</div>;
+		return <Kanban data={data} next={next} />;
 	}
 }
 
@@ -48,12 +49,12 @@ function Header({
 	const router = useRouter();
 	const searchParams = useSearchParams();
 
-	console.log(data);
 	const filters: FilterItem[] = [
-		{ id: 1, field: "BeepitesDatuma", label: "Dátum", type: "daterange" },
-		{ id: 2, field: "Felmero2", label: "Felmérő", type: "text" },
+		{ id: 1, field: "BeepitesDatuma", label: "Beépítés Dátuma", type: "daterange" },
+		{ id: 2, field: "FelmeresIdopontja2", label: "Felmérés Dátuma", type: "daterange" },
+		{ id: 3, field: "Felmero2", label: "Felmérő", type: "text" },
 		{
-			id: 3,
+			id: 4,
 			field: "FizetesiMod2",
 			label: "Fizetési mód",
 			type: "select",
@@ -62,7 +63,7 @@ function Header({
 				{ label: "Készpénz", value: "Készpénz" },
 			],
 		},
-		{ id: 4, field: "Telepules", label: "Település", type: "text" },
+		{ id: 5, field: "Telepules", label: "Település", type: "text" },
 	];
 
 	const [filter, setFilter] = React.useState<Filter>({
@@ -130,27 +131,6 @@ function Header({
 			}),
 		}));
 	};
-
-	React.useEffect(() => {
-		const filteredFilters = filter.filters
-			.filter((item) => typeof item.value !== "undefined" && item.field !== "search")
-			.map((item) => {
-				if (
-					item.value &&
-					(item.type !== "daterange" ||
-						(isValidDate((item.value as DateRange).from) && isValidDate((item.value as DateRange).to)))
-				) {
-					return {
-						name: item.field,
-						value: item.type === "daterange" ? JSON.stringify(item.value) : (item.value as string),
-					};
-				}
-				return null; // Return null instead of undefined
-			})
-			.filter((item): item is { name: string; value: string } => item !== null); // Filter out null values
-
-		router.push("?" + queryString(filteredFilters));
-	}, [filter, router]);
 
 	function refilterData(f: Filter = filter) {
 		setData(
@@ -367,7 +347,36 @@ function Header({
 						}
 						<SheetFooter className='flex flex-row w-full space-x-2 justify-end items-center'>
 							<SheetClose asChild>
-								<Button type='submit'>Alkalmaz</Button>
+								<Link
+									href={
+										"?" +
+										queryString(
+											filter.filters
+												.filter((item) => item.field !== "search")
+												.map((item) => {
+													if (
+														item.value &&
+														(item.type !== "daterange" ||
+															(isValidDate((item.value as DateRange).from) &&
+																isValidDate((item.value as DateRange).to)))
+													) {
+														return {
+															name: item.field,
+															value:
+																item.type === "daterange"
+																	? JSON.stringify(item.value)
+																	: (item.value as string),
+														};
+													}
+													return null;
+												})
+												.filter(
+													(item): item is { name: string; value: string } => item !== null
+												)
+										)
+									}>
+									<Button type='submit'>Alkalmaz</Button>
+								</Link>
 							</SheetClose>
 							<SheetClose asChild>
 								<Button type='button' onClick={() => resetFilter(true)} variant='secondary'>
@@ -382,20 +391,31 @@ function Header({
 	);
 }
 
-export default function Page1({
-	searchParams,
-	data,
-}: {
-	searchParams: { view: "grid" | "kanban"; search?: string };
-	data: AdatlapData[];
-}) {
-	const [filteredData, setFilteredData] = React.useState(data);
+export default function Page1({ data }: { data: Pagination<AdatlapData> }) {
+	const [filteredData, setFilteredData] = React.useState<AdatlapData[]>([]);
+	const [page, setPage] = React.useState(1);
+	const searchParams = useSearchParams();
+	const router = useRouter();
+
+	React.useEffect(() => {
+		if (parseInt(searchParams.get("page") ?? "0") > page) {
+			setFilteredData([...filteredData, ...data.results]);
+		}
+		setPage(parseInt(searchParams.get("page") ?? "1"));
+	}, [data]);
+
+	React.useEffect(() => {
+		if (page.toString() !== searchParams.get("page")) {
+			router.push("/adatlapok");
+		}
+	}, []);
+
 	return (
 		<div className='flex flex-col h-screen'>
 			<header className='h-[60px] flex items-center shadow-none bg-white border-b'>
-				<Header data={data} setData={setFilteredData} />
+				<Header data={data.results} setData={setFilteredData} />
 			</header>
-			<Body searchParams={searchParams} data={filteredData} />
+			<Body data={filteredData} next={data.next} />
 		</div>
 	);
 }

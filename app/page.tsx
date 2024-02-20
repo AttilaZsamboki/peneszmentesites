@@ -62,7 +62,7 @@ export default async function Home({ searchParams }: { searchParams: { page?: st
 		})
 			.then((res) => res.json())
 			.catch((err) => {
-				console.log(err);
+				console.log("Adatlaphiba" + err);
 				return [];
 			})
 			.then((data: AdatlapData[]) => {

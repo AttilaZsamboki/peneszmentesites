@@ -650,7 +650,7 @@ export default function StackedList({
 				return f.filters
 					.filter((filterItem) => filterItem.value)
 					.map((filterItem) => {
-						if ("text" === filterItem.type || pagination.active) {
+						if ("text" === filterItem.type) {
 							return (filterItem.value as unknown as string)
 								.split(" ")
 								.map((searchWord: string) =>

@@ -2,10 +2,13 @@
 import { hufFormatter } from "@/app/[id]/_clientPage";
 import { AdatlapData } from "@/app/_utils/types";
 import { Button } from "@/components/ui/button";
-import { AtSign, Calendar, HardHat, Home, Phone, QrCode, Ruler } from "lucide-react";
+import { Calendar, HardHat, Home, QrCode, Ruler } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { Badge } from "../ui/badge";
+import { Badge as BadgeMaterial } from "@material-tailwind/react";
 import { concatAddress } from "@/app/_utils/MiniCRM";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 export default function KanbanCard({ adatlap }: { adatlap: AdatlapData }) {
 	return (
@@ -13,7 +16,9 @@ export default function KanbanCard({ adatlap }: { adatlap: AdatlapData }) {
 			<div className='flex flex-col flex-shrink-0 w-full p-4 space-y-4'>
 				<div className='flex items-center justify-between'>
 					<div>
-						<h2 className='text-lg font-semibold w-40 truncate'>{adatlap.Name}</h2>
+						<h2 className={cn("text-lg font-semibold", adatlap.RendelesStatusz ? "w-40 truncate" : "")}>
+							{adatlap.Name}
+						</h2>
 						<Badge className='text-xs'>{adatlap.FizetesiMod2}</Badge>
 					</div>
 					{adatlap.Total ? (
@@ -25,57 +30,107 @@ export default function KanbanCard({ adatlap }: { adatlap: AdatlapData }) {
 				<Separator className='opacity-40' />
 				<div className='space-y-2'>
 					<div className='text-sm flex flex-row items-start'>
-						<Home className='w-4 h-4' />:{" "}
-						<div>
+						<Home className='w-4 h-4' />:{"  "}
+						<div className='pl-1'>
 							{concatAddress(adatlap)} <b>({adatlap.Tavolsag} km)</b>
 						</div>
 					</div>
-					<div className='text-sm flex flex-row items-center'>
-						<Phone className='w-4 h-4' />: {adatlap.Phone}
-					</div>
-					<div className='text-sm flex flex-row items-center'>
-						<AtSign className='w-4 h-4' />: {adatlap.Email}
-					</div>
-					<div className='text-sm flex flex-row items-center'>
-						<QrCode className='w-4 h-4' />: {adatlap.RendelesSzama}
-					</div>
-					<Separator className='opacity-40' />
-					<div className='flex flex-col gap-1'>
-						<div className='text-xs flex flex-row items-center'>
-							<HardHat className='w-4 h-4' />: {adatlap.Beepitok}
+					{adatlap.RendelesSzama ? (
+						<div className='text-sm flex flex-row items-center'>
+							<QrCode className='w-4 h-4' />: {adatlap.RendelesSzama}
 						</div>
-						<div className='text-xs flex flex-row items-center'>
-							<Calendar className='w-4 h-4' />: {adatlap.DateTime1953}
-						</div>
-					</div>
+					) : null}
 					<Separator className='opacity-40' />
+					{adatlap.Beepitok || adatlap.DateTime1953 ? (
+						<>
+							<div className='flex flex-col gap-1'>
+								<div className='text-xs flex flex-row items-center'>
+									<HardHat className='w-4 h-4' />: {adatlap.Beepitok}
+								</div>
+								<div className='text-xs flex flex-row items-center'>
+									<Calendar className='w-4 h-4' />: {adatlap.DateTime1953.replace("T", " ")}
+								</div>
+							</div>
+							<Separator className='opacity-40' />
+						</>
+					) : null}
 					<div className='flex flex-col gap-1'>
 						<div className='text-xs flex flex-row items-center'>
 							<Ruler className='w-4 h-4' />: {adatlap.Felmero2}
 						</div>
 						<div className='text-xs flex flex-row items-center'>
-							<Calendar className='w-4 h-4' />: {adatlap.FelmeresIdopontja2}
+							<Calendar className='w-4 h-4' />: {adatlap.FelmeresIdopontja2.replace("T", " ")}
 						</div>
 					</div>
 				</div>
-				<div className='flex flex-row w-full items-center justify-between gap-2'>
-					<Button
-						variant={"outline"}
-						className='border-blue-600 hover:border-blue-700 text-blue-600 hover:text-blue-700'>
-						Navigáció
-					</Button>
+				<ButtonBar />
+			</div>
+		</div>
+	);
+
+	function ButtonBar() {
+		if (adatlap.RendelesStatusz === 3009) return;
+		return (
+			<div className='flex flex-row w-full items-center justify-between gap-2'>
+				<NavButton />
+				<FelmeresButton />
+				<RendelesButton />
+			</div>
+		);
+	}
+
+	function NavButton() {
+		if (adatlap.RendelesStatusz === 3012) return;
+		return (
+			<Button
+				variant={"outline"}
+				onClick={() => {
+					window.open(
+						`https://www.google.com/maps/dir/${encodeURIComponent(
+							"Budapest, Nagytétényi út 218-220, 1225"
+						)}/${encodeURIComponent(concatAddress(adatlap))}`
+					);
+				}}
+				className='border-blue-600 hover:border-blue-700 text-blue-600 hover:text-blue-700'>
+				Navigáció
+			</Button>
+		);
+	}
+
+	function RendelesButton() {
+		if (!adatlap.RendelesStatusz) return;
+		return (
+			<Button
+				variant={"outline"}
+				className='border-orange-600 hover:border-orange-700 text-orange-600 hover:text-orange-700'>
+				Beépítés
+			</Button>
+		);
+	}
+
+	function FelmeresButton() {
+		if (adatlap.RendelesStatusz) {
+			return (
+				<BadgeMaterial content={adatlap.FelmeresekSzama}>
+					<Link href={"/?filter=" + adatlap.Id}>
+						<Button
+							variant={"outline"}
+							className='border-green-600 hover:border-green-700 text-green-600 hover:text-green-700'>
+							Felmerések
+						</Button>
+					</Link>
+				</BadgeMaterial>
+			);
+		} else {
+			return (
+				<Link href={"/new?adatlap_id=" + adatlap.Id + "&page=1"}>
 					<Button
 						variant={"outline"}
 						className='border-green-600 hover:border-green-700 text-green-600 hover:text-green-700'>
 						Új felmérés
 					</Button>
-					<Button
-						variant={"outline"}
-						className='border-orange-600 hover:border-orange-700 text-orange-600 hover:text-orange-700'>
-						Beépítés
-					</Button>
-				</div>
-			</div>
-		</div>
-	);
+				</Link>
+			);
+		}
+	}
 }

@@ -21,4 +21,6 @@ export interface AdatlapData {
 	FelmeresIdopontja2: string;
 	RendelesSzama: string;
 	BeepitesDatuma?: Date;
+	RendelesStatusz?: number;
+	FelmeresekSzama?: number;
 }

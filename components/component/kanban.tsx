@@ -1,78 +1,89 @@
 "use client";
 import { AdatlapData } from "@/app/_utils/types";
 import KanbanCard from "./kanban-card";
-import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 import React from "react";
+import { Button } from "../ui/button";
+import { RefreshCwIcon } from "lucide-react";
+import Link from "next/link";
+import { useCreateQueryString } from "@/app/_utils/utils";
+import { useSearchParams } from "next/navigation";
 
-export function Kanban({ data }: { data: AdatlapData[] }) {
+export function Kanban({ data, next }: { data: AdatlapData[]; next: string | null }) {
 	const cols = [
 		{
 			id: "backlog",
-			title: "Backlog",
+			title: "Felmérésre vár",
 			items: data,
 			icon: <BackpackIcon className='mr-2 h-4 w-4' />,
+			data: (data: AdatlapData[]) => data.filter((adatlap) => adatlap.StatusId === 3023),
 		},
 		{
 			id: "todo",
-			title: "To Do",
+			title: "Beépítésre vár",
 			items: data,
 			icon: <ListTodoIcon className='mr-2 h-4 w-4' />,
+			data: (data: AdatlapData[]) =>
+				data.filter((adatlap) => adatlap.RendelesStatusz === 3008 || adatlap.RendelesStatusz === 3007),
 		},
 		{
 			id: "inprogress",
-			title: "In Progress",
+			title: "Elszámolásra vár",
 			items: data,
 			icon: <ActivityIcon className='mr-2 h-4 w-4' />,
+			data: (data: AdatlapData[]) => data.filter((adatlap) => adatlap.RendelesStatusz === 3012),
 		},
 		{
 			id: "done",
-			title: "Done",
+			title: "Lezárva",
 			items: data,
 			icon: <CheckIcon className='mr-2 h-4 w-4' />,
+			data: (data: AdatlapData[]) => data.filter((adatlap) => adatlap.RendelesStatusz === 3009),
 		},
 	];
+	const searchParams = useSearchParams();
+	const queryString = useCreateQueryString(searchParams);
 	return (
-		<DragDropContext
-			onDragEnd={() => {
-				console.log("drag started");
-			}}>
-			<main className='flex-1 overflow-auto py-4 px-4 bg-gray-100'>
-				<div className='flex space-x-4'>
-					{cols.map((col) => (
-						<Droppable droppableId={col.id}>
-							{(provided: any) => (
-								<div ref={provided.innerRef} {...provided.droppableProps}>
-									<h2 className='mb-4 text-sm font-medium text-gray-400 dark:text-gray-300 flex items-center'>
-										{col.icon}
-										{col.title}
-									</h2>
-									<div className='w-[350px] h-[85dvh] overflow-y-scroll'>
-										<div className='flex flex-col gap-2'>
-											{data.map((adatlap, index) => (
-												<Draggable
-													key={adatlap.Id}
-													draggableId={col.id + adatlap.Id.toString()}
-													index={index}>
-													{(provided) => (
-														<div
-															ref={provided.innerRef}
-															{...provided.draggableProps}
-															{...provided.dragHandleProps}>
-															<KanbanCard adatlap={adatlap} />
-														</div>
-													)}
-												</Draggable>
-											))}
-											{provided.placeholder}
-										</div>
-									</div>
+		<main className='flex-1 overflow-auto py-4 px-4 bg-gray-100'>
+			<div className='flex space-x-4'>
+				{cols.map((col) => {
+					const colData = col.data(data);
+					return (
+						<div>
+							<h2 className='mb-4 text-sm font-medium text-gray-400 dark:text-gray-300 flex items-center'>
+								{col.icon}
+								{col.title}
+							</h2>
+							<div className='w-[370px] h-[85dvh] overflow-y-scroll'>
+								<div className='flex flex-col gap-4 items-center'>
+									{colData.map((adatlap) => {
+										return <KanbanCard adatlap={adatlap} />;
+									})}
+									<Link
+										href={
+											"/adatlapok?" +
+											queryString([
+												{
+													name: "page",
+													value: (
+														(parseInt(searchParams.get("page") ?? "1") ?? 1) + 1
+													).toString(),
+												},
+											])
+										}>
+										{next ? (
+											<Button>
+												<RefreshCwIcon className='w-4 h-4 mr-2' />
+												Több adat
+											</Button>
+										) : null}
+									</Link>
 								</div>
-							)}
-						</Droppable>
-					))}
-				</div>
-			</main>
-		</DragDropContext>
+							</div>
+						</div>
+					);
+				})}
+			</div>
+		</main>
 	);
 }
 
