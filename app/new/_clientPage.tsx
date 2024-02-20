@@ -817,7 +817,7 @@ export default function Page({
 						component: (
 							<FelmeresPicturesComponent
 								save={false}
-								felmeresId={felmeres.id}
+								felmeres={felmeres}
 								pictures={pictures}
 								setPictures={setPictures}
 								onUpload={(file) => setIsUploadingFile((prev) => [...prev, file.filename as string])}

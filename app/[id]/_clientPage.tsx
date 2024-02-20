@@ -227,7 +227,7 @@ export default function ClientPage({
 			{
 				component: (
 					<FelmeresPicturesComponent
-						felmeresId={parseInt(felmeresId)}
+						felmeres={felmeres}
 						pictures={statePictures}
 						setPictures={setStatePictures}
 					/>
@@ -814,14 +814,14 @@ function FieldViewing({ data, question }: { data: FelmeresQuestion; question: Qu
 export function FelmeresPicturesComponent({
 	pictures,
 	setPictures,
-	felmeresId,
+	felmeres,
 	save = true,
 	onUploadSuccess,
 	onUpload,
 }: {
 	pictures: FelmeresPictures[];
 	setPictures: React.Dispatch<React.SetStateAction<FelmeresPictures[]>>;
-	felmeresId: number;
+	felmeres: BaseFelmeresData;
 	save?: boolean;
 	onUploadSuccess?: (file: any) => void;
 	onUpload?: (file: any) => void;
@@ -848,21 +848,24 @@ export function FelmeresPicturesComponent({
 					});
 					if (resp.ok) {
 						setPictures((prev) => prev.filter((pic, i) => i !== index));
-						await fetch("/api/revalidate?tag=" + felmeresId);
+						await fetch("/api/revalidate?tag=" + felmeres.id);
 					}
 				}}
 			/>
 			<FileUpload
+				felmeresId={felmeres.id.toString()}
 				onUploadSuccess={(e, file) => (onUploadSuccess ? onUploadSuccess(file) : undefined)}
 				onUpload={async (file) => {
 					onUpload ? onUpload(file) : {};
+					const prefixFilename =
+						"https://felmeres-note-images.s3.eu-central-1.amazonaws.com/" + felmeres.id + file.filename;
 					if (!save) {
 						setPictures((prev) => [
 							...prev,
 							{
 								id: 0,
 								felmeres: 0,
-								src: "https://felmeres-note-images.s3.eu-central-1.amazonaws.com/" + file.filename,
+								src: prefixFilename,
 							},
 						]);
 						return;
@@ -873,8 +876,8 @@ export function FelmeresPicturesComponent({
 							"Content-Type": "application/json",
 						},
 						body: JSON.stringify({
-							felmeres: felmeresId,
-							src: "https://felmeres-note-images.s3.eu-central-1.amazonaws.com/" + file.filename,
+							felmeres: felmeres.id,
+							src: prefixFilename,
 						}),
 					});
 					if (resp.ok) {
@@ -883,11 +886,11 @@ export function FelmeresPicturesComponent({
 							...prev,
 							{
 								id: data.id,
-								felmeres: felmeresId,
-								src: "https://felmeres-note-images.s3.eu-central-1.amazonaws.com/" + file.filename,
+								felmeres: felmeres.id,
+								src: prefixFilename,
 							},
 						]);
-						await fetch("/api/revalidate?tag=" + felmeresId);
+						await fetch("/api/revalidate?tag=" + felmeres.id);
 					}
 				}}
 			/>

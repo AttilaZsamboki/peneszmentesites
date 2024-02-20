@@ -27,33 +27,47 @@ export interface FelmeresQuestion {
 	product: number | null;
 }
 
-export default async function Home() {
-	const data = await fetch("https://pen.dataupload.xyz/felmeresek/", {
-		next: { tags: ["felmeresek"], revalidate: 60 },
-		method: "GET",
-		headers: {
-			"Content-Type": "application/json",
-		},
-	});
+export interface Pagination<T> {
+	count: number;
+	next: string | null;
+	previous: string | null;
+	results: T[];
+}
+
+export default async function Home({ searchParams }: { searchParams: { page?: string; filter?: string } }) {
+	const data = await fetch(
+		`https://pen.dataupload.xyz/felmeresek/?page=${searchParams?.page ?? 1}${
+			searchParams.filter ? "&search=" + searchParams.filter : ""
+		}`,
+		{
+			next: { tags: ["felmeresek"], revalidate: 60 },
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		}
+	);
 	if (data.ok) {
-		const felmeresek: BaseFelmeresData[] = await data.json().catch((err) => console.log(err));
-		const adatlapIds = Array.from(new Set(felmeresek.map((felmeres) => felmeres.adatlap_id.toString())));
-		const adatlapok: AdatlapData[] = await fetch(
-			"https://pen.dataupload.xyz/minicrm-adatlapok/?id=" + adatlapIds.join(","),
-			{
-				next: { tags: ["adatlapok"], revalidate: 60 },
-				method: "GET",
-				headers: {
-					"Content-Type": "application/json",
-				},
-			}
-		)
+		const felmeresek: Pagination<BaseFelmeresData> = await data.json().catch((err) => {
+			console.log(err);
+			return [];
+		});
+		const adatlapIds = Array.from(new Set(felmeresek.results.map((felmeres) => felmeres.adatlap_id.toString())));
+		const adatlapok = await fetch("https://pen.dataupload.xyz/minicrm-adatlapok/?Id=" + adatlapIds.join(","), {
+			next: { tags: ["adatlapok"], revalidate: 60 },
+			method: "GET",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		})
 			.then((res) => res.json())
 			.catch((err) => {
 				console.log(err);
 				return [];
 			})
-			.then((data: AdatlapData[]) => data.filter((adatlap) => adatlap));
+			.then((data: AdatlapData[]) => {
+				return data.filter((adatlap) => adatlap);
+			});
 
 		const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates/", {
 			next: { tags: ["templates"], revalidate: 300 },
@@ -64,9 +78,9 @@ export default async function Home() {
 				return [];
 			})
 			.then((data: Template[]) =>
-				data.filter((template) => felmeresek.map((felmeres) => felmeres.template).includes(template.id))
+				data.filter((template) => felmeresek.results.map((felmeres) => felmeres.template).includes(template.id))
 			);
-		const allData = felmeresek.map((felmeres) => {
+		const allData = felmeresek.results.map((felmeres) => {
 			const adatlap = adatlapok
 				.filter((adatlap) => adatlap)
 				.find((adatlap) => adatlap!.Id === felmeres.adatlap_id);
@@ -105,7 +119,12 @@ export default async function Home() {
 			};
 		});
 
-		return <ClientPage allData={allData} />;
+		return (
+			<ClientPage
+				allData={allData}
+				paginationData={{ active: true, numPages: Math.ceil(felmeresek.count / 10) }}
+			/>
+		);
 	} else {
 		return (
 			<main className='flex min-h-screen flex-col items-center justify-start p-2'>
