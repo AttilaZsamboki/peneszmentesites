@@ -16,7 +16,7 @@ import { FunnelIcon } from "@heroicons/react/24/outline";
 import { Tabs, TabsHeader, Tab } from "@material-tailwind/react";
 import { KanbanIcon, ListIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { isValidDate, useCreateQueryString } from "../_utils/utils";
 import React from "react";
 import { AdatlapData } from "../_utils/types";
@@ -28,22 +28,32 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import AutoComplete from "../_components/AutoComplete";
 import { Pagination } from "../page";
+import { fetchAdatlapokV2 } from "./page";
 
-function Body({ data, next }: { data: AdatlapData[]; next: string | null }) {
+function Body({
+	data,
+	next,
+	setPage,
+}: {
+	data: AdatlapData[];
+	next: string | null;
+	setPage: React.Dispatch<React.SetStateAction<number>>;
+}) {
 	const searchParams = useSearchParams();
 
 	if (searchParams.get("view") === "grid") {
 		return <Grid data={data} />;
 	} else {
-		return <Kanban data={data} next={next} />;
+		return <Kanban data={data} next={next} setPage={setPage} />;
 	}
 }
 
 function Header({ data }: { data: AdatlapData[] }) {
 	const searchParams = useSearchParams();
+	const router = useRouter();
 
 	const filters: FilterItem[] = [
-		{ id: 1, field: "BeepitesDatuma", label: "Beépítés Dátuma", type: "daterange" },
+		{ id: 1, field: "DateTime1953", label: "Beépítés Dátuma", type: "daterange" },
 		{ id: 2, field: "FelmeresIdopontja2", label: "Felmérés Dátuma", type: "daterange" },
 		{ id: 3, field: "Felmero2", label: "Felmérő", type: "text" },
 		{
@@ -164,6 +174,11 @@ function Header({ data }: { data: AdatlapData[] }) {
 						<Input
 							className='pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px] bg-white'
 							placeholder='Keress felmérésre...'
+							onChange={(event) =>
+								router.push(
+									"/adatlapok?" + queryString([{ name: "search", value: event.target.value }])
+								)
+							}
 							type='search'
 						/>
 					</div>
@@ -286,8 +301,8 @@ function Header({ data }: { data: AdatlapData[] }) {
 								<Link
 									href={
 										"?" +
-										queryString(
-											filter.filters
+										queryString([
+											...filter.filters
 												.filter((item) => item.field !== "search")
 												.map((item) => {
 													if (
@@ -308,8 +323,14 @@ function Header({ data }: { data: AdatlapData[] }) {
 												})
 												.filter(
 													(item): item is { name: string; value: string } => item !== null
-												)
-										)
+												),
+											...[
+												{
+													name: "ordering",
+													value: (filter.sort_order === "asc" ? "" : "-") + filter.sort_by,
+												},
+											],
+										])
 									}>
 									<Button type='submit'>Alkalmaz</Button>
 								</Link>
@@ -330,12 +351,35 @@ function Header({ data }: { data: AdatlapData[] }) {
 }
 
 export default function Page1({ data }: { data: Pagination<AdatlapData> }) {
+	const [fullData, setFullData] = React.useState<AdatlapData[]>(data.results);
+	const [page, setPage] = React.useState(1);
+	const [isInitialLoad, setIsInitialLoad] = React.useState(true);
+	const searchParams = useSearchParams();
+
+	React.useEffect(() => {
+		const getData = async () => {
+			if (!isInitialLoad) {
+				const newData = await fetchAdatlapokV2({
+					...(searchParams as unknown as { [key: string]: string }),
+					page: page,
+				} as any);
+				setFullData((prev) => [...prev, ...newData.results]);
+			}
+			setIsInitialLoad(false);
+		};
+
+		getData();
+	}, [page]);
+	React.useEffect(() => {
+		setFullData(data.results);
+	}, [data]);
+
 	return (
 		<div className='flex flex-col h-screen'>
 			<header className='h-[60px] flex items-center shadow-none bg-white border-b'>
-				<Header data={data.results} />
+				<Header data={fullData} />
 			</header>
-			<Body data={data.results} next={data.next} />
+			<Body data={fullData} next={data.next} setPage={setPage} />
 		</div>
 	);
 }

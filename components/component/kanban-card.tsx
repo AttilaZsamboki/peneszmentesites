@@ -69,7 +69,7 @@ export default function KanbanCard({ adatlap }: { adatlap: AdatlapData }) {
 	);
 
 	function ButtonBar() {
-		if (adatlap.RendelesStatusz === 3009) return;
+		if (adatlap.RendelesStatusz === "Lezárva") return;
 		return (
 			<div className='flex flex-row w-full items-center justify-between gap-2'>
 				<NavButton />
@@ -80,7 +80,11 @@ export default function KanbanCard({ adatlap }: { adatlap: AdatlapData }) {
 	}
 
 	function NavButton() {
-		if (adatlap.RendelesStatusz === 3012 || adatlap.AjanlatKikuldve) return;
+		if (
+			(adatlap.RendelesStatusz !== "Beépítésre vár" && adatlap.RendelesStatusz !== "Szervezésre vár") ||
+			(adatlap.AjanlatKikuldve && !adatlap.RendelesSzama)
+		)
+			return;
 		return (
 			<Button
 				variant={"outline"}
@@ -98,7 +102,11 @@ export default function KanbanCard({ adatlap }: { adatlap: AdatlapData }) {
 	}
 
 	function RendelesButton() {
-		if (!adatlap.RendelesStatusz) return;
+		if (
+			!adatlap.RendelesStatusz ||
+			(adatlap.RendelesStatusz !== "Beépítésre vár" && adatlap.RendelesStatusz !== "Szervezésre vár")
+		)
+			return;
 		return (
 			<Button
 				variant={"outline"}

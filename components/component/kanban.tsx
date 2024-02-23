@@ -4,11 +4,18 @@ import KanbanCard from "./kanban-card";
 import React from "react";
 import { Button } from "../ui/button";
 import { RefreshCwIcon, Send } from "lucide-react";
-import Link from "next/link";
 import { useCreateQueryString } from "@/app/_utils/utils";
 import { useSearchParams } from "next/navigation";
 
-export function Kanban({ data, next }: { data: AdatlapData[]; next: string | null }) {
+export function Kanban({
+	data,
+	next,
+	setPage,
+}: {
+	data: AdatlapData[];
+	next: string | null;
+	setPage: React.Dispatch<React.SetStateAction<number>>;
+}) {
 	const cols = [
 		{
 			id: "backlog",
@@ -23,7 +30,7 @@ export function Kanban({ data, next }: { data: AdatlapData[]; next: string | nul
 			items: data,
 			icon: <Send className='mr-2 h-4 w-4' />,
 			data: (data: AdatlapData[]) =>
-				data.filter((adatlap) => adatlap.AjanlatKikuldve && !adatlap.RendelesStatusz),
+				data.filter((adatlap) => adatlap.AjanlatKikuldve && adatlap.RendelesStatusz === null),
 		},
 		{
 			id: "todo",
@@ -51,8 +58,8 @@ export function Kanban({ data, next }: { data: AdatlapData[]; next: string | nul
 	const searchParams = useSearchParams();
 	const queryString = useCreateQueryString(searchParams);
 	return (
-		<main className='flex-1 overflow-auto py-4 px-4 bg-gray-100'>
-			<div className='flex space-x-4'>
+		<main className='flex overflow-x-scroll py-3 px-4 bg-gray-100'>
+			<div className='flex space-x-4 w-0'>
 				{cols.map((col) => {
 					const colData = col.data(data);
 					return (
@@ -66,25 +73,12 @@ export function Kanban({ data, next }: { data: AdatlapData[]; next: string | nul
 									{colData.map((adatlap) => {
 										return <KanbanCard adatlap={adatlap} />;
 									})}
-									<Link
-										href={
-											"/adatlapok?" +
-											queryString([
-												{
-													name: "page",
-													value: (
-														(parseInt(searchParams.get("page") ?? "1") ?? 1) + 1
-													).toString(),
-												},
-											])
-										}>
-										{next ? (
-											<Button>
-												<RefreshCwIcon className='w-4 h-4 mr-2' />
-												Több adat
-											</Button>
-										) : null}
-									</Link>
+									{next ? (
+										<Button onClick={() => setPage((prev) => prev + 1)}>
+											<RefreshCwIcon className='w-4 h-4 mr-2' />
+											Több adat
+										</Button>
+									) : null}
 								</div>
 							</div>
 						</div>

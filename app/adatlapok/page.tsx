@@ -2,8 +2,8 @@ import { AdatlapData } from "../_utils/types";
 import { Pagination } from "../page";
 import Page1 from "./Page.1";
 
-export default async function Page({ searchParams }: { searchParams: { view: "grid"; search?: string } }) {
-	const data: Pagination<AdatlapData> = await fetch(
+export async function fetchAdatlapokV2(searchParams: { [key: string]: string }) {
+	return await fetch(
 		`https://pen.dataupload.xyz/minicrm-adatlapok/v2/?CategoryId=23&StatusId=3023,3084,3086${Object.entries(
 			searchParams
 		)
@@ -19,6 +19,9 @@ export default async function Page({ searchParams }: { searchParams: { view: "gr
 			console.log(err);
 			return [];
 		});
+}
 
+export default async function Page({ searchParams }: { searchParams: { [key: string]: string } }) {
+	const data: Pagination<AdatlapData> = await fetchAdatlapokV2(searchParams);
 	return <Page1 data={data} />;
 }
