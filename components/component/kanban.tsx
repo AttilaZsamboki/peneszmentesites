@@ -2,66 +2,64 @@
 import { AdatlapData } from "@/app/_utils/types";
 import KanbanCard from "./kanban-card";
 import React from "react";
-import { Button } from "../ui/button";
-import { RefreshCwIcon, Send } from "lucide-react";
-import { useCreateQueryString } from "@/app/_utils/utils";
-import { useSearchParams } from "next/navigation";
+import { BanIcon, Send } from "lucide-react";
 
-export function Kanban({
-	data,
-	next,
-	setPage,
-}: {
-	data: AdatlapData[];
-	next: string | null;
-	setPage: React.Dispatch<React.SetStateAction<number>>;
-}) {
+export function Kanban({ data }: { data: AdatlapData[] }) {
 	const cols = [
 		{
 			id: "backlog",
 			title: "Felmérésre vár",
-			items: data,
 			icon: <BackpackIcon className='mr-2 h-4 w-4' />,
 			data: (data: AdatlapData[]) => data.filter((adatlap) => adatlap.StatusId === 3023),
+			minAmount: 5,
 		},
 		{
 			id: "offer-sent",
 			title: "Ajánlat kiküldve",
-			items: data,
 			icon: <Send className='mr-2 h-4 w-4' />,
 			data: (data: AdatlapData[]) =>
 				data.filter((adatlap) => adatlap.AjanlatKikuldve && adatlap.RendelesStatusz === null),
+			minAmount: 0,
 		},
 		{
 			id: "todo",
 			title: "Beépítésre vár",
-			items: data,
 			icon: <ListTodoIcon className='mr-2 h-4 w-4' />,
 			data: (data: AdatlapData[]) =>
-				data.filter((adatlap) => adatlap.RendelesStatusz === 3008 || adatlap.RendelesStatusz === 3007),
+				data.filter(
+					(adatlap) =>
+						adatlap.RendelesStatusz === "Szervezésre vár" || adatlap.RendelesStatusz === "Beépítésre vár"
+				),
+			minAmount: 3,
 		},
 		{
 			id: "inprogress",
 			title: "Elszámolásra vár",
-			items: data,
 			icon: <ActivityIcon className='mr-2 h-4 w-4' />,
-			data: (data: AdatlapData[]) => data.filter((adatlap) => adatlap.RendelesStatusz === 3012),
+			data: (data: AdatlapData[]) => data.filter((adatlap) => adatlap.RendelesStatusz === "Elszámolásra vár"),
+			minAmount: 0,
 		},
 		{
 			id: "done",
 			title: "Lezárva",
-			items: data,
 			icon: <CheckIcon className='mr-2 h-4 w-4' />,
-			data: (data: AdatlapData[]) => data.filter((adatlap) => adatlap.RendelesStatusz === 3009),
+			data: (data: AdatlapData[]) => data.filter((adatlap) => adatlap.RendelesStatusz === "Lezárva"),
+			minAmount: 0,
+		},
+		{
+			id: "denied",
+			title: "Elutasítva",
+			icon: <BanIcon className='mr-2 h-4 w-4' />,
+			data: (data: AdatlapData[]) => data.filter((adatlap) => adatlap.AjanlatElutasitva),
+			minAmount: 0,
 		},
 	];
-	const searchParams = useSearchParams();
-	const queryString = useCreateQueryString(searchParams);
+
 	return (
 		<main className='flex overflow-x-scroll py-3 px-4 bg-gray-100'>
 			<div className='flex space-x-4 w-0'>
 				{cols.map((col) => {
-					const colData = col.data(data);
+					const colData = col.data(data)
 					return (
 						<div>
 							<h2 className='mb-4 text-sm font-medium text-gray-400 dark:text-gray-300 flex items-center'>
@@ -73,12 +71,6 @@ export function Kanban({
 									{colData.map((adatlap) => {
 										return <KanbanCard adatlap={adatlap} />;
 									})}
-									{next ? (
-										<Button onClick={() => setPage((prev) => prev + 1)}>
-											<RefreshCwIcon className='w-4 h-4 mr-2' />
-											Több adat
-										</Button>
-									) : null}
 								</div>
 							</div>
 						</div>

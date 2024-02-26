@@ -14,7 +14,7 @@ import {
 import { useLocalStorageStateObject } from "@/lib/utils";
 import { FunnelIcon } from "@heroicons/react/24/outline";
 import { Tabs, TabsHeader, Tab } from "@material-tailwind/react";
-import { KanbanIcon, ListIcon, SearchIcon } from "lucide-react";
+import { KanbanIcon, ListIcon, PlusIcon, SearchIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { isValidDate, useCreateQueryString } from "../_utils/utils";
@@ -23,34 +23,62 @@ import { AdatlapData } from "../_utils/types";
 import { Kanban } from "@/components/component/kanban";
 import { Grid } from "@/components/component/table";
 import { Filter } from "../products/page";
-import { DateRange, FilterItem, InputOptionChooser } from "../_components/StackedList";
+import {
+	DateRange,
+	FilterItem,
+	FiltersComponent,
+	InputOptionChooser,
+	fetchSavedFilters,
+} from "../_components/StackedList";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import AutoComplete from "../_components/AutoComplete";
 import { Pagination } from "../page";
-import { fetchAdatlapokV2 } from "./page";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { toast } from "@/components/ui/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 
-function Body({
-	data,
-	next,
-	setPage,
-}: {
-	data: AdatlapData[];
-	next: string | null;
-	setPage: React.Dispatch<React.SetStateAction<number>>;
-}) {
+function Body({ data }: { data: AdatlapData[] }) {
 	const searchParams = useSearchParams();
 
 	if (searchParams.get("view") === "grid") {
 		return <Grid data={data} />;
 	} else {
-		return <Kanban data={data} next={next} setPage={setPage} />;
+		return <Kanban data={data} />;
 	}
 }
 
 function Header({ data }: { data: AdatlapData[] }) {
 	const searchParams = useSearchParams();
 	const router = useRouter();
+	const { user } = useUser();
+
+	React.useEffect(() => {
+		if (!user?.sub) {
+			return;
+		}
+
+		const savedFilters = async () => {
+			const resp = await fetchSavedFilters("adatlapok", user.sub ?? "", filters);
+			if (resp === "Error" || !resp) {
+				toast({
+					title: "Hiba",
+					description: "Hiba történt a szűrők betöltése közben",
+					variant: "destructive",
+					action: (
+						<ToastAction
+							altText='Try again'
+							onClick={() => fetchSavedFilters("adatlapok", user.sub ?? "", filters)}>
+							Újrapróbálkozás
+						</ToastAction>
+					),
+				});
+				return;
+			}
+			setSavedFilters(resp);
+		};
+		savedFilters();
+	}, [user?.sub]);
 
 	const filters: FilterItem[] = [
 		{ id: 1, field: "DateTime1953", label: "Beépítés Dátuma", type: "daterange" },
@@ -114,12 +142,14 @@ function Header({ data }: { data: AdatlapData[] }) {
 		sort_by: searchParams.get("sort_by") ?? "id",
 		sort_order: (searchParams.get("sort_order") as "asc" | "desc") ?? "desc",
 	});
-	const [activeTab, setActiveTab] = useLocalStorageStateObject("kanban", "kanban");
+	const [savedFilters, setSavedFilters] = React.useState<Filter[]>([]);
 	const queryString = useCreateQueryString(searchParams);
 
 	const resetFilter = (exceptSearch: boolean) => {
 		setFilter((prev) => ({
 			...prev,
+			sort_by: "",
+			sort_order: "desc",
 			filters: prev.filters.map((item) => {
 				if (item.field === "search" && exceptSearch) {
 					return item;
@@ -131,49 +161,22 @@ function Header({ data }: { data: AdatlapData[] }) {
 
 	return (
 		<div className='flex flex-row w-full justify-between px-3 lg:px-6'>
-			<Tabs value={activeTab} className='flex flex-row w-full items-center'>
-				<TabsHeader
-					key='kanban'
-					className='rounded-none bg-transparent p-0'
-					indicatorProps={{
-						className: "bg-transparent border-b-2 border-gray-900 mx-3 shadow-none rounded-none",
-					}}>
-					<Link
-						href={"/adatlapok?" + queryString([{ name: "view", value: "kanban" }])}
-						onClick={() => setActiveTab("kanban")}>
-						<Tab value='kanban' className='pb-2'>
-							<h1 className='text-sm font-medium text-gray-900 dark:text-gray-50 flex items-center'>
-								<KanbanIcon className='mr-2 h-4 w-4' />
-								Kanban
-							</h1>
-						</Tab>
-					</Link>
-				</TabsHeader>
-				<TabsHeader
-					key='grid'
-					className='rounded-none bg-transparent p-0'
-					indicatorProps={{
-						className: "bg-transparent border-b-2 border-gray-900 mx-3 shadow-none rounded-none",
-					}}>
-					<Link
-						href={"/adatlapok?" + queryString([{ name: "view", value: "grid" }])}
-						onClick={() => setActiveTab("grid")}>
-						<Tab value='grid' className='pb-2'>
-							<h1 className='text-sm font-medium text-gray-900 dark:text-gray-50 flex items-center'>
-								<ListIcon className='mr-2 h-4 w-4' />
-								Lista nézet
-							</h1>
-						</Tab>
-					</Link>
-				</TabsHeader>
-			</Tabs>
+			<FiltersComponent
+				filter={filter}
+				filterType='adatlapok'
+				savedFilters={savedFilters}
+				setSavedFilters={setSavedFilters}
+				setFilter={setFilter}
+				defaultViewName='Kanban'
+			/>
 			<div className='flex flex-1 items-center gap-4 md:ml-auto md:gap-2 lg:gap-4'>
 				<div className='ml-auto flex-1 sm:flex-initial'>
 					<div className='relative'>
 						<SearchIcon className='absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400' />
 						<Input
 							className='pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px] bg-white'
-							placeholder='Keress felmérésre...'
+							placeholder='Keress...'
+							value={searchParams.get("search") ?? ""}
 							onChange={(event) =>
 								router.push(
 									"/adatlapok?" + queryString([{ name: "search", value: event.target.value }])
@@ -332,7 +335,9 @@ function Header({ data }: { data: AdatlapData[] }) {
 											],
 										])
 									}>
-									<Button type='submit'>Alkalmaz</Button>
+									<Button type='submit' onClick={() => {}}>
+										Alkalmaz
+									</Button>
 								</Link>
 							</SheetClose>
 							<SheetClose asChild>
@@ -350,36 +355,13 @@ function Header({ data }: { data: AdatlapData[] }) {
 	);
 }
 
-export default function Page1({ data }: { data: Pagination<AdatlapData> }) {
-	const [fullData, setFullData] = React.useState<AdatlapData[]>(data.results);
-	const [page, setPage] = React.useState(1);
-	const [isInitialLoad, setIsInitialLoad] = React.useState(true);
-	const searchParams = useSearchParams();
-
-	React.useEffect(() => {
-		const getData = async () => {
-			if (!isInitialLoad) {
-				const newData = await fetchAdatlapokV2({
-					...(searchParams as unknown as { [key: string]: string }),
-					page: page,
-				} as any);
-				setFullData((prev) => [...prev, ...newData.results]);
-			}
-			setIsInitialLoad(false);
-		};
-
-		getData();
-	}, [page]);
-	React.useEffect(() => {
-		setFullData(data.results);
-	}, [data]);
-
+export default function Page1({ data }: { data: AdatlapData[] }) {
 	return (
 		<div className='flex flex-col h-screen'>
 			<header className='h-[60px] flex items-center shadow-none bg-white border-b'>
-				<Header data={fullData} />
+				<Header data={data} />
 			</header>
-			<Body data={fullData} next={data.next} setPage={setPage} />
+			<Body data={data} />
 		</div>
 	);
 }

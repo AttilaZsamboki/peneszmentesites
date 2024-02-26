@@ -236,83 +236,31 @@ export default function StackedList({
 	};
 	const { toast } = useToast();
 
-	const fetchSavedFilters = async () => {
+	React.useEffect(() => {
 		if (savedFiltersOriginal?.length || !user?.sub) {
 			return;
 		}
-		const response = await fetch(`https://pen.dataupload.xyz/filters?type=${title}&user=${user.sub}`);
-		if (response.ok) {
-			const data: Filter[] = await response.json();
 
-			setSavedFilters(
-				await Promise.all(
-					data.map(async (item) => {
-						const response = await fetch("https://pen.dataupload.xyz/filter_items?filter=" + item.id);
-						if (response.ok) {
-							const data: FilterItem[] = await response.json();
-							return {
-								...item,
-								filters: data.map((item) =>
-									item.type === "daterange"
-										? {
-												...item,
-												value: item.value
-													? {
-															from: new Date(
-																JSON.parse(
-																	item.value
-																		? (item.value as unknown as string).replace(
-																				/'/g,
-																				'"'
-																		  )
-																		: "{}"
-																).from
-															),
-															to:
-																item.value &&
-																JSON.parse(
-																	(item.value as unknown as string).replace(/'/g, '"')
-																).to
-																	? new Date(
-																			JSON.parse(
-																				item.value
-																					? (
-																							item.value as unknown as string
-																					  ).replace(/'/g, '"')
-																					: "{}"
-																			).to
-																	  )
-																	: (null as unknown as Date),
-													  }
-													: undefined,
-										  }
-										: item
-								),
-							};
-						} else {
-							return {
-								...item,
-								filters: filters,
-							};
-						}
-					})
-				)
-			);
-			return;
-		}
-		toast({
-			title: "Hiba",
-			description: "Hiba történt a szűrők betöltése közben",
-			variant: "destructive",
-			action: (
-				<ToastAction altText='Try again' onClick={fetchSavedFilters}>
-					Újrapróbálkozás
-				</ToastAction>
-			),
-		});
-	};
-	React.useEffect(() => {
-		fetchSavedFilters();
+		const savedFilters = async () => {
+			const resp = await fetchSavedFilters(title, user.sub ?? "", filters);
+			if (resp === "Error" || !resp) {
+				toast({
+					title: "Hiba",
+					description: "Hiba történt a szűrők betöltése közben",
+					variant: "destructive",
+					action: (
+						<ToastAction
+							altText='Try again'
+							onClick={() => fetchSavedFilters(title, user.sub ?? "", filters)}>
+							Újrapróbálkozás
+						</ToastAction>
+					),
+				});
+				return;
+			}
+			setSavedFilters(resp);
+		};
+		savedFilters();
 	}, [user?.sub]);
 
 	React.useEffect(() => {
@@ -510,14 +458,16 @@ export default function StackedList({
 					</div>
 				</div>
 			</div>
-			<FiltersComponent
-				defaultViewName={defaultViewName}
-				filterType={title}
-				filter={filter}
-				savedFilters={savedFilters}
-				setFilter={setFilter}
-				setSavedFilters={setSavedFilters}
-			/>
+			<div className='flex flex-row justify-center px-4 items-center w-full bg-white rounded-md p-2 border pb-0 '>
+				<FiltersComponent
+					defaultViewName={defaultViewName}
+					filterType={title}
+					filter={filter}
+					savedFilters={savedFilters}
+					setFilter={setFilter}
+					setSavedFilters={setSavedFilters}
+				/>
+			</div>
 			<ScrollArea
 				className={`${
 					pagination.numPages ? "h-[50dvh] lg:h-[64dvh] pb-0" : "h-[57dvh] lg:h-[66dvh]"
@@ -565,7 +515,7 @@ export default function StackedList({
 																			itemContent.status ? itemContent.status : ""
 																		].className
 																	}
-																	relative grid items-center font-sans font-bold uppercase whitespace-nowrap select-none py-1 px-2 text-xs rounded-md`}>
+																		relative grid items-center font-sans font-bold uppercase whitespace-nowrap select-none py-1 px-2 text-xs rounded-md`}>
 																	<div className='absolute top-2/4 -translate-y-2/4 w-4 h-4 left-1'>
 																		<span
 																			className={
@@ -723,7 +673,7 @@ function DialogItem({
 	);
 }
 
-function FiltersComponent({
+export function FiltersComponent({
 	filter,
 	filterType,
 	setFilter,
@@ -817,10 +767,8 @@ function FiltersComponent({
 	}, [filter, savedFilters]);
 
 	return (
-		<div className='flex flex-row justify-center items-center w-full bg-white rounded-md p-2 border pb-0 '>
-			<Tabs
-				value={filter.id}
-				className='flex flex-row w-full pl-3 lg:pl-6 items-center gap-3 justify-start overflow-x-scroll'>
+		<>
+			<Tabs value={filter.id} className='flex flex-row w-full items-center gap-3 justify-start'>
 				<TabsHeader
 					className='rounded-none bg-transparent p-0 cursor-pointer inline-flex items-center lg:w-auto '
 					onClick={handleOpenSaveFilter}
@@ -849,13 +797,13 @@ function FiltersComponent({
 						className: "bg-transparent border-b-2 border-gray-900 mx-3 shadow-none rounded-none",
 					}}>
 					<div className='flex items-center pb-2 -ml-2'>
-						<Separator orientation='vertical' className='mx-2 ml-4' />
+						<Separator orientation='vertical' className='mx-2 h-1/2' />
 					</div>
 					<Tab value={0} className='pb-2'>
 						{defaultViewName ?? "Alap nézet"}
 					</Tab>
 					<div className='flex items-center pb-2'>
-						<Separator orientation='vertical' className='mx-2 ml-4' />
+						<Separator orientation='vertical' className='mx-2 h-1/2' />
 					</div>
 				</TabsHeader>
 
@@ -904,20 +852,10 @@ function FiltersComponent({
 												});
 											}
 										}}
-										dropdownMenuItems={[
-											{
-												value: "delete",
-												onClick: onSaveFilter,
-												icon: (
-													<BookmarkSquareIcon className='mr-2 h-5 w-5' aria-hidden='true' />
-												),
-												shortcut: "Ctrl + S",
-											},
-										]}
 										onSave={async () => await onSaveFilter()}>
 										<EllipsisVerticalIcon className='w-5 h-5' />
 									</Menu>
-									<Separator orientation='vertical' className='mx-2 ml-4' />
+									<Separator orientation='vertical' className='mx-2 h-1/2' />
 								</div>
 							</TabsHeader>
 						);
@@ -934,7 +872,7 @@ function FiltersComponent({
 					onChange={(e) => setFilter((prev) => ({ ...prev, name: e.target.value }))}
 				/>
 			</CustomDialog>
-		</div>
+		</>
 	);
 
 	async function onSaveFilter() {
@@ -1057,3 +995,62 @@ export function InputOptionChooser({
 		);
 	}
 }
+
+export const fetchSavedFilters = async (title: string, user_id: string, filters: FilterItem[]) => {
+	const response = await fetch(`https://pen.dataupload.xyz/filters?type=${title}&user=${user_id}`);
+	if (response.ok) {
+		const data: Filter[] = await response.json();
+
+		return await Promise.all(
+			data.map(async (item) => {
+				const response = await fetch("https://pen.dataupload.xyz/filter_items?filter=" + item.id);
+				if (response.ok) {
+					const data: FilterItem[] = await response.json();
+					return {
+						...item,
+						filters: data.map((item) =>
+							item.type === "daterange"
+								? {
+										...item,
+										value: item.value
+											? {
+													from: new Date(
+														JSON.parse(
+															item.value
+																? (item.value as unknown as string).replace(/'/g, '"')
+																: "{}"
+														).from
+													),
+													to:
+														item.value &&
+														JSON.parse((item.value as unknown as string).replace(/'/g, '"'))
+															.to
+															? new Date(
+																	JSON.parse(
+																		item.value
+																			? (item.value as unknown as string).replace(
+																					/'/g,
+																					'"'
+																			  )
+																			: "{}"
+																	).to
+															  )
+															: (null as unknown as Date),
+											  }
+											: undefined,
+								  }
+								: item
+						),
+					};
+				} else {
+					return {
+						...item,
+						filters: filters,
+					};
+				}
+			})
+		);
+		return;
+	}
+	return "Error";
+};

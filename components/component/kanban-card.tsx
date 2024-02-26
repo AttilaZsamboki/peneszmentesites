@@ -9,6 +9,7 @@ import { Badge as BadgeMaterial } from "@material-tailwind/react";
 import { concatAddress } from "@/app/_utils/MiniCRM";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 export default function KanbanCard({ adatlap }: { adatlap: AdatlapData }) {
 	return (
@@ -48,7 +49,7 @@ export default function KanbanCard({ adatlap }: { adatlap: AdatlapData }) {
 									<HardHat className='w-4 h-4' />: {adatlap.Beepitok}
 								</div>
 								<div className='text-xs flex flex-row items-center'>
-									<Calendar className='w-4 h-4' />: {adatlap.DateTime1953.replace("T", " ")}
+									<Calendar className='w-4 h-4' />: {adatlap.DateTime1953.toLocaleDateString("hu-HU")}
 								</div>
 							</div>
 							<Separator className='opacity-40' />
@@ -74,14 +75,27 @@ export default function KanbanCard({ adatlap }: { adatlap: AdatlapData }) {
 			<div className='flex flex-row w-full items-center justify-between gap-2'>
 				<NavButton />
 				<FelmeresButton />
-				<RendelesButton />
+				{adatlap.DateTime1953 ? (
+					<RendelesButton />
+				) : (
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger>
+								<RendelesButton />
+							</TooltipTrigger>
+							<TooltipContent>Nincs még leszervezve</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+				)}
 			</div>
 		);
 	}
 
 	function NavButton() {
 		if (
-			(adatlap.RendelesStatusz !== "Beépítésre vár" && adatlap.RendelesStatusz !== "Szervezésre vár") ||
+			(adatlap.RendelesStatusz !== "Beépítésre vár" &&
+				adatlap.RendelesStatusz !== "Szervezésre vár" &&
+				adatlap.RendelesStatusz) ||
 			(adatlap.AjanlatKikuldve && !adatlap.RendelesSzama)
 		)
 			return;
@@ -110,6 +124,7 @@ export default function KanbanCard({ adatlap }: { adatlap: AdatlapData }) {
 		return (
 			<Button
 				variant={"outline"}
+				disabled={!adatlap.DateTime1953}
 				className='border-orange-600 hover:border-orange-700 text-orange-600 hover:text-orange-700'>
 				Beépítés
 			</Button>

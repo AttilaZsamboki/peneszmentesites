@@ -1,5 +1,4 @@
 import { AdatlapData } from "../_utils/types";
-import { Pagination } from "../page";
 import Page1 from "./Page.1";
 
 export async function fetchAdatlapokV2(searchParams: { [key: string]: string }) {
@@ -15,6 +14,12 @@ export async function fetchAdatlapokV2(searchParams: { [key: string]: string }) 
 		}
 	)
 		.then((res) => res.json())
+		.then((data: any) => {
+			data.forEach((item: any) => {
+				item.DateTime1953 = item.DateTime1953 ? new Date(item.DateTime1953) : null;
+			});
+			return data.slice(0, 100);
+		})
 		.catch((err) => {
 			console.log(err);
 			return [];
@@ -22,6 +27,6 @@ export async function fetchAdatlapokV2(searchParams: { [key: string]: string }) 
 }
 
 export default async function Page({ searchParams }: { searchParams: { [key: string]: string } }) {
-	const data: Pagination<AdatlapData> = await fetchAdatlapokV2(searchParams);
+	const data: AdatlapData[] = await fetchAdatlapokV2(searchParams);
 	return <Page1 data={data} />;
 }

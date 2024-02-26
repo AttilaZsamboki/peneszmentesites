@@ -1,4 +1,3 @@
-import { DocumentDuplicateIcon, TrashIcon, BookmarkSquareIcon, PencilIcon } from "@heroicons/react/24/outline";
 import {
 	DropdownMenu as Dropdown,
 	DropdownMenuContent,
@@ -10,11 +9,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import React from "react";
-import { EllipsisVerticalIcon } from "@heroicons/react/20/solid";
 import { useHotkeys } from "react-hotkeys-hook";
+import { BookCopy, Bookmark, MoreVertical, PencilIcon, TrashIcon } from "lucide-react";
 
 export default function DropdownMenu({
-	children = <EllipsisVerticalIcon className='w-5 h-5' />,
+	children = <MoreVertical className='w-5 h-5' />,
 	onDelete,
 	onSave,
 	onDuplicate,
@@ -50,7 +49,7 @@ export default function DropdownMenu({
 					{onSave ? (
 						<DropdownMenuItem onClick={onSave}>
 							<div className='flex flex-row'>
-								<BookmarkSquareIcon className='mr-2 h-5 w-5' aria-hidden='true' />
+								<Bookmark className='mr-2 h-5 w-5' aria-hidden='true' />
 								Mentés
 							</div>
 							<DropdownMenuShortcut>Ctrl+S</DropdownMenuShortcut>
@@ -85,7 +84,7 @@ export default function DropdownMenu({
 					)}
 					{onDuplicate ? (
 						<DropdownMenuItem onClick={onDuplicate}>
-							<DocumentDuplicateIcon className='w-5 h-5 mr-2' />
+							<BookCopy className='w-5 h-5 mr-2' />
 							Másolás
 						</DropdownMenuItem>
 					) : null}

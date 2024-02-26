@@ -27,7 +27,9 @@ export function Grid({ data }: { data: AdatlapData[] }) {
 							<TableCell>{adatlap.Felmero2}</TableCell>
 							<TableCell>{adatlap.Beepitok}</TableCell>
 							<TableCell>{adatlap.FelmeresIdopontja2}</TableCell>
-							<TableCell>{adatlap.DateTime1953}</TableCell>
+							{adatlap.DateTime1953 ? (
+								<TableCell>{adatlap.DateTime1953.toLocaleDateString("hu-HU")}</TableCell>
+							) : null}
 							<TableCell className='text-right'>{hufFormatter.format(adatlap.Total)}</TableCell>
 						</TableRow>
 					))}

@@ -17,11 +17,11 @@ export interface AdatlapData {
 	Phone: string;
 	Email: string;
 	Beepitok: string;
-	DateTime1953: string;
+	DateTime1953: Date;
 	FelmeresIdopontja2: string;
 	RendelesSzama: string;
-	BeepitesDatuma?: Date;
 	RendelesStatusz?: "Beépítésre vár" | "Szervezésre vár" | "Elszámolásra vár" | "Lezárva";
 	FelmeresekSzama?: number;
 	AjanlatKikuldve?: number;
+	AjanlatElutasitva?: boolean;
 }
