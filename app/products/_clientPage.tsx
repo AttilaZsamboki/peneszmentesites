@@ -8,6 +8,8 @@ import CustomDialog from "../_components/CustomDialog";
 import FormList from "../_components/FormList";
 import { Question } from "../questions/page";
 import { typeMap } from "../_utils/utils";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export interface ProductAttributes {
 	id?: number;
@@ -15,6 +17,7 @@ export interface ProductAttributes {
 	place: boolean;
 	place_options: string[];
 	product?: number;
+	archived?: boolean;
 }
 
 export default function ClientPage({
@@ -66,7 +69,7 @@ export default function ClientPage({
 		}
 	}, [productData]);
 
-	const submitChanges = async () => {
+	const submitChanges = async (attributeData: ProductAttributes) => {
 		const payload = JSON.stringify({
 			...attributeData,
 			place_options: JSON.stringify(attributeData.place_options).replace("[", "{").replace("]", "}"),
@@ -95,7 +98,6 @@ export default function ClientPage({
 			},
 			body: JSON.stringify(newQuestions.map((question) => question.id)),
 		});
-		await fetch("/api/revalidate?tag=product-attributes");
 	};
 
 	return (
@@ -141,29 +143,55 @@ export default function ClientPage({
 					active: true,
 				}}
 			/>
-			<CustomDialog
-				handler={() => setOpen(!open)}
-				open={open}
-				title={productData.sku + " - " + productData.name}
-				onCancel={() => {
-					setOpen(false);
-					setProductData({
-						id: 0,
-						name: "",
-						sku: "",
-						type: "",
-						price_list_alapertelmezett_net_price_huf: 0,
-					});
-				}}
-				onSave={submitChanges}>
-				<UpdateForm
-					attributeData={attributeData}
-					setAttributeData={setAttributeData}
-					allQuestions={questions}
-					questions={newQuestions}
-					setQuestions={setNewQuestions}
-				/>
-			</CustomDialog>
+			{attributeData.archived ? (
+				<Dialog open={open} onOpenChange={() => setOpen(!open)}>
+					<DialogContent className='lg:max-w-[35dvw] max-w-[95dvw]'>
+						<DialogHeader className='flex flex-row justify-between w-full items-center'>
+							<DialogTitle>A termék archiválva lett</DialogTitle>
+						</DialogHeader>
+						<DialogFooter>
+							<div className='flex flex-row justify-end w-full gap-5'>
+								<Button
+									onClick={async () => {
+										setAttributeData((prev) => ({ ...prev, archived: false }));
+										await submitChanges({ ...attributeData, archived: false });
+									}}>
+									Visszanyitás
+								</Button>
+							</div>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
+			) : (
+				<CustomDialog
+					handler={() => setOpen(!open)}
+					open={open}
+					title={productData.sku + " - " + productData.name}
+					allowDelete={!attributeData.archived}
+					onDelete={async () => {
+						setAttributeData((prev) => ({ ...prev, archived: true }));
+						await submitChanges({ ...attributeData, archived: true });
+					}}
+					onCancel={() => {
+						setOpen(false);
+						setProductData({
+							id: 0,
+							name: "",
+							sku: "",
+							type: "",
+							price_list_alapertelmezett_net_price_huf: 0,
+						});
+					}}
+					onSave={() => submitChanges(attributeData)}>
+					<UpdateForm
+						attributeData={attributeData}
+						setAttributeData={setAttributeData}
+						allQuestions={questions}
+						questions={newQuestions}
+						setQuestions={setNewQuestions}
+					/>
+				</CustomDialog>
+			)}
 		</>
 	);
 }

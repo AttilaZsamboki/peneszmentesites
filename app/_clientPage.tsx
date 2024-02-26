@@ -14,6 +14,7 @@ export interface Filter {
 }
 
 export default function ClientPage({ allData, paginationData }: { allData: any; paginationData: PaginationOptions }) {
+	React.useEffect(() => localStorage.clear(), []);
 	const { user, isLoading } = useUserWithRole();
 	if (isLoading) {
 		return <BaseComponentLoading />;
