@@ -562,7 +562,26 @@ export default function ClientPage({
 												</AlertDialogHeader>
 												<AlertDialogFooter>
 													<AlertDialogCancel>Mégsem</AlertDialogCancel>
-													<AlertDialogAction>Igen</AlertDialogAction>
+													<AlertDialogAction
+														onClick={async () => {
+															const response = await fetch(
+																`https://pen.dataupload.xyz/${felmeresId}/copy-felmeres/`,
+																{ method: "POST" }
+															);
+															if (response.ok) {
+																const data = await response.json();
+																await fetch("/api/revalidate?tag=felmeresek");
+																window.location.href = `/${data.id}`;
+															} else {
+																toast({
+																	title: "Hiba",
+																	description: "Hiba történt a másolás során",
+																	variant: "destructive",
+																});
+															}
+														}}>
+														Igen
+													</AlertDialogAction>
 												</AlertDialogFooter>
 											</AlertDialogContent>
 										</AlertDialog>
