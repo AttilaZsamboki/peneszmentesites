@@ -23,7 +23,7 @@ import { FelmeresStatus, statusMap } from "@/app/_utils/utils";
 import { toast } from "@/components/ui/use-toast";
 import useBreakpointValue from "../_components/useBreakpoint";
 import { Separator } from "@/components/ui/separator";
-import { CalendarDays, Check, Download, FileEdit, IterationCw, Lock, Trash2, X } from "lucide-react";
+import { CalendarDays, Check, Copy, Download, FileEdit, IterationCw, Lock, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { Page2 } from "../new/Page2";
 import _ from "lodash";
@@ -548,6 +548,43 @@ export default function ClientPage({
 												</AlertDialogContent>
 											</AlertDialog>
 										) : null}
+										<AlertDialog>
+											<AlertDialogTrigger asChild>
+												<Button size={"icon"}>
+													<Copy />
+												</Button>
+											</AlertDialogTrigger>
+											<AlertDialogContent>
+												<AlertDialogHeader>
+													<AlertDialogTitle>
+														Biztos másolni szeretnéd a felmérést?
+													</AlertDialogTitle>
+												</AlertDialogHeader>
+												<AlertDialogFooter>
+													<AlertDialogCancel>Mégsem</AlertDialogCancel>
+													<AlertDialogAction
+														onClick={async () => {
+															const response = await fetch(
+																`https://pen.dataupload.xyz/${felmeresId}/copy-felmeres/`,
+																{ method: "POST" }
+															);
+															if (response.ok) {
+																const data = await response.json();
+																await fetch("/api/revalidate?tag=felmeresek");
+																window.location.href = `/${data.id}`;
+															} else {
+																toast({
+																	title: "Hiba",
+																	description: "Hiba történt a másolás során",
+																	variant: "destructive",
+																});
+															}
+														}}>
+														Igen
+													</AlertDialogAction>
+												</AlertDialogFooter>
+											</AlertDialogContent>
+										</AlertDialog>
 									</div>
 								</div>
 							</div>
