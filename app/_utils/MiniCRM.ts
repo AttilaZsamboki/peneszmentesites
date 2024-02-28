@@ -279,6 +279,9 @@ export async function list_to_dos(adatlap_id: string, criteria?: (todo: ToDo) =>
 	return todos["Results"];
 }
 
-export function concatAddress(adatlap: AdatlapData) {
+export function concatAddress(adatlap?: AdatlapData) {
+	if (!adatlap) {
+		return "";
+	}
 	return `${adatlap.Cim2} ${adatlap.Telepules} ${adatlap.Iranyitoszam}`;
 }

@@ -285,7 +285,7 @@ function QuestionForm({
 						value: key,
 						label: typeMap[key as keyof typeof typeMap] ? typeMap[key as keyof typeof typeMap] : "",
 					}))}
-					value={(typeMap as any)[question.type] ? (typeMap as any)[question.type] : ""}
+					value={question.type}
 				/>
 			</FormField>
 			<OptionChooser options={question.options} setQuestion={setQuestion} type={question.type} />

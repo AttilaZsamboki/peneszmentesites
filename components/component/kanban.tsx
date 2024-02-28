@@ -2,9 +2,12 @@
 import { AdatlapData } from "@/app/_utils/types";
 import KanbanCard from "./kanban-card";
 import React from "react";
-import { BanIcon, Send } from "lucide-react";
+import { BanIcon, RefreshCwIcon, Send } from "lucide-react";
+import { Pagination } from "@/app/page";
+import { Button } from "../ui/button";
+import { AdatlapDialog, AdatlapokV2Context } from "@/app/adatlapok/Page.1";
 
-export function Kanban({ data }: { data: AdatlapData[] }) {
+export function Kanban({ data }: { data: Pagination<AdatlapData> }) {
 	const cols = [
 		{
 			id: "backlog",
@@ -54,12 +57,13 @@ export function Kanban({ data }: { data: AdatlapData[] }) {
 			minAmount: 0,
 		},
 	];
+	const { fetchNextPage } = React.useContext(AdatlapokV2Context);
 
 	return (
 		<main className='flex overflow-x-scroll py-3 px-4 bg-gray-100'>
 			<div className='flex space-x-4 w-0'>
 				{cols.map((col) => {
-					const colData = col.data(data)
+					const colData = col.data(data.results);
 					return (
 						<div>
 							<h2 className='mb-4 text-sm font-medium text-gray-400 dark:text-gray-300 flex items-center'>
@@ -69,8 +73,18 @@ export function Kanban({ data }: { data: AdatlapData[] }) {
 							<div className='w-[370px] h-[85dvh] overflow-y-scroll'>
 								<div className='flex flex-col gap-4 items-center'>
 									{colData.map((adatlap) => {
-										return <KanbanCard adatlap={adatlap} />;
+										return (
+											<AdatlapDialog adatlap={adatlap}>
+												<KanbanCard adatlap={adatlap} />
+											</AdatlapDialog>
+										);
 									})}
+									{data.next ? (
+										<Button onClick={async () => await fetchNextPage()}>
+											<RefreshCwIcon className='w-4 h-4 mr-2' />
+											Több adat
+										</Button>
+									) : null}
 								</div>
 							</div>
 						</div>

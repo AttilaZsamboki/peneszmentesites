@@ -62,22 +62,22 @@ export function useLocalStorageStateObject<T>(
 }
 
 export function createJWT(user: string) {
-  const payload = {
-    sub: user, // Subject (user ID)
-    iat: Math.floor(Date.now() / 1000), // Issued at time
-    exp: Math.floor(Date.now() / 1000) + 3.156 * 10 ** 7,
-    aud: "penész-frontend", // Audience
-    iss: "penészmentesítés", // Issuer
-  };
-  const secret = process.env.NEXT_PUBLIC_SECRET;
+	const payload = {
+		sub: user, // Subject (user ID)
+		iat: Math.floor(Date.now() / 1000), // Issued at time
+		exp: Math.floor(Date.now() / 1000) + 3.156 * 10 ** 7,
+		aud: "penész-frontend", // Audience
+		iss: "penészmentesítés", // Issuer
+	};
+	const secret = process.env.NEXT_PUBLIC_SECRET;
 
-  if (secret) {
-    console.log(typeof secret); // log the type of secret
-    console.log(typeof { algorithm: "HS256" }); // log the type of options object
-    return jwt.sign(payload, secret, {
-      algorithm: "HS256",
-    });
-  }
+	if (secret) {
+		console.log(typeof secret); // log the type of secret
+		console.log(typeof { algorithm: "HS256" }); // log the type of options object
+		return jwt.sign(payload, secret, {
+			algorithm: "HS256",
+		});
+	}
 }
 
 export function getCookie(name: string) {
@@ -162,4 +162,9 @@ export function useSettings() {
 	}, []);
 
 	return settings;
+}
+
+export function parseURLString(url: string) {
+	let params = new URLSearchParams(new URL(url).search);
+	return params;
 }

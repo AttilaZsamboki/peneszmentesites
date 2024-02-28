@@ -7,10 +7,9 @@ import { DefaultPagination } from "./Pagination";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useToast } from "@/components/ui/use-toast";
 import { ToastAction } from "@/components/ui/toast";
-import { BookmarkSquareIcon, EllipsisVerticalIcon, PlusIcon } from "@heroicons/react/20/solid";
+import { EllipsisVerticalIcon, PlusIcon } from "@heroicons/react/20/solid";
 import Menu from "../_components/Menu";
 import CustomDialog from "./CustomDialog";
-import Input from "./Input";
 import { Badge, Tab, Tabs, TabsHeader } from "@material-tailwind/react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +34,7 @@ import { useCreateQueryString, isValidDate } from "../_utils/utils";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUser } from "@auth0/nextjs-auth0/client";
+import { Input } from "@/components/ui/input";
 
 function deepEqual(a: any, b: any) {
 	if (a === b) {
@@ -406,10 +406,7 @@ export default function StackedList({
 																label: filter.label,
 																value: filter.field,
 															}))}
-														value={
-															filter.filters.find((item) => item.field === filter.sort_by)
-																?.label
-														}
+														value={filter.sort_by}
 														onSelect={(value) => {
 															setFilter((prev) => ({
 																...prev,
@@ -429,7 +426,7 @@ export default function StackedList({
 															{ label: "Növekvő", value: "asc" },
 															{ label: "Csökkenő", value: "desc" },
 														]}
-														value={filter.sort_order === "asc" ? "Növekvő" : "Csökkenő"}
+														value={filter.sort_order}
 														deselectable={false}
 														onSelect={(value) => {
 															setFilter((prev) => ({
@@ -475,6 +472,9 @@ export default function StackedList({
 				<ul ref={parent} role='list' className='w-full bg-white rounded-lg flex flex-col justify-between'>
 					{filteredData
 						.sort((a, b) => {
+							if (!filter.sort_by) {
+								return a.id - b.id;
+							}
 							if (typeof a[filter.sort_by] === "string") {
 								return filter.sort_order === "desc"
 									? b[filter.sort_by]?.toString().localeCompare(a[filter.sort_by]?.toString())
@@ -680,6 +680,9 @@ export function FiltersComponent({
 	savedFilters,
 	setSavedFilters,
 	defaultViewName,
+	saveFilterComponent = (
+		<Input value={filter.name} onChange={(e) => setFilter((prev) => ({ ...prev, name: e.target.value }))} />
+	),
 }: {
 	filter: Filter;
 	filterType: string;
@@ -687,6 +690,7 @@ export function FiltersComponent({
 	savedFilters: Filter[];
 	setSavedFilters: React.Dispatch<React.SetStateAction<Filter[]>>;
 	defaultViewName?: string;
+	saveFilterComponent?: React.ReactNode;
 }) {
 	const [openSaveFilter, setOpenSaveFilter] = React.useState(false);
 	const { toast } = useToast();
@@ -866,11 +870,7 @@ export function FiltersComponent({
 				open={openSaveFilter}
 				title='Nézet mentése'
 				handler={handleOpenSaveFilter}>
-				<Input
-					label='Nézet neve'
-					value={filter.name}
-					onChange={(e) => setFilter((prev) => ({ ...prev, name: e.target.value }))}
-				/>
+				{saveFilterComponent}
 			</CustomDialog>
 		</>
 	);

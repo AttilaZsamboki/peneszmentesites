@@ -1,40 +1,72 @@
 "use client";
 import { hufFormatter } from "@/app/[id]/_clientPage";
-import { concatAddress } from "@/app/_utils/MiniCRM";
 import { AdatlapData } from "@/app/_utils/types";
-import { TableHead, TableRow, TableHeader, TableCell, TableBody, Table } from "@/components/ui/table";
+import { Pagination } from "@/app/page";
+import { ColDef } from "ag-grid-community";
+import { AgGridReact } from "ag-grid-react";
+import React from "react";
+import { concatAddress } from "@/app/_utils/MiniCRM";
+import { AdatlapDialog, AdatlapokV2Context } from "@/app/adatlapok/Page.1";
+import { parseURLString } from "@/lib/utils";
 
-export function Grid({ data }: { data: AdatlapData[] }) {
+import "../../public/globals.css";
+
+export function Grid({ data }: { data: Pagination<AdatlapData> }) {
+	const [open, setOpen] = React.useState(false);
+	const [rowData, setRowData] = React.useState(null);
+	const [colDefs, setColDefs] = React.useState<ColDef<AdatlapData>[]>([
+		{ headerName: "Név", field: "Name" },
+		{ headerName: "Cím", valueGetter: (params) => concatAddress(params.data), minWidth: 350 },
+		{ headerName: "Felmérő", field: "Felmero2" },
+		{ headerName: "Beépítők", field: "Beepitok" },
+		{ headerName: "Felmérés dátuma", field: "FelmeresIdopontja2" },
+		{
+			headerName: "Beépítés dátuma",
+			field: "DateTime1953",
+			valueFormatter: (params) => new Date(params.value).toLocaleDateString("hu-HU"),
+		},
+		{
+			headerName: "Beépítés összege",
+			field: "Total",
+			valueFormatter: (params) => hufFormatter.format(params.value),
+		},
+	]);
+	const defaultColDef = React.useMemo<ColDef>(() => {
+		return {
+			enableValue: true,
+			filter: false,
+			flex: 1,
+			minWidth: 100,
+			suppressMovable: true,
+		};
+	}, []);
+	const { fetchNextPage } = React.useContext(AdatlapokV2Context);
+	const containerStyle = React.useMemo(() => ({ width: "100%", height: "100%" }), []);
 	return (
-		<main className='flex flex-col gap-6 p-4 md:p-6'>
-			<Table>
-				<TableHeader>
-					<TableRow>
-						<TableHead>Név</TableHead>
-						<TableHead>Cím</TableHead>
-						<TableHead>Felmérő</TableHead>
-						<TableHead>{`Bee\u{301}pítők`}</TableHead>
-						<TableHead>Felmérés dátuma</TableHead>
-						<TableHead>{`Bee\u{301}pítés dátuma`}</TableHead>
-						<TableHead className='text-right'>{`Bee\u{301}pítés bruttó összege`}</TableHead>
-					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{data.map((adatlap) => (
-						<TableRow>
-							<TableCell className='font-medium'>{adatlap.Name}</TableCell>
-							<TableCell>{concatAddress(adatlap)}</TableCell>
-							<TableCell>{adatlap.Felmero2}</TableCell>
-							<TableCell>{adatlap.Beepitok}</TableCell>
-							<TableCell>{adatlap.FelmeresIdopontja2}</TableCell>
-							{adatlap.DateTime1953 ? (
-								<TableCell>{adatlap.DateTime1953.toLocaleDateString("hu-HU")}</TableCell>
-							) : null}
-							<TableCell className='text-right'>{hufFormatter.format(adatlap.Total)}</TableCell>
-						</TableRow>
-					))}
-				</TableBody>
-			</Table>
-		</main>
+		<>
+			<div className='ag-theme-quartz' style={containerStyle}>
+				<AgGridReact
+					suppressRowClickSelection={true}
+					paginationPageSize={50}
+					defaultColDef={defaultColDef}
+					pagination={true}
+					onRowClicked={(event) => {
+						setRowData(event.data);
+						setOpen(true);
+					}}
+					onPaginationChanged={async (event) => {
+						if (
+							parseInt(parseURLString(data.next ?? "").get("page") ?? "0") - 1 <=
+							Math.floor(((event.api.paginationGetCurrentPage() + 1) * 50) / 100)
+						) {
+							await fetchNextPage();
+						}
+					}}
+					rowData={data.results}
+					columnDefs={colDefs}
+				/>
+			</div>
+			<AdatlapDialog open={open} adatlap={rowData as unknown as AdatlapData} onClose={() => setOpen(false)} />
+		</>
 	);
 }

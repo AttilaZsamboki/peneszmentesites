@@ -1,12 +1,12 @@
 import { AdatlapData } from "../_utils/types";
+import { Pagination } from "../page";
 import Page1 from "./Page.1";
 
-export async function fetchAdatlapokV2(searchParams: { [key: string]: string }) {
+export async function fetchAdatlapokV2(searchParams: { [key: string]: string }): Promise<Pagination<AdatlapData>> {
 	return await fetch(
 		`https://pen.dataupload.xyz/minicrm-adatlapok/v2/?CategoryId=23&StatusId=3023,3084,3086${Object.entries(
 			searchParams
 		)
-			.filter(([key, value]) => key !== "view" && value !== undefined)
 			.map(([key, value]: string[], index) => `${index === 0 ? "&" : ""}${key}=${value}`)
 			.join("&")}`,
 		{
@@ -15,10 +15,10 @@ export async function fetchAdatlapokV2(searchParams: { [key: string]: string }) 
 	)
 		.then((res) => res.json())
 		.then((data: any) => {
-			data.forEach((item: any) => {
+			data.results.forEach((item: any) => {
 				item.DateTime1953 = item.DateTime1953 ? new Date(item.DateTime1953) : null;
 			});
-			return data.slice(0, 100);
+			return data;
 		})
 		.catch((err) => {
 			console.log(err);
@@ -27,6 +27,6 @@ export async function fetchAdatlapokV2(searchParams: { [key: string]: string }) 
 }
 
 export default async function Page({ searchParams }: { searchParams: { [key: string]: string } }) {
-	const data: AdatlapData[] = await fetchAdatlapokV2(searchParams);
+	const data: Pagination<AdatlapData> = await fetchAdatlapokV2(searchParams);
 	return <Page1 data={data} />;
 }

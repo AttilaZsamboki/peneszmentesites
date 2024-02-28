@@ -46,3 +46,9 @@
 	--ag-row-border-width: 1px;
 }
 
+.ag-theme-quartz {
+	--ag-borders: none;
+	--ag-background-color: rgb(245 245 245 / var(--tw-bg-opacity));
+	--ag-row-hover-color: #fff;
+	--ag-active-color: #fff;
+}

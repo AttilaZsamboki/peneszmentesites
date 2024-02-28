@@ -75,7 +75,7 @@ export interface Filter {
 	name: string;
 	filters: FilterItem[];
 	type: string;
-	sort_by: string;
+	sort_by?: string;
 	sort_order: "asc" | "desc";
 }
 

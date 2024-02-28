@@ -527,7 +527,7 @@ export function Page2({
 													}
 												}
 											}}
-											value={selectedTemplate.name}
+											value={selectedTemplate.id.toString()}
 										/>
 										<div>
 											{readonly ? null : felmeres.template !== selectedTemplate.id &&
@@ -1022,13 +1022,7 @@ export function Page2({
 																{ value: "percent", label: "Százalék" },
 																{ value: "", label: "" },
 															]}
-															value={
-																newOtherItem && newOtherItem.type
-																	? newOtherItem.type === "fixed"
-																		? "Összeg"
-																		: "Százalék"
-																	: ""
-															}
+															value={newOtherItem?.type}
 														/>
 													</div>
 												</TableCell>

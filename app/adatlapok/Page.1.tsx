@@ -1,6 +1,10 @@
 "use client";
+import { Kanban } from "@/components/component/kanban";
+import { Grid } from "@/components/component/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import {
 	Sheet,
 	SheetClose,
@@ -11,18 +15,15 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet";
-import { useLocalStorageStateObject } from "@/lib/utils";
+import { ToastAction } from "@/components/ui/toast";
+import { toast } from "@/components/ui/use-toast";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { FunnelIcon } from "@heroicons/react/24/outline";
-import { Tabs, TabsHeader, Tab } from "@material-tailwind/react";
-import { KanbanIcon, ListIcon, PlusIcon, SearchIcon } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { isValidDate, useCreateQueryString } from "../_utils/utils";
-import React from "react";
-import { AdatlapData } from "../_utils/types";
-import { Kanban } from "@/components/component/kanban";
-import { Grid } from "@/components/component/table";
-import { Filter } from "../products/page";
+import React, { useContext } from "react";
+import AutoComplete from "../_components/AutoComplete";
 import {
 	DateRange,
 	FilterItem,
@@ -30,15 +31,12 @@ import {
 	InputOptionChooser,
 	fetchSavedFilters,
 } from "../_components/StackedList";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import AutoComplete from "../_components/AutoComplete";
+import { AdatlapData } from "../_utils/types";
+import { isValidDate, useCreateQueryString } from "../_utils/utils";
 import { Pagination } from "../page";
-import { useUser } from "@auth0/nextjs-auth0/client";
-import { toast } from "@/components/ui/use-toast";
-import { ToastAction } from "@/components/ui/toast";
+import { Filter } from "../products/page";
 
-function Body({ data }: { data: AdatlapData[] }) {
+function Body({ data }: { data: Pagination<AdatlapData> }) {
 	const searchParams = useSearchParams();
 
 	if (searchParams.get("view") === "grid") {
@@ -52,40 +50,14 @@ function Header({ data }: { data: AdatlapData[] }) {
 	const searchParams = useSearchParams();
 	const router = useRouter();
 	const { user } = useUser();
-
-	React.useEffect(() => {
-		if (!user?.sub) {
-			return;
-		}
-
-		const savedFilters = async () => {
-			const resp = await fetchSavedFilters("adatlapok", user.sub ?? "", filters);
-			if (resp === "Error" || !resp) {
-				toast({
-					title: "Hiba",
-					description: "Hiba történt a szűrők betöltése közben",
-					variant: "destructive",
-					action: (
-						<ToastAction
-							altText='Try again'
-							onClick={() => fetchSavedFilters("adatlapok", user.sub ?? "", filters)}>
-							Újrapróbálkozás
-						</ToastAction>
-					),
-				});
-				return;
-			}
-			setSavedFilters(resp);
-		};
-		savedFilters();
-	}, [user?.sub]);
-
+	const { setData } = useContext(AdatlapokV2Context);
+	const [savedFilters, setSavedFilters] = React.useState<Filter[]>([]);
+	const queryString = useCreateQueryString(searchParams);
 	const filters: FilterItem[] = [
-		{ id: 1, field: "DateTime1953", label: "Beépítés Dátuma", type: "daterange" },
-		{ id: 2, field: "FelmeresIdopontja2", label: "Felmérés Dátuma", type: "daterange" },
-		{ id: 3, field: "Felmero2", label: "Felmérő", type: "text" },
+		{ field: "DateTime1953", label: "Beépítés Dátuma", type: "daterange" },
+		{ field: "FelmeresIdopontja2", label: "Felmérés Dátuma", type: "daterange" },
+		{ field: "Felmero2", label: "Felmérő", type: "text" },
 		{
-			id: 4,
 			field: "FizetesiMod3",
 			label: "Fizetési mód",
 			type: "select",
@@ -94,7 +66,16 @@ function Header({ data }: { data: AdatlapData[] }) {
 				{ label: "Készpénz", value: "Készpénz" },
 			],
 		},
-		{ id: 5, field: "Telepules", label: "Település", type: "text" },
+		{ field: "Telepules", label: "Település", type: "text" },
+		{
+			field: "view",
+			label: "Nézet",
+			type: "select",
+			options: [
+				{ label: "Kanban", value: "kanban" },
+				{ label: "Táblázat", value: "grid" },
+			],
+		},
 	];
 
 	const [filter, setFilter] = React.useState<Filter>({
@@ -139,11 +120,75 @@ function Header({ data }: { data: AdatlapData[] }) {
 		name: "",
 		type: "",
 		id: searchParams.get("selectedFilter") ? parseInt(searchParams.get("selectedFilter") ?? "") : 0,
-		sort_by: searchParams.get("sort_by") ?? "id",
+		sort_by: searchParams.get("sort_by") ?? undefined,
 		sort_order: (searchParams.get("sort_order") as "asc" | "desc") ?? "desc",
 	});
-	const [savedFilters, setSavedFilters] = React.useState<Filter[]>([]);
-	const queryString = useCreateQueryString(searchParams);
+
+	const savedFilterFromURL = searchParams.get("selectedFilter")
+		? savedFilters.find((filter) => filter.id === parseInt(searchParams.get("selectedFilter") ?? ""))
+		: "";
+
+	React.useEffect(() => {
+		const params = new URLSearchParams();
+
+		filter.filters.forEach((filter) => {
+			if (
+				filter.value &&
+				(filter.type !== "daterange" ||
+					(isValidDate((filter.value as DateRange).from) && isValidDate((filter.value as DateRange).to)))
+			) {
+				params.append(
+					filter.field,
+					filter.type === "daterange" ? JSON.stringify(filter.value) : (filter.value as string)
+				);
+			}
+		});
+
+		if (filter.id) {
+			params.append("selectedFilter", filter.id.toString());
+		}
+
+		if (filter.sort_by) {
+			params.append("sort_by", filter.sort_by);
+		}
+
+		if (filter.sort_order) {
+			params.append("sort_order", filter.sort_order);
+		}
+
+		router.push(`?${params.toString()}`, { scroll: false });
+	}, [filter, router]);
+	React.useEffect(() => {
+		if (savedFilterFromURL) {
+			setFilter(savedFilterFromURL);
+		}
+	}, [savedFilterFromURL]);
+	React.useEffect(() => {
+		if (!user?.sub) {
+			return;
+		}
+
+		const savedFilters = async () => {
+			const resp = await fetchSavedFilters("adatlapok", user.sub ?? "", filters);
+			if (resp === "Error" || !resp) {
+				toast({
+					title: "Hiba",
+					description: "Hiba történt a szűrők betöltése közben",
+					variant: "destructive",
+					action: (
+						<ToastAction
+							altText='Try again'
+							onClick={() => fetchSavedFilters("adatlapok", user.sub ?? "", filters)}>
+							Újrapróbálkozás
+						</ToastAction>
+					),
+				});
+				return;
+			}
+			setSavedFilters(resp);
+		};
+		savedFilters();
+	}, [user?.sub]);
 
 	const resetFilter = (exceptSearch: boolean) => {
 		setFilter((prev) => ({
@@ -159,6 +204,41 @@ function Header({ data }: { data: AdatlapData[] }) {
 		}));
 	};
 
+	function refilterData(f: Filter = filter) {
+		setData((prev) => ({
+			...prev,
+			results: data.filter((item: { [key: string]: any }) => {
+				return f.filters
+					.filter((filterItem) => filterItem.value && filterItem.field !== "view")
+					.map((filterItem) => {
+						if ("text" === filterItem.type) {
+							return (filterItem.value as unknown as string)
+								.split(" ")
+								.map((searchWord: string) =>
+									JSON.stringify(filterItem.field === "search" ? item : item[filterItem.field])
+										.toLowerCase()
+										.includes(searchWord.toLowerCase())
+								)
+								.every((item: boolean) => item === true);
+						} else if (filterItem.type === "daterange") {
+							const value = filterItem.value as DateRange;
+							return (
+								new Date(item[filterItem.field]) >= value.from &&
+								new Date(item[filterItem.field]) <= value.to
+							);
+						} else if (filterItem.type === "select") {
+							return item[filterItem.field] === (filterItem.value as unknown as string);
+						}
+						return false;
+					})
+					.every((item: boolean) => item === true);
+			}),
+		}));
+	}
+	React.useEffect(() => {
+		refilterData(filter);
+	}, [filter, data]);
+
 	return (
 		<div className='flex flex-row w-full justify-between px-3 lg:px-6'>
 			<FiltersComponent
@@ -168,7 +248,40 @@ function Header({ data }: { data: AdatlapData[] }) {
 				setSavedFilters={setSavedFilters}
 				setFilter={setFilter}
 				defaultViewName='Kanban'
+				saveFilterComponent={
+					<div className='flex flex-col gap-6 items-center justify-center'>
+						<div className='grid w-full max-w-sm items-center gap-1.5'>
+							<Label htmlFor='name'>Nézet neve</Label>
+							<Input
+								value={filter.name}
+								onChange={(e) => setFilter((prev) => ({ ...prev, name: e.target.value }))}
+							/>
+						</div>
+						<div className='grid w-full max-w-sm items-center gap-1.5'>
+							<Label htmlFor='type'>Típus</Label>
+							<AutoComplete
+								value={filter.filters.find((item) => item.field === "view")?.value as string}
+								onSelect={(value) =>
+									setFilter((prev) => ({
+										...prev,
+										filters: prev.filters.map((item) => {
+											if (item.field === "view") {
+												return { ...item, value: value };
+											}
+											return item;
+										}),
+									}))
+								}
+								options={[
+									{ label: "Kanban", value: "kanban" },
+									{ label: "Táblázat", value: "grid" },
+								]}
+							/>
+						</div>
+					</div>
+				}
 			/>
+
 			<div className='flex flex-1 items-center gap-4 md:ml-auto md:gap-2 lg:gap-4'>
 				<div className='ml-auto flex-1 sm:flex-initial'>
 					<div className='relative'>
@@ -176,12 +289,21 @@ function Header({ data }: { data: AdatlapData[] }) {
 						<Input
 							className='pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px] bg-white'
 							placeholder='Keress...'
-							value={searchParams.get("search") ?? ""}
-							onChange={(event) =>
+							value={filter.filters.find((item) => item.field === "search")?.value as string}
+							onChange={(event) => {
+								setFilter((prev) => ({
+									...prev,
+									filters: prev.filters.map((item) => {
+										if (item.field === "search") {
+											return { ...item, value: event.target.value };
+										}
+										return item;
+									}),
+								}));
 								router.push(
 									"/adatlapok?" + queryString([{ name: "search", value: event.target.value }])
-								)
-							}
+								);
+							}}
 							type='search'
 						/>
 					</div>
@@ -263,9 +385,7 @@ function Header({ data }: { data: AdatlapData[] }) {
 														label: filter.label,
 														value: filter.field,
 													}))}
-												value={
-													filter.filters.find((item) => item.field === filter.sort_by)?.label
-												}
+												value={filter.sort_by}
 												onSelect={(value) => {
 													setFilter((prev) => ({
 														...prev,
@@ -285,7 +405,7 @@ function Header({ data }: { data: AdatlapData[] }) {
 													{ label: "Növekvő", value: "asc" },
 													{ label: "Csökkenő", value: "desc" },
 												]}
-												value={filter.sort_order === "asc" ? "Növekvő" : "Csökkenő"}
+												value={filter.sort_order}
 												deselectable={false}
 												onSelect={(value) => {
 													setFilter((prev) => ({
@@ -355,13 +475,76 @@ function Header({ data }: { data: AdatlapData[] }) {
 	);
 }
 
-export default function Page1({ data }: { data: AdatlapData[] }) {
+import { Dialog, DialogContent, DialogHeader, DialogTrigger } from "@/components/ui/dialog";
+import { Dispatch } from "react";
+import MapComponent from "../test/page";
+import { concatAddress } from "../_utils/MiniCRM";
+
+export const AdatlapokV2Context = React.createContext<{
+	fetchNextPage: () => Promise<void>;
+	setData: Dispatch<React.SetStateAction<Pagination<AdatlapData>>>;
+}>({
+	fetchNextPage: async () => {},
+	setData: () => {},
+});
+
+export function AdatlapDialog({
+	children,
+	adatlap,
+	open,
+	onClose,
+}: {
+	children?: React.ReactNode;
+	adatlap?: AdatlapData;
+	open?: boolean;
+	onClose?: () => void;
+}) {
 	return (
-		<div className='flex flex-col h-screen'>
-			<header className='h-[60px] flex items-center shadow-none bg-white border-b'>
-				<Header data={data} />
-			</header>
-			<Body data={data} />
-		</div>
+		<Dialog onOpenChange={onClose} open={open}>
+			<DialogTrigger>{children}</DialogTrigger>
+			<DialogContent className='h-[80%]'>
+				<DialogHeader className='h-[40%]'>
+					<MapComponent height='100%' start='1119, Hungary' end={concatAddress(adatlap)} />
+				</DialogHeader>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
+export default function Page1({ data }: { data: Pagination<AdatlapData> }) {
+	const [fullData, setFullData] = React.useState(data);
+	const [filteredData, setFilteredData] = React.useState(fullData);
+
+	const fetchNextPage = async () => {
+		if (!fullData.next) {
+			return;
+		}
+		const newData = await fetch(fullData.next)
+			.then((res) => res.json())
+			.then((data) => {
+				data.results.forEach((item: any) => {
+					item.DateTime1953 = item.DateTime1953 ? new Date(item.DateTime1953) : null;
+				});
+				return data;
+			})
+			.catch((err) => console.error(err));
+		setFullData((prev) => ({ ...newData, results: [...prev.results, ...newData.results] }));
+	};
+	React.useEffect(() => {
+		setFullData(data);
+	}, [data]);
+	React.useEffect(() => {
+		setFilteredData(fullData);
+	}, [fullData]);
+
+	return (
+		<AdatlapokV2Context.Provider value={{ fetchNextPage, setData: setFilteredData }}>
+			<div className='flex flex-col h-screen'>
+				<header className='h-[60px] flex items-center shadow-none bg-white border-b'>
+					<Header data={fullData.results} />
+				</header>
+				<Body data={filteredData} />
+			</div>
+		</AdatlapokV2Context.Provider>
 	);
 }

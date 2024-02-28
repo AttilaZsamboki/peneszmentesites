@@ -1395,7 +1395,7 @@ function Page1({
 					}}
 					value={
 						adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)
-							? adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)!.Name
+							? adatlapok.find((adatlap) => adatlap.Id === felmeres.adatlap_id)!.Id.toString()
 							: ""
 					}
 				/>
