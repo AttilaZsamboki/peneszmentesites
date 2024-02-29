@@ -180,9 +180,9 @@ export async function assembleOfferXML(
 	}
 	const adatlap: AdatlapData = await fetchAdatlapData(adatlapId);
 	const contactData: ContactDetails = await fetchContactDetails(contactId);
-	const date = new Date(new Date().setDate(new Date().getDate() + 30));
+	const date = new Date(new Date().setMonth(new Date().getMonth() + 1));
 
-	const validityDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + (date.getDate() + 1);
+	const validityDate = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate();
 	const xmlString = `<?xml version="1.0" encoding="UTF-8"?>
 <Projects>
     <Project Id="${randomId}">
@@ -213,7 +213,7 @@ export async function assembleOfferXML(
                     <!-- Name of Customer [required string] -->
                     <Name>${contactData.LastName} ${contactData.FirstName}</Name>
                     <!-- Country of customer [required string] -->
-                    <CountryId>${adatlap.Orszag}</CountryId>
+                    <CountryId>${adatlap.Orszag ?? "Magyarország"}</CountryId>
                     <!-- Postalcode of customer [required string] -->
                     <PostalCode>${adatlap.Iranyitoszam}</PostalCode>
                     <!-- City of customer [required string] -->
@@ -252,7 +252,7 @@ export async function assembleOfferXML(
 					<UserId>${adatlap.Felmero2 ?? ""}</UserId>
 					<KapcsolodoFelmeres>https://app.peneszmentesites.hu/${felmeresId}</KapcsolodoFelmeres>
 					<ArajanlatMegjegyzes>${description}</ArajanlatMegjegyzes>
-					<KiallitasDatuma5>${date.getFullYear() + "-" + date.getMonth() + "-" + (date.getDate() + 1)}</KiallitasDatuma5>
+					<KiallitasDatuma5>${date.getFullYear() + "-" + date.getMonth() + "-" + date.getDate()}</KiallitasDatuma5>
 					<Ervenyesseg>${validityDate}</Ervenyesseg>
 					${Object.entries(projectData ?? {})
 						?.map(([key, value]) => `<${key}>${value}</${key}>`)
