@@ -20,7 +20,7 @@ import { Grid } from "@/app/_components/Grid";
 import Gallery from "@/app/_components/Gallery";
 
 import { FelmeresStatus, statusMap } from "@/app/_utils/utils";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/sonner";
 import useBreakpointValue from "../_components/useBreakpoint";
 import { Separator } from "@/components/ui/separator";
 import { CalendarDays, Check, Download, FileEdit, IterationCw, Lock, Trash2, X } from "lucide-react";
@@ -356,8 +356,7 @@ export default function ClientPage({
 				.length === 0
 		) {
 			setIsEditing(false);
-			return toast({
-				title: "Nincs változás",
+			return toast("Nincs változás", {
 				description: "Nem történt változás, így nem lett mentve",
 			});
 		}

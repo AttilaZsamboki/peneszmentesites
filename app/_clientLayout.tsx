@@ -4,7 +4,7 @@ import { ArchiveBoxIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import CircularProgressBar from "./_components/CircularProgressBar";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/components/ui/sonner";
 import { ChevronDown, Menu, ShoppingCartIcon } from "lucide-react";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Separator } from "@/components/ui/separator";
