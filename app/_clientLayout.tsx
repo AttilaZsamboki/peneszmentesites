@@ -19,6 +19,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getCookie, createJWT, useLocalStorageState, useUserWithRole, Role } from "@/lib/utils";
+import { QueryClient, QueryClientProvider } from "react-query";
 import jwt from "jsonwebtoken";
 
 interface Progress {
@@ -95,6 +96,7 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 		},
 	];
 
+	const queryClient = new QueryClient();
 	return (
 		<div className='overflow-hidden h-[100dvh]'>
 			{progress.percent ? <CircularProgressBar percent={progress.percent} /> : null}
@@ -103,7 +105,9 @@ export default function RootLayoutClient({ children }: { children: React.ReactNo
 
 				<div className='flex flex-col w-full relative z-10'>
 					<GlobalContext.Provider value={{ setProgress, progress }}>
-						<div className='w-full'>{children}</div>
+						<QueryClientProvider client={queryClient}>
+							<div className='w-full'>{children}</div>
+						</QueryClientProvider>
 						<Toaster />
 					</GlobalContext.Provider>
 				</div>

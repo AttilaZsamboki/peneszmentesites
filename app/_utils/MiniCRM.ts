@@ -82,7 +82,7 @@ export async function fetchMiniCRM(endpoint: string, id?: string, method?: "POST
 		// if called from client and needed as proxy
 		if (typeof window !== "undefined") {
 			const resp = await fetch(
-				"/api/minicrm-proxy?endpoint=" + endpoint + (id ? "&id=" + id : ""),
+				"https://pen.dataupload.xyz/minicrm-proxy?endpoint=" + endpoint + (id ? "&id=" + id : ""),
 				requestOptions
 			);
 			if (resp.ok) {

@@ -19,7 +19,11 @@ export function Grid({ data }: { data: Pagination<AdatlapData> }) {
 		{ headerName: "Cím", valueGetter: (params) => concatAddress(params.data), minWidth: 350 },
 		{ headerName: "Felmérő", field: "Felmero2" },
 		{ headerName: "Beépítők", field: "Beepitok" },
-		{ headerName: "Felmérés dátuma", field: "FelmeresIdopontja2" },
+		{
+			headerName: "Felmérés dátuma",
+			field: "FelmeresIdopontja2",
+			valueFormatter: (params) => new Date(params.value).toLocaleDateString("hu-HU"),
+		},
 		{
 			headerName: "Beépítés dátuma",
 			field: "DateTime1953",
@@ -56,8 +60,9 @@ export function Grid({ data }: { data: Pagination<AdatlapData> }) {
 					}}
 					onPaginationChanged={async (event) => {
 						if (
-							parseInt(parseURLString(data.next ?? "").get("page") ?? "0") - 1 <=
-							Math.floor(((event.api.paginationGetCurrentPage() + 1) * 50) / 100)
+							data.next &&
+							parseInt(parseURLString(data.next).get("page") ?? "0") - 1 <=
+								Math.floor(((event.api.paginationGetCurrentPage() + 1) * 50) / 100)
 						) {
 							await fetchNextPage();
 						}

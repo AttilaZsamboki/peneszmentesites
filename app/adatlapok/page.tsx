@@ -15,8 +15,11 @@ export async function fetchAdatlapokV2(searchParams: { [key: string]: string }):
 	)
 		.then((res) => res.json())
 		.then((data: any) => {
-			data.results.forEach((item: any) => {
-				item.DateTime1953 = item.DateTime1953 ? new Date(item.DateTime1953) : null;
+			data.results.forEach((item: AdatlapData) => {
+				if (item.DateTime1953) {
+					item.DateTime1953 = new Date(item.DateTime1953);
+				}
+				item.FelmeresIdopontja2 = new Date(item.FelmeresIdopontja2);
 			});
 			return data;
 		})

@@ -13,47 +13,36 @@ export function Kanban({ data }: { data: Pagination<AdatlapData> }) {
 			id: "backlog",
 			title: "Felmérésre vár",
 			icon: <BackpackIcon className='mr-2 h-4 w-4' />,
-			data: (data: AdatlapData[]) => data.filter((adatlap) => adatlap.StatusId === 3023),
 			minAmount: 5,
 		},
 		{
 			id: "offer-sent",
 			title: "Ajánlat kiküldve",
 			icon: <Send className='mr-2 h-4 w-4' />,
-			data: (data: AdatlapData[]) =>
-				data.filter((adatlap) => adatlap.AjanlatKikuldve && adatlap.RendelesStatusz === null),
 			minAmount: 0,
 		},
 		{
 			id: "todo",
 			title: "Beépítésre vár",
 			icon: <ListTodoIcon className='mr-2 h-4 w-4' />,
-			data: (data: AdatlapData[]) =>
-				data.filter(
-					(adatlap) =>
-						adatlap.RendelesStatusz === "Szervezésre vár" || adatlap.RendelesStatusz === "Beépítésre vár"
-				),
 			minAmount: 3,
 		},
 		{
 			id: "inprogress",
 			title: "Elszámolásra vár",
 			icon: <ActivityIcon className='mr-2 h-4 w-4' />,
-			data: (data: AdatlapData[]) => data.filter((adatlap) => adatlap.RendelesStatusz === "Elszámolásra vár"),
 			minAmount: 0,
 		},
 		{
 			id: "done",
 			title: "Lezárva",
 			icon: <CheckIcon className='mr-2 h-4 w-4' />,
-			data: (data: AdatlapData[]) => data.filter((adatlap) => adatlap.RendelesStatusz === "Lezárva"),
 			minAmount: 0,
 		},
 		{
 			id: "denied",
 			title: "Elutasítva",
 			icon: <BanIcon className='mr-2 h-4 w-4' />,
-			data: (data: AdatlapData[]) => data.filter((adatlap) => adatlap.AjanlatElutasitva),
 			minAmount: 0,
 		},
 	];
@@ -63,7 +52,7 @@ export function Kanban({ data }: { data: Pagination<AdatlapData> }) {
 		<main className='flex overflow-x-scroll py-3 px-4 bg-gray-100'>
 			<div className='flex space-x-4 w-0'>
 				{cols.map((col) => {
-					const colData = col.data(data.results);
+					const colData = data.results.filter((adatlap) => adatlap.Statusz === col.title);
 					return (
 						<div>
 							<h2 className='mb-4 text-sm font-medium text-gray-400 dark:text-gray-300 flex items-center'>
@@ -74,9 +63,7 @@ export function Kanban({ data }: { data: Pagination<AdatlapData> }) {
 								<div className='flex flex-col gap-4 items-center'>
 									{colData.map((adatlap) => {
 										return (
-											<AdatlapDialog adatlap={adatlap}>
 												<KanbanCard adatlap={adatlap} />
-											</AdatlapDialog>
 										);
 									})}
 									{data.next ? (

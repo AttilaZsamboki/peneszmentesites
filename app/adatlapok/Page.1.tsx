@@ -31,7 +31,7 @@ import {
 	InputOptionChooser,
 	fetchSavedFilters,
 } from "../_components/StackedList";
-import { AdatlapData } from "../_utils/types";
+import { AdatlapData, AdatlapStatusz, Salesmen } from "../_utils/types";
 import { isValidDate, useCreateQueryString } from "../_utils/utils";
 import { Pagination } from "../page";
 import { Filter } from "../products/page";
@@ -54,6 +54,19 @@ function Header({ data }: { data: AdatlapData[] }) {
 	const [savedFilters, setSavedFilters] = React.useState<Filter[]>([]);
 	const queryString = useCreateQueryString(searchParams);
 	const filters: FilterItem[] = [
+		{
+			field: "Statusz",
+			label: "Státusz",
+			type: "select",
+			options: [
+				{ label: "Felmérésre vár", value: "Felmérésre vár" },
+				{ label: "Ajánlat kiküldve", value: "Ajánlat kiküldve" },
+				{ label: "Beépítésre vár", value: "Beépítésre vár" },
+				{ label: "Elszámolásra vár", value: "Elszámolásra vár" },
+				{ label: "Lezárva", value: "Lezárva" },
+				{ label: "Elutasítva", value: "Elutasítva" },
+			],
+		},
 		{ field: "DateTime1953", label: "Beépítés Dátuma", type: "daterange" },
 		{ field: "FelmeresIdopontja2", label: "Felmérés Dátuma", type: "daterange" },
 		{ field: "Felmero2", label: "Felmérő", type: "text" },
@@ -475,10 +488,25 @@ function Header({ data }: { data: AdatlapData[] }) {
 	);
 }
 
+export const AdatlapStatuszColors: Record<AdatlapStatusz, string> = {
+	"Felmérésre vár": "bg-red-600 hover:bg-red-500",
+	"Ajánlat kiküldve": "bg-yellow-700 hover:bg-yellow-600",
+	"Beépítésre vár": "bg-blue-600 hover:bg-blue-500",
+	"Elszámolásra vár": "bg-magenta-600 hover:bg-magenta-500",
+	"Lezárva": "bg-green-600 hover:bg-green-500",
+	"Elutasítva": "bg-gray-600 hover:bg-gray-500",
+};
+
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from "@/components/ui/dialog";
 import { Dispatch } from "react";
 import MapComponent from "../test/page";
-import { concatAddress } from "../_utils/MiniCRM";
+import { ContactDetails, concatAddress, fetchContactDetails } from "../_utils/MiniCRM";
+import { Badge } from "@/components/ui/badge";
+import { cn, getTimeDifference } from "@/lib/utils";
+import { useQuery } from "react-query";
+import { hufFormatter } from "../[id]/_clientPage";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { ButtonBar } from "@/components/component/kanban-card";
 
 export const AdatlapokV2Context = React.createContext<{
 	fetchNextPage: () => Promise<void>;
@@ -499,13 +527,140 @@ export function AdatlapDialog({
 	open?: boolean;
 	onClose?: () => void;
 }) {
+	const { data: salesmenData, error } = useQuery<Salesmen[]>("salesmen", () =>
+		fetch("https://pen.dataupload.xyz/salesmen").then((res) => res.json())
+	);
+	const [contact, setContact] = React.useState<ContactDetails | null>(null);
+	React.useEffect(() => {
+		if (!adatlap || !adatlap.ContactId || !open) return;
+		const fetchContact = async () => {
+			const data = await fetchContactDetails(adatlap?.ContactId.toString() ?? "");
+			setContact(data);
+		};
+		fetchContact();
+	}, [adatlap, open]);
+
+	if (!adatlap || error || !salesmenData) {
+		return null;
+	}
+	const felmero = salesmenData.find((user) => {
+		if (adatlap.Statusz === "Felmérésre vár") {
+			return adatlap.Felmero2.includes(user.name);
+		} else if (adatlap.Statusz === "Beépítésre vár") {
+			return adatlap.Beepitok.includes(user.name);
+		} else {
+			return false;
+		}
+	});
 	return (
 		<Dialog onOpenChange={onClose} open={open}>
-			<DialogTrigger>{children}</DialogTrigger>
-			<DialogContent className='h-[80%]'>
-				<DialogHeader className='h-[40%]'>
-					<MapComponent height='100%' start='1119, Hungary' end={concatAddress(adatlap)} />
+			<DialogTrigger asChild>{children}</DialogTrigger>
+			<DialogContent className='p-2'>
+				<DialogHeader className='bg-blue-900 text-white flex flex-col rounded-t-sm'>
+					<div className='flex flex-row w-full p-2 px-3 justify-between items-center'>
+						<div className='flex flex-col gap-1'>
+							<div className='font-bold'>{adatlap.Name}</div>
+							<Badge className={cn("text-sm", AdatlapStatuszColors[adatlap.Statusz as AdatlapStatusz])}>
+								{adatlap.Statusz}
+							</Badge>
+						</div>
+						<div className='flex flex-row items-center text-xs gap-4'>
+							<div className='flex flex-col justify-center text-center'>
+								<div className='font-semibold'>FELMÉRÉS</div>
+								<div className='pb-1'>{hufFormatter.format(adatlap.FelmeresiDij)}</div>
+								<div>{adatlap.FizetesiMod2}</div>
+							</div>
+							{adatlap.Total !== null ? (
+								<div className='flex flex-col justify-center text-right'>
+									<div className='font-semibold'>BEÉPÍTÉS</div>
+									<div className='pb-1'>{hufFormatter.format(adatlap.Total)}</div>
+									<div>{adatlap.FizetesiMod3}</div>
+								</div>
+							) : null}
+						</div>
+					</div>
+					<ResizablePanelGroup direction='horizontal' className='rounded-none w-full border bg-white'>
+						<ResizablePanel defaultSize={50}>
+							<MapComponent
+								height='300px'
+								start={(felmero?.zip ?? "") + ", Hungary"}
+								end={concatAddress(adatlap)}
+							/>
+						</ResizablePanel>
+						<ResizableHandle withHandle />
+						<ResizablePanel defaultSize={50}>
+							<img
+								alt=''
+								src='https://r3.minicrm.hu/119/Download/S3/?t=doc&inline=1&e=2reqdeau7f0hdgi8rdz2005g7kpp9d'
+								className='ng-star-inserted'
+							/>
+						</ResizablePanel>
+					</ResizablePanelGroup>
 				</DialogHeader>
+				<div className='flex flex-col'>
+					<ButtonBar adatlap={adatlap} btnClassName='w-40 h-10' />
+					<div className='flex flex-col prose px-2 pt-6 '>
+						<h1 className='text-xl'>{adatlap.Name}</h1>
+						<div className='flex flex-col gap-5'>
+							<div className='flex flex-col px-1 gap-1'>
+								<div className='flex flex-row'>
+									<div className='font-bold pr-1'>Cim:</div>
+									<div>{concatAddress(adatlap)}</div>
+								</div>
+								<div className='flex flex-row'>
+									<div className='font-bold pr-1'>Tel:</div>
+									<div>{contact?.Phone}</div>
+								</div>
+								<div className='flex flex-col'>
+									<div className='flex flex-row'>
+										<div className='font-bold pr-1'>Rendelés:</div>
+										<div>{adatlap.RendelesSzama}</div>
+									</div>
+									<Link href={adatlap.FelmeresLink ?? ""}>
+										<div className='underline text-xs cursor-pointer'>Felmérés adatok</div>
+									</Link>
+								</div>
+							</div>
+							<div className='flex flex-col px-1 gap-1'>
+								<div className='flex flex-row'>
+									<div className='font-bold pr-1'>Felmérés időpontja:</div>
+									<div>
+										{adatlap.FelmeresIdopontja2.toLocaleDateString("hu-HU")}{" "}
+										<span className='font-semibold'>
+											({getTimeDifference(adatlap.FelmeresIdopontja2)})
+										</span>
+									</div>
+								</div>
+								<div className='flex flex-col'>
+									<div className='flex flex-row'>
+										<div className='font-bold pr-1'>Felmerő:</div>
+										<div>{adatlap.Felmero2}</div>
+									</div>
+									<Link href={adatlap.FelmeresLink ?? ""}>
+										<div className='underline text-xs cursor-pointer'>Beépítés adatok</div>
+									</Link>
+								</div>
+							</div>
+							{adatlap.Total ? (
+								<div className='flex flex-col px-1 gap-1'>
+									<div className='flex flex-row'>
+										<div className='font-bold pr-1'>Időpont:</div>
+										<div>
+											{adatlap.DateTime1953.toLocaleDateString("hu-HU")}{" "}
+											<span className='font-semibold'>
+												({getTimeDifference(adatlap.DateTime1953)})
+											</span>
+										</div>
+									</div>
+									<div className='flex flex-row'>
+										<div className='font-bold pr-1'>Beépítők:</div>
+										<div>{adatlap.Beepitok}</div>
+									</div>
+								</div>
+							) : null}
+						</div>
+					</div>
+				</div>
 			</DialogContent>
 		</Dialog>
 	);
@@ -524,6 +679,7 @@ export default function Page1({ data }: { data: Pagination<AdatlapData> }) {
 			.then((data) => {
 				data.results.forEach((item: any) => {
 					item.DateTime1953 = item.DateTime1953 ? new Date(item.DateTime1953) : null;
+					item.FelmeresIdopontja2 = new Date(item.FelmeresIdopontja2);
 				});
 				return data;
 			})

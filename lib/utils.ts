@@ -165,6 +165,21 @@ export function useSettings() {
 }
 
 export function parseURLString(url: string) {
-	let params = new URLSearchParams(new URL(url).search);
+	const newUrl = new URL(url);
+	let params = new URLSearchParams(newUrl.search);
 	return params;
+}
+
+export function getTimeDifference(date: Date) {
+	const now = new Date();
+	const diffInMilliseconds = date.getTime() - now.getTime();
+	const diffInDays = Math.round(diffInMilliseconds / (1000 * 60 * 60 * 24));
+
+	if (diffInDays < 0) {
+		return `${Math.abs(diffInDays)} napja`;
+	} else if (diffInDays > 0) {
+		return `${diffInDays} nap múlva`;
+	} else {
+		return "Ma";
+	}
 }

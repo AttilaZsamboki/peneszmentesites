@@ -114,7 +114,6 @@ export default async function Home({ searchParams }: { searchParams: { page?: st
 					(adatlap && template ? " - " : "") +
 					(template ? template.name : ""),
 				"Felmérő": adatlap ? adatlap.Felmero2 : "",
-				"Ingatla képe": adatlap ? adatlap.IngatlanKepe : "",
 				"created_at": formattedDate,
 			};
 		});
