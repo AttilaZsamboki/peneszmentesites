@@ -26,7 +26,7 @@ import { Banknote, Check, Plus, Save, SaveAll, Trash2 } from "lucide-react";
 import CustomDialog from "../_components/CustomDialog";
 import { createTemplate, updateTemplate } from "../../lib/fetchers";
 import { Form } from "../templates/_clientPage";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { OpenCreatedToast } from "@/components/toasts";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -287,17 +287,13 @@ export function Page2({
 	const saveTemplate = async () => {
 		const response = await updateTemplate(selectedTemplate, templateProducts);
 		if (response) {
-			toast({
-				title: "Sablon sikeresen frissítve",
-				action: <Check className='w-5 h-5 text-green-700' />,
+			toast("Sablon sikeresen frissítve", {
 				duration: 1000,
 			});
 			return;
 		}
-		toast({
-			title: "Sablon frissítése sikertelen",
+		toast.error("Sablon frissítése sikertelen", {
 			description: "Kérlek próbáld újra később",
-			variant: "destructive",
 			duration: 2000,
 		});
 	};
@@ -346,10 +342,8 @@ export function Page2({
 						if (!setFelmeres) return;
 						const jsonResp = await createTemplate(templateProducts, selectedTemplate);
 						if (!jsonResp) {
-							toast({
-								title: "Sablon létrehozása sikertelen",
+							toast.error("Sablon létrehozása sikertelen", {
 								description: "Kérlek próbáld újra később",
-								variant: "destructive",
 								duration: 2000,
 							});
 							return;
@@ -357,8 +351,7 @@ export function Page2({
 						setFelmeres((prev) => ({ ...prev, template: jsonResp.id }));
 						setSelectedTemplate((prev) => ({ ...prev, id: jsonResp.id }));
 						setTemplates((prev) => [...prev, jsonResp]);
-						toast({
-							title: "Sablon sikeresen létrehozva",
+						toast("Sablon sikeresen létrehozva", {
 							description: (
 								<OpenCreatedToast
 									path={"/templates"}
@@ -425,10 +418,8 @@ export function Page2({
 							body: JSON.stringify(selectedMunkadíj),
 						}).then((res) => res.json());
 						if (!jsonResp) {
-							toast({
-								title: "Munkadíj létrehozása sikertelen",
+							toast.error("Munkadíj létrehozása sikertelen", {
 								description: "Kérlek próbáld újra később",
-								variant: "destructive",
 								duration: 2000,
 							});
 							return;
@@ -448,8 +439,7 @@ export function Page2({
 							},
 						]);
 						setMunkadíjak((prev) => [...prev, jsonResp]);
-						toast({
-							title: "Munkadíj sikeresen létrehozva",
+						toast("Munkadíj sikeresen létrehozva", {
 							description: (
 								<OpenCreatedToast
 									path={"/munkadij"}
@@ -604,9 +594,8 @@ export function Page2({
 												}
 											);
 											if (resp.ok) {
-												toast({
-													title: "Leírás sikeresen frissítve",
-													action: <Check className='w-5 h-5 text-green-700' />,
+												toast("Leírás sikeresen frissítve", {
+													action: { label: <Check className='w-5 h-5 text-green-700' /> },
 													duration: 1000,
 												});
 												setSelectedTemplate((prev) => ({

@@ -19,11 +19,10 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { useGlobalState } from "@/app/_clientLayout";
 
 import { Page2 } from "./Page2";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { Checkmark } from "@/components/check";
 import { FelmeresPictures, FelmeresPicturesComponent, PageMap, SectionName, isJSONParsable } from "../[id]/_clientPage";
 import _ from "lodash";
-import { ToastAction } from "@/components/ui/toast";
 import { IterationCw, MenuSquare } from "lucide-react";
 import { QuestionPage } from "../../components/QuestionPage";
 import { TooltipTrigger, Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
@@ -243,8 +242,6 @@ export default function Page({
 		};
 	};
 
-	const { toast } = useToast();
-
 	React.useEffect(() => {
 		const fetchQuestions = async () => {
 			setQuestions((prev) => prev.filter((question) => items.map((item) => item.product).includes(question.id)));
@@ -338,12 +335,14 @@ export default function Page({
 		const start = performance.now();
 		const percent = (num: number) => Math.floor((num / 3400) * 100);
 		const updateStatus = (num: number, id?: number) => {
-			toast({
-				title: percent(num) === 100 ? "Felmérés létrehozva" : "Felmérés létrehozása",
+			toast(percent(num) === 100 ? "Felmérés létrehozva" : "Felmérés létrehozása", {
 				description:
 					percent(num) === 100 ? <div>Felmérés módosítva</div> : "Felmérés létrehozása folyamatban...",
 				duration: 5000,
-				action: percent(num) === 100 ? <Checkmark width={50} height={50} /> : <div>{percent(num)}%</div>,
+				action: {
+					label: percent(num) === 100 ? <Checkmark width={50} height={50} /> : <div>{percent(num)}%</div>,
+					onClick: () => {},
+				},
 			});
 			setProgress({ percent: percent(num) });
 		};
@@ -409,10 +408,8 @@ export default function Page({
 
 		// Ha sikeresen ell lettek mentve a felmérés alapadatai
 		if (res && !res.ok) {
-			toast({
-				title: "Hiba",
+			toast.error("Hiba", {
 				description: "Hiba akadt a felmérés alapadatainak mentése közben: " + res.statusText,
-				variant: "destructive",
 			});
 			return;
 		}
@@ -629,36 +626,20 @@ export default function Page({
 						}),
 					});
 					if (!resp.ok) {
-						toast({
-							title: "Hiba",
+						toast.error("Hiba", {
 							description: "Hiba akadt a régi adatlap sztornózása közben: " + resp.statusText,
-							variant: "destructive",
-							action: (
-								<div className='flex flex-col gap-2'>
-									<ToastAction
-										altText='Try again'
-										onClick={async () => {
-											const retryResp = await cancelOffer();
-											if (retryResp === "Error") {
-												return;
-											}
-											updateStatus(3400);
-											await fetch("/api/revalidate?tag=" + felmeres.id);
-											router.push("/");
-										}}>
-										<IterationCw className='w-5 h-5' />
-									</ToastAction>
-									<ToastAction
-										altText='skip'
-										onClick={async () => {
-											updateStatus(3400);
-											await fetch("/api/revalidate?tag=" + felmeres.id);
-											router.push("/");
-										}}>
-										Kihagyás
-									</ToastAction>
-								</div>
-							),
+							action: {
+								label: <IterationCw className='w-5 h-5' />,
+								onClick: async () => {
+									const retryResp = await cancelOffer();
+									if (retryResp === "Error") {
+										return;
+									}
+									updateStatus(3400);
+									await fetch("/api/revalidate?tag=" + felmeres.id);
+									router.push("/");
+								},
+							},
 						});
 						return "Error";
 					}

@@ -1,17 +1,6 @@
 "use client";
-import Link from "next/link";
-import React from "react";
-import autoAnimate from "@formkit/auto-animate";
-import { Filter } from "../products/page";
-import { DefaultPagination } from "./Pagination";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useToast } from "@/components/ui/use-toast";
-import { ToastAction } from "@/components/ui/toast";
-import { EllipsisVerticalIcon, PlusIcon } from "@heroicons/react/20/solid";
-import Menu from "../_components/Menu";
-import CustomDialog from "./CustomDialog";
-import { Badge, Tab, Tabs, TabsHeader } from "@material-tailwind/react";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
 	Sheet,
 	SheetClose,
@@ -22,19 +11,29 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet";
-import { Label } from "@/components/ui/label";
-import AutoComplete from "./AutoComplete";
+import autoAnimate from "@formkit/auto-animate";
+import { EllipsisVerticalIcon, PlusIcon } from "@heroicons/react/20/solid";
 import { FunnelIcon } from "@heroicons/react/24/outline";
+import { Badge, Tab, Tabs, TabsHeader } from "@material-tailwind/react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import React from "react";
+import { toast } from "sonner";
+import Menu from "../_components/Menu";
+import { Filter } from "../products/page";
+import AutoComplete from "./AutoComplete";
+import CustomDialog from "./CustomDialog";
+import { DefaultPagination } from "./Pagination";
 
-import { ScrollArea } from "@/components/ui/scroll-area";
-import useBreakpointValue from "./useBreakpoint";
-import { Separator } from "@/components/ui/separator";
 import DateRangePicker from "@/components/daterange";
-import { useCreateQueryString, isValidDate } from "../_utils/utils";
-import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { isValidDate, useCreateQueryString } from "../_utils/utils";
+import useBreakpointValue from "./useBreakpoint";
 
 function deepEqual(a: any, b: any) {
 	if (a === b) {
@@ -234,7 +233,6 @@ export default function StackedList({
 		blue: "bg-blue-900",
 		gray: "bg-gray-900",
 	};
-	const { toast } = useToast();
 
 	React.useEffect(() => {
 		if (savedFiltersOriginal?.length || !user?.sub) {
@@ -244,17 +242,12 @@ export default function StackedList({
 		const savedFilters = async () => {
 			const resp = await fetchSavedFilters(title, user.sub ?? "", filters);
 			if (resp === "Error" || !resp) {
-				toast({
-					title: "Hiba",
+				toast.error("Hiba", {
 					description: "Hiba történt a szűrők betöltése közben",
-					variant: "destructive",
-					action: (
-						<ToastAction
-							altText='Try again'
-							onClick={() => fetchSavedFilters(title, user.sub ?? "", filters)}>
-							Újrapróbálkozás
-						</ToastAction>
-					),
+					action: {
+						label: "Újrapróbálkozás",
+						onClick: () => fetchSavedFilters(title, user.sub ?? "", filters),
+					},
 				});
 				return;
 			}
@@ -693,14 +686,11 @@ export function FiltersComponent({
 	saveFilterComponent?: React.ReactNode;
 }) {
 	const [openSaveFilter, setOpenSaveFilter] = React.useState(false);
-	const { toast } = useToast();
 	const { user } = useUser();
 
 	const saveFilter = async () => {
-		toast({
-			title: "Mentés",
+		toast("Mentés", {
 			description: "Ne kattints el! A szűrő mentése folyamatban...",
-			variant: "default",
 		});
 		const response = await fetch("https://pen.dataupload.xyz/filters", {
 			method: "POST",
@@ -726,8 +716,7 @@ export function FiltersComponent({
 			if (response2.ok) {
 				handleOpenSaveFilter();
 				setSavedFilters((prev) => [...prev, { ...filter, id: data.id }]);
-				toast({
-					title: "Sikeres mentés",
+				toast("Sikeres mentés", {
 					description: "A szűrő sikeresen el lett mentve",
 				});
 				return;
@@ -736,17 +725,13 @@ export function FiltersComponent({
 			await fetch(`https://pen.dataupload.xyz/filters/${data.id}`, {
 				method: "DELETE",
 			});
-			toast({
-				title: "Hiba",
+			toast.error("Hiba", {
 				description: `Hiba történt a szűrő mentése közben. Error: '${response2.statusText}'`,
-				variant: "destructive",
 			});
 			return;
 		}
-		toast({
-			title: "Hiba",
+		toast.error("Hiba", {
 			description: `Hiba történt a szűrő mentése közben. Error:  '${response.statusText}'`,
-			variant: "destructive",
 		});
 		return;
 	};
@@ -850,8 +835,7 @@ export function FiltersComponent({
 													prev.filter((item) => item.id !== savedFilter.id)
 												);
 											} else {
-												toast({
-													title: "Hiba",
+												toast.error("Hiba", {
 													description: "Hiba történt a szűrő törlése közben",
 												});
 											}
@@ -908,13 +892,11 @@ export function FiltersComponent({
 					})
 				);
 				if (resps.every((item) => typeof item === "undefined")) {
-					toast({
-						title: "Nincs változás",
+					toast("Nincs változás", {
 						description: "Nem történt változás a szűrőben",
 					});
 				} else if (resps.filter((item) => typeof item !== "undefined").every((item) => item === true)) {
-					toast({
-						title: "Sikeres mentés",
+					toast("Sikeres mentés", {
 						description: "A szűrő sikeresen el lett mentve",
 					});
 					setSavedFilters((prev) =>

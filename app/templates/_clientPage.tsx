@@ -5,12 +5,10 @@ import React from "react";
 import Input from "../_components/Input";
 import AutoComplete from "../_components/AutoComplete";
 import { Product } from "../products/page";
-import { XMarkIcon } from "@heroicons/react/20/solid";
 import { Button } from "@/components/ui/button";
 import BaseComponentV2 from "../_components/BaseComponentV2";
 import CustomDialog from "../_components/CustomDialog";
-import { useToast } from "@/components/ui/use-toast";
-import { ToastAction } from "@/components/ui/toast";
+import { toast } from "sonner";
 import { createTemplate, updateTemplate } from "@/lib/fetchers";
 import useBreakpointValue from "../_components/useBreakpoint";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,7 +32,6 @@ export default function Page({
 	const [upToDateTemplates, setUpToDateTemplates] = React.useState<any[]>(templates);
 	const [isNew, setIsNew] = React.useState(false);
 	const [openDialog, setOpenDialog] = React.useState(false);
-	const { toast } = useToast();
 
 	React.useEffect(() => {
 		if (!isNew) {
@@ -139,14 +136,11 @@ export default function Page({
 					!isNew
 						? () => {
 								setOpenDialog(false);
-								toast({
-									title: "Biztos törölni akarod a sablont?",
-									variant: "destructive",
-									action: (
-										<ToastAction onClick={deleteTemplate} altText='delete'>
-											Igen
-										</ToastAction>
-									),
+								toast.error("Biztos törölni akarod a sablont?", {
+									action: {
+										label: "Igen",
+										onClick: deleteTemplate,
+									},
 								});
 						  }
 						: undefined

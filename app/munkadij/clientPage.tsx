@@ -1,5 +1,5 @@
 "use client";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { hufFormatter } from "../[id]/_clientPage";
 import BaseComponentV2 from "../_components/BaseComponentV2";
 import CustomDialog from "../_components/CustomDialog";
@@ -29,9 +29,7 @@ export default function ClientPage({ munkadijak }: { munkadijak: Munkadíj[] }) 
 			method: "DELETE",
 		});
 		if (response.ok) {
-			toast({
-				title: "Sikeres törlés",
-			});
+			toast("Sikeres törlés");
 			setStateMunkadíjak((prev) => prev.filter((oldMunkadijak) => oldMunkadijak.id !== selected?.id));
 			await revalidateCache();
 		}
@@ -45,9 +43,7 @@ export default function ClientPage({ munkadijak }: { munkadijak: Munkadíj[] }) 
 			},
 		});
 		if (response.ok) {
-			toast({
-				title: "Sikeres frissítés",
-			});
+			toast("Sikeres frissítés");
 			setStateMunkadíjak((prev) =>
 				prev.map((oldMunkadijak) => (oldMunkadijak.id === selected?.id ? selected : oldMunkadijak))
 			);
@@ -64,9 +60,7 @@ export default function ClientPage({ munkadijak }: { munkadijak: Munkadíj[] }) 
 		});
 		if (response.ok) {
 			const data: Munkadíj = await response.json();
-			toast({
-				title: "Sikeres mentés",
-			});
+			toast("Sikeres mentés");
 			setStateMunkadíjak((prev) => [...prev, data]);
 			await revalidateCache();
 		}
@@ -125,14 +119,8 @@ export default function ClientPage({ munkadijak }: { munkadijak: Munkadíj[] }) 
 					selected?.id
 						? () => {
 								setOpenDialog(false);
-								toast({
-									title: "Biztos törölni akarod a sablont?",
-									variant: "destructive",
-									action: (
-										<ToastAction onClick={deleteMunkadij} altText='delete'>
-											Igen
-										</ToastAction>
-									),
+								toast.error("Biztos törölni akarod a sablont?", {
+									action: { label: "Igen", onClick: deleteMunkadij },
 								});
 						  }
 						: undefined

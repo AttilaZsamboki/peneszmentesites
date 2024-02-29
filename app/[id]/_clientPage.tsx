@@ -20,34 +20,10 @@ import { Grid } from "@/app/_components/Grid";
 import Gallery from "@/app/_components/Gallery";
 
 import { FelmeresStatus, statusMap } from "@/app/_utils/utils";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 import useBreakpointValue from "../_components/useBreakpoint";
 import { Separator } from "@/components/ui/separator";
-import {
-	CalendarDays,
-	Download,
-	FileEdit,
-	IterationCw,
-	Lock,
-	MoreVerticalIcon,
-	Cloud,
-	CreditCard,
-	Github,
-	Keyboard,
-	LifeBuoy,
-	LogOut,
-	Mail,
-	MessageSquare,
-	Plus,
-	PlusCircle,
-	Settings,
-	User,
-	UserPlus,
-	Users,
-	Trash2,
-	Trash2Icon,
-	Copy,
-} from "lucide-react";
+import { CalendarDays, Download, FileEdit, IterationCw, MoreVerticalIcon, Trash2Icon, Copy } from "lucide-react";
 import Link from "next/link";
 import { Page2 } from "../new/Page2";
 import _ from "lodash";
@@ -377,50 +353,6 @@ export default function ClientPage({
 			await fetch("/api/revalidate?path=/");
 		}
 	};
-	const handleSaveChanges = async () => {
-		if (
-			filteredData.filter((field) => originalData.find((f) => f.id === field.id)?.value !== field.value)
-				.length === 0
-		) {
-			setIsEditing(false);
-			return toast("Nincs változás", {
-				description: "Nem történt változás, így nem lett mentve",
-			});
-		}
-		const status = await Promise.all(
-			filteredData.map(async (field) => {
-				const response = await fetch(`https://pen.dataupload.xyz/felmeres_questions/${field.id}/`, {
-					method: "PATCH",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					body: JSON.stringify({
-						value: JSON.stringify(field.value),
-					}),
-				});
-				return response.ok;
-			})
-		).then((status) => status.every((s) => s === true));
-		if (status) {
-			await fetch("/api/revalidate?tag=" + felmeresId);
-			setIsEditing(false);
-			setOriginalData((prev) => [
-				...prev.filter((field) => field.product !== filteredData[0].product),
-				...filteredData,
-			]);
-			return;
-		}
-		toast({
-			title: "Hiba",
-			description: "Hiba történt a mentés során",
-			variant: "destructive",
-			action: (
-				<ToastAction altText='Try again' onClick={handleSaveChanges}>
-					<IterationCw className='w-5 h-5' />
-				</ToastAction>
-			),
-		});
-	};
 	const handleDelete = async () => {
 		const cookie = getCookie("jwt");
 		if (!cookie || !user || user.role !== "Admin") return;
@@ -435,10 +367,8 @@ export default function ClientPage({
 			await fetch("/api/revalidate?tag=felmeresek");
 			window.location.href = "/";
 		} else {
-			toast({
-				title: "Hiba",
+			toast.error("Hiba", {
 				description: response.status === 403 ? "Nem engedélyezett művelet" : "Hiba történt a törlés során",
-				variant: "destructive",
 			});
 		}
 	};
@@ -590,10 +520,8 @@ export default function ClientPage({
 																await fetch("/api/revalidate?tag=felmeresek");
 																window.location.href = `/${data.id}`;
 															} else {
-																toast({
-																	title: "Hiba",
+																toast.error("Hiba", {
 																	description: "Hiba történt a másolás során",
-																	variant: "destructive",
 																});
 															}
 															setOpenCopyDialog(false);

@@ -15,8 +15,7 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet";
-import { ToastAction } from "@/components/ui/toast";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { FunnelIcon } from "@heroicons/react/24/outline";
 import { SearchIcon } from "lucide-react";
@@ -184,17 +183,12 @@ function Header({ data }: { data: AdatlapData[] }) {
 		const savedFilters = async () => {
 			const resp = await fetchSavedFilters("adatlapok", user.sub ?? "", filters);
 			if (resp === "Error" || !resp) {
-				toast({
-					title: "Hiba",
+				toast.error("Hiba", {
 					description: "Hiba történt a szűrők betöltése közben",
-					variant: "destructive",
-					action: (
-						<ToastAction
-							altText='Try again'
-							onClick={() => fetchSavedFilters("adatlapok", user.sub ?? "", filters)}>
-							Újrapróbálkozás
-						</ToastAction>
-					),
+					action: {
+						label: "Újrapróbálkozás",
+						onClick: () => fetchSavedFilters("adatlapok", user.sub ?? "", filters),
+					},
 				});
 				return;
 			}

@@ -27,6 +27,7 @@ export interface AdatlapData {
 	Statusz: AdatlapStatusz;
 	FelmeresiDij: number;
 	FelmeresLink: string | null;
+	CreatedAt?: string;
 }
 
 export interface Salesmen {

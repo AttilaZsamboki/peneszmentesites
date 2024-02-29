@@ -17,7 +17,7 @@ import { Question } from "./page";
 import { typeMap } from "../_utils/utils";
 import { getFirstProduct } from "../_utils/utils";
 import FormField from "../_components/FormField";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function ClientComponent({ data, products }: { data: any; products: Product[] }) {
@@ -33,7 +33,6 @@ export default function ClientComponent({ data, products }: { data: any; product
 	const [openDialog, setOpenDialog] = React.useState(false);
 	const [allQuestions, setAllQuestions] = React.useState<any[]>(data);
 	const [isNew, setIsNew] = React.useState(false);
-	const { toast } = useToast();
 
 	const createQuestion = async () => {
 		const response = await fetch("https://pen.dataupload.xyz/questions/", {
@@ -153,8 +152,7 @@ export default function ClientComponent({ data, products }: { data: any; product
 			const bodyAsString = JSON.stringify(body); // Parse the JSON response into a string
 
 			if (bodyAsString.includes("pen_felmeres_questions_pen_questions_id_fk")) {
-				toast({
-					title: "Hiba",
+				toast.error("Hiba", {
 					description: "Ez a kérdés már szerepel egy felmérésben, ezért nem törölhető!",
 				});
 			}
