@@ -521,7 +521,7 @@ import { Dispatch } from "react";
 import { useQuery } from "react-query";
 import { hufFormatter } from "../[id]/_clientPage";
 import { ContactDetails, concatAddress, fetchContactDetails } from "../_utils/MiniCRM";
-import MapComponent from "../test/page";
+import MapComponent from "../../components/map";
 import useBreakpointValue from "../_components/useBreakpoint";
 
 export const AdatlapokV2Context = React.createContext<{
