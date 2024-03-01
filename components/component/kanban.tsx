@@ -59,7 +59,7 @@ export function Kanban({ data }: { data: Pagination<AdatlapData> }) {
 				{cols.map((col) => {
 					const colData = data.results.filter((adatlap) => adatlap.Statusz === col.title);
 					return (
-						<SwiperSlide key={col.id} className='py-2 px-2'>
+						<SwiperSlide key={col.id} className='py-2 px-2 flex flex-col'>
 							<h2 className='mb-4 text-sm font-medium text-gray-400 dark:text-gray-300 flex items-center'>
 								{col.icon}
 								{col.title}
