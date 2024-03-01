@@ -1,6 +1,7 @@
 import { AdatlapData } from "@/app/_utils/types";
 import { Template } from "../app/templates/page";
 import { ProductTemplate } from "@/app/new/_clientPage";
+import { Pagination } from "@/app/page";
 
 export const createTemplate = async (items: ProductTemplate[], template: Template) => {
 	const templateResponse = await fetch("https://pen.dataupload.xyz/templates/", {
@@ -68,4 +69,31 @@ export async function getAdatlapok(queryParams: { CategoryId?: string; id?: stri
 			return [];
 		})
 		.then((data: AdatlapData[]) => data.filter((adatlap) => adatlap));
+}
+
+export async function fetchAdatlapokV2(searchParams: { [key: string]: string }): Promise<Pagination<AdatlapData>> {
+	return await fetch(
+		`https://pen.dataupload.xyz/minicrm-adatlapok/v2/?CategoryId=23&StatusId=3023,3084,3086${Object.entries(
+			searchParams
+		)
+			.map(([key, value]: string[], index) => `${index === 0 ? "&" : ""}${key}=${value}`)
+			.join("&")}`,
+		{
+			next: { tags: ["adatlapok-v2"], revalidate: 1800 },
+		}
+	)
+		.then((res) => res.json())
+		.then((data: any) => {
+			data.results.forEach((item: AdatlapData) => {
+				if (item.DateTime1953) {
+					item.DateTime1953 = new Date(item.DateTime1953);
+				}
+				item.FelmeresIdopontja2 = new Date(item.FelmeresIdopontja2);
+			});
+			return data;
+		})
+		.catch((err) => {
+			console.log(err);
+			return [];
+		});
 }
