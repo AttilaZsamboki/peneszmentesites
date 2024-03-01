@@ -27,7 +27,6 @@ import { CalendarDays, Download, FileEdit, IterationCw, MoreVerticalIcon, Trash2
 import Link from "next/link";
 import { Page2 } from "../new/Page2";
 import _ from "lodash";
-import { ToastAction } from "@/components/ui/toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Product } from "../products/page";
 import FileUpload from "../_components/FileUpload";
@@ -449,7 +448,7 @@ export default function ClientPage({
 
 										<DropdownMenu>
 											<DropdownMenuTrigger asChild>
-												<MoreVerticalIcon />
+												<MoreVerticalIcon className='cursor-pointer' />
 											</DropdownMenuTrigger>
 											<DropdownMenuContent className='w-56'>
 												<DropdownMenuGroup>

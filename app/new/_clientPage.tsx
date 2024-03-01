@@ -28,7 +28,7 @@ import { QuestionPage } from "../../components/QuestionPage";
 import { TooltipTrigger, Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import Link from "next/link";
 import { FelmeresStatus, statusMap, useCreateQueryString } from "../_utils/utils";
-import { calculatePercentageValue, cn, getCookie, useLocalStorageStateObject } from "@/lib/utils";
+import { calculatePercentageValue, cn, getCookie } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import {
 	AlertDialog,
@@ -152,8 +152,7 @@ export default function Page({
 	const { setProgress } = useGlobalState();
 	const { user } = useUser();
 	const searchParams = useSearchParams();
-	const [felmeres, setFelmeres] = useLocalStorageStateObject<BaseFelmeresData>(
-		"felmeres",
+	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>(
 		editFelmeres
 			? editFelmeres
 			: {
@@ -173,15 +172,13 @@ export default function Page({
 					detailedOffer: false,
 			  }
 	);
-	const [items, setItems] = useLocalStorageStateObject<FelmeresItem[]>(
-		"felmeres-item",
+	const [items, setItems] = React.useState<FelmeresItem[]>(
 		editFelmeresItems
 			? editFelmeresItems.filter((item) => item.type === "Item" || item.type === "Other Material")
 			: []
 	);
 	const router = useRouter();
-	const [data, setData] = useLocalStorageStateObject<FelmeresQuestion[]>(
-		"felmeres-data",
+	const [data, setData] = React.useState<FelmeresQuestion[]>(
 		editData
 			? editData.map((field) => ({
 					...field,
@@ -189,9 +186,8 @@ export default function Page({
 			  }))
 			: []
 	);
-	const [questions, setQuestions] = useLocalStorageStateObject<Question[]>("felmeres-questions", []);
-	const [otherItems, setOtherItems] = useLocalStorageStateObject<OtherFelmeresItem[]>(
-		"felmeres-other-items",
+	const [questions, setQuestions] = React.useState<Question[]>([]);
+	const [otherItems, setOtherItems] = React.useState<OtherFelmeresItem[]>(
 		editFelmeresItems
 			? editFelmeresItems
 					.filter((item) => item.type === "Fee")
@@ -210,21 +206,16 @@ export default function Page({
 					},
 			  ]
 	);
-	const [discount, setDiscount] = useLocalStorageStateObject(
-		"felmeres-discount",
+	const [discount, setDiscount] = React.useState(
 		editFelmeresItems
 			? editFelmeresItems.find((item) => item.type === "Discount")
 				? editFelmeresItems.find((item) => item.type === "Discount")!.netPrice
 				: 0
 			: 0
 	);
-	const [pictures, setPictures] = useLocalStorageStateObject<FelmeresPictures[]>(
-		"felmeres-pictures",
-		editPictures ?? []
-	);
+	const [pictures, setPictures] = React.useState<FelmeresPictures[]>(editPictures ?? []);
 	const [openPageDialog, setOpenPageDialog] = React.useState(false);
-	const [felmeresMunkadíjak, setFelmeresMunkadíjak] = useLocalStorageStateObject<FelmeresMunkadíj[]>(
-		"felmeres-munkadij",
+	const [felmeresMunkadíjak, setFelmeresMunkadíjak] = React.useState<FelmeresMunkadíj[]>(
 		editFelmeresMunkadíjak ?? []
 	);
 
@@ -328,6 +319,40 @@ export default function Page({
 		}
 	}, [user?.sub]);
 	const template = templates.find((template) => template.id === felmeres.template);
+
+	React.useEffect(() => {
+		if (typeof window !== "undefined") {
+			const storedValue = window.localStorage.getItem("all-felmeres-data");
+			if (storedValue && isJSONParsable(storedValue)) {
+				const jsonVal = JSON.parse(storedValue);
+				toast.info("El nem mentett felmérés", {
+					description: "Van egy el nem mentett felmérésed. Kattints ide a visszaállításhoz.",
+					duration: 10000,
+					action: {
+						onClick: () => {
+							setFelmeres(jsonVal.felmeres);
+							setItems(jsonVal.items);
+							setData(jsonVal.data);
+							setQuestions(jsonVal.questions);
+							setFelmeresMunkadíjak(jsonVal.felmeresMunkadíjak);
+							setPictures(jsonVal.pictures);
+							setDiscount(jsonVal.discount);
+							setOtherItems(jsonVal.otherItems);
+							toast.dismiss("restoreStateToast");
+						},
+						label: "Visszaállítás",
+					},
+				});
+			}
+		}
+	}, []);
+
+	React.useEffect(() => {
+		window.localStorage.setItem(
+			"all-felmeres-data",
+			JSON.stringify({ felmeres, items, data, questions, felmeresMunkadíjak, pictures, discount, otherItems })
+		);
+	}, [felmeres, items, data, questions, felmeresMunkadíjak, pictures, discount, otherItems]);
 
 	const CreateFelmeres = async (sendOffer: boolean = true) => {
 		setOpenPageDialog(false);

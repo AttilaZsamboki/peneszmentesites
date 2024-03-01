@@ -595,7 +595,10 @@ export function Page2({
 											);
 											if (resp.ok) {
 												toast("Leírás sikeresen frissítve", {
-													action: { label: <Check className='w-5 h-5 text-green-700' /> },
+													action: {
+														onClick: () => {},
+														label: <Check className='w-5 h-5 text-green-700' />,
+													},
 													duration: 1000,
 												});
 												setSelectedTemplate((prev) => ({
@@ -606,10 +609,8 @@ export function Page2({
 												return;
 											} else {
 												console.log(resp.status);
-												toast({
-													title: "Leírás frissítése sikertelen",
+												toast.error("Leírás frissítése sikertelen", {
 													description: "Kérlek próbáld újra később",
-													variant: "destructive",
 													duration: 2000,
 												});
 											}
