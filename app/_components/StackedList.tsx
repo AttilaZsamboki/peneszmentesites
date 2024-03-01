@@ -757,7 +757,9 @@ export function FiltersComponent({
 
 	return (
 		<>
-			<Tabs value={filter.id} className='flex flex-row w-full items-center gap-3 justify-start'>
+			<Tabs
+				value={filter.id}
+				className='flex flex-row lg:w-full w-2/3 lg:overflow-x-auto overflow-x-scroll items-center gap-3 justify-start'>
 				<TabsHeader
 					className='rounded-none bg-transparent p-0 cursor-pointer inline-flex items-center lg:w-auto '
 					onClick={handleOpenSaveFilter}
@@ -788,7 +790,7 @@ export function FiltersComponent({
 					<div className='flex items-center pb-2 -ml-2'>
 						<Separator orientation='vertical' className='mx-2 h-1/2' />
 					</div>
-					<Tab value={0} className='pb-2'>
+					<Tab value={0} className='pb-2 '>
 						{defaultViewName ?? "Alap nézet"}
 					</Tab>
 					<div className='flex items-center pb-2'>

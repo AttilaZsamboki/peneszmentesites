@@ -15,13 +15,13 @@ import {
 	SheetTitle,
 	SheetTrigger,
 } from "@/components/ui/sheet";
-import { toast } from "sonner";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { FunnelIcon } from "@heroicons/react/24/outline";
 import { SearchIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useContext } from "react";
+import { toast } from "sonner";
 import AutoComplete from "../_components/AutoComplete";
 import {
 	DateRange,
@@ -246,6 +246,9 @@ function Header({ data }: { data: AdatlapData[] }) {
 		refilterData(filter);
 	}, [filter, data]);
 
+	const [isSearchBarVisible, setSearchBarVisible] = React.useState(false);
+	const deviceSize = useBreakpointValue();
+
 	return (
 		<div className='flex flex-row w-full justify-between px-3 lg:px-6'>
 			<FiltersComponent
@@ -289,32 +292,50 @@ function Header({ data }: { data: AdatlapData[] }) {
 				}
 			/>
 
-			<div className='flex flex-1 items-center gap-4 md:ml-auto md:gap-2 lg:gap-4'>
+			<div className='flex lg:flex-1 flex-auto items-center md:ml-auto md:gap-2 lg:gap-4'>
 				<div className='ml-auto flex-1 sm:flex-initial'>
 					<div className='relative'>
-						<SearchIcon className='absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400' />
-						<Input
-							className='pl-8 sm:w-[300px] md:w-[200px] lg:w-[300px] bg-white'
-							placeholder='Keress...'
-							value={filter.filters.find((item) => item.field === "search")?.value as string}
-							onChange={(event) => {
-								setFilter((prev) => ({
-									...prev,
-									filters: prev.filters.map((item) => {
-										if (item.field === "search") {
-											return { ...item, value: event.target.value };
-										}
-										return item;
-									}),
-								}));
-								router.push(
-									"/adatlapok?" + queryString([{ name: "search", value: event.target.value }])
-								);
-							}}
-							type='search'
-						/>
+						{isSearchBarVisible ? (
+							<SearchIcon
+								className='absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400'
+								onClick={() => setSearchBarVisible(!isSearchBarVisible)}
+							/>
+						) : (
+							<>
+								<Button variant={"outline"}>
+									<SearchIcon
+										className='h-4 w-4 '
+										onClick={() => setSearchBarVisible(!isSearchBarVisible)}
+									/>
+								</Button>
+							</>
+						)}
+						{isSearchBarVisible && (
+							<Input
+								className='pl-8 sm:w-full md:w-[200px] lg:w-[300px] bg-white'
+								placeholder='Keress...'
+								value={filter.filters.find((item) => item.field === "search")?.value as string}
+								onChange={(event) => {
+									setFilter((prev) => ({
+										...prev,
+										filters: prev.filters.map((item) => {
+											if (item.field === "search") {
+												return { ...item, value: event.target.value };
+											}
+											return item;
+										}),
+									}));
+									router.push(
+										"/adatlapok?" + queryString([{ name: "search", value: event.target.value }])
+									);
+								}}
+								onBlur={() => (deviceSize === "sm" ? setSearchBarVisible(false) : {})}
+								type='search'
+							/>
+						)}
 					</div>
 				</div>
+				{deviceSize === "sm" ? <Separator orientation='vertical' className='mx-2 h-1/2' /> : null}
 				<Sheet>
 					<SheetTrigger asChild>
 						<Button variant={"outline"}>
@@ -491,16 +512,17 @@ export const AdatlapStatuszColors: Record<AdatlapStatusz, string> = {
 	"Elutasítva": "bg-gray-600 hover:bg-gray-500",
 };
 
-import { Dialog, DialogContent, DialogHeader, DialogTrigger } from "@/components/ui/dialog";
-import { Dispatch } from "react";
-import MapComponent from "../test/page";
-import { ContactDetails, concatAddress, fetchContactDetails } from "../_utils/MiniCRM";
+import { ButtonBar } from "@/components/component/kanban-card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTrigger } from "@/components/ui/dialog";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { cn, getTimeDifference } from "@/lib/utils";
+import { Dispatch } from "react";
 import { useQuery } from "react-query";
 import { hufFormatter } from "../[id]/_clientPage";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { ButtonBar } from "@/components/component/kanban-card";
+import { ContactDetails, concatAddress, fetchContactDetails } from "../_utils/MiniCRM";
+import MapComponent from "../test/page";
+import useBreakpointValue from "../_components/useBreakpoint";
 
 export const AdatlapokV2Context = React.createContext<{
 	fetchNextPage: () => Promise<void>;
@@ -549,8 +571,8 @@ export function AdatlapDialog({
 	return (
 		<Dialog onOpenChange={onClose} open={open}>
 			<DialogTrigger asChild>{children}</DialogTrigger>
-			<DialogContent className='p-2'>
-				<DialogHeader className='bg-blue-900 text-white flex flex-col rounded-t-sm'>
+			<DialogContent className='lg:p-2 p-0 lg:h-auto h-dvh border-0'>
+				<DialogHeader className='bg-blue-900 text-white flex flex-col rounded-none lg:rounded-t-sm'>
 					<div className='flex flex-row w-full p-2 px-3 justify-between items-center'>
 						<div className='flex flex-col gap-1'>
 							<div className='font-bold'>{adatlap.Name}</div>
@@ -591,8 +613,8 @@ export function AdatlapDialog({
 						</ResizablePanel>
 					</ResizablePanelGroup>
 				</DialogHeader>
-				<div className='flex flex-col'>
-					<ButtonBar adatlap={adatlap} btnClassName='w-40 h-10' />
+				<div className='flex flex-col lg:p-0 p-2'>
+					<ButtonBar adatlap={adatlap} btnClassName='lg:w-40 w-none h-10' />
 					<div className='flex flex-col prose px-2 pt-6 '>
 						<h1 className='text-xl'>{adatlap.Name}</h1>
 						<div className='flex flex-col gap-5'>

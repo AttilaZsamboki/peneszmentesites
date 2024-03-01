@@ -21,6 +21,7 @@ import {
 import { getCookie, createJWT, useLocalStorageState, useUserWithRole, Role } from "@/lib/utils";
 import { QueryClient, QueryClientProvider } from "react-query";
 import jwt from "jsonwebtoken";
+import Image from "next/image";
 
 interface Progress {
 	percent: number;
@@ -249,7 +250,13 @@ function Navbar({ routes }: { routes: Route[] }) {
 								<div className='flex h-[60px] items-center w-full justify-between'>
 									<Link className='flex items-center w-full gap-2 font-semibold' href='#'>
 										<a href='/'>
-											<img src='/logo.jpg' className='w-full h-5' />
+											<Image
+												alt='logo'
+												width={60}
+												height={20}
+												src='/logo.jpg'
+												className='w-full h-5'
+											/>
 										</a>
 										<span className=''>Acme Inc</span>
 									</Link>

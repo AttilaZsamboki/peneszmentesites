@@ -5,7 +5,11 @@ import React from "react";
 import { BanIcon, RefreshCwIcon, Send } from "lucide-react";
 import { Pagination } from "@/app/page";
 import { Button } from "../ui/button";
-import { AdatlapDialog, AdatlapokV2Context } from "@/app/adatlapok/Page.1";
+import { AdatlapokV2Context } from "@/app/adatlapok/Page.1";
+import { Swiper, SwiperSlide } from "swiper/react";
+
+import "swiper/css";
+import useBreakpointValue from "@/app/_components/useBreakpoint";
 
 export function Kanban({ data }: { data: Pagination<AdatlapData> }) {
 	const cols = [
@@ -36,7 +40,7 @@ export function Kanban({ data }: { data: Pagination<AdatlapData> }) {
 		{
 			id: "done",
 			title: "Lezárva",
-			icon: <CheckIcon className='mr-2 h-4 w-4' />,
+			icon: <CheckIcon className='mr-2 h-4 w-4 ' />,
 			minAmount: 0,
 		},
 		{
@@ -47,14 +51,15 @@ export function Kanban({ data }: { data: Pagination<AdatlapData> }) {
 		},
 	];
 	const { fetchNextPage } = React.useContext(AdatlapokV2Context);
+	const deviceSize = useBreakpointValue();
 
-	return (
-		<main className='flex overflow-x-scroll py-3 px-4 bg-gray-100'>
-			<div className='flex space-x-4 w-0'>
+	if (deviceSize === "sm") {
+		return (
+			<Swiper className='flex overflow-x-scroll py-3 px-4 bg-gray-100'>
 				{cols.map((col) => {
 					const colData = data.results.filter((adatlap) => adatlap.Statusz === col.title);
 					return (
-						<div>
+						<SwiperSlide key={col.id} className='py-2 px-2'>
 							<h2 className='mb-4 text-sm font-medium text-gray-400 dark:text-gray-300 flex items-center'>
 								{col.icon}
 								{col.title}
@@ -62,9 +67,7 @@ export function Kanban({ data }: { data: Pagination<AdatlapData> }) {
 							<div className='w-[370px] h-[85dvh] overflow-y-scroll'>
 								<div className='flex flex-col gap-4 items-center'>
 									{colData.map((adatlap) => {
-										return (
-												<KanbanCard adatlap={adatlap} />
-										);
+										return <KanbanCard key={adatlap.Id} adatlap={adatlap} />;
 									})}
 									{data.next ? (
 										<Button onClick={async () => await fetchNextPage()}>
@@ -74,11 +77,39 @@ export function Kanban({ data }: { data: Pagination<AdatlapData> }) {
 									) : null}
 								</div>
 							</div>
-						</div>
+						</SwiperSlide>
 					);
 				})}
-			</div>
-		</main>
+			</Swiper>
+		);
+	}
+	return (
+		<div className='flex overflow-x-scroll py-3 px-4 bg-gray-100'>
+			{cols.map((col) => {
+				const colData = data.results.filter((adatlap) => adatlap.Statusz === col.title);
+				return (
+					<div key={col.id} className='py-2 px-2'>
+						<h2 className='mb-4 text-sm font-medium text-gray-400 dark:text-gray-300 flex items-center'>
+							{col.icon}
+							{col.title}
+						</h2>
+						<div className='w-[370px] h-[85dvh] overflow-y-scroll'>
+							<div className='flex flex-col gap-4 items-center'>
+								{colData.map((adatlap) => {
+									return <KanbanCard key={adatlap.Id} adatlap={adatlap} />;
+								})}
+								{data.next ? (
+									<Button onClick={async () => await fetchNextPage()}>
+										<RefreshCwIcon className='w-4 h-4 mr-2' />
+										Több adat
+									</Button>
+								) : null}
+							</div>
+						</div>
+					</div>
+				);
+			})}
+		</div>
 	);
 }
 
