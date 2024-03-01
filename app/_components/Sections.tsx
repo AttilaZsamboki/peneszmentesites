@@ -28,13 +28,13 @@ export default function Sections({
 	href?: (value: string) => string;
 }) {
 	return (
-		<Card>
-			<CardHeader>
+		<Card className='border-0 shadow-none'>
+			<CardHeader className='p-0 pb-2'>
 				<CardTitle>Szekciók</CardTitle>
 				<CardDescription>Itt tudsz a szekciók között váltani</CardDescription>
 			</CardHeader>
-			<CardContent className='sticky top-5 w-full'>
-				<div className='rounded-none py-3 lg:rounded-sm px-3 border flex flex-col gap-2'>
+			<CardContent className='sticky top-5 w-full p-0'>
+				<div className='rounded-none py-3 flex flex-col gap-2'>
 					{options.map((section) =>
 						section.subOptions ? (
 							<Accordion key={section.value} type='single' collapsible>

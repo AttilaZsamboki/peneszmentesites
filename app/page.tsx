@@ -109,10 +109,7 @@ export default async function Home({ searchParams }: { searchParams: { page?: st
 				} ${adatlap ? adatlap.Orszag : ""}`,
 				"Felmérés típusa": felmeres.type,
 				"Státusz": statusMap[felmeres.status ? felmeres.status : "DRAFT"],
-				"Felmérés neve":
-					(adatlap ? adatlap.Name : "") +
-					(adatlap && template ? " - " : "") +
-					(template ? template.name : ""),
+				"Felmérés neve": felmeres.name,
 				"Felmérő": adatlap ? adatlap.Felmero2 : "",
 				"created_at": formattedDate,
 			};

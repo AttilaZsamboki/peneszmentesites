@@ -7,8 +7,7 @@ const Sections = React.lazy(() => import("../_components/Sections"));
 
 import React from "react";
 
-import { Typography, Spinner, Tabs, TabsHeader, Tab } from "@material-tailwind/react";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Spinner, Tabs, TabsHeader, Tab } from "@material-tailwind/react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BaseFelmeresData, FelmeresItem, FelmeresMunkadíj, QuestionTemplate } from "../new/_clientPage";
@@ -23,7 +22,7 @@ import { FelmeresStatus, statusMap } from "@/app/_utils/utils";
 import { toast } from "sonner";
 import useBreakpointValue from "../_components/useBreakpoint";
 import { Separator } from "@/components/ui/separator";
-import { CalendarDays, Download, FileEdit, IterationCw, MoreVerticalIcon, Trash2Icon, Copy } from "lucide-react";
+import { CalendarDays, Download, FileEdit, MoreVerticalIcon, Trash2Icon, Copy } from "lucide-react";
 import Link from "next/link";
 import { Page2 } from "../new/Page2";
 import _ from "lodash";
@@ -37,13 +36,6 @@ import {
 	DropdownMenuContent,
 	DropdownMenuGroup,
 	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuPortal,
-	DropdownMenuSeparator,
-	DropdownMenuShortcut,
-	DropdownMenuSub,
-	DropdownMenuSubContent,
-	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn, getCookie, useUserWithRole } from "@/lib/utils";
@@ -58,9 +50,9 @@ import {
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
-	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Munkadíj } from "../munkadij/page";
+import { AdatalapInfoCard } from "@/components/component/adatalap-info-card";
 
 export function isJSONParsable(str: string) {
 	try {
@@ -103,6 +95,12 @@ export interface FelmeresPictures {
 	src: string;
 }
 
+export const FelmeresContext = React.createContext<{
+	setTotal: React.Dispatch<React.SetStateAction<number>>;
+}>({
+	setTotal: () => {},
+});
+
 export default function ClientPage({
 	felmeresQuestions,
 	felmeresId,
@@ -128,6 +126,7 @@ export default function ClientPage({
 	munkadíjak: Munkadíj[];
 	felmeresMunkadíjak: FelmeresMunkadíj[];
 }) {
+	const [total, setTotal] = React.useState(0);
 	const [felmeres, setFelmeres] = React.useState(
 		felmeresNonState
 			? felmeresNonState
@@ -376,15 +375,15 @@ export default function ClientPage({
 		<div className='w-full overflow-y-scroll overflow-x-hidden lg:h-[98dvh] h-[92dvh]'>
 			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-0 lg:mt-2 lg:px-6 px-0 gap-6'>
 				<div className='w-full'>
-					<div className='mt-0 lg:mt-6 w-full'>
+					<div className='mt-0 w-full'>
 						<Card className='lg:rounded-lg rounded-none border-0'>
-							<div className='py-3 flex gap-2 justify-between items-center pr-2 lg:pr-4 lg:rounded-t-lg rounded-t-none top-0 sticky z-40 pl-10 bg-blue-800 text-white border-blue-500  w-full shadow-md backdrop-saturate-200 backdrop-blur-2xl bg-opacity-80 border-b border-white/80'>
+							<div className='py-3 flex gap-2 justify-between items-center pr-2 lg:pr-4 lg:rounded-t-lg rounded-t-none top-0 sticky z-40 pl-10 bg-blue-800 text-white border-blue-500  w-full backdrop-saturate-200 backdrop-blur-2xl bg-opacity-80 border-b border-white/80'>
 								<div className='prose prose-slate prose-img:m-0 prose-img:p-0'>
 									<HoverCard>
 										<HoverCardTrigger asChild className='mb-0'>
 											<h2 className='text-white'>
 												<button className='lg:break-keep lg:w-full truncate w-40'>
-													{adatlap.Name}
+													{felmeres.name}
 												</button>
 											</h2>
 										</HoverCardTrigger>
@@ -533,125 +532,103 @@ export default function ClientPage({
 									</div>
 								</div>
 							</div>
-							{selectedSection === "Tételek" || isAll ? (
-								<CardHeader className='pt-2 lg:pt-6 lg:p-6 p-0'>
-									<div className='flex gap-5 flex-row items-center justify-between w-full flex-wrap lg:p-0 p-4 pt-6 lg:pt-0'>
-										<div className='flex w-full lg:w-1/4 lg:justify-normal justify-between h-5 items-center space-x-4 lg:text-md lg:font-medium text-sm'>
-											<div>{adatlap.Felmero2 ?? ""}</div>
-											{felmeres.type ? (
-												<>
-													<Separator orientation='vertical' />
-													<div>{felmeres.type}</div>
-												</>
-											) : null}
-										</div>
-									</div>
-								</CardHeader>
-							) : null}
-							<Separator className='mb-4' />
+
 							<CardContent>
-								{isAll
-									? sections.map((section, index) => {
-											if (index === 0) {
-												return section.component;
-											}
-											if (section.subSections && section.subSections.length === 0) return;
-											return (
-												<>
-													<Separator className='my-5' />
-													<div key={index} className=''>
-														<Heading
-															id={section.id.toString()}
-															variant='h3'
-															border={false}
-															marginY='my-5'
-															title={section.title}
-														/>
-														{section.component}
-													</div>
-													{section.subSections
-														?.sort(
-															(a, b) => Number(a.id === "Fix") - Number(b.id === "Fix")
-														)
-														.map((subSection) => {
-															return (
-																<div key={subSection.id}>
-																	<Heading
-																		id={subSection.id.toString()}
-																		variant='h5'
-																		border={false}
-																		marginY='my-5 font-medium text-left ml-0 pl-0 w-full'
-																		title={subSection.title}
-																	/>
-																	{subSection.component}
-																</div>
-															);
-														})}
-												</>
-											);
-									  })
-									: sections
-											.map((section) =>
-												[...(section.subSections ?? []), section].find(
-													(section) => section?.id === selectedSection
+								<FelmeresContext.Provider value={{ setTotal }}>
+									{isAll
+										? sections.map((section, index) => {
+												if (index === 0) {
+													return section.component;
+												}
+												if (section.subSections && section.subSections.length === 0) return;
+												return (
+													<>
+														<Separator className='my-5' />
+														<div key={index} className=''>
+															<Heading
+																id={section.id.toString()}
+																variant='h3'
+																border={false}
+																marginY='my-5'
+																title={section.title}
+															/>
+															{section.component}
+														</div>
+														{section.subSections
+															?.sort(
+																(a, b) =>
+																	Number(a.id === "Fix") - Number(b.id === "Fix")
+															)
+															.map((subSection) => {
+																return (
+																	<div key={subSection.id}>
+																		<Heading
+																			id={subSection.id.toString()}
+																			variant='h5'
+																			border={false}
+																			marginY='my-5 font-medium text-left ml-0 pl-0 w-full'
+																			title={subSection.title}
+																		/>
+																		{subSection.component}
+																	</div>
+																);
+															})}
+													</>
+												);
+										  })
+										: sections
+												.map((section) =>
+													[...(section.subSections ?? []), section].find(
+														(section) => section?.id === selectedSection
+													)
 												)
-											)
-											.filter((section) => section !== undefined)[0]?.component}
+												.filter((section) => section !== undefined)[0]?.component}
+								</FelmeresContext.Provider>
 							</CardContent>
 						</Card>
 					</div>
 				</div>
 				{deviceSize !== "sm" ? (
-					<div className='w-full lg:w-3/12 flex justify-center lg:justify-normal lg:items-start items-center lg:px-0 px-3 mt-6'>
-						<div className='w-full sticky top-8 '>
-							<div className='relative'>
-								<Sections
-									options={sections
-										.map((section) => ({
-											label: section.label ?? section.title,
-											value: section.id,
-											subOptions: section.subSections?.map((sub) => ({
-												label: sub.label ?? sub.title,
-												value: sub.id,
-											})),
-											onClick: section.onClick,
-										}))
-										.filter((section) =>
-											section.subOptions ? section.subOptions.length > 0 : true
-										)}
-									href={(value) => `/${felmeresId}#${isAll ? value : ""}`}
-									selected={selectedSection}
-									setSelected={
-										setSelectedSection as React.Dispatch<React.SetStateAction<string | number>>
-									}
-									filter={filter}
-									setFilter={setFilter}
-								/>
-								{isLoading ? (
-									<div className='absolute top-1/3 left-1/2 h-10 w-10'>
-										<Spinner color='blue-gray' className='w-10 h-10 relative right-4' />
-									</div>
-								) : (
-									<div></div>
-								)}
+					<AdatalapInfoCard
+						datas={{
+							accepted:
+								felmeres.offer_status === "Elfogadott ajánlat" ||
+								felmeres.offer_status == "Sikeres megrendelés"
+									? "Igen"
+									: "Nem",
+							contactName: adatlap.Name,
+							status: statusMap[felmeres.status].name,
+							rendszer: felmeres.type,
+							total: hufFormatter.format(total),
+							adatlapId: felmeres.adatlap_id,
+							felmero: adatlap.Felmero2,
+						}}>
+						<Sections
+							options={sections
+								.map((section) => ({
+									label: section.label ?? section.title,
+									value: section.id,
+									subOptions: section.subSections?.map((sub) => ({
+										label: sub.label ?? sub.title,
+										value: sub.id,
+									})),
+									onClick: section.onClick,
+								}))
+								.filter((section) => (section.subOptions ? section.subOptions.length > 0 : true))}
+							href={(value) => `/${felmeresId}#${isAll ? value : ""}`}
+							selected={selectedSection}
+							setSelected={setSelectedSection as React.Dispatch<React.SetStateAction<string | number>>}
+							filter={filter}
+							setFilter={setFilter}
+						/>
+						{isLoading ? (
+							<div className='absolute top-1/3 left-1/2 h-10 w-10'>
+								<Spinner color='blue-gray' className='w-10 h-10 relative right-4' />
 							</div>
-							<div className='flex flex-row w-full justify-between bg-white my-5 p-2 px-4 border rounded-md items-center'>
-								<Typography className={`${isLoading ? "text-gray-600" : ""}`} variant='h6'>
-									Minden
-								</Typography>
-								<Checkbox
-									checked={isAll}
-									disabled={isLoading}
-									onCheckedChange={() => {
-										setIsAll(!isAll);
-										isAll
-											? setSelectedSection("")
-											: setSelectedSection(isAll ? sections[0].id : "");
-									}}
-								/>
-							</div>
-						</div>
-					</div>
+						) : (
+							<div></div>
+						)}
+					</AdatalapInfoCard>
 				) : (
 					<div className='bg-white sm:border-t-0 border-t bottom-0 fixed z-40 w-full pt-2'>
 						<Tabs

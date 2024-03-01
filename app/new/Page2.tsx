@@ -4,7 +4,7 @@ import { Typography } from "@material-tailwind/react";
 import React from "react";
 const AutoComplete = dynamic(() => import("@/app/_components/AutoComplete"));
 import { Product } from "@/app/products/page";
-import { isJSONParsable } from "../[id]/_clientPage";
+import { FelmeresContext, isJSONParsable } from "../[id]/_clientPage";
 import { MinusCircleIcon, PlusCircleIcon } from "@heroicons/react/20/solid";
 import Counter from "@/app/_components/Counter";
 import { ProductAttributes } from "@/app/products/_clientPage";
@@ -323,6 +323,14 @@ export function Page2({
 			setFelmeres((prev) => ({ ...prev, hourly_wage: parseFloat(settings["Óradíj"] ?? "0") }));
 		}
 	}, [settings]);
+	const { setTotal } = React.useContext(FelmeresContext);
+	React.useEffect(() => {
+		setTotal(
+			otherItemsNetTotal * 1.27 +
+				netTotal() * 1.27 -
+				((otherItemsNetTotal * 1.27 + netTotal() * 1.27) * discount) / 100
+		);
+	}, [otherItemsNetTotal, discount, netTotal]);
 	return (
 		<>
 			{openTemplateDialog ? (

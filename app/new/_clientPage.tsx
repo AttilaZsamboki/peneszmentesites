@@ -49,6 +49,7 @@ import { Munkadíj } from "../munkadij/page";
 import { Select, SelectValue, SelectContent, SelectGroup, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 
 export interface ProductTemplate {
 	product: number;
@@ -73,6 +74,7 @@ export interface BaseFelmeresData {
 	is_conditional: boolean;
 	condition: string;
 	detailedOffer: boolean;
+	name: string;
 }
 
 export type ItemType = "Item" | "Fee" | "Discount" | "Other Material";
@@ -170,6 +172,7 @@ export default function Page({
 					is_conditional: false,
 					condition: "",
 					detailedOffer: false,
+					name: "",
 			  }
 	);
 	const [items, setItems] = React.useState<FelmeresItem[]>(
@@ -1381,6 +1384,9 @@ function Page1({
 	const createQueryString = useCreateQueryString(useSearchParams());
 	return (
 		<div className='flex flex-col items-center gap-5'>
+			<QuestionTemplate title='Felmérés neve'>
+				<Input value={felmeres.name} onChange={(e) => setFelmeres({ ...felmeres, name: e.target.value })} />
+			</QuestionTemplate>
 			<QuestionTemplate title='Adatlap'>
 				<AutoComplete
 					inputWidth='250px'
