@@ -594,7 +594,8 @@ export default function Page({
 				felmeres.subject,
 				template?.name,
 				felmeresResponseData.id,
-				felmeres.description
+				felmeres.description,
+				{ ReszletesAjanlatotKert: felmeres.detailedOffer ? "Igen" : "Nem" }
 			);
 			updateStatus(2035);
 			const createXmlString = performance.now();
