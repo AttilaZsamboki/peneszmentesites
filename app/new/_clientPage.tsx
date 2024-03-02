@@ -73,7 +73,7 @@ export interface BaseFelmeresData {
 	hourly_wage: number;
 	is_conditional: boolean;
 	condition: string;
-	detailed_offer: boolean;
+	is_detailed_offer: boolean;
 }
 
 export type ItemType = "Item" | "Fee" | "Discount" | "Other Material";
@@ -171,7 +171,7 @@ export default function Page({
 					hourly_wage: 0,
 					is_conditional: false,
 					condition: "",
-					detailed_offer: false,
+					is_detailed_offer: false,
 			  }
 	);
 	const [items, setItems] = useLocalStorageStateObject<FelmeresItem[]>(
@@ -595,7 +595,7 @@ export default function Page({
 				template?.name,
 				felmeresResponseData.id,
 				felmeres.description,
-				{ ReszletesAjanlatotKert: felmeres.detailed_offer ? "Igen" : "Nem" }
+				{ ReszletesAjanlatotKert: felmeres.is_detailed_offer ? "Igen" : "Nem" }
 			);
 			updateStatus(2035);
 			const createXmlString = performance.now();

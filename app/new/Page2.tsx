@@ -575,9 +575,13 @@ export function Page2({
 							<Checkbox
 								onClick={() =>
 									setFelmeres
-										? setFelmeres((prev) => ({ ...prev, detailed_offer: !prev.detailed_offer }))
+										? setFelmeres((prev) => ({
+												...prev,
+												is_detailed_offer: !prev.is_detailed_offer,
+										  }))
 										: null
 								}
+								checked={felmeres.is_detailed_offer}
 								id='detailed-offer'
 								className='order-last lg:order-first'
 							/>
