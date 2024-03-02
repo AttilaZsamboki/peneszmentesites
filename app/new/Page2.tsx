@@ -575,7 +575,7 @@ export function Page2({
 							<Checkbox
 								onClick={() =>
 									setFelmeres
-										? setFelmeres((prev) => ({ ...prev, detailedOffer: !prev.detailedOffer }))
+										? setFelmeres((prev) => ({ ...prev, detailed_offer: !prev.detailed_offer }))
 										: null
 								}
 								id='detailed-offer'
