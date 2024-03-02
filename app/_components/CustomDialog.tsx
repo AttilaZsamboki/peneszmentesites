@@ -13,6 +13,7 @@ export default function CustomDialog({
 	onCancel,
 	onDelete,
 	disabledSubmit,
+	allowDelete = true,
 }: {
 	open: boolean;
 	handler: () => void;
@@ -22,13 +23,14 @@ export default function CustomDialog({
 	onCancel?: () => void;
 	onDelete?: () => void;
 	disabledSubmit?: boolean;
+	allowDelete?: boolean;
 }) {
 	return (
 		<Dialog open={open} onOpenChange={handler}>
 			<DialogContent className='lg:max-w-[35dvw] max-w-[95dvw]'>
 				<DialogHeader className='flex flex-row justify-between w-full items-center'>
 					<DialogTitle>{title}</DialogTitle>
-					{onDelete ? (
+					{onDelete && allowDelete ? (
 						<button onClick={onDelete} className='pr-4'>
 							<TrashIcon className='w-7 h-7 text-red-700' />
 						</button>

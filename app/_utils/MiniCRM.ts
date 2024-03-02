@@ -213,7 +213,7 @@ export async function assembleOfferXML(
                     <!-- Name of Customer [required string] -->
                     <Name>${contactData.LastName} ${contactData.FirstName}</Name>
                     <!-- Country of customer [required string] -->
-                    <CountryId>${adatlap.Orszag}</CountryId>
+                    <CountryId>${adatlap.Orszag ?? "Magyarország"}</CountryId>
                     <!-- Postalcode of customer [required string] -->
                     <PostalCode>${adatlap.Iranyitoszam}</PostalCode>
                     <!-- City of customer [required string] -->

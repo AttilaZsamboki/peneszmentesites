@@ -23,7 +23,31 @@ import { FelmeresStatus, statusMap } from "@/app/_utils/utils";
 import { toast } from "@/components/ui/use-toast";
 import useBreakpointValue from "../_components/useBreakpoint";
 import { Separator } from "@/components/ui/separator";
-import { CalendarDays, Check, Download, FileEdit, IterationCw, Lock, Trash2, X } from "lucide-react";
+import {
+	CalendarDays,
+	Download,
+	FileEdit,
+	IterationCw,
+	Lock,
+	MoreVerticalIcon,
+	Cloud,
+	CreditCard,
+	Github,
+	Keyboard,
+	LifeBuoy,
+	LogOut,
+	Mail,
+	MessageSquare,
+	Plus,
+	PlusCircle,
+	Settings,
+	User,
+	UserPlus,
+	Users,
+	Trash2,
+	Trash2Icon,
+	Copy,
+} from "lucide-react";
 import Link from "next/link";
 import { Page2 } from "../new/Page2";
 import _ from "lodash";
@@ -36,7 +60,15 @@ import { Badge } from "@/components/ui/badge";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuGroup,
 	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuPortal,
+	DropdownMenuSeparator,
+	DropdownMenuShortcut,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn, getCookie, useUserWithRole } from "@/lib/utils";
@@ -302,6 +334,8 @@ export default function ClientPage({
 
 	const [filter, setFilter] = React.useState("");
 	const [isLoading, setIsLoading] = React.useState(true);
+	const [openDeleteDialog, setOpenDeleteDialog] = React.useState(false);
+	const [openCopyDialog, setOpenCopyDialog] = React.useState(false);
 
 	const deviceSize = useBreakpointValue();
 
@@ -342,13 +376,6 @@ export default function ClientPage({
 			await fetch("/api/revalidate?tag=" + felmeresId);
 			await fetch("/api/revalidate?path=/");
 		}
-	};
-	const handleChangeEditing = () => {
-		setIsEditing((prev) => !prev);
-	};
-	const handleDiscardChanges = () => {
-		setIsEditing(false);
-		setFilteredData(originalData);
 	};
 	const handleSaveChanges = async () => {
 		if (
@@ -491,63 +518,92 @@ export default function ClientPage({
 											) : null}
 										</DropdownMenu>
 
-										{isEditing ? (
-											<>
-												<div className='w-full lg:w-fit flex lg:flex-none flex-row items-center gap-4'>
-													<Button
-														color='green'
-														size='icon'
-														className='lg:w-10 w-1/2 shadow-md'
-														onClick={handleSaveChanges}>
-														<Check className='h-6 w-6' />
-													</Button>
-													<Button
-														variant='destructive'
-														size='icon'
-														className='lg:w-10 w-1/2 shadow-md'
-														onClick={handleDiscardChanges}>
-														<X className='h-6 w-6' />
-													</Button>
-												</div>
-											</>
-										) : selectedSection === "Tételek" || isAll ? (
-											<EditButton
-												href={`/${felmeresId}/edit`}
-												disabled={
-													felmeresStatus === "CANCELLED" ||
-													felmeres.offer_status === "Elfogadott ajánlat" ||
-													felmeres.offer_status == "Sikeres megrendelés"
-												}
-												disabledText='Már el lett fogadva az ajánlat, nem lehet a tételeket változtatni'
-											/>
-										) : (
-											<EditButton onClick={handleChangeEditing} />
-										)}
-										{user?.role === "Admin" ? (
-											<AlertDialog>
-												<AlertDialogTrigger asChild>
-													<Button variant='destructive' size='icon' className='shadow-md'>
-														<Trash2 />
-													</Button>
-												</AlertDialogTrigger>
-												<AlertDialogContent>
-													<AlertDialogHeader>
-														<AlertDialogTitle>
-															Biztos hogy törölni akarod a felmérést?
-														</AlertDialogTitle>
-														<AlertDialogDescription>
-															Ez a művelet nem visszavonható.
-														</AlertDialogDescription>
-													</AlertDialogHeader>
-													<AlertDialogFooter>
-														<AlertDialogAction onClick={handleDelete}>
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
+												<MoreVerticalIcon />
+											</DropdownMenuTrigger>
+											<DropdownMenuContent className='w-56'>
+												<DropdownMenuGroup>
+													<DropdownMenuItem
+														disabled={
+															felmeresStatus === "CANCELLED" ||
+															felmeres.offer_status === "Elfogadott ajánlat" ||
+															felmeres.offer_status == "Sikeres megrendelés"
+														}>
+														<Link
+															href={`/${felmeresId}/edit`}
+															className='flex flex-row items-center w-full'>
+															<FileEdit className='mr-2 h-4 w-4' />
+															Módosítás
+														</Link>
+													</DropdownMenuItem>
+
+													<DropdownMenuItem onClick={() => setOpenCopyDialog(true)}>
+														<Copy className='mr-2 h-4 w-4' />
+														<span>Másolás</span>
+													</DropdownMenuItem>
+													{user?.role === "Admin" ? (
+														<DropdownMenuItem onClick={() => setOpenDeleteDialog(true)}>
+															<Trash2Icon className='text-red-700 mr-2 h-4 w-4' />
 															Törlés
-														</AlertDialogAction>
-														<AlertDialogCancel>Mégse</AlertDialogCancel>
-													</AlertDialogFooter>
-												</AlertDialogContent>
-											</AlertDialog>
-										) : null}
+														</DropdownMenuItem>
+													) : null}
+												</DropdownMenuGroup>
+											</DropdownMenuContent>
+										</DropdownMenu>
+										<AlertDialog
+											open={openDeleteDialog}
+											onOpenChange={() => setOpenDeleteDialog((prev) => !prev)}>
+											<AlertDialogContent>
+												<AlertDialogHeader>
+													<AlertDialogTitle>
+														Biztos hogy törölni akarod a felmérést?
+													</AlertDialogTitle>
+													<AlertDialogDescription>
+														Ez a művelet nem visszavonható.
+													</AlertDialogDescription>
+												</AlertDialogHeader>
+												<AlertDialogFooter>
+													<AlertDialogAction onClick={handleDelete}>Törlés</AlertDialogAction>
+													<AlertDialogCancel>Mégse</AlertDialogCancel>
+												</AlertDialogFooter>
+											</AlertDialogContent>
+										</AlertDialog>
+										<AlertDialog
+											open={openCopyDialog}
+											onOpenChange={() => setOpenCopyDialog((prev) => !prev)}>
+											<AlertDialogContent>
+												<AlertDialogHeader>
+													<AlertDialogTitle>
+														Biztos másolni szeretnéd a felmérést?
+													</AlertDialogTitle>
+												</AlertDialogHeader>
+												<AlertDialogFooter>
+													<AlertDialogCancel>Mégsem</AlertDialogCancel>
+													<AlertDialogAction
+														onClick={async () => {
+															const response = await fetch(
+																`https://pen.dataupload.xyz/${felmeresId}/copy-felmeres/`,
+																{ method: "POST" }
+															);
+															if (response.ok) {
+																const data = await response.json();
+																await fetch("/api/revalidate?tag=felmeresek");
+																window.location.href = `/${data.id}`;
+															} else {
+																toast({
+																	title: "Hiba",
+																	description: "Hiba történt a másolás során",
+																	variant: "destructive",
+																});
+															}
+															setOpenCopyDialog(false);
+														}}>
+														Igen
+													</AlertDialogAction>
+												</AlertDialogFooter>
+											</AlertDialogContent>
+										</AlertDialog>
 									</div>
 								</div>
 							</div>
@@ -697,54 +753,6 @@ export default function ClientPage({
 					</div>
 				)}
 			</div>
-		</div>
-	);
-}
-
-function EditButton({
-	onClick,
-	href,
-	disabled,
-	disabledText,
-}: {
-	onClick?: () => void;
-	href?: string;
-	disabled?: boolean;
-	disabledText?: string;
-}) {
-	if (disabled) {
-		return (
-			<TooltipProvider>
-				<Tooltip>
-					<TooltipTrigger asChild>
-						<div className='w-1/3 lg:w-fit lg:flex-none flex flex-row items-center gap-4'>
-							<Button className='flex flex-row items-center w-full shadow-md' onClick={onClick} disabled>
-								<Lock />
-							</Button>
-						</div>
-					</TooltipTrigger>
-					<TooltipContent>
-						<p>{disabledText}</p>
-					</TooltipContent>
-				</Tooltip>
-			</TooltipProvider>
-		);
-	} else if (href) {
-		return (
-			<div className='w-1/3 lg:w-fit lg:flex-none flex flex-row items-center gap-4'>
-				<Link href={href} className='flex flex-row items-center w-full'>
-					<Button className='flex flex-row items-center w-full shadow-md' onClick={onClick}>
-						<FileEdit />
-					</Button>
-				</Link>
-			</div>
-		);
-	}
-	return (
-		<div className='w-1/3 lg:w-fit lg:flex-none flex flex-row items-center gap-4'>
-			<Button className='flex flex-row items-center w-full shadow-md' onClick={onClick}>
-				<FileEdit />
-			</Button>
 		</div>
 	);
 }

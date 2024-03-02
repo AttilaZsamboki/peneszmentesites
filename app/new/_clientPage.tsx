@@ -29,7 +29,7 @@ import { QuestionPage } from "../../components/QuestionPage";
 import { TooltipTrigger, Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 import Link from "next/link";
 import { FelmeresStatus, statusMap, useCreateQueryString } from "../_utils/utils";
-import { calculatePercentageValue, cn, getCookie } from "@/lib/utils";
+import { calculatePercentageValue, cn, getCookie, useLocalStorageStateObject } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import {
 	AlertDialog,
@@ -73,6 +73,7 @@ export interface BaseFelmeresData {
 	hourly_wage: number;
 	is_conditional: boolean;
 	condition: string;
+	detailedOffer: boolean;
 }
 
 export type ItemType = "Item" | "Fee" | "Discount" | "Other Material";
@@ -152,7 +153,8 @@ export default function Page({
 	const { setProgress } = useGlobalState();
 	const { user } = useUser();
 	const searchParams = useSearchParams();
-	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>(
+	const [felmeres, setFelmeres] = useLocalStorageStateObject<BaseFelmeresData>(
+		"felmeres",
 		editFelmeres
 			? editFelmeres
 			: {
@@ -169,15 +171,18 @@ export default function Page({
 					hourly_wage: 0,
 					is_conditional: false,
 					condition: "",
+					detailedOffer: false,
 			  }
 	);
-	const [items, setItems] = React.useState<FelmeresItem[]>(
+	const [items, setItems] = useLocalStorageStateObject<FelmeresItem[]>(
+		"felmeres-item",
 		editFelmeresItems
 			? editFelmeresItems.filter((item) => item.type === "Item" || item.type === "Other Material")
 			: []
 	);
 	const router = useRouter();
-	const [data, setData] = React.useState<FelmeresQuestion[]>(
+	const [data, setData] = useLocalStorageStateObject<FelmeresQuestion[]>(
+		"felmeres-data",
 		editData
 			? editData.map((field) => ({
 					...field,
@@ -185,8 +190,9 @@ export default function Page({
 			  }))
 			: []
 	);
-	const [questions, setQuestions] = React.useState<Question[]>([]);
-	const [otherItems, setOtherItems] = React.useState<OtherFelmeresItem[]>(
+	const [questions, setQuestions] = useLocalStorageStateObject<Question[]>("felmeres-questions", []);
+	const [otherItems, setOtherItems] = useLocalStorageStateObject<OtherFelmeresItem[]>(
+		"felmeres-other-items",
 		editFelmeresItems
 			? editFelmeresItems
 					.filter((item) => item.type === "Fee")
@@ -205,19 +211,23 @@ export default function Page({
 					},
 			  ]
 	);
-	const [discount, setDiscount] = React.useState(
+	const [discount, setDiscount] = useLocalStorageStateObject(
+		"felmeres-discount",
 		editFelmeresItems
 			? editFelmeresItems.find((item) => item.type === "Discount")
 				? editFelmeresItems.find((item) => item.type === "Discount")!.netPrice
 				: 0
 			: 0
 	);
-	const [pictures, setPictures] = React.useState<FelmeresPictures[]>(editPictures ?? []);
+	const [pictures, setPictures] = useLocalStorageStateObject<FelmeresPictures[]>(
+		"felmeres-pictures",
+		editPictures ?? []
+	);
 	const [openPageDialog, setOpenPageDialog] = React.useState(false);
-	const [felmeresMunkadíjak, setFelmeresMunkadíjak] = React.useState<FelmeresMunkadíj[]>(
+	const [felmeresMunkadíjak, setFelmeresMunkadíjak] = useLocalStorageStateObject<FelmeresMunkadíj[]>(
+		"felmeres-munkadij",
 		editFelmeresMunkadíjak ?? []
 	);
-	const [detailedOffer, setDetailedOffer] = React.useState(false);
 
 	const createType = (
 		sendOffer?: boolean
@@ -323,6 +333,7 @@ export default function Page({
 	const template = templates.find((template) => template.id === felmeres.template);
 
 	const CreateFelmeres = async (sendOffer: boolean = true) => {
+		localStorage.clear();
 		setOpenPageDialog(false);
 		const createType2 = createType(sendOffer);
 		const start = performance.now();
@@ -583,8 +594,7 @@ export default function Page({
 				felmeres.subject,
 				template?.name,
 				felmeresResponseData.id,
-				felmeres.description,
-				{ ReszletesAjanlatotKert: detailedOffer ? "Igen" : "" }
+				felmeres.description
 			);
 			updateStatus(2035);
 			const createXmlString = performance.now();
@@ -767,7 +777,6 @@ export default function Page({
 					{
 						component: (
 							<Page2
-								setDetailedOffer={setDetailedOffer}
 								felmeresMunkadíjak={felmeresMunkadíjak}
 								setFelmeresMunkadíjak={setFelmeresMunkadíjak}
 								originalMunkadíjak={munkadíjak}
