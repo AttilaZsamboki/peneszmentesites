@@ -55,7 +55,7 @@ export function Kanban({ data }: { data: Pagination<AdatlapData> }) {
 
 	if (deviceSize === "sm") {
 		return (
-			<Swiper className='py-3 px-4 bg-gray-100'>
+			<Swiper className='py-3 px-4 bg-gray-100 w-full h-full'>
 				{cols.map((col) => {
 					const colData = data.results.filter((adatlap) => adatlap.Statusz === col.title);
 					return (
