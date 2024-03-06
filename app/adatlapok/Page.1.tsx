@@ -636,7 +636,7 @@ export function AdatlapDialog({
 					</ResizablePanelGroup>
 				</DialogHeader>
 				<div className='flex flex-col lg:p-0 p-2'>
-					<ButtonBar adatlap={adatlap} btnClassName='lg:w-full w-none h-10' phone />
+					<ButtonBar adatlap={adatlap} contact={contact} btnClassName='lg:w-full w-none h-10' phone />
 					<div className='flex flex-col prose px-2 pt-6 '>
 						<h1 className='text-xl'>{adatlap.Name}</h1>
 						<div className='flex flex-col gap-5 prose-sm'>
@@ -647,15 +647,15 @@ export function AdatlapDialog({
 								</div>
 								<div className='flex flex-row'>
 									<div className='font-bold pr-1'>Tel:</div>
-									<div>{contact?.Phone}</div>
+									<div>
+										<a href={`tel:${contact?.Phone}`}>{contact?.Phone}</a>
+									</div>
 								</div>
 								{adatlap.RendelesSzama ? (
 									<div className='flex flex-col'>
 										<div className='flex flex-row'>
 											<div className='font-bold pr-1'>Rendelés:</div>
-											<div>
-												<a href={`tel:${contact?.Phone}`}>{contact?.Phone}</a>
-											</div>
+											<div>{adatlap.RendelesSzama}</div>
 										</div>
 									</div>
 								) : null}
@@ -721,6 +721,7 @@ export function AdatlapDialog({
 				},
 			}).then((res) => res.json())
 		);
+
 		if (!data || !open) return null;
 		return (
 			<Link
