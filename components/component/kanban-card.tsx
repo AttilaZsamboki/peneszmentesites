@@ -2,7 +2,7 @@
 import { hufFormatter } from "@/app/[id]/_clientPage";
 import { AdatlapData } from "@/app/_utils/types";
 import { Button } from "@/components/ui/button";
-import { Calendar, HardHat, Home, Phone, QrCode, Ruler } from "lucide-react";
+import { Calendar, HardHat, Home, Map, Navigation, Phone, QrCode, Ruler } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { Badge } from "../ui/badge";
 import { Badge as BadgeMaterial } from "@material-tailwind/react";
@@ -11,7 +11,15 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { AdatlapDialog } from "@/app/adatlapok/Page.1";
 import React from "react";
-import { BaseFelmeresData } from "@/app/new/_clientPage";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuGroup,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 export function ButtonBar({
 	adatlap,
@@ -97,18 +105,42 @@ export function ButtonBar({
 	function NavButton() {
 		if (adatlap.Statusz === "Ajánlat kiküldve" || adatlap.Statusz === "Elszámolásra vár") return;
 		return (
-			<Button
-				variant={"outline"}
-				onClick={() => {
-					window.open(
-						`https://www.google.com/maps/dir/${encodeURIComponent(
-							"Budapest, Nagytétényi út 218-220, 1225"
-						)}/${encodeURIComponent(concatAddress(adatlap))}`
-					);
-				}}
-				className={cn("border-blue-600 hover:border-blue-700 text-blue-600 hover:text-blue-700", btnClassName)}>
-				Navigáció
-			</Button>
+			<DropdownMenu>
+				<DropdownMenuTrigger>
+					<Button
+						variant={"outline"}
+						className={cn(
+							"border-blue-600 hover:border-blue-700 text-blue-600 hover:text-blue-700",
+							btnClassName
+						)}>
+						Navigáció
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent>
+					<DropdownMenuLabel>Opciók</DropdownMenuLabel>
+					<DropdownMenuSeparator />
+					<DropdownMenuGroup>
+						<DropdownMenuItem
+							onClick={() => {
+								window.open(
+									`https://www.google.com/maps/dir/${encodeURIComponent(
+										"Budapest, Nagytétényi út 218-220, 1225"
+									)}/${encodeURIComponent(concatAddress(adatlap))}`
+								);
+							}}>
+							<Map className='mr-2 h-4 w-4' />
+							<span>Google Maps</span>
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							onClick={() => {
+								window.open(`https://www.waze.com/ul?q=${concatAddress(adatlap)}&navigate=yes`);
+							}}>
+							<Navigation className='mr-2 h-4 w-4' />
+							<span>Waze</span>
+						</DropdownMenuItem>
+					</DropdownMenuGroup>
+				</DropdownMenuContent>
+			</DropdownMenu>
 		);
 	}
 }
