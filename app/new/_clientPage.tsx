@@ -429,7 +429,6 @@ export default function Page({
 					...item,
 					adatlap: felmeresResponseData.id,
 					netPrice: item.netPrice,
-					// ez annyit jelent hogy ha null az id akkor létrehozza újra az adatbázisban egyébként frissíti a meglévő tételeket
 					id: createType2.FELMERES === "UPDATE" && item.id && !createType2.CANCEL_OLD_OFFER ? item.id : null,
 				}))
 			),
@@ -704,11 +703,7 @@ export default function Page({
 	const submitItems = [
 		...items,
 		...otherItems.map((item) => ({
-			id: editFelmeresItems
-				? editFelmeresItems.find((item2) => item2.name === item.name)
-					? editFelmeresItems.find((item2) => item2.name === item.name)!.id
-					: null
-				: null,
+			id: item.id ?? null,
 			name: item.name,
 			place: false,
 			placeOptions: [],

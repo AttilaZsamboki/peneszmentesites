@@ -1045,6 +1045,7 @@ export function Page2({
 														disabled={!newOtherItem?.name || !newOtherItem?.type}
 														onClick={() => {
 															if (!setOtherItems) return;
+
 															setOtherItems((prev) => [
 																...prev,
 																{
