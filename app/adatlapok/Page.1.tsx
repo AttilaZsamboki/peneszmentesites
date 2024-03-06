@@ -703,7 +703,7 @@ export function AdatlapDialog({
 					<div className='flex flex-col px-5 gap-2 py-3'>
 						{felmeresek.map((felmeres) => {
 							if (!open) return;
-							return <Card felmeres={felmeres} />;
+							return <Card key={felmeres.id} felmeres={felmeres} />;
 						})}
 					</div>
 				</div>
