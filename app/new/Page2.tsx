@@ -663,17 +663,19 @@ export function Page2({
 								<span>{hufFormatter.format(munkadíjNetTotal)}</span>
 								<span className='text-xs font-bold'>
 									(
-									{felmeresMunkadíjak
-										.map((fmd) => {
-											const md = munkadíjak.find((md) => md.id === fmd.munkadij);
-											if (md) {
-												if (md.value_type === "hour") {
-													return (fmd.value / felmeres.hourly_wage) * fmd.amount;
+									{Math.floor(
+										felmeresMunkadíjak
+											.map((fmd) => {
+												const md = munkadíjak.find((md) => md.id === fmd.munkadij);
+												if (md) {
+													if (md.value_type === "hour") {
+														return (fmd.value / felmeres.hourly_wage) * fmd.amount;
+													}
 												}
-											}
-											return 0;
-										})
-										.reduce((a, b) => a + b, 0)}{" "}
+												return 0;
+											})
+											.reduce((a, b) => a + b, 0) * 10
+									) / 10}{" "}
 									óra)
 								</span>
 							</div>

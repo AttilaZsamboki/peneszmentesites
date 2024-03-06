@@ -34,7 +34,6 @@ import { AdatlapData, AdatlapStatusz, Salesmen } from "../_utils/types";
 import { isValidDate, statusMap, useCreateQueryString } from "../_utils/utils";
 import { Pagination } from "../page";
 import { Filter } from "../products/page";
-import Cookies from "js-cookie";
 
 function Body({ data }: { data: Pagination<AdatlapData> }) {
 	const searchParams = useSearchParams();
@@ -524,6 +523,7 @@ import { hufFormatter } from "../[id]/_clientPage";
 import { ContactDetails, concatAddress, fetchContactDetails } from "../_utils/MiniCRM";
 import MapComponent from "../../components/map";
 import useBreakpointValue from "../_components/useBreakpoint";
+import { Tab, Tabs, TabsHeader } from "@material-tailwind/react";
 import { BaseFelmeresData } from "../new/_clientPage";
 
 export const AdatlapokV2Context = React.createContext<{
@@ -636,7 +636,7 @@ export function AdatlapDialog({
 					</ResizablePanelGroup>
 				</DialogHeader>
 				<div className='flex flex-col lg:p-0 p-2'>
-					<ButtonBar adatlap={adatlap} btnClassName='lg:w-full w-none h-10' phone />
+					<ButtonBar adatlap={adatlap} btnClassName='lg:w-40 w-none h-10' />
 					<div className='flex flex-col prose px-2 pt-6 '>
 						<h1 className='text-xl'>{adatlap.Name}</h1>
 						<div className='flex flex-col gap-5 prose-sm'>
@@ -653,9 +653,7 @@ export function AdatlapDialog({
 									<div className='flex flex-col'>
 										<div className='flex flex-row'>
 											<div className='font-bold pr-1'>Rendelés:</div>
-											<div>
-												<a href={`tel:${contact?.Phone}`}>{contact?.Phone}</a>
-											</div>
+											<div>{adatlap.RendelesSzama}</div>
 										</div>
 									</div>
 								) : null}
@@ -701,10 +699,9 @@ export function AdatlapDialog({
 						<h2 className='text-lg font-bold'>Felmérések</h2>
 					</div>
 					<div className='flex flex-col px-5 gap-2 py-3'>
-						{felmeresek.map((felmeres) => {
-							if (!open) return;
-							return <Card felmeres={felmeres} />;
-						})}
+						{felmeresek.map((felmeres) => (
+							<Card felmeres={felmeres} />
+						))}
 					</div>
 				</div>
 			</DialogContent>
@@ -712,16 +709,6 @@ export function AdatlapDialog({
 	);
 	function Card({ felmeres }: { felmeres: BaseFelmeresData }) {
 		const status = statusMap[felmeres.status];
-		const { data } = useQuery<BaseFelmeresData>("felmeres-" + felmeres.id, () =>
-			fetch("https://pen.dataupload.xyz/felmeresek/" + felmeres.id, {
-				next: { tags: [encodeURIComponent(felmeres.id)], revalidate: 60 },
-				headers: {
-					"Content-Type": "application/json",
-					"Authorization": `Bearer ${Cookies.get("jwt")}`,
-				},
-			}).then((res) => res.json())
-		);
-		if (!data || !open) return null;
 		return (
 			<Link
 				href={"/" + felmeres.id}
@@ -751,7 +738,7 @@ export function AdatlapDialog({
 					</div>
 				</div>
 				<div className='hidden shrink-0 sm:flex sm:flex-col sm:items-end'>
-					<p className='text-sm leading-6 text-gray-900'>{hufFormatter.format(data.felmeres_total ?? 0)}</p>
+					<p className='text-sm leading-6 text-gray-900'>1 000Ft</p>
 					<p className='mt-1 text-xs leading-5 text-gray-500'>{felmeres.type}</p>
 				</div>
 			</Link>

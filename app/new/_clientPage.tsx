@@ -73,8 +73,9 @@ export interface BaseFelmeresData {
 	hourly_wage: number;
 	is_conditional: boolean;
 	condition: string;
-	detailedOffer: boolean;
+	is_detailed_offer: boolean;
 	name: string;
+	felmeres_total?: number;
 }
 
 export type ItemType = "Item" | "Fee" | "Discount" | "Other Material";
@@ -171,8 +172,9 @@ export default function Page({
 					hourly_wage: 0,
 					is_conditional: false,
 					condition: "",
-					detailedOffer: false,
+					is_detailed_offer: false,
 					name: "",
+					felmeres_total: 0,
 			  }
 	);
 	const [items, setItems] = React.useState<FelmeresItem[]>(
@@ -403,6 +405,7 @@ export default function Page({
 					body: JSON.stringify({
 						...felmeres,
 						status: createType2.CREATE_OFFER ? "IN_PROGRESS" : felmeres.status,
+						name: felmeres.name === "" ? adatlap?.Name : felmeres.name,
 					}),
 				});
 				await fetch("/api/revalidate?tag=" + editFelmeres!.id);
@@ -419,6 +422,7 @@ export default function Page({
 						...felmeres,
 						created_at: formattedDate,
 						status: sendOffer ? "IN_PROGRESS" : felmeres.status,
+						name: felmeres.name === "" ? adatlap?.Name : felmeres.name,
 					}),
 				});
 				if (resp.ok) {

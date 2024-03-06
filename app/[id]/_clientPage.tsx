@@ -53,6 +53,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Munkadíj } from "../munkadij/page";
 import { AdatalapInfoCard } from "@/components/component/adatalap-info-card";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 
 export function isJSONParsable(str: string) {
 	try {
@@ -373,11 +374,11 @@ export default function ClientPage({
 
 	return (
 		<div className='w-full overflow-y-scroll overflow-x-hidden lg:h-[98dvh] h-[92dvh]'>
-			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-0 lg:mt-2 lg:px-6 px-0 gap-6'>
-				<div className='w-full'>
+			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center'>
+				<div className='w-full border-r'>
 					<div className='mt-0 w-full'>
-						<Card className='lg:rounded-lg rounded-none border-0'>
-							<div className='py-3 flex gap-2 justify-between items-center pr-2 lg:pr-4 lg:rounded-t-lg rounded-t-none top-0 sticky z-40 pl-10 bg-blue-800 text-white border-blue-500  w-full backdrop-saturate-200 backdrop-blur-2xl bg-opacity-80 border-b border-white/80'>
+						<Card className='rounded-none border-0'>
+							<div className='py-3 flex gap-2 justify-between items-center pr-2 lg:pr-4 top-0 sticky z-40 pl-10 bg-blue-800 text-white border-blue-500  w-full backdrop-saturate-200 backdrop-blur-2xl bg-opacity-80 border-b border-white/80'>
 								<div className='prose prose-slate prose-img:m-0 prose-img:p-0'>
 									<HoverCard>
 										<HoverCardTrigger asChild className='mb-0'>
@@ -602,6 +603,7 @@ export default function ClientPage({
 							total: hufFormatter.format(total),
 							adatlapId: felmeres.adatlap_id,
 							felmero: adatlap.Felmero2,
+							is_detailed_offer: felmeres.is_detailed_offer ? "Igen" : "Nem",
 						}}>
 						<Sections
 							options={sections

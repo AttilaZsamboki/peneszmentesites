@@ -3,7 +3,7 @@
  * @see https://v0.dev/t/UTUL6YxATvy
  */
 import { CardContent, Card, CardHeader, CardTitle } from "@/components/ui/card";
-import { HardHat } from "lucide-react";
+import { HardHat, List, Receipt } from "lucide-react";
 import Link from "next/link";
 
 export function AdatalapInfoCard({
@@ -19,65 +19,75 @@ export function AdatalapInfoCard({
 		accepted: string;
 		adatlapId: number;
 		felmero: string;
+		is_detailed_offer: string;
 	};
 }) {
 	return (
-		<Card className='w-full max-w-sm sticky'>
+		<Card className='w-full border-none max-w-xs sticky rounded-none'>
 			<CardContent className='p-6 flex-col items-center space-y-4 sticky top-0'>
 				{children}
-				<CardHeader className='p-0 pb-2 pt-4'>
+				<CardHeader className='p-0 pb-2 pt-4 '>
 					<CardTitle>Adatok</CardTitle>
 				</CardHeader>
-				<div className='flex items-center space-x-4'>
-					<UserCircleIcon className='h-6 w-6' />
-					<div className='grid gap-0.5'>
-						<h3 className='text-sm font-medium tracking-wide'>Ügyfél</h3>
-						<p className='text-sm text-gray-500 dark:text-gray-400'>{datas.contactName}</p>
-					</div>
-				</div>
-				{datas.rendszer ? (
+				<div className='flex-col items-center space-y-4 sticky top-0 prose'>
 					<div className='flex items-center space-x-4'>
-						<LayoutTemplateIcon className='h-6 w-6' />
+						<UserCircleIcon className='h-6 w-6' />
 						<div className='grid gap-0.5'>
-							<h3 className='text-sm font-medium tracking-wide'>Rendszer típusa</h3>
-							<p className='text-sm text-gray-500 dark:text-gray-400'>{datas.rendszer}</p>
+							<div className='text-sm font-medium tracking-wide'>Ügyfél</div>
+							<div className='text-sm text-gray-500 dark:text-gray-400'>{datas.contactName}</div>
 						</div>
 					</div>
-				) : null}
-				<div className='flex items-center space-x-4'>
-					<UserCheckIcon className='h-6 w-6' />
-					<div className='grid gap-0.5'>
-						<h3 className='text-sm font-medium tracking-wide'>Státusz</h3>
-						<p className='text-sm text-gray-500 dark:text-gray-400'>{datas.status}</p>
+					{datas.rendszer ? (
+						<div className='flex items-center space-x-4'>
+							<LayoutTemplateIcon className='h-6 w-6' />
+							<div className='grid gap-0.5'>
+								<div className='text-sm font-medium tracking-wide'>Rendszer típusa</div>
+								<div className='text-sm text-gray-500 dark:text-gray-400'>{datas.rendszer}</div>
+							</div>
+						</div>
+					) : null}
+					<div className='flex items-center space-x-4'>
+						<UserCheckIcon className='h-6 w-6' />
+						<div className='grid gap-0.5'>
+							<div className='text-sm font-medium tracking-wide'>Státusz</div>
+							<div className='text-sm text-gray-500 dark:text-gray-400'>{datas.status}</div>
+						</div>
 					</div>
-				</div>
-				<div className='flex items-center space-x-4'>
-					<CurrencyIcon className='h-6 w-6' />
-					<div className='grid gap-0.5'>
-						<h3 className='text-sm font-medium tracking-wide'>Total</h3>
-						<p className='text-sm text-gray-500 dark:text-gray-400'>{datas.total}</p>
+					<div className='flex items-center space-x-4'>
+						<CurrencyIcon className='h-6 w-6' />
+						<div className='grid gap-0.5'>
+							<div className='text-sm font-medium tracking-wide'>Total</div>
+							<div className='text-sm text-gray-500 dark:text-gray-400'>{datas.total}</div>
+						</div>
 					</div>
-				</div>
-				<div className='flex items-center space-x-4'>
-					<CheckCircleIcon className='h-6 w-6' />
-					<div className='grid gap-0.5'>
-						<h3 className='text-sm font-medium tracking-wide'>Elfogadva</h3>
-						<p className='text-sm text-gray-500 dark:text-gray-400'>{datas.accepted}</p>
+					<div className='flex items-center space-x-4'>
+						<CheckCircleIcon className='h-6 w-6' />
+						<div className='grid gap-0.5'>
+							<div className='text-sm font-medium tracking-wide'>Elfogadva</div>
+							<div className='text-sm text-gray-500 dark:text-gray-400'>{datas.accepted}</div>
+						</div>
 					</div>
-				</div>
-				<div className='flex items-center space-x-4'>
-					<HardHat className='h-6 w-6' />
-					<div className='grid gap-0.5'>
-						<h3 className='text-sm font-medium tracking-wide'>Felmérő</h3>
-						<p className='text-sm text-gray-500 dark:text-gray-400'>{datas.felmero}</p>
+					<div className='flex items-center space-x-4'>
+						<HardHat className='h-6 w-6' />
+						<div className='grid gap-0.5'>
+							<div className='text-sm font-medium tracking-wide'>Felmérő</div>
+							<div className='text-sm text-gray-500 dark:text-gray-400'>{datas.felmero}</div>
+						</div>
 					</div>
-				</div>
-				<div className='items-center p-6 pt-0 flex justify-center'>
-					<Link
-						className='text-sm font-medium underline p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800'
-						href={"https://r3.minicrm.hu/119/#Project-23/" + datas.adatlapId}>
-						Adatlap megnyitása
-					</Link>
+					<div className='flex items-center space-x-4'>
+						<List className='h-6 w-6' />
+						<div className='grid gap-0.5'>
+							<div className='text-sm font-medium tracking-wide'>Részletes ajánlat</div>
+							<div className='text-sm text-gray-500 dark:text-gray-400'>{datas.is_detailed_offer}</div>
+						</div>
+					</div>
+					<div className='items-center p-6 pt-0 flex justify-center'>
+						<Link
+							className='text-sm font-medium underline p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800'
+							href={"https://r3.minicrm.hu/119/#Project-23/" + datas.adatlapId}>
+							Adatlap megnyitása
+						</Link>
+					</div>
 				</div>
 			</CardContent>
 		</Card>

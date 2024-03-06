@@ -2,35 +2,39 @@
 import { hufFormatter } from "@/app/[id]/_clientPage";
 import { AdatlapData } from "@/app/_utils/types";
 import { Button } from "@/components/ui/button";
-import { Calendar, HardHat, Home, QrCode, Ruler } from "lucide-react";
+import { Calendar, HardHat, Home, Phone, QrCode, Ruler } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { Badge } from "../ui/badge";
 import { Badge as BadgeMaterial } from "@material-tailwind/react";
 import { concatAddress } from "@/app/_utils/MiniCRM";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 import { AdatlapDialog } from "@/app/adatlapok/Page.1";
 import React from "react";
 
-export function ButtonBar({ adatlap, btnClassName }: { adatlap: AdatlapData; btnClassName?: string }) {
+export function ButtonBar({
+	adatlap,
+	btnClassName,
+	phone,
+}: {
+	adatlap: AdatlapData;
+	btnClassName?: string;
+	phone?: boolean;
+}) {
 	if (adatlap.Statusz === "Lezárva" || adatlap.Statusz === "Elutasítva") return;
 	return (
 		<div className='flex flex-row w-full items-center justify-between gap-2'>
 			<NavButton />
 			<FelmeresButton />
-			{adatlap.DateTime1953 ? (
-				<RendelesButton />
-			) : (
-				<TooltipProvider>
-					<Tooltip>
-						<TooltipTrigger>
-							<RendelesButton />
-						</TooltipTrigger>
-						<TooltipContent>Nincs még leszervezve</TooltipContent>
-					</Tooltip>
-				</TooltipProvider>
-			)}
+			{adatlap.DateTime1953 ? <RendelesButton /> : null}
+			{phone ? (
+				<Button
+					size={"icon"}
+					variant={"outline"}
+					className={cn("border-red-600 hover:border-red-700 text-red-600 hover:text-red-700 w-1/3")}>
+					<Phone className='w-4 h-4' />
+				</Button>
+			) : null}
 		</div>
 	);
 
@@ -109,7 +113,9 @@ export default function KanbanCard({ adatlap }: { adatlap: AdatlapData }) {
 	const [open, setOpen] = React.useState(false);
 	return (
 		<>
-			<div className='flex w-full overflow-hidden bg-white rounded-md border-gray-200 border cursor-pointer' onClick={() => setOpen(true)}>
+			<div
+				className='flex w-full overflow-hidden bg-white rounded-md border-gray-200 border cursor-pointer'
+				onClick={() => setOpen(true)}>
 				<div className='flex flex-col flex-shrink-0 w-full p-4 space-y-4'>
 					<div className='flex items-center justify-between'>
 						<div>
