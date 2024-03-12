@@ -575,9 +575,13 @@ export function Page2({
 							<Checkbox
 								onClick={() =>
 									setFelmeres
-										? setFelmeres((prev) => ({ ...prev, detailedOffer: !prev.detailedOffer }))
+										? setFelmeres((prev) => ({
+												...prev,
+												is_detailed_offer: !prev.is_detailed_offer,
+										  }))
 										: null
 								}
+								checked={felmeres.is_detailed_offer}
 								id='detailed-offer'
 								className='order-last lg:order-first'
 							/>
@@ -1041,6 +1045,7 @@ export function Page2({
 														disabled={!newOtherItem?.name || !newOtherItem?.type}
 														onClick={() => {
 															if (!setOtherItems) return;
+
 															setOtherItems((prev) => [
 																...prev,
 																{

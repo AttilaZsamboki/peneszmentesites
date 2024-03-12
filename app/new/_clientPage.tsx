@@ -73,7 +73,7 @@ export interface BaseFelmeresData {
 	hourly_wage: number;
 	is_conditional: boolean;
 	condition: string;
-	detailedOffer: boolean;
+	is_detailed_offer: boolean;
 }
 
 export type ItemType = "Item" | "Fee" | "Discount" | "Other Material";
@@ -171,7 +171,7 @@ export default function Page({
 					hourly_wage: 0,
 					is_conditional: false,
 					condition: "",
-					detailedOffer: false,
+					is_detailed_offer: false,
 			  }
 	);
 	const [items, setItems] = useLocalStorageStateObject<FelmeresItem[]>(
@@ -429,7 +429,6 @@ export default function Page({
 					...item,
 					adatlap: felmeresResponseData.id,
 					netPrice: item.netPrice,
-					// ez annyit jelent hogy ha null az id akkor létrehozza újra az adatbázisban egyébként frissíti a meglévő tételeket
 					id: createType2.FELMERES === "UPDATE" && item.id && !createType2.CANCEL_OLD_OFFER ? item.id : null,
 				}))
 			),
@@ -594,7 +593,8 @@ export default function Page({
 				felmeres.subject,
 				template?.name,
 				felmeresResponseData.id,
-				felmeres.description
+				felmeres.description,
+				{ ReszletesAjanlatotKert: felmeres.is_detailed_offer ? "Igen" : "Nem" }
 			);
 			updateStatus(2035);
 			const createXmlString = performance.now();
@@ -703,11 +703,7 @@ export default function Page({
 	const submitItems = [
 		...items,
 		...otherItems.map((item) => ({
-			id: editFelmeresItems
-				? editFelmeresItems.find((item2) => item2.name === item.name)
-					? editFelmeresItems.find((item2) => item2.name === item.name)!.id
-					: null
-				: null,
+			id: item.id ?? null,
 			name: item.name,
 			place: false,
 			placeOptions: [],
