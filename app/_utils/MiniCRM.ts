@@ -257,6 +257,7 @@ export async function assembleOfferXML(
 					${Object.entries(projectData ?? {})
 						?.map(([key, value]) => `<${key}>${value}</${key}>`)
 						.join("\n")}
+					<Forras3>${adatlap.Forras}</Forras3>
 				</Project>
             </Offer>
         </Offers>

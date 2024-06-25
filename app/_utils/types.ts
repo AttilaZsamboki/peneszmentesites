@@ -23,4 +23,5 @@ export interface AdatlapData {
 	FelmeresCim: string;
 	Phone: string;
 	Email: string;
+	Forras: string;
 }
