@@ -475,6 +475,7 @@ export function Page2({
 											"Központi ventillátoros",
 											"Passzív rendszer",
 											"Hővisszanyerős",
+											"Klíma",
 										].map((option) => ({
 											label: option,
 											value: option,
