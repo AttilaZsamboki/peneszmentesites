@@ -251,6 +251,7 @@ export function Form({
 								"Központi ventillátoros",
 								"Passzív rendszer",
 								"Hővisszanyerős",
+								"Klíma"
 							].map((type) => (
 								<SelectItem value={type} key={type}>
 									{type}
