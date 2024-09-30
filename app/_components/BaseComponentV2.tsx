@@ -5,6 +5,7 @@ import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Filter } from "../products/page";
+import { Column } from "@/components/data-grid";
 
 export default function BaseComponentV2({
 	data,
@@ -20,6 +21,8 @@ export default function BaseComponentV2({
 	filters = [],
 	savedFilters = [],
 	defaultViewName,
+	variant,
+	columns,
 }: {
 	data: any;
 	title: string;
@@ -34,12 +37,14 @@ export default function BaseComponentV2({
 	filters?: FilterItem[];
 	savedFilters?: Filter[];
 	defaultViewName?: string;
+	columns?: Column[];
+	variant?: "default" | "grid";
 }) {
 	return (
 		<main className='flex min-h-screen flex-col items-center justify-start w-full'>
-			<div className='flex flex-col items-center justify-start w-full border-b bg-white'>
-				<div className='lg:w-2/3 flex flex-row justify-between py-0'>
-					<Heading border={false} width='w-full' title={title} marginY='mt-11 mb-8' variant='h2'>
+			<div className='flex flex-col items-start justify-center w-full border-b bg-white px-6 py-3'>
+				<div className='flex flex-row justify-between py-0'>
+					<Heading border={false} width='w-full' title={title} variant='h2'>
 						{createButtonTitle ? (
 							createPath ? (
 								<Link href={createPath}>
@@ -62,7 +67,7 @@ export default function BaseComponentV2({
 					</Heading>
 				</div>
 			</div>
-			<div className='flex flex-row justify-center w-full flex-wrap'>
+			<div className='flex flex-row justify-center w-full flex-wrap px-6'>
 				<StackedList
 					defaultViewName={defaultViewName}
 					onEditItem={onEditItem}
@@ -74,6 +79,8 @@ export default function BaseComponentV2({
 					pagination={pagination}
 					title={title}
 					savedFiltersOriginal={savedFilters}
+					variant={variant}
+					columns={columns}
 				/>
 			</div>
 		</main>

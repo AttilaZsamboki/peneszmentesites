@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { isValidDate, useCreateQueryString } from "../_utils/utils";
 import useBreakpointValue from "./useBreakpoint";
+import { Column, DataGridComponent } from "@/components/data-grid";
 
 function deepEqual(a: any, b: any) {
 	if (a === b) {
@@ -113,6 +114,8 @@ export default function StackedList({
 	filters,
 	savedFiltersOriginal,
 	defaultViewName,
+	variant,
+	columns,
 }: {
 	data: any[];
 	editType: "link" | "dialog";
@@ -124,6 +127,8 @@ export default function StackedList({
 	filters: FilterItem[];
 	savedFiltersOriginal?: Filter[];
 	defaultViewName?: string;
+	variant?: "default" | "grid";
+	columns?: Column[];
 }) {
 	const parent = React.useRef<HTMLUListElement | null>(null);
 	const router = useRouter();
@@ -275,7 +280,7 @@ export default function StackedList({
 	const createQueryStringCallback = useCreateQueryString(searchParams);
 
 	return (
-		<div className='w-full px-5 lg:px-0 lg:w-2/3 flex flex-col gap-3 '>
+		<div className='w-full px-5 lg:px-0 flex flex-col'>
 			<div className='flex flex-row justify-between items-center mb-3 w-full gap-5 mt-5'>
 				<div className='mx-auto flex w-full gap-3'>
 					<div className='relative flex items-center w-full h-12 bg-white overflow-hidden rounded-md border'>
@@ -448,7 +453,7 @@ export default function StackedList({
 					</div>
 				</div>
 			</div>
-			<div className='flex flex-row justify-center px-4 items-center w-full bg-white rounded-md p-2 border pb-0 '>
+			<div className='flex flex-row justify-center px-4 items-center w-full bg-white rounded-t-lg p-2 border-b pb-0 '>
 				<FiltersComponent
 					defaultViewName={defaultViewName}
 					filterType={title}
@@ -458,120 +463,126 @@ export default function StackedList({
 					setSavedFilters={setSavedFilters}
 				/>
 			</div>
-			<ScrollArea
-				className={`${
-					pagination.numPages ? "h-[50dvh] lg:h-[64dvh] pb-0" : "h-[57dvh] lg:h-[66dvh]"
-				} rounded-md border p-2 bg-white `}>
-				<ul ref={parent} role='list' className='w-full bg-white rounded-lg flex flex-col justify-between'>
-					{filteredData
-						.sort((a, b) => {
-							if (!filter.sort_by) {
-								return a.id - b.id;
-							}
-							if (typeof a[filter.sort_by] === "string") {
-								return filter.sort_order === "desc"
-									? b[filter.sort_by]?.toString().localeCompare(a[filter.sort_by]?.toString())
-									: a[filter.sort_by]?.localeCompare(b[filter.sort_by]);
-							} else {
-								return filter.sort_order === "desc"
-									? b[filter.sort_by] - a[filter.sort_by]
-									: a[filter.sort_by] - b[filter.sort_by];
-							}
-						})
-						.map((item, index) => {
-							if (editType === "link" && editHref) {
-								return (
-									<Link href={editHref + item[itemContent.id]} key={index}>
-										<div
-											className={cn(
-												"rounded-none shadow-none",
-												index === 0 ? "rounded-t-md" : "",
-												index === data.length - 1 ? "rounded-b-md" : "border-b"
-											)}>
-											<div className='flex justify-between px-6 py-5 bg-white bg-opacity-20 transform'>
-												<div className='flex flex-row min-w-0 gap-4'>
-													{itemContent.imgSrc ? (
-														<Avatar>
-															<AvatarImage src={item[itemContent.imgSrc]} />
-															<AvatarFallback>kep</AvatarFallback>
-														</Avatar>
-													) : null}
-													<div className='min-w-0 flex-auto'>
-														<div className='flex flex-row items-center gap-2'>
-															<p className='text-sm font-semibold leading-6 text-gray-900'>
-																{item[itemContent.title]}
-															</p>
-															{itemContent.status ? (
-																<div
-																	className={`${
-																		item[
-																			itemContent.status ? itemContent.status : ""
-																		].className
-																	}
-																		relative grid items-center font-sans font-bold uppercase whitespace-nowrap select-none py-1 px-2 text-xs rounded-md`}>
-																	<div className='absolute top-2/4 -translate-y-2/4 w-4 h-4 left-1'>
-																		<span
-																			className={
-																				`mx-auto mt-1 block h-2 w-2 rounded-full content-[''] ` +
-																				tailwindColorMap[
-																					item[itemContent.status]
-																						.color as keyof typeof tailwindColorMap
-																				]
-																			}
-																		/>
-																	</div>
-																	<span className='ml-4'>
-																		{
+			{variant === "default" ? (
+				<ScrollArea
+					className={`${
+						pagination.numPages ? "h-[50dvh] lg:h-[64dvh] pb-0" : "h-[57dvh] lg:h-[66dvh]"
+					} rounded-md border p-2 bg-white `}>
+					<ul ref={parent} role='list' className='w-full bg-white rounded-lg flex flex-col justify-between'>
+						{filteredData
+							.sort((a, b) => {
+								if (!filter.sort_by) {
+									return a.id - b.id;
+								}
+								if (typeof a[filter.sort_by] === "string") {
+									return filter.sort_order === "desc"
+										? b[filter.sort_by]?.toString().localeCompare(a[filter.sort_by]?.toString())
+										: a[filter.sort_by]?.localeCompare(b[filter.sort_by]);
+								} else {
+									return filter.sort_order === "desc"
+										? b[filter.sort_by] - a[filter.sort_by]
+										: a[filter.sort_by] - b[filter.sort_by];
+								}
+							})
+							.map((item, index) => {
+								if (editType === "link" && editHref) {
+									return (
+										<Link href={editHref + item[itemContent.id]} key={index}>
+											<div
+												className={cn(
+													"rounded-none shadow-none",
+													index === 0 ? "rounded-t-md" : "",
+													index === data.length - 1 ? "rounded-b-md" : "border-b"
+												)}>
+												<div className='flex justify-between px-6 py-5 bg-white bg-opacity-20 transform'>
+													<div className='flex flex-row min-w-0 gap-4'>
+														{itemContent.imgSrc ? (
+															<Avatar>
+																<AvatarImage src={item[itemContent.imgSrc]} />
+																<AvatarFallback>kep</AvatarFallback>
+															</Avatar>
+														) : null}
+														<div className='min-w-0 flex-auto'>
+															<div className='flex flex-row items-center gap-2'>
+																<p className='text-sm font-semibold leading-6 text-gray-900'>
+																	{item[itemContent.title]}
+																</p>
+																{itemContent.status ? (
+																	<div
+																		className={`${
 																			item[
 																				itemContent.status
 																					? itemContent.status
 																					: ""
-																			].name
+																			].className
 																		}
-																	</span>
-																</div>
-															) : null}
-														</div>
+																		relative grid items-center font-sans font-bold uppercase whitespace-nowrap select-none py-1 px-2 text-xs rounded-md`}>
+																		<div className='absolute top-2/4 -translate-y-2/4 w-4 h-4 left-1'>
+																			<span
+																				className={
+																					`mx-auto mt-1 block h-2 w-2 rounded-full content-[''] ` +
+																					tailwindColorMap[
+																						item[itemContent.status]
+																							.color as keyof typeof tailwindColorMap
+																					]
+																				}
+																			/>
+																		</div>
+																		<span className='ml-4'>
+																			{
+																				item[
+																					itemContent.status
+																						? itemContent.status
+																						: ""
+																				].name
+																			}
+																		</span>
+																	</div>
+																) : null}
+															</div>
 
-														<p className='mt-1 truncate text-xs leading-5 text-gray-500'>
-															{item[itemContent.subtitle]}
-														</p>
+															<p className='mt-1 truncate text-xs leading-5 text-gray-500'>
+																{item[itemContent.subtitle]}
+															</p>
+														</div>
 													</div>
-												</div>
-												{itemContent.subtitle4 && deviceSize !== "sm" ? (
-													<p className='text-sm leading-6 text-gray-900 self-center'>
-														{item[itemContent.subtitle4]}
-													</p>
-												) : null}
-												<div className='hidden shrink-0 sm:flex sm:flex-col sm:items-end'>
-													<p className='text-sm leading-6 text-gray-900'>
-														{item[itemContent.subtitle2]}
-													</p>
-													{itemContent.subtitle3 ? (
-														<p className='mt-1 text-xs leading-5 text-gray-500'>
-															{item[itemContent.subtitle3]}
+													{itemContent.subtitle4 && deviceSize !== "sm" ? (
+														<p className='text-sm leading-6 text-gray-900 self-center'>
+															{item[itemContent.subtitle4]}
 														</p>
 													) : null}
+													<div className='hidden shrink-0 sm:flex sm:flex-col sm:items-end'>
+														<p className='text-sm leading-6 text-gray-900'>
+															{item[itemContent.subtitle2]}
+														</p>
+														{itemContent.subtitle3 ? (
+															<p className='mt-1 text-xs leading-5 text-gray-500'>
+																{item[itemContent.subtitle3]}
+															</p>
+														) : null}
+													</div>
 												</div>
 											</div>
-										</div>
-									</Link>
-								);
-							} else if (editType === "dialog") {
-								return (
-									<DialogItem
-										key={index}
-										data={data}
-										index={index}
-										item={item}
-										itemContent={itemContent}
-										onEditItem={onEditItem}
-									/>
-								);
-							}
-						})}
-				</ul>
-			</ScrollArea>
+										</Link>
+									);
+								} else if (editType === "dialog") {
+									return (
+										<DialogItem
+											key={index}
+											data={data}
+											index={index}
+											item={item}
+											itemContent={itemContent}
+											onEditItem={onEditItem}
+										/>
+									);
+								}
+							})}
+					</ul>
+				</ScrollArea>
+			) : columns ? (
+				<DataGridComponent data={filteredData} columns={columns} />
+			) : null}
 			{pagination.numPages ? (
 				<div className='flex flex-row w-full justify-center mt-5'>
 					<DefaultPagination

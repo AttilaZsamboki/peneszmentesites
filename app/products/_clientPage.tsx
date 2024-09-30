@@ -142,6 +142,13 @@ export default function ClientPage({
 					numPages: Math.ceil(data.count / 10),
 					active: true,
 				}}
+				variant='grid'
+				columns={[
+					{ key: "sku", label: "SKU" },
+					{ key: "name", label: "Név" },
+					{ key: "type", label: "Típus" },
+					{ key: "priceStr", label: "Ár" },
+				]}
 			/>
 			{attributeData.archived ? (
 				<Dialog open={open} onOpenChange={() => setOpen(!open)}>

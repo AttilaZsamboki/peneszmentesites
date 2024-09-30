@@ -1,16 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
-import { Separator } from "./ui/separator";
 
 type DataItem = Record<string, any>;
 
-interface Column {
+export interface Column {
 	key: string;
 	label: string;
 	render?: (value: any) => React.ReactNode;
@@ -20,11 +19,9 @@ interface DataGridProps {
 	data: DataItem[];
 	columns: Column[];
 	itemsPerPage?: number;
-	dataLength?: number;
-	atLastPage?: () => void;
 }
 
-export function DataGridComponent({ data, columns, itemsPerPage = 12, dataLength, atLastPage }: DataGridProps) {
+export function DataGridComponent({ data, columns, itemsPerPage = 12 }: DataGridProps) {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [searchTerm, setSearchTerm] = useState("");
 
@@ -34,32 +31,15 @@ export function DataGridComponent({ data, columns, itemsPerPage = 12, dataLength
 		)
 	);
 
-	const dLen = dataLength ?? filteredData.length;
+	const dLen = filteredData.length;
 	const totalPages = Math.ceil(dLen / itemsPerPage);
 	const startIndex = (currentPage - 1) * itemsPerPage;
 	const endIndex = startIndex + itemsPerPage;
 	const currentData = filteredData.slice(startIndex, endIndex);
 
-	useEffect(() => {
-		if (atLastPage) {
-			if (currentPage === Math.ceil(filteredData.length / itemsPerPage)) {
-				atLastPage();
-			}
-		}
-	}, [currentPage]);
-
 	return (
-		<div className='space-y-4 p-4'>
-			<div className='flex justify-between'>
-				<Input
-					placeholder='Search...'
-					value={searchTerm}
-					onChange={(e) => setSearchTerm(e.target.value)}
-					className='max-w-sm'
-				/>
-				<Button>New Item</Button>
-			</div>
-			<Table className='bg-white w-full rounded-t-lg'>
+		<div className='space-y-4 '>
+			<Table className='bg-white w-full rounded-b-lg'>
 				<TableHeader>
 					<TableRow>
 						{columns.map((column) => (

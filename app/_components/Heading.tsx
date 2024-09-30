@@ -26,7 +26,7 @@ export default function Heading({
 			<div className='flex flex-col justify-items items-center w-full'>
 				<div
 					className={`flex flex-col ${width} px-2 lg:items-start sm:items-center justify-center ${
-						marginY ? marginY : "lg:my-12"
+						marginY ? marginY : ""
 					} lg:justify-between text-center`}>
 					<div
 						className={`font-semibold text-gradient-to-tr from-gray-900 to-gray-800 lg:my-0 text-left prose prose-slate lg:prose-lg`}>
