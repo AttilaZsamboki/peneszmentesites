@@ -65,7 +65,6 @@ export async function getAdatlapok(queryParams: { CategoryId?: string; id?: stri
 	)
 		.then((res) => res.json())
 		.catch((err) => {
-			console.log(err);
 			return [];
 		})
 		.then((data: AdatlapData[]) => data.filter((adatlap) => adatlap));
@@ -93,7 +92,6 @@ export async function fetchAdatlapokV2(searchParams: { [key: string]: string }):
 			return data;
 		})
 		.catch((err) => {
-			console.log(err);
 			return [];
 		});
 }

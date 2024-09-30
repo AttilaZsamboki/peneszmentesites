@@ -49,7 +49,6 @@ export default async function Home({ searchParams }: { searchParams: { page?: st
 	);
 	if (data.ok) {
 		const felmeresek: Pagination<BaseFelmeresData> = await data.json().catch((err) => {
-			console.log(err);
 			return [];
 		});
 		const adatlapIds = Array.from(new Set(felmeresek.results.map((felmeres) => felmeres.adatlap_id.toString())));
@@ -62,7 +61,6 @@ export default async function Home({ searchParams }: { searchParams: { page?: st
 		})
 			.then((res) => res.json())
 			.catch((err) => {
-				console.log("Adatlaphiba" + err);
 				return [];
 			})
 			.then((data: AdatlapData[]) => {
@@ -74,7 +72,6 @@ export default async function Home({ searchParams }: { searchParams: { page?: st
 		})
 			.then((res) => res.json())
 			.catch((err) => {
-				console.log(err);
 				return [];
 			})
 			.then((data: Template[]) =>

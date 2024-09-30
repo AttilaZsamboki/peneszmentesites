@@ -616,7 +616,6 @@ export function Page2({
 												await fetch("/api/revalidate?tag=templates");
 												return;
 											} else {
-												console.log(resp.status);
 												toast.error("Leírás frissítése sikertelen", {
 													description: "Kérlek próbáld újra később",
 													duration: 2000,

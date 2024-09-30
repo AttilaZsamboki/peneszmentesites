@@ -72,8 +72,6 @@ export function createJWT(user: string) {
 	const secret = process.env.NEXT_PUBLIC_SECRET;
 
 	if (secret) {
-		console.log(typeof secret); // log the type of secret
-		console.log(typeof { algorithm: "HS256" }); // log the type of options object
 		return jwt.sign(payload, secret, {
 			algorithm: "HS256",
 		});

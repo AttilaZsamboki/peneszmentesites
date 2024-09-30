@@ -97,9 +97,6 @@ export async function fetchMiniCRM(endpoint: string, id?: string, method?: "POST
 			const data = await resp.json();
 			return data;
 		}
-		if (resp.status === 429) {
-			console.log("Too many requests");
-		}
 		return null;
 	} else if (method === "POST") {
 		const resp = await fetch("/api/minicrm-proxy?endpoint=" + endpoint, {
