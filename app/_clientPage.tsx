@@ -16,23 +16,39 @@ export interface Filter {
 	searchField: string;
 }
 
-const selectFilter = ({ model, onModelChange, colDef }: CustomFilterProps) => {
+export interface Filter {
+	id: number;
+	search: string;
+	searchField: string;
+}
+
+const useSelectFilter = (model: any, colDef: any, onModelChange: (value: any) => void) => {
 	const refInput = useRef<HTMLSelectElement>(null);
+
 	const doesFilterPass = useCallback(
 		(params: IDoesFilterPassParams) => {
 			return params.data[colDef.field!].toString().includes(model);
 		},
 		[model]
 	);
+
 	const afterGuiAttached = useCallback((params?: IAfterGuiAttachedParams) => {
 		if (!params || !params.suppressFocus) {
 			refInput.current?.focus();
 		}
 	}, []);
+
 	useGridFilter({
 		doesFilterPass,
 		afterGuiAttached,
 	});
+
+	return { refInput, onModelChange };
+};
+
+const SelectFilter = ({ model, onModelChange, colDef }: CustomFilterProps) => {
+	const { refInput } = useSelectFilter(model, colDef, onModelChange);
+
 	return (
 		<select
 			ref={refInput}
@@ -48,6 +64,7 @@ const selectFilter = ({ model, onModelChange, colDef }: CustomFilterProps) => {
 		</select>
 	);
 };
+
 export default function ClientPage({ allData, paginationData }: { allData: any; paginationData: PaginationOptions }) {
 	React.useEffect(() => localStorage.clear(), []);
 	const { user, isLoading } = useUserWithRole();
@@ -79,7 +96,7 @@ export default function ClientPage({ allData, paginationData }: { allData: any; 
 							</Badge>
 						);
 					},
-					filter: selectFilter,
+					filter: SelectFilter,
 				},
 				{ field: "Teljes cím", headerName: "Cím", width: 500 },
 				{ field: "type", headerName: "Felmérés típusa" },
