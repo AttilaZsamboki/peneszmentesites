@@ -19,6 +19,9 @@ import { getFirstProduct } from "../_utils/utils";
 import FormField from "../_components/FormField";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
+import { ValueFormatterParams } from "ag-grid-community";
+import { CustomCellRendererProps } from "ag-grid-react";
+import { Check, X } from "lucide-react";
 
 export default function ClientComponent({ data, products }: { data: any; products: Product[] }) {
 	const [question, setQuestion] = React.useState<Question>({
@@ -176,6 +179,29 @@ export default function ClientComponent({ data, products }: { data: any; product
 				createButtonTitle='Új kérdés'
 				data={allQuestions}
 				editType='dialog'
+				variant='grid'
+				columns={[
+					{ field: "question", headerName: "Kérdés", flex: 1 },
+					{ field: "Termék", headerName: "Termék", width: 600, flex: 0 },
+					{
+						field: "Kőtelező",
+						cellRenderer: (params: CustomCellRendererProps) => {
+							return (
+								<div className='flex flex-row justify-center items-center w-full'>
+									{params.value === "Kötelező" ? (
+										<Check className='text-green-700' />
+									) : (
+										<X className='text-red-700' />
+									)}
+								</div>
+							);
+						},
+						width: 150,
+						flex: 0,
+					},
+					{ field: "Típus", width: 150, flex: 0 },
+					{ field: "description", headerName: "Leírás" },
+				]}
 				itemContent={{
 					id: "id",
 					title: "question",

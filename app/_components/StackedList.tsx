@@ -34,7 +34,9 @@ import { cn } from "@/lib/utils";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { isValidDate, useCreateQueryString } from "../_utils/utils";
 import useBreakpointValue from "./useBreakpoint";
-import { Column, DataGridComponent } from "@/components/data-grid";
+import { DataGridComponent } from "@/components/data-grid";
+import { ColDef } from "ag-grid-community";
+import { AgGridReact } from "ag-grid-react";
 
 function deepEqual(a: any, b: any) {
 	if (a === b) {
@@ -128,7 +130,7 @@ export default function StackedList({
 	savedFiltersOriginal?: Filter[];
 	defaultViewName?: string;
 	variant?: "default" | "grid";
-	columns?: Column[];
+	columns?: ColDef[];
 }) {
 	const parent = React.useRef<HTMLUListElement | null>(null);
 	const router = useRouter();
@@ -186,6 +188,7 @@ export default function StackedList({
 	const search: FilterItem = filter.filters.find((filter) => filter.field === "filter")!;
 
 	const [filteredData, setFilteredData] = React.useState(data);
+	const gridRef = React.useRef<AgGridReact>(null);
 	const { user } = useUser();
 
 	React.useEffect(() => {
@@ -230,6 +233,20 @@ export default function StackedList({
 			setFilter(savedFilterFromURL);
 		}
 	}, [savedFilterFromURL]);
+
+	React.useEffect(() => {
+		if (gridRef.current?.api) {
+			if (savedFilterFromURL) {
+				const filterModel = savedFilterFromURL.filters.reduce((acc, f) => {
+					(acc as Record<string, any>)[f.field] = { filterType: "text", type: "contains", filter: f.value };
+					return acc;
+				}, {});
+				gridRef.current?.api.setFilterModel(filterModel);
+			} else {
+				gridRef.current?.api.setFilterModel({});
+			}
+		}
+	}, [savedFilterFromURL, gridRef]);
 
 	const tailwindColorMap = {
 		yellow: "bg-yellow-900",
@@ -581,7 +598,31 @@ export default function StackedList({
 					</ul>
 				</ScrollArea>
 			) : columns ? (
-				<DataGridComponent data={filteredData} columns={columns} itemsPerPage={100} />
+				<DataGridComponent
+					data={filteredData}
+					columns={columns}
+					itemsPerPage={100}
+					onFilterModified={(event) => {
+						setFilter((prev) => ({
+							...prev,
+							filters: prev.filters.map((item) => {
+								const colName = event.columns[0]?.getColId();
+								if (item.field === colName) {
+									if (item.type === "text") {
+										return { ...item, value: event.api.getFilterModel()[colName]?.filter };
+									} else if (item.type === "select") {
+										const value = item.options?.filter((o) =>
+											o.label.includes(event.api.getFilterModel()[colName]?.filter)
+										);
+										return { ...item, value: value?.[0]?.value };
+									}
+								}
+								return item;
+							}),
+						}));
+					}}
+					gridRef={gridRef}
+				/>
 			) : null}
 			{pagination.numPages ? (
 				<div className='flex flex-row w-full justify-center mt-5'>

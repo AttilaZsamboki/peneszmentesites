@@ -17,6 +17,7 @@ import { SelectGroup, SelectTrigger, Select, SelectContent, SelectItem, SelectVa
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ItemType, ProductTemplate } from "../new/_clientPage";
 import { Trash2 } from "lucide-react";
+import { ValueFormatterParams } from "ag-grid-community";
 
 export default function Page({
 	templates,
@@ -107,6 +108,21 @@ export default function Page({
 					subtitle2: "description",
 					subtitle3: "firstProduct",
 				}}
+				columns={[
+					{ field: "id", headerName: "Azonosító", width: 120, flex: 0 },
+					{ field: "name", headerName: "Név" },
+					{ field: "type", headerName: "Típus" },
+					{ field: "description", headerName: "Leírás" },
+					{
+						field: "items",
+						headerName: "Termékek",
+						valueFormatter: (params: ValueFormatterParams) =>
+							params.value
+								.map((v: any) => v.name)
+								.slice(0, 3)
+								.join(", "),
+					},
+				]}
 				filters={[
 					{ field: "name", label: "Név", type: "select" },
 					{ field: "type", label: "Típus", type: "select" },
@@ -124,6 +140,7 @@ export default function Page({
 					setOpenDialog(true);
 					setIsNew(false);
 				}}
+				variant='grid'
 			/>
 			<CustomDialog
 				open={openDialog}

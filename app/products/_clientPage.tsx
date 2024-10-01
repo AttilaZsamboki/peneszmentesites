@@ -144,10 +144,10 @@ export default function ClientPage({
 				}}
 				variant='grid'
 				columns={[
-					{ key: "sku", label: "SKU" },
-					{ key: "name", label: "Név" },
-					{ key: "type", label: "Típus" },
-					{ key: "priceStr", label: "Ár" },
+					{ field: "sku", headerName: "SKU", flex: 1 },
+					{ field: "name", headerName: "Név", flex: 1 },
+					{ field: "type", headerName: "Típus", flex: 1 },
+					{ field: "priceStr", headerName: "Ár", flex: 1 },
 				]}
 			/>
 			{attributeData.archived ? (

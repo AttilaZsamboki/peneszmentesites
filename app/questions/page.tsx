@@ -3,7 +3,6 @@ import Questions from "./_clientComponent";
 
 import { typeMap } from "../_utils/utils";
 import { getFirstProduct } from "../_utils/utils";
-import { ItemType } from "../new/_clientPage";
 
 export interface Question {
 	id: number;

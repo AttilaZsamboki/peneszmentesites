@@ -1,11 +1,14 @@
 "use client";
-import React from "react";
+import React, { useCallback, useRef } from "react";
 import BaseComponentV2 from "./_components/BaseComponentV2";
 import { statusMap } from "./_utils/utils";
-import { useUserWithRole } from "@/lib/utils";
+import { cn, useUserWithRole } from "@/lib/utils";
 import BaseComponentLoading from "./_components/BaseComponentLoading";
 import { FilterItem, PaginationOptions } from "./_components/StackedList";
 import { miniCrmStatusMap } from "./_utils/MiniCRM";
+import { CustomCellRendererProps, CustomFilterProps, useGridFilter } from "ag-grid-react";
+import { Badge } from "@/components/ui/badge";
+import { IAfterGuiAttachedParams, IDoesFilterPassParams } from "ag-grid-community";
 
 export interface Filter {
 	id: number;
@@ -13,6 +16,37 @@ export interface Filter {
 	searchField: string;
 }
 
+const selectFilter = ({ model, onModelChange, colDef }: CustomFilterProps) => {
+	const refInput = useRef<HTMLSelectElement>(null);
+	const doesFilterPass = useCallback(
+		(params: IDoesFilterPassParams) => {
+			return params.data[colDef.field!].toString().includes(model);
+		},
+		[model]
+	);
+	const afterGuiAttached = useCallback((params?: IAfterGuiAttachedParams) => {
+		if (!params || !params.suppressFocus) {
+			refInput.current?.focus();
+		}
+	}, []);
+	useGridFilter({
+		doesFilterPass,
+		afterGuiAttached,
+	});
+	return (
+		<select
+			ref={refInput}
+			value={model || ""}
+			onChange={({ target: { value } }) => onModelChange(value)}
+			className={cn("form-select", "w-full", "py-1", "px-2", "border", "border-gray-300", "rounded-md")}>
+			{Object.entries(statusMap).map(([key, value]) => (
+				<option key={key} value={key}>
+					{value.name}
+				</option>
+			))}
+		</select>
+	);
+};
 export default function ClientPage({ allData, paginationData }: { allData: any; paginationData: PaginationOptions }) {
 	React.useEffect(() => localStorage.clear(), []);
 	const { user, isLoading } = useUserWithRole();
@@ -30,6 +64,28 @@ export default function ClientPage({ allData, paginationData }: { allData: any; 
 			createButtonTitle='Új felmérés'
 			createPath='/new'
 			data={allData}
+			columns={[
+				{ field: "id", headerName: "Azonosító", width: 150 },
+				{ field: "Name", headerName: "Név", width: 300 },
+				{
+					field: "status",
+					headerName: "Státusz",
+					headerClass: "text-center",
+					cellRenderer: (params: CustomCellRendererProps) => {
+						return (
+							<Badge className={statusMap[params.value as keyof typeof statusMap]?.className}>
+								{statusMap[params.value as keyof typeof statusMap]?.name}
+							</Badge>
+						);
+					},
+					filter: selectFilter,
+				},
+				{ field: "Teljes cím", headerName: "Cím", width: 500 },
+				{ field: "type", headerName: "Felmérés típusa" },
+				{ field: "Felmérő" },
+				{ field: "created_at", headerName: "Létrehozva" },
+			]}
+			variant='grid'
 			itemContent={{
 				id: "Azonosító",
 				title: "Felmérés neve",
@@ -41,6 +97,16 @@ export default function ClientPage({ allData, paginationData }: { allData: any; 
 			}}
 			filters={
 				[
+					{
+						field: "id",
+						label: "Azonosító",
+						type: "text",
+					},
+					{
+						field: "Name",
+						label: "Név",
+						type: "text",
+					},
 					{
 						field: "StatusId",
 						label: "MiniCRM státusz",

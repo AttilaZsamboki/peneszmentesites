@@ -8,9 +8,9 @@ import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ToastAction } from "@/components/ui/toast";
 import { SelectContent, SelectGroup, SelectItem, Select, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Settings, useSettings } from "@/lib/utils";
+import React from "react";
 
 export default function ClientPage({ munkadijak }: { munkadijak: Munkadíj[] }) {
 	const [openDialog, setOpenDialog] = useState(false);
@@ -75,9 +75,17 @@ export default function ClientPage({ munkadijak }: { munkadijak: Munkadíj[] }) 
 		idStr: munkadíj.id.toString(),
 		numPeople: munkadíj.value_type === "hour" ? `${munkadíj.value} óra` : "",
 	}));
+	console.log(formattedMunkadíjak);
 	return (
 		<>
 			<BaseComponentV2
+				columns={[
+					{ field: "id", headerName: "Azonosító", width: 130, flex: 0 },
+					{ field: "type", headerName: "Típus" },
+					{ field: "formattedValue", headerName: "Összeg" },
+					{ field: "description", headerName: "Leírás", width: 500, flex: 0 },
+				]}
+				variant='grid'
 				data={formattedMunkadíjak}
 				editType='dialog'
 				itemContent={{

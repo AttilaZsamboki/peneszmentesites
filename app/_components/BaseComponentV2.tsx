@@ -5,7 +5,7 @@ import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Filter } from "../products/page";
-import { Column } from "@/components/data-grid";
+import { ColDef } from "ag-grid-community";
 
 export default function BaseComponentV2({
 	data,
@@ -37,18 +37,18 @@ export default function BaseComponentV2({
 	filters?: FilterItem[];
 	savedFilters?: Filter[];
 	defaultViewName?: string;
-	columns?: Column[];
+	columns?: ColDef[];
 	variant?: "default" | "grid";
 }) {
 	return (
 		<main className='flex min-h-screen flex-col items-center justify-start w-full'>
 			<div className='flex flex-col items-start justify-center w-full border-b bg-white px-6 py-3'>
-				<div className='flex flex-row justify-between py-0'>
+				<div className='flex flex-row justify-between py-0 w-full'>
 					<Heading border={false} width='w-full' title={title} variant='h2'>
 						{createButtonTitle ? (
 							createPath ? (
 								<Link href={createPath}>
-									<div className='flex flex-row justify-end w-full relative top-3 z-50 items-center gap-3'>
+									<div className='flex flex-row justify-end w-full relative z-50 items-center gap-3'>
 										<Button className='w-36 h-10 flex items-center justify-center py-4 rounded-md hover:shadow-none shadow-none font-semibold uppercase'>
 											{createButtonTitle}
 										</Button>
@@ -56,7 +56,7 @@ export default function BaseComponentV2({
 								</Link>
 							) : (
 								<div onClick={onCreateNew}>
-									<div className='flex flex-row justify-end w-full relative top-3 z-50 items-center gap-3'>
+									<div className='flex flex-row justify-end w-full relative z-50 items-center gap-3'>
 										<Button className='w-36 h-10 flex items-center justify-center py-4 rounded-md hover:shadow-none shadow-none font-semibold uppercase'>
 											{createButtonTitle}
 										</Button>
