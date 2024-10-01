@@ -238,6 +238,9 @@ export default function StackedList({
 		if (gridRef.current?.api) {
 			if (savedFilterFromURL) {
 				const filterModel = savedFilterFromURL.filters.reduce((acc, f) => {
+					if (f.type === "select") {
+						return acc;
+					}
 					(acc as Record<string, any>)[f.field] = { filterType: "text", type: "contains", filter: f.value };
 					return acc;
 				}, {});
@@ -599,9 +602,9 @@ export default function StackedList({
 				</ScrollArea>
 			) : columns ? (
 				<DataGridComponent
-					data={filteredData}
-					columns={columns}
-					itemsPerPage={100}
+					rowData={filteredData}
+					columnDefs={columns}
+					rowClass={"cursor-pointer"}
 					onFilterModified={(event) => {
 						setFilter((prev) => ({
 							...prev,
@@ -611,17 +614,21 @@ export default function StackedList({
 									if (item.type === "text") {
 										return { ...item, value: event.api.getFilterModel()[colName]?.filter };
 									} else if (item.type === "select") {
-										const value = item.options?.filter((o) =>
-											o.label.includes(event.api.getFilterModel()[colName]?.filter)
-										);
-										return { ...item, value: value?.[0]?.value };
+										return { ...item, value: event.api.getFilterModel()[colName]?.filter };
 									}
 								}
 								return item;
 							}),
 						}));
 					}}
-					gridRef={gridRef}
+					onRowClicked={(event) => {
+						if (editType === "link" && editHref) {
+							router.push(editHref + event.data[itemContent.id]);
+						} else if (editType === "dialog") {
+							onEditItem?.(event.data);
+						}
+					}}
+					ref={gridRef}
 				/>
 			) : null}
 			{pagination.numPages ? (

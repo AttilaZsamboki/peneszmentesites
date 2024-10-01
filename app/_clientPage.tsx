@@ -36,9 +36,10 @@ const selectFilter = ({ model, onModelChange, colDef }: CustomFilterProps) => {
 	return (
 		<select
 			ref={refInput}
-			value={model || ""}
+			value={model?.filter ?? ""}
 			onChange={({ target: { value } }) => onModelChange(value)}
 			className={cn("form-select", "w-full", "py-1", "px-2", "border", "border-gray-300", "rounded-md")}>
+			<option value=''>Összes</option>
 			{Object.entries(statusMap).map(([key, value]) => (
 				<option key={key} value={key}>
 					{value.name}
