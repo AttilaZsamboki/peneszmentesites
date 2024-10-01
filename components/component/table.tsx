@@ -50,7 +50,6 @@ export function Grid({ data }: { data: Pagination<AdatlapData> }) {
 		<>
 			<div className='ag-theme-quartz' style={containerStyle}>
 				<AgGridReact
-					suppressRowClickSelection={true}
 					paginationPageSize={50}
 					defaultColDef={defaultColDef}
 					pagination={true}
