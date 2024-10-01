@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { ScrollArea } from "./ui/scroll-area";
+import { AgGridReact } from "ag-grid-react";
+import { themeQuartz } from "@ag-grid-community/theming";
+
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-quartz.css";
+import { ColDef } from "ag-grid-community";
 
 type DataItem = Record<string, any>;
 
@@ -31,15 +38,25 @@ export function DataGridComponent({ data, columns, itemsPerPage = 12 }: DataGrid
 		)
 	);
 
-	const dLen = filteredData.length;
-	const totalPages = Math.ceil(dLen / itemsPerPage);
 	const startIndex = (currentPage - 1) * itemsPerPage;
 	const endIndex = startIndex + itemsPerPage;
 	const currentData = filteredData.slice(startIndex, endIndex);
 
+	const columnDefs: ColDef[] = columns.map((column) => ({
+		headerName: column.label,
+		field: column.key,
+		cellRenderer: column.render ? (params: { value: any }) => column.render!(params.value) : undefined,
+		flex: 1,
+	}));
+
+	const myTheme = themeQuartz.withParams({
+		spacing: 12,
+		accentColor: "red",
+	});
+
 	return (
-		<div className='space-y-4 '>
-			<Table className='bg-white w-full rounded-b-lg'>
+		<div className='space-y-4'>
+			{/* <Table className='bg-white w-full'>
 				<TableHeader>
 					<TableRow>
 						{columns.map((column) => (
@@ -47,7 +64,7 @@ export function DataGridComponent({ data, columns, itemsPerPage = 12 }: DataGrid
 						))}
 					</TableRow>
 				</TableHeader>
-				<TableBody className='max-h-[80dvh]'>
+				<TableBody >
 					{currentData.map((item, index) => (
 						<TableRow key={index}>
 							{columns.map((column) => (
@@ -58,44 +75,9 @@ export function DataGridComponent({ data, columns, itemsPerPage = 12 }: DataGrid
 						</TableRow>
 					))}
 				</TableBody>
-			</Table>
-			<div className='flex items-center justify-between'>
-				<div>
-					Showing {startIndex + 1} to {Math.min(endIndex, filteredData.length)} of {dLen} entries
-				</div>
-				<div className='flex items-center space-x-2'>
-					<Button
-						variant='outline'
-						size='icon'
-						onClick={() => setCurrentPage(1)}
-						disabled={currentPage === 1}>
-						<ChevronsLeft className='h-4 w-4' />
-					</Button>
-					<Button
-						variant='outline'
-						size='icon'
-						onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-						disabled={currentPage === 1}>
-						<ChevronLeft className='h-4 w-4' />
-					</Button>
-					<span>
-						Page {currentPage} of {totalPages}
-					</span>
-					<Button
-						variant='outline'
-						size='icon'
-						onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-						disabled={currentPage === totalPages}>
-						<ChevronRight className='h-4 w-4' />
-					</Button>
-					<Button
-						variant='outline'
-						size='icon'
-						onClick={() => setCurrentPage(totalPages)}
-						disabled={currentPage === totalPages}>
-						<ChevronsRight className='h-4 w-4' />
-					</Button>
-				</div>
+			</Table> */}
+			<div className='ag-theme-quartz' style={{ height: "70dvh", width: "100%" }}>
+				<AgGridReact theme={myTheme} rowData={currentData} columnDefs={columnDefs} />
 			</div>
 		</div>
 	);

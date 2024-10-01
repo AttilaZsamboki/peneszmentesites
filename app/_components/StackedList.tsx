@@ -467,7 +467,7 @@ export default function StackedList({
 				<ScrollArea
 					className={`${
 						pagination.numPages ? "h-[50dvh] lg:h-[64dvh] pb-0" : "h-[57dvh] lg:h-[66dvh]"
-					} rounded-md border p-2 bg-white `}>
+					} rounded-b-md border-t p-2 bg-white `}>
 					<ul ref={parent} role='list' className='w-full bg-white rounded-lg flex flex-col justify-between'>
 						{filteredData
 							.sort((a, b) => {
@@ -581,7 +581,7 @@ export default function StackedList({
 					</ul>
 				</ScrollArea>
 			) : columns ? (
-				<DataGridComponent data={filteredData} columns={columns} />
+				<DataGridComponent data={filteredData} columns={columns} itemsPerPage={100} />
 			) : null}
 			{pagination.numPages ? (
 				<div className='flex flex-row w-full justify-center mt-5'>
