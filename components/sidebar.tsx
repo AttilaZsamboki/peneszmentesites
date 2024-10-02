@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import jwt from "jsonwebtoken";
-import { ChevronDown, ChevronUp, FactoryIcon, ShoppingCartIcon } from "lucide-react";
+import { Bell, ChevronDown, ChevronUp, FactoryIcon, ShoppingCartIcon, X } from "lucide-react";
 import { cn, createJWT, getCookie, useUserWithRole } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { ArchiveBoxIcon } from "@heroicons/react/20/solid";
+import { OnboardingSurveyComponent } from "./onboarding-survey";
+import { DialogTrigger } from "./ui/dialog";
 
 interface Route {
 	name: string;
@@ -21,6 +23,7 @@ interface Route {
 export function SidebarComponent({ children }: { children: React.ReactNode }) {
 	const [isOpen, setIsOpen] = useState(false);
 	const [searchValue, setSearchValue] = useState("");
+	const [showOnboarding, setShowOnboarding] = useState(true);
 
 	useEffect(() => {
 		const handleResize = () => {
@@ -55,47 +58,10 @@ export function SidebarComponent({ children }: { children: React.ReactNode }) {
 			}
 		}
 	}
+	const dismissOnboarding = () => {
+		setShowOnboarding(false);
+	};
 
-	const routes: Route[] = [
-		{
-			name: "Adatlapok",
-			href: "/adatlapok",
-			icon: <ShoppingCartIcon className='w-4 h-4' />,
-			subRoutes: [
-				{
-					name: "Adatlapok",
-					href: ["/adatlapok"],
-				},
-				{
-					name: "Felmérések",
-					href: ["/", "/new"],
-				},
-				{
-					name: "Kérdések",
-					href: ["/questions"],
-				},
-				{
-					name: "Sablonok",
-					href: ["/templates"],
-				},
-				{
-					name: "Munkadíjak",
-					href: ["/munkadij"],
-				},
-			],
-		},
-		{
-			name: "Készlet",
-			href: "/products",
-			icon: <ArchiveBoxIcon className='w-4 h-4' />,
-			subRoutes: [
-				{
-					name: "Termékek",
-					href: ["/products"],
-				},
-			],
-		},
-	];
 	return (
 		<>
 			<div className={`sidebar ${isOpen ? "open" : ""}`}>
@@ -131,7 +97,22 @@ export function SidebarComponent({ children }: { children: React.ReactNode }) {
 						<NavItem text='Conversions' isChild />
 					</SubMenu>
 					<NavItem icon='bx-heart' text='Saved' />
-					<NavItem icon='bx-cog' text='Beállítások' />
+					<NavItem icon='bx-cog' text='Beállítások' href='settings' />
+					{showOnboarding && isOpen && (
+						<li className='onboarding-notification'>
+							<OnboardingSurveyComponent>
+								<div className='flex items-center justify-between p-2 bg-blue-100 rounded-md'>
+									<div className='flex items-center'>
+										<Bell size={16} className='text-blue-500 mr-2' />
+										<span className='text-sm text-blue-700'>Complete onboarding</span>
+									</div>
+									<button onClick={dismissOnboarding} className='text-blue-500 hover:text-blue-700'>
+										<X size={16} />
+									</button>
+								</div>
+							</OnboardingSurveyComponent>
+						</li>
+					)}
 					<li className='profile'>
 						<div className='profile-details'>
 							{isLoading ? (

@@ -1010,17 +1010,13 @@ export default function Page({
 	}, [questions]);
 
 	return (
-		<div className='w-full overflow-y-scroll h-[100dvh] pb-0 mb-0 lg:pb-10 lg:mb-10'>
-			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-0 lg:mt-2'>
+		<div className='w-full overflow-y-scroll h-[100dvh] pb-0 mb-0 '>
+			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-0'>
 				<div
-					className={`lg:mt-6 lg:px-10 px-0 w-full ${
-						currentPage === "Tételek"
-							? "lg:w-full"
-							: currentPage === "Alapadatok"
-							? "lg:w-[28%]"
-							: "lg:w-2/3"
+					className={`px-0 w-full  ${
+						currentPage === "Tételek" ? "lg:w-full" : currentPage === "Alapadatok" ? "" : "lg:w-2/3"
 					}`}>
-					<Card className='lg:rounded-md rounded-none lg:border border-0'>
+					<Card className='rounded-none border-0 h-dvh'>
 						<div className='sticky top-0 bg-white z-40 rounded-t-md'>
 							<CardHeader className='flex flex-row items-center justify-between p-0 pr-4'>
 								<div className='flex flex-col items-start pl-10 py-3'>
