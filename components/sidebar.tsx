@@ -3,27 +3,17 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import jwt from "jsonwebtoken";
-import { Bell, ChevronDown, ChevronUp, FactoryIcon, ShoppingCartIcon, X } from "lucide-react";
+import { Bell, ChevronDown, ChevronUp, FactoryIcon, X } from "lucide-react";
 import { cn, createJWT, getCookie, useUserWithRole } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { ArchiveBoxIcon } from "@heroicons/react/20/solid";
 import { OnboardingSurveyComponent } from "./onboarding-survey";
-import { DialogTrigger } from "./ui/dialog";
-
-interface Route {
-	name: string;
-	href: string;
-	icon: any;
-	subRoutes: {
-		name: string;
-		href: string[];
-	}[];
-}
+import useBreakpointValue from "@/app/_components/useBreakpoint";
 
 export function SidebarComponent({ children }: { children: React.ReactNode }) {
 	const [isOpen, setIsOpen] = useState(false);
 	const [searchValue, setSearchValue] = useState("");
 	const [showOnboarding, setShowOnboarding] = useState(true);
+	const breakPoint = useBreakpointValue();
 
 	useEffect(() => {
 		const handleResize = () => {
@@ -62,6 +52,7 @@ export function SidebarComponent({ children }: { children: React.ReactNode }) {
 		setShowOnboarding(false);
 	};
 
+	
 	return (
 		<>
 			<div className={`sidebar ${isOpen ? "open" : ""}`}>

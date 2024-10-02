@@ -8,7 +8,7 @@ const Sections = React.lazy(() => import("../_components/Sections"));
 import React from "react";
 
 import { Spinner, Tabs, TabsHeader, Tab } from "@material-tailwind/react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BaseFelmeresData, FelmeresItem, FelmeresMunkadíj, QuestionTemplate } from "../new/_clientPage";
 import { QuestionPage } from "../../components/QuestionPage";

@@ -1,35 +1,24 @@
 "use client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import React from "react";
-import { FelmeresQuestion } from "../page";
 import AutoComplete from "@/app/_components/AutoComplete";
-import { Template } from "@/app/templates/page";
 import { Product } from "@/app/products/page";
 import { Question } from "@/app/questions/page";
+import { Template } from "@/app/templates/page";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import React from "react";
+import { FelmeresQuestion } from "../page";
 
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 
-import { useRouter } from "next/navigation";
-import { ProductAttributes } from "@/app/products/_clientPage";
-import { ToDo, assembleOfferXML, fetchMiniCRM, list_to_dos } from "@/app/_utils/MiniCRM";
-import { AdatlapData } from "../_utils/types";
-import { useSearchParams } from "next/navigation";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { useGlobalState } from "@/app/_clientLayout";
+import { ToDo, assembleOfferXML, fetchMiniCRM, list_to_dos } from "@/app/_utils/MiniCRM";
+import { ProductAttributes } from "@/app/products/_clientPage";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { useRouter, useSearchParams } from "next/navigation";
+import { AdatlapData } from "../_utils/types";
 
-import { Page2 } from "./Page2";
-import { toast } from "sonner";
 import { Checkmark } from "@/components/check";
-import { FelmeresPictures, FelmeresPicturesComponent, PageMap, SectionName, isJSONParsable } from "../[id]/_clientPage";
-import _ from "lodash";
-import { IterationCw, MenuSquare } from "lucide-react";
-import { QuestionPage } from "../../components/QuestionPage";
-import { TooltipTrigger, Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
-import Link from "next/link";
-import { FelmeresStatus, statusMap, useCreateQueryString } from "../_utils/utils";
-import { calculatePercentageValue, cn, getCookie } from "@/lib/utils";
-import { Separator } from "@/components/ui/separator";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -41,15 +30,27 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { DialogFooter, DialogHeader } from "@material-tailwind/react";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { Munkadíj } from "../munkadij/page";
-import { Select, SelectValue, SelectContent, SelectGroup, SelectItem, SelectTrigger } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { calculatePercentageValue, cn, getCookie } from "@/lib/utils";
+import { DialogFooter, DialogHeader } from "@material-tailwind/react";
+import _ from "lodash";
+import { IterationCw, MenuSquare } from "lucide-react";
+import Link from "next/link";
+import { toast } from "sonner";
+import { QuestionPage } from "../../components/QuestionPage";
+import { FelmeresPictures, FelmeresPicturesComponent, PageMap, SectionName, isJSONParsable } from "../[id]/_clientPage";
+import { FelmeresStatus, statusMap, useCreateQueryString } from "../_utils/utils";
+import { Munkadíj } from "../munkadij/page";
+import { Page2 } from "./Page2";
+import useBreakpointValue from "../_components/useBreakpoint";
 
 export interface ProductTemplate {
 	product: number;
@@ -155,6 +156,7 @@ export default function Page({
 	const { setProgress } = useGlobalState();
 	const { user } = useUser();
 	const searchParams = useSearchParams();
+	const breakPoint = useBreakpointValue();
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>(
 		editFelmeres
 			? editFelmeres
@@ -1012,162 +1014,253 @@ export default function Page({
 	return (
 		<div className='w-full overflow-y-scroll h-[100dvh] pb-0 mb-0 '>
 			<div className='flex flex-row w-full flex-wrap lg:flex-nowrap justify-center mt-0'>
-				<div
+				<ResizablePanelGroup
+					direction='horizontal'
 					className={`px-0 w-full  ${
 						currentPage === "Tételek" ? "lg:w-full" : currentPage === "Alapadatok" ? "" : "lg:w-2/3"
 					}`}>
-					<Card className='rounded-none border-0 h-dvh'>
-						<div className='sticky top-0 bg-white z-40 rounded-t-md'>
-							<CardHeader className='flex flex-row items-center justify-between p-0 pr-4'>
-								<div className='flex flex-col items-start pl-10 py-3'>
-									<div className='flex flex-row gap-2 items-center'>
-										<CardTitle>{adatlap?.Name ?? ""}</CardTitle>
-										<Badge size='xs' color={statusMap[felmeres.status].color as "default"}>
-											{statusMap[felmeres.status].name}
-										</Badge>
-									</div>
-									<CardDescription>{pageClass.getCurrentPageDetails()?.title}</CardDescription>
-								</div>
-								<Dialog
-									open={openPageDialog}
-									defaultOpen
-									onOpenChange={() => setOpenPageDialog((prev) => !prev)}>
-									<DialogTrigger className='pr-2'>
-										<MenuSquare />
-									</DialogTrigger>
-									<DialogContent className='h-[100dvh] w-full p-0 flex flex-col gap-0 lg:h-[90dvh]'>
-										<div className='border-b'>
-											<DialogHeader className='flex flex-col items-start'>
-												<div className='flex flex-row gap-2 items-center'>
-													<DialogTitle>{adatlap?.Name ?? ""}</DialogTitle>
-													<Badge
-														size='xs'
-														color={statusMap[felmeres.status].color as "default"}>
-														{statusMap[felmeres.status].name}
-													</Badge>
-												</div>
-												<DialogDescription>
-													{pageClass.getCurrentPageDetails()?.title}
-												</DialogDescription>
-											</DialogHeader>
+					<ResizablePanel
+						minSize={breakPoint === "sm" ? 100 : 0}
+						defaultSize={breakPoint === "sm" ? 100 : 80}>
+						<Card className='rounded-none border-0 h-dvh'>
+							<div className='sticky top-0 bg-white z-40 rounded-t-md'>
+								<CardHeader className='flex flex-row items-center justify-between p-0 pr-4'>
+									<div className='flex flex-col items-start pl-10 py-3'>
+										<div className='flex flex-row gap-2 items-center'>
+											<CardTitle>{adatlap?.Name ?? ""}</CardTitle>
+											<Badge size='xs' color={statusMap[felmeres.status].color as "default"}>
+												{statusMap[felmeres.status].name}
+											</Badge>
 										</div>
-										<ul className='flex flex-col gap-3 lg:w-full p-6 pt-2 overflow-y-scroll lg:pt-4'>
-											{pageClass.sections.map((section, index) => {
-												if (section.subSections) {
-													return (
-														<Accordion
-															key={section.id}
-															type='single'
-															collapsible
-															className='w-full flex flex-row justify-start'
-															defaultValue='item-1'>
-															<AccordionItem className='border-b-0 w-full' value='item-1'>
-																<AccordionTrigger className='hover:no-underline font-normal rounded-md text-left pb-1 w-full'>
+										<CardDescription>{pageClass.getCurrentPageDetails()?.title}</CardDescription>
+									</div>
+									<Dialog
+										open={openPageDialog}
+										defaultOpen
+										onOpenChange={() => setOpenPageDialog((prev) => !prev)}>
+										<DialogTrigger className='pr-2'>
+											<MenuSquare />
+										</DialogTrigger>
+										<DialogContent className='h-[100dvh] w-full p-0 flex flex-col gap-0 lg:h-[90dvh]'>
+											<div className='border-b'>
+												<DialogHeader className='flex flex-col items-start'>
+													<div className='flex flex-row gap-2 items-center'>
+														<DialogTitle>{adatlap?.Name ?? ""}</DialogTitle>
+														<Badge
+															size='xs'
+															color={statusMap[felmeres.status].color as "default"}>
+															{statusMap[felmeres.status].name}
+														</Badge>
+													</div>
+													<DialogDescription>
+														{pageClass.getCurrentPageDetails()?.title}
+													</DialogDescription>
+												</DialogHeader>
+											</div>
+											<ul className='flex flex-col gap-3 lg:w-full p-6 pt-2 overflow-y-scroll lg:pt-4'>
+												{pageClass.sections.map((section, index) => {
+													if (section.subSections) {
+														return (
+															<Accordion
+																key={section.id}
+																type='single'
+																collapsible
+																className='w-full flex flex-row justify-start'
+																defaultValue='item-1'>
+																<AccordionItem
+																	className='border-b-0 w-full'
+																	value='item-1'>
+																	<AccordionTrigger className='hover:no-underline font-normal rounded-md text-left pb-1 w-full'>
+																		<ListItem
+																			id={section.id}
+																			description={section.description ?? ""}
+																			title={section.title}
+																		/>
+																	</AccordionTrigger>
+																	<AccordionContent className='pb-0 w-full'>
+																		<div className='flex flex-row w-full px-1 gap-2 pl-3'>
+																			<Separator
+																				orientation='vertical'
+																				className='shrink-0 bg-border h-auto w-[3px]'
+																			/>
+																			<div className='flex flex-col gap-2 w-full'>
+																				{section.subSections!.map(
+																					(section, index2) => (
+																						<Link
+																							key={section.id}
+																							className={cn(
+																								currentPage ===
+																									section.title &&
+																									"bg-gray-100 font-semibold",
+																								"rounded-md py-1 ml-2"
+																							)}
+																							href={
+																								"?page=" +
+																								(index + index2)
+																							}
+																							onClick={() => {
+																								setCurrentPage(
+																									section.id
+																								);
+																								setOpenPageDialog(
+																									false
+																								);
+																							}}>
+																							<ListItem
+																								id={section.id}
+																								sub
+																								description={
+																									section.description ??
+																									""
+																								}
+																								title={section.title}
+																							/>
+																						</Link>
+																					)
+																				)}
+																			</div>
+																		</div>
+																	</AccordionContent>
+																</AccordionItem>
+															</Accordion>
+														);
+													}
+													return index <
+														(pageClass.sections
+															.flat()
+															.findIndex((page) => page.id === startPage) ?? 0) ? null : (
+														<Link
+															onClick={() => {
+																setOpenPageDialog(false);
+																setCurrentPage(section.id);
+															}}
+															href={"?page=" + pageClass.getPageNum(section.id)}>
+															<ListItem
+																id={section.id}
+																description={section.description ?? ""}
+																title={section.title}
+															/>
+														</Link>
+													);
+												})}
+											</ul>
+											<DialogFooter className='border-t'>
+												<SubmitOptions />
+											</DialogFooter>
+										</DialogContent>
+									</Dialog>
+								</CardHeader>
+								<Separator className='mb-4' />
+							</div>
+							<CardContent className={currentPage !== "Tételek" ? "p-8" : "lg:p-6 px-2 pt-0"}>
+								{
+									pageClass.sections
+										.map((section) =>
+											[...(section.subSections ?? []), section].find(
+												(section) => section?.id === currentPage
+											)
+										)
+										.filter((section) => section !== undefined)[0]?.component
+								}
+								<div className='flex flex-row justify-end gap-3 py-4'>
+									{pageClass.getPageNum() === 0 ? null : (
+										<Button
+											variant='outline'
+											onClick={() => {
+												pageClass.prevPage();
+											}}>
+											Előző
+										</Button>
+									)}
+									{pageClass.isLast() ? (
+										<SubmitOptions />
+									) : (
+										<Button onClick={() => pageClass.nextPage()}>Következő</Button>
+									)}
+								</div>
+							</CardContent>
+						</Card>
+					</ResizablePanel>
+
+					<ResizableHandle />
+					<ResizablePanel defaultSize={breakPoint === "sm" ? 0 : 20}>
+						<ul className='flex flex-col gap-3 lg:w-full p-6 pt-2 overflow-y-scroll lg:pt-4'>
+							{pageClass.sections.map((section, index) => {
+								if (section.subSections) {
+									return (
+										<Accordion
+											key={section.id}
+											type='single'
+											collapsible
+											className='w-full flex flex-row justify-start'
+											defaultValue='item-1'>
+											<AccordionItem className='border-b-0 w-full' value='item-1'>
+												<AccordionTrigger className='hover:no-underline font-normal rounded-md text-left pb-1 w-full'>
+													<ListItem
+														id={section.id}
+														description={section.description ?? ""}
+														title={section.title}
+													/>
+												</AccordionTrigger>
+												<AccordionContent className='pb-0 w-full'>
+													<div className='flex flex-row w-full px-1 gap-2 pl-3'>
+														<Separator
+															orientation='vertical'
+															className='shrink-0 bg-border h-auto w-[3px]'
+														/>
+														<div className='flex flex-col gap-2 w-full'>
+															{section.subSections!.map((section, index2) => (
+																<Link
+																	key={section.id}
+																	className={cn(
+																		currentPage === section.title &&
+																			"bg-gray-100 font-semibold",
+																		"rounded-md py-1 ml-2"
+																	)}
+																	href={"?page=" + (index + index2)}
+																	onClick={() => {
+																		setCurrentPage(section.id);
+																		setOpenPageDialog(false);
+																	}}>
 																	<ListItem
 																		id={section.id}
+																		sub
 																		description={section.description ?? ""}
 																		title={section.title}
 																	/>
-																</AccordionTrigger>
-																<AccordionContent className='pb-0 w-full'>
-																	<div className='flex flex-row w-full px-1 gap-2 pl-3'>
-																		<Separator
-																			orientation='vertical'
-																			className='shrink-0 bg-border h-auto w-[3px]'
-																		/>
-																		<div className='flex flex-col gap-2 w-full'>
-																			{section.subSections!.map(
-																				(section, index2) => (
-																					<Link
-																						key={section.id}
-																						className={cn(
-																							currentPage ===
-																								section.title &&
-																								"bg-gray-100 font-semibold",
-																							"rounded-md py-1 ml-2"
-																						)}
-																						href={
-																							"?page=" + (index + index2)
-																						}
-																						onClick={() => {
-																							setCurrentPage(section.id);
-																							setOpenPageDialog(false);
-																						}}>
-																						<ListItem
-																							id={section.id}
-																							sub
-																							description={
-																								section.description ??
-																								""
-																							}
-																							title={section.title}
-																						/>
-																					</Link>
-																				)
-																			)}
-																		</div>
-																	</div>
-																</AccordionContent>
-															</AccordionItem>
-														</Accordion>
-													);
-												}
-												return index <
-													(pageClass.sections
-														.flat()
-														.findIndex((page) => page.id === startPage) ?? 0) ? null : (
-													<Link
-														onClick={() => {
-															setOpenPageDialog(false);
-															setCurrentPage(section.id);
-														}}
-														href={"?page=" + pageClass.getPageNum(section.id)}>
-														<ListItem
-															id={section.id}
-															description={section.description ?? ""}
-															title={section.title}
-														/>
-													</Link>
-												);
-											})}
-										</ul>
-										<DialogFooter className='border-t'>
-											<SubmitOptions />
-										</DialogFooter>
-									</DialogContent>
-								</Dialog>
-							</CardHeader>
-							<Separator className='mb-4' />
-						</div>
-						<CardContent className={currentPage !== "Tételek" ? "p-8" : "lg:p-6 px-2 pt-0"}>
-							{
-								pageClass.sections
-									.map((section) =>
-										[...(section.subSections ?? []), section].find(
-											(section) => section?.id === currentPage
-										)
-									)
-									.filter((section) => section !== undefined)[0]?.component
-							}
-							<div className='flex flex-row justify-end gap-3 py-4'>
-								{pageClass.getPageNum() === 0 ? null : (
-									<Button
-										variant='outline'
+																</Link>
+															))}
+														</div>
+													</div>
+												</AccordionContent>
+											</AccordionItem>
+										</Accordion>
+									);
+								}
+								return index <
+									(pageClass.sections.flat().findIndex((page) => page.id === startPage) ??
+										0) ? null : (
+									<Link
 										onClick={() => {
-											pageClass.prevPage();
-										}}>
-										Előző
-									</Button>
-								)}
-								{pageClass.isLast() ? (
-									<SubmitOptions />
-								) : (
-									<Button onClick={() => pageClass.nextPage()}>Következő</Button>
-								)}
-							</div>
-						</CardContent>
-					</Card>
-				</div>
+											setOpenPageDialog(false);
+											setCurrentPage(section.id);
+										}}
+										href={"?page=" + pageClass.getPageNum(section.id)}>
+										<ListItem
+											id={section.id}
+											description={section.description ?? ""}
+											title={section.title}
+										/>
+									</Link>
+								);
+							})}
+						</ul>
+
+						<DialogFooter className='border-t'>
+							<SubmitOptions />
+						</DialogFooter>
+					</ResizablePanel>
+				</ResizablePanelGroup>
 			</div>
 		</div>
 	);
@@ -1230,7 +1323,7 @@ export default function Page({
 				<div>
 					<AlertDialog>
 						<AlertDialogTrigger asChild>
-							<Button variant={"destructive"}>Mégsem</Button>
+							<Button variant={"destructive"}>Kilépés</Button>
 						</AlertDialogTrigger>
 						<AlertDialogContent>
 							<AlertDialogHeader>
