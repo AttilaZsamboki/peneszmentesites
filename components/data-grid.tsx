@@ -11,6 +11,7 @@ export const DataGridComponent = forwardRef<AgGridReact, AgGridReactProps>(funct
 		return {
 			flex: 1,
 			filter: "agTextColumnFilter",
+			minWidth: 150,
 		};
 	}, []);
 

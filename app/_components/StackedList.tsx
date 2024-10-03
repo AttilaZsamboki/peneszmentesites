@@ -300,9 +300,9 @@ export default function StackedList({
 	const createQueryStringCallback = useCreateQueryString(searchParams);
 
 	return (
-		<div className='w-full px-5 lg:px-0 flex flex-col'>
-			<div className='flex flex-row justify-between items-center mb-3 w-full gap-5 mt-5'>
-				<div className='mx-auto flex w-full gap-3'>
+		<div className='w-full px-0 flex flex-col'>
+			<div className='flex flex-row justify-between items-center mb-3 w-full gap-5 lg:mt-5 mt-3'>
+				<div className='mx-auto flex w-full gap-3 lg:px-0 px-3'>
 					<div className='relative flex items-center w-full h-12 bg-white overflow-hidden rounded-md border'>
 						<div className='grid place-items-center h-full w-12 text-gray-300'>
 							<svg
@@ -473,7 +473,7 @@ export default function StackedList({
 					</div>
 				</div>
 			</div>
-			<div className='flex flex-row justify-center px-4 items-center w-full bg-white rounded-t-lg p-2 border-b pb-0 '>
+			<div className='flex flex-row justify-start lg:justify-center px-4 items-center w-full bg-white rounded-t-none lg:rounded-t-lg p-0 lg:p-2 border-b pb-0 border-t lg:border-t-0 py-1 lg:py-0'>
 				<FiltersComponent
 					defaultViewName={defaultViewName}
 					filterType={title}

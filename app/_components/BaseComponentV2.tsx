@@ -67,7 +67,7 @@ export default function BaseComponentV2({
 					</Heading>
 				</div>
 			</div>
-			<div className='flex flex-row justify-center w-full flex-wrap px-6'>
+			<div className='flex flex-row justify-center w-full flex-wrap px-0 lg:px-6'>
 				<StackedList
 					defaultViewName={defaultViewName}
 					onEditItem={onEditItem}

@@ -9,6 +9,7 @@ import {
 	PaginationPrevious,
 } from "@/components/ui/pagination";
 import { cn } from "@/lib/utils";
+import useBreakpointValue from "./useBreakpoint";
 
 export function DefaultPagination({
 	numPages,
@@ -18,6 +19,7 @@ export function DefaultPagination({
 	onPageChange: (page: number) => void;
 }) {
 	const [active, setActive] = React.useState(1);
+	const breakPoint = useBreakpointValue();
 
 	const next = () => {
 		if (active === numPages) return;
@@ -57,7 +59,7 @@ export function DefaultPagination({
 							</PaginationItem>
 						</>
 					) : null}
-					{active !== 1 ? (
+					{active != 1 && breakPoint !== "sm" ? (
 						<PaginationItem>
 							<PaginationLink onClick={() => setActive((prev) => prev - 1)}>{active - 1}</PaginationLink>
 						</PaginationItem>
@@ -65,7 +67,7 @@ export function DefaultPagination({
 					<PaginationItem>
 						<PaginationLink isActive>{active}</PaginationLink>
 					</PaginationItem>
-					{active != numPages ? (
+					{active != numPages && breakPoint !== "sm" ? (
 						<PaginationItem>
 							<PaginationLink onClick={() => setActive((prev) => prev + 1)}>{active + 1}</PaginationLink>
 						</PaginationItem>
@@ -73,7 +75,7 @@ export function DefaultPagination({
 					{active < numPages - 1 ? (
 						<>
 							<PaginationItem>
-								<PaginationEllipsis />
+								<PaginationEllipsis className='lg:w-9 lg:h-9 w-5 h-5' />
 							</PaginationItem>
 							<PaginationItem>
 								<PaginationLink className='cursor-pointer' onClick={() => setActive(numPages)}>
