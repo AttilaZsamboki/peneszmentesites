@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import jwt from "jsonwebtoken";
-import { Bell, ChevronDown, ChevronUp, FactoryIcon, X } from "lucide-react";
+import { Bell, ChevronDown, ChevronUp, FactoryIcon, Menu, X } from "lucide-react";
 import { cn, createJWT, getCookie, useUserWithRole } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { OnboardingSurveyComponent } from "./onboarding-survey";
 import useBreakpointValue from "@/app/_components/useBreakpoint";
+import BaseComponentLoading from "@/app/_components/BaseComponentLoading";
 
 export function SidebarComponent({ children }: { children: React.ReactNode }) {
 	const [isOpen, setIsOpen] = useState(false);
@@ -51,83 +52,108 @@ export function SidebarComponent({ children }: { children: React.ReactNode }) {
 	const dismissOnboarding = () => {
 		setShowOnboarding(false);
 	};
+	const isMobile = useMemo(() => breakPoint === "sm", [breakPoint]);
+	if (!breakPoint) {
+		return <BaseComponentLoading />;
+	}
 
-	
 	return (
-		<>
-			<div className={`sidebar ${isOpen ? "open" : ""}`}>
-				<div className='logo-details'>
-					<FactoryIcon className='bx bxl-c-plus-plus icon text-white mr-3' />
-					<div className='logo_name'>Acme Inc.</div>
-					<i className='bx bx-menu' id='btn' onClick={toggleSidebar}></i>
-				</div>
-				<ul className='nav-list'>
-					<li>
-						<i className='bx bx-search'></i>
-						<input
-							type='text'
-							placeholder='Search...'
-							value={searchValue}
-							onChange={(e) => setSearchValue(e.target.value)}
-						/>
-						<span className='tooltip'>Search</span>
-					</li>
-					<NavItem icon='bx-grid-alt' text='Főpanel' href={"/adatlapok"} />
-					<SubMenu icon='bx-user' text='Adatok'>
-						<NavItem text='Felmérések' isChild href='/' />
-						<NavItem text='Kérdések' isChild href='/questions' />
-						<NavItem text='Sablonok' isChild href='/templates' />
-						<NavItem text='Munkadíjak' isChild href='/munkadij' />
-					</SubMenu>
-					<NavItem icon='bx-cart-alt' text='Termékek' href='/products' />
-					<NavItem icon='bx-folder' text='File Manager' tooltip='Files' href='test' />
-					<NavItem icon='bx-chat' text='Messages' />
-					<SubMenu icon='bx-pie-chart-alt-2' text='Analytics'>
-						<NavItem text='Sales' isChild />
-						<NavItem text='Traffic' isChild />
-						<NavItem text='Conversions' isChild />
-					</SubMenu>
-					<NavItem icon='bx-heart' text='Saved' />
-					<NavItem icon='bx-cog' text='Beállítások' href='settings' />
-					{showOnboarding && isOpen && (
-						<li className='onboarding-notification'>
-							<OnboardingSurveyComponent>
-								<div className='flex items-center justify-between p-2 bg-blue-100 rounded-md'>
-									<div className='flex items-center'>
-										<Bell size={16} className='text-blue-500 mr-2' />
-										<span className='text-sm text-blue-700'>Complete onboarding</span>
-									</div>
-									<button onClick={dismissOnboarding} className='text-blue-500 hover:text-blue-700'>
-										<X size={16} />
-									</button>
-								</div>
-							</OnboardingSurveyComponent>
-						</li>
+		<div className='flex flex-col min-h-screen w-full'>
+			<div
+				className={`sidebar ${isMobile ? "mobile" : ""} ${isOpen ? "open" : ""}`}
+				style={isMobile && !isOpen ? { padding: "0px 14px" } : {}}>
+				<div className={cn("logo-details", isMobile && "flex w-full flex-row justify-between items-center")}>
+					<FactoryIcon
+						className={cn("bx bxl-c-plus-plus icon text-white mr-3")}
+						style={{ opacity: isMobile ? 1 : undefined }}
+					/>
+					<div className={cn("logo_name")} style={{ opacity: isMobile ? 1 : undefined }}>
+						Acme Inc.
+					</div>
+					{!isMobile ? (
+						<i className='bx bx-menu' id='btn' onClick={toggleSidebar}></i>
+					) : isOpen ? (
+						<ChevronUp className='text-white' onClick={toggleSidebar} />
+					) : (
+						<ChevronDown className='text-white' onClick={toggleSidebar} />
 					)}
-					<li className='profile'>
-						<div className='profile-details'>
-							{isLoading ? (
-								<Avatar />
-							) : (
-								<Avatar className='mr-2'>
-									<AvatarImage src={user!.picture ?? ""} />
-									<AvatarFallback>{user!.nickname}</AvatarFallback>
-								</Avatar>
-							)}
-							<div className='name_job'>
-								<div className='name'>{user?.name}</div>
-								<div className='job'>{String(user?.role)}</div>
-							</div>
-						</div>
+				</div>
+				{(isOpen || !isMobile) && (
+					<ul className={`nav-list ${isMobile ? "flex flex-row overflow-x-auto" : ""}`}>
+						<li>
+							<i className='bx bx-search'></i>
+							<input
+								type='text'
+								placeholder='Search...'
+								value={searchValue}
+								onChange={(e) => setSearchValue(e.target.value)}
+							/>
+							<span className='tooltip'>Search</span>
+						</li>
+						<NavItem icon='bx-grid-alt' text='Főpanel' href={"/adatlapok"} />
+						<SubMenu icon='bx-user' text='Adatok'>
+							<NavItem text='Felmérések' isChild href='/' />
+							<NavItem text='Kérdések' isChild href='/questions' />
+							<NavItem text='Sablonok' isChild href='/templates' />
+							<NavItem text='Munkadíjak' isChild href='/munkadij' />
+						</SubMenu>
+						<NavItem icon='bx-cart-alt' text='Termékek' href='/products' />
+						<NavItem icon='bx-folder' text='File Manager' tooltip='Files' href='test' />
+						<NavItem icon='bx-chat' text='Messages' />
+						<SubMenu icon='bx-pie-chart-alt-2' text='Analytics'>
+							<NavItem text='Sales' isChild />
+							<NavItem text='Traffic' isChild />
+							<NavItem text='Conversions' isChild />
+						</SubMenu>
+						<NavItem icon='bx-heart' text='Saved' />
+						<NavItem icon='bx-cog' text='Beállítások' href='settings' />
+						{showOnboarding && isOpen && (
+							<li className='onboarding-notification'>
+								<OnboardingSurveyComponent>
+									<div className='flex items-center justify-between p-2 bg-blue-100 rounded-md'>
+										<div className='flex items-center'>
+											<Bell size={16} className='text-blue-500 mr-2' />
+											<span className='text-sm text-blue-700'>Complete onboarding</span>
+										</div>
+										<button
+											onClick={dismissOnboarding}
+											className='text-blue-500 hover:text-blue-700'>
+											<X size={16} />
+										</button>
+									</div>
+								</OnboardingSurveyComponent>
+							</li>
+						)}
+						{!isMobile && (
+							<li className='profile'>
+								<div className='profile-details'>
+									{isLoading ? (
+										<Avatar />
+									) : (
+										<Avatar className='mr-2'>
+											<AvatarImage src={user!.picture ?? ""} />
+											<AvatarFallback>{user!.nickname}</AvatarFallback>
+										</Avatar>
+									)}
+									<div className='name_job'>
+										<div className='name'>{user?.name}</div>
+										<div className='job'>{String(user?.role)}</div>
+									</div>
+								</div>
 
-						<a href='/api/auth/logout' id='log_out' className='flex items-center justify-center w-full'>
-							<i className='bx bx-log-out'></i>
-						</a>
-					</li>
-				</ul>
+								<a
+									href='/api/auth/logout'
+									id='log_out'
+									className='flex items-center justify-center w-full'>
+									<i className='bx bx-log-out'></i>
+								</a>
+							</li>
+						)}
+					</ul>
+				)}
 			</div>
-			<section className='home-section'>{children}</section>
-		</>
+			<section className='home-section w-full'>{children}</section>
+		</div>
 	);
 }
 

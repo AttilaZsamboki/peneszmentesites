@@ -60,7 +60,7 @@ export function OnboardingSurveyComponent({ children }: { children: React.ReactN
 
 	return (
 		<Dialog>
-			<DialogTrigger>{children}</DialogTrigger>
+			<DialogTrigger asChild>{children}</DialogTrigger>
 			<DialogContent className='w-full max-w-lg mx-auto'>
 				<DialogHeader>
 					<DialogTitle>CRM Onboarding Survey</DialogTitle>

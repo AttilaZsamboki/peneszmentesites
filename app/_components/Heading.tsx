@@ -20,9 +20,7 @@ export default function Heading({
 	return (
 		<div
 			id={id}
-			className={`flex lg:flex-row flex-col justify-between items-center w-full mb-2 ${
-				border ? "border-b" : ""
-			}`}>
+			className={`flex lg:flex-row justify-between items-center w-full mb-2 ${border ? "border-b" : ""}`}>
 			<div className='flex flex-col justify-items items-center w-full'>
 				<div
 					className={`flex flex-col ${width} px-2 lg:items-start sm:items-center justify-center ${

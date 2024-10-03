@@ -459,3 +459,73 @@ html {
 .sidebar li.onboarding-notification button:hover {
 	opacity: 0.7;
 }
+
+.sidebar.mobile {
+	width: 100%;
+	height: auto;
+	padding: 6px 14px;
+	min-height: 64px;
+	overflow-x: auto;
+	position: relative;
+}
+
+.sidebar.mobile .logo-details {
+	width: auto;
+}
+
+.sidebar.mobile .links_name {
+	display: none;
+}
+
+.sidebar.mobile.open {
+	position: absolute;
+	height: auto;
+	max-height: 80vh;
+}
+
+.sidebar.mobile.open .nav-list {
+	flex-direction: column;
+}
+
+.sidebar.mobile.open .links_name {
+	display: inline;
+}
+
+@media (max-width: 768px) {
+	.home-section {
+		left: 0;
+		width: 100%;
+	}
+
+	.sidebar.open ~ .home-section {
+		left: 0;
+		width: 100%;
+	}
+	.sidebar {
+		width: 100%;
+		height: auto;
+		position: relative;
+	}
+
+	.sidebar.open {
+		width: 100%;
+	}
+
+	.sidebar .nav-list {
+		display: flex;
+		flex-direction: row;
+		overflow-x: auto;
+	}
+
+	.sidebar.open .nav-list {
+		flex-direction: column;
+	}
+
+	.sidebar .links_name {
+		display: none;
+	}
+
+	.sidebar.open .links_name {
+		display: inline;
+	}
+}

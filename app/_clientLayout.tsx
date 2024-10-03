@@ -1,27 +1,8 @@
 "use client";
 import React from "react";
-import { ArchiveBoxIcon } from "@heroicons/react/24/outline";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import CircularProgressBar from "./_components/CircularProgressBar";
 import { Toaster } from "@/components/ui/sonner";
-import { ChevronDown, Menu, ShoppingCartIcon } from "lucide-react";
-import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { Separator } from "@/components/ui/separator";
-import useBreakpointValue from "./_components/useBreakpoint";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { getCookie, createJWT, useLocalStorageState, useUserWithRole, Role } from "@/lib/utils";
 import { QueryClient, QueryClientProvider } from "react-query";
-import jwt from "jsonwebtoken";
-import Image from "next/image";
 import { SidebarComponent } from "@/components/sidebar";
 
 interface Progress {
