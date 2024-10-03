@@ -88,7 +88,7 @@ function Step1({ responses, handleInputChange }: StepProps) {
 	return (
 		<div className='space-y-4'>
 			<div className='space-y-2'>
-				<Label htmlFor='companySize'>What's the size of your company?</Label>
+				<Label htmlFor='companySize'>Whats the size of your company?</Label>
 				<Select
 					onValueChange={(value) => handleInputChange("companySize", value)}
 					value={responses.companySize}>
@@ -119,7 +119,7 @@ function Step2Small({ responses, handleInputChange }: StepProps) {
 	return (
 		<div className='space-y-4'>
 			<div className='space-y-2'>
-				<Label>What's your primary goal with our CRM?</Label>
+				<Label>Whats your primary goal with our CRM?</Label>
 				<RadioGroup
 					onValueChange={(value) => handleInputChange("primaryGoal", value)}
 					value={responses.primaryGoal}>
@@ -221,7 +221,7 @@ function FinalStep({ responses }: { responses: SurveyResponses }) {
 	return (
 		<div className='space-y-4'>
 			<h3 className='text-lg font-medium'>Thank you for completing the survey!</h3>
-			<p>Here's a summary of your responses:</p>
+			<p>Heres a summary of your responses:</p>
 			<ul className='list-disc pl-5 space-y-2'>
 				<li>Company Size: {responses.companySize}</li>
 				<li>Industry: {responses.industry}</li>
@@ -231,7 +231,7 @@ function FinalStep({ responses }: { responses: SurveyResponses }) {
 				{responses.teamSize && <li>Sales Team Size: {responses.teamSize}</li>}
 				{responses.salesProcess && <li>Support Process: {responses.salesProcess}</li>}
 			</ul>
-			<p>We'll use this information to customize your CRM experience.</p>
+			<p>Well use this information to customize your CRM experience.</p>
 		</div>
 	);
 }

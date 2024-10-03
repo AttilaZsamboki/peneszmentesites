@@ -32,6 +32,7 @@ export function SidebarComponent({ children }: { children: React.ReactNode }) {
 	};
 
 	const { user, error, isLoading } = useUserWithRole();
+	const isMobile = useMemo(() => breakPoint === "sm", [breakPoint]);
 
 	if (!user && !isLoading) {
 		window.location.href = "/api/auth/login";
@@ -52,7 +53,6 @@ export function SidebarComponent({ children }: { children: React.ReactNode }) {
 	const dismissOnboarding = () => {
 		setShowOnboarding(false);
 	};
-	const isMobile = useMemo(() => breakPoint === "sm", [breakPoint]);
 	if (!breakPoint) {
 		return <BaseComponentLoading />;
 	}
