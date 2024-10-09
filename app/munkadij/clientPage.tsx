@@ -22,7 +22,6 @@ export default function ClientPage({ munkadijak }: { munkadijak: Munkadíj[] }) 
 		id: 0,
 		value_type: "hour",
 		num_people: 1,
-		system: 0,
 	};
 	const [selected, setSelected] = useState<Munkadíj>(nullSelected);
 	const [stateMunkadíjak, setStateMunkadíjak] = useState<Munkadíj[]>(munkadijak);

@@ -19,9 +19,9 @@ import { getFirstProduct } from "../_utils/utils";
 import FormField from "../_components/FormField";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
-import { ValueFormatterParams } from "ag-grid-community";
 import { CustomCellRendererProps } from "ag-grid-react";
 import { Check, X } from "lucide-react";
+import { useUserWithRole } from "@/lib/utils";
 
 export default function ClientComponent({ data, products }: { data: any; products: Product[] }) {
 	const [question, setQuestion] = React.useState<Question>({
@@ -36,14 +36,15 @@ export default function ClientComponent({ data, products }: { data: any; product
 	const [openDialog, setOpenDialog] = React.useState(false);
 	const [allQuestions, setAllQuestions] = React.useState<any[]>(data);
 	const [isNew, setIsNew] = React.useState(false);
+	const user = useUserWithRole();
 
 	const createQuestion = async () => {
-		const response = await fetch("https://pen.dataupload.xyz/questions/", {
+		const response = await fetch(process.env.NEXT_PUBLIC_BASE_URL + ".dataupload.xyz/questions/", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify({ ...question, id: undefined, products: undefined }),
+			body: JSON.stringify({ ...question, id: undefined, products: undefined, system: user.user?.system }),
 		});
 		if (response.ok) {
 			const data = await response.json();

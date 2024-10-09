@@ -3,6 +3,7 @@ import Questions from "./_clientComponent";
 
 import { typeMap } from "../_utils/utils";
 import { getFirstProduct } from "../_utils/utils";
+import { cookies } from "next/headers";
 
 export interface Question {
 	id: number;
@@ -26,11 +27,15 @@ export interface QuestionProduct {
 export const dynamic = "force-dynamic";
 
 export default async function QuestionsFetch() {
-	const response = await fetch("https://pen.dataupload.xyz/questions", { cache: "no-store" });
+	const system_id = cookies().get("system")?.value;
+	const response = await fetch(
+		process.env.NEXT_PUBLIC_BASE_URL + ".dataupload.xyz/questions?system_id=" + system_id,
+		{ cache: "no-store" }
+	);
 	const data: Question[] = (await response.json()) as Question[];
-	const productData: Product[] = (await fetch("https://pen.dataupload.xyz/products?all=true").then((res) =>
-		res.json()
-	)) as Product[];
+	const productData: Product[] = (await fetch(
+		process.env.NEXT_PUBLIC_BASE_URL + ".dataupload.xyz/products?all=true&system_id=" + system_id
+	).then((res) => res.json())) as Product[];
 	await Promise.all(
 		data.map(async (question) => {
 			if (question.connection === "Fix") return;

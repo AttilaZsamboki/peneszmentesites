@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { Munkadíj } from "../munkadij/page";
 import { Product } from "../products/page";
 import ClientPage from "./_clientPage";
@@ -11,13 +12,20 @@ export interface Template {
 }
 
 export default async function Page() {
-	const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates", {
-		cache: "no-cache",
-	}).then((resp) => resp.json());
+	const system_id = cookies().get("system")?.value;
+	const templates: Template[] = await fetch(
+		process.env.NEXT_PUBLIC_BASE_URL + ".dataupload.xyz/templates?system_id=" + system_id,
+		{
+			cache: "no-cache",
+		}
+	).then((resp) => resp.json());
 
-	const products: Product[] = await fetch("https://pen.dataupload.xyz/products?all=true", {
-		next: { tags: ["products"], revalidate: 60 },
-	}).then((resp) => resp.json());
+	const products: Product[] = await fetch(
+		process.env.NEXT_PUBLIC_BASE_URL + ".dataupload.xyz/products?all=true&system_id=" + system_id,
+		{
+			next: { tags: ["products"], revalidate: 60 },
+		}
+	).then((resp) => resp.json());
 	await Promise.all(
 		templates.map(async (template) => {
 			const response: { product: number; template: number }[] = await fetch(
@@ -30,7 +38,9 @@ export default async function Page() {
 			) as Product[];
 		})
 	);
-	const munkadíjak: Munkadíj[] = await fetch("https://pen.dataupload.xyz/munkadij")
+	const munkadíjak: Munkadíj[] = await fetch(
+		process.env.NEXT_PUBLIC_BASE_URL + ".dataupload.xyz/munkadij?system_id=" + system_id
+	)
 		.then((resp) => resp.json())
 		.catch(() => []);
 

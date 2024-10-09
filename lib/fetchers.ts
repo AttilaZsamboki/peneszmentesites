@@ -2,14 +2,17 @@ import { AdatlapData } from "@/app/_utils/types";
 import { Template } from "../app/templates/page";
 import { ProductTemplate } from "@/app/new/_clientPage";
 import { Pagination } from "@/app/page";
+import { cookies } from "next/headers";
 
 export const createTemplate = async (items: ProductTemplate[], template: Template) => {
+	"use server";
+	const system_id = cookies().get("system")?.value;
 	const templateResponse = await fetch("https://pen.dataupload.xyz/templates/", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
 		},
-		body: JSON.stringify(template),
+		body: JSON.stringify({ ...template, system: system_id }),
 	});
 	if (templateResponse.ok) {
 		return await saveProducts(templateResponse, items, undefined);
@@ -48,11 +51,13 @@ async function saveProducts(
 }
 
 export async function getAdatlapok(queryParams: { CategoryId?: string; id?: string; StatusIds?: number[] }) {
+	"use server";
+	const system_id = cookies().get("system")?.value;
 	return await fetch(
-		`https://pen.dataupload.xyz/minicrm-adatlapok/${Object.entries(queryParams)
+		`https://pen.dataupload.xyz/minicrm-adatlapok/?system_id=${system_id}${Object.entries(queryParams)
 			.map(
 				([key, value], index) =>
-					`${index === 0 ? "?" : ""}${key}=${typeof value === "object" ? value.join(",") : value}`
+					`${index === 0 ? "&" : ""}${key}=${typeof value === "object" ? value.join(",") : value}`
 			)
 			.join("&")}`,
 		{
@@ -71,8 +76,10 @@ export async function getAdatlapok(queryParams: { CategoryId?: string; id?: stri
 }
 
 export async function fetchAdatlapokV2(searchParams: { [key: string]: string }): Promise<Pagination<AdatlapData>> {
+	"use server";
+	const system_id = cookies().get("system")?.value;
 	return await fetch(
-		`https://pen.dataupload.xyz/minicrm-adatlapok/v2/?CategoryId=23&StatusId=3023,3084,3086${Object.entries(
+		`https://pen.dataupload.xyz/minicrm-adatlapok/v2/?system_id=${system_id}&CategoryId=23&StatusId=3023,3084,3086${Object.entries(
 			searchParams
 		)
 			.map(([key, value]: string[], index) => `${index === 0 ? "&" : ""}${key}=${value}`)

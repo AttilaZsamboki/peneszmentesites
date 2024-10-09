@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { FilterItem } from "../_components/StackedList";
 import { Question } from "../questions/page";
 import Products from "./_clientPage";
@@ -82,15 +83,20 @@ export interface Filter {
 export const dynamic = "force-dynamic";
 
 export default async function ProductsFetch({ searchParams }: { searchParams: { page: string; filter?: string } }) {
-	const questions: Question[] = await fetch("https://pen.dataupload.xyz/questions").then(async (res) => {
+	const system_id = cookies().get("system")?.value;
+	const questions: Question[] = await fetch(
+		process.env.NEXT_PUBLIC_BASE_URL + ".dataupload.xyz/questions?system_id=" + system_id
+	).then(async (res) => {
 		const data = await res.json();
 		return data.filter((question: Question) => question.connection !== "Fix");
 	});
 
 	const data: { count: number; results: Product[] } = await fetch(
-		`https://pen.dataupload.xyz/products${Object.entries(searchParams)
+		`${process.env.NEXT_PUBLIC_BASE_URL}.dataupload.xyz/products?system_id=${system_id}${Object.entries(
+			searchParams
+		)
 			.filter(([key, value]) => key !== "selectedFilter" && key !== "sort_by" && key !== "sort_order")
-			.map(([key, value]: string[], index) => `${index === 0 ? "?" : ""}${key}=${value}`)
+			.map(([key, value]: string[], index) => `${index === 0 ? "&" : ""}${key}=${value}`)
 			.join("&")}`,
 		{
 			cache: "no-store",

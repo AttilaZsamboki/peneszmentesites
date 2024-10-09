@@ -502,7 +502,7 @@ export default function Page({
 					headers: {
 						"Content-Type": "application/json",
 					},
-					body: JSON.stringify({ ...originaQuestion, id: null }),
+					body: JSON.stringify({ ...originaQuestion, id: null, system: system_id }),
 				});
 				if (resp.ok) {
 					question_id = (await resp.json()).id;

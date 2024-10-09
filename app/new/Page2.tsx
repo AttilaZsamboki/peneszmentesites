@@ -30,7 +30,7 @@ import { toast } from "sonner";
 import { OpenCreatedToast } from "@/components/toasts";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { calculatePercentageValue, cn, useSettings } from "@/lib/utils";
+import { calculatePercentageValue, cn, useSettings, useUserWithRole } from "@/lib/utils";
 import useBreakpointValue from "../_components/useBreakpoint";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -74,6 +74,7 @@ export function Page2({
 	setFelmeresMunkadíjak?: React.Dispatch<React.SetStateAction<FelmeresMunkadíj[]>>;
 }) {
 	const settings = useSettings();
+	const user = useUserWithRole();
 	const [openAccordions, setOpenAccordions] = React.useState<(ItemType | "Munkadíj" | "Összesítés")[]>([]);
 	const [newOtherItem, setNewOtherItem] = React.useState<OtherFelmeresItem>();
 	const [isEditingOtherItems, setIsEditingOtherItems] = React.useState(!readonly);
@@ -418,13 +419,16 @@ export function Page2({
 					title='Új munkadíj'
 					disabledSubmit={!selectedMunkadíj?.value || !selectedMunkadíj?.type}
 					onSave={async () => {
-						const jsonResp: Munkadíj = await fetch("https://pen.dataupload.xyz/munkadij/", {
-							method: "POST",
-							headers: {
-								"Content-Type": "application/json",
-							},
-							body: JSON.stringify(selectedMunkadíj),
-						}).then((res) => res.json());
+						const jsonResp: Munkadíj = await fetch(
+							process.env.NEXT_PUBLIC_BASE_URL + ".dataupload.xyz/munkadij/",
+							{
+								method: "POST",
+								headers: {
+									"Content-Type": "application/json",
+								},
+								body: JSON.stringify({ ...selectedMunkadíj, system: user.user?.system }),
+							}
+						).then((res) => res.json());
 						if (!jsonResp) {
 							toast.error("Munkadíj létrehozása sikertelen", {
 								description: "Kérlek próbáld újra később",
