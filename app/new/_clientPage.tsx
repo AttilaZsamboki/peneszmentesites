@@ -5,7 +5,7 @@ import { Question } from "@/app/questions/page";
 import { Template } from "@/app/templates/page";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import React from "react";
+import React, { useMemo } from "react";
 import { FelmeresQuestion } from "../page";
 
 import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
@@ -13,7 +13,6 @@ import { ExclamationCircleIcon } from "@heroicons/react/20/solid";
 import { useGlobalState } from "@/app/_clientLayout";
 import { ToDo, assembleOfferXML, fetchMiniCRM, list_to_dos } from "@/app/_utils/MiniCRM";
 import { ProductAttributes } from "@/app/products/_clientPage";
-import { useUser } from "@auth0/nextjs-auth0/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AdatlapData } from "../_utils/types";
 
@@ -39,7 +38,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { calculatePercentageValue, cn, getCookie } from "@/lib/utils";
+import { calculatePercentageValue, cn, getCookie, useUserWithRole } from "@/lib/utils";
 import { DialogFooter, DialogHeader } from "@material-tailwind/react";
 import _ from "lodash";
 import { IterationCw, MenuSquare } from "lucide-react";
@@ -154,7 +153,7 @@ export default function Page({
 	editFelmeresMunkadíjak?: FelmeresMunkadíj[];
 }) {
 	const { setProgress } = useGlobalState();
-	const { user } = useUser();
+	const { user } = useUserWithRole();
 	const searchParams = useSearchParams();
 	const breakPoint = useBreakpointValue();
 	const [felmeres, setFelmeres] = React.useState<BaseFelmeresData>(
@@ -240,6 +239,7 @@ export default function Page({
 		};
 	};
 
+	const system_id = useMemo(() => user?.system, [user]);
 	React.useEffect(() => {
 		const fetchQuestions = async () => {
 			setQuestions((prev) => prev.filter((question) => items.map((item) => item.product).includes(question.id)));
@@ -247,7 +247,10 @@ export default function Page({
 				setData((prev) => prev.filter((field) => items.map((item) => item.product).includes(field.question)));
 			}
 			items.map(async (item) => {
-				const res = await fetch("https://pen.dataupload.xyz/question_products?product=" + item.product);
+				const res = await fetch(
+					`${process.env.NEXT_PUBLIC_BASE_URL}.dataupload.xyz/question_products?system_id=${system_id}&product=` +
+						item.product
+				);
 				if (res.ok) {
 					const questionProducts: { question: number; product: number }[] = await res.json();
 					const data = await Promise.all(
@@ -292,7 +295,9 @@ export default function Page({
 					}
 				}
 			});
-			const res = await fetch("https://pen.dataupload.xyz/questions?connection=Fix");
+			const res = await fetch(
+				`${process.env.NEXT_PUBLIC_BASE_URL}.dataupload.xyz/questions?connection=Fix&system_id=${system_id}`
+			);
 			if (res.ok) {
 				const data: Question[] = await res.json();
 				setQuestions((prev) => [
@@ -414,7 +419,7 @@ export default function Page({
 				respGlobal = resp;
 			}
 			if (createType2.FELMERES === "CREATE" || createType2.CANCEL_OLD_OFFER) {
-				const resp = await fetch("https://pen.dataupload.xyz/felmeresek/", {
+				const resp = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}.dataupload.xyz/felmeresek/`, {
 					method: "POST",
 					headers: {
 						"Content-Type": "application/json",
@@ -425,6 +430,7 @@ export default function Page({
 						created_at: formattedDate,
 						status: sendOffer ? "IN_PROGRESS" : felmeres.status,
 						name: felmeres.name === "" ? adatlap?.Name : felmeres.name,
+						system: system_id,
 					}),
 				});
 				if (resp.ok) {

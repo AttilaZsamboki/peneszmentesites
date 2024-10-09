@@ -5,7 +5,7 @@ import { AdatlapData } from "../_utils/types";
 import Heading from "../_components/Heading";
 const Sections = React.lazy(() => import("../_components/Sections"));
 
-import React from "react";
+import React, { useMemo } from "react";
 
 import { Spinner, Tabs, TabsHeader, Tab } from "@material-tailwind/react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -53,7 +53,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Munkadíj } from "../munkadij/page";
 import { AdatalapInfoCard } from "@/components/component/adatalap-info-card";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 
 export function isJSONParsable(str: string) {
 	try {
@@ -151,16 +150,20 @@ export default function ClientPage({
 	const [stateChat, setStateChat] = React.useState<Chat[]>(chat);
 	const { user } = useUserWithRole();
 
+	const system_id = useMemo(() => user?.system, [user]);
 	const handleSeenChat = async () => {
-		const response = await fetch(`https://pen.dataupload.xyz/felmeres-notes/?felmeres_id=${felmeresId}`, {
-			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				seen: true,
-			}),
-		});
+		const response = await fetch(
+			`${process.env.NEXT_PUBLIC_BASE_URL}.dataupload.xyz/felmeres-notes/?system_id=${system_id}&felmeres_id=${felmeresId}`,
+			{
+				method: "PATCH",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					seen: true,
+				}),
+			}
+		);
 		if (response.ok) {
 			await fetch("/api/revalidate?tag=" + felmeresId);
 			setStateChat((prev) => prev.map((message) => ({ ...message, seen: true })));
@@ -336,7 +339,7 @@ export default function ClientPage({
 	const felmeresStatus = felmeres.status ? felmeres.status : "DRAFT";
 
 	const changeStatus = async (status: FelmeresStatus) => {
-		const response = await fetch(`https://pen.dataupload.xyz/felmeresek/${felmeresId}/`, {
+		const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}.dataupload.xyz/felmeresek/${felmeresId}/`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -354,8 +357,9 @@ export default function ClientPage({
 	};
 	const handleDelete = async () => {
 		const cookie = getCookie("jwt");
+		console.log(cookie);
 		if (!cookie || !user || user.role !== "Admin") return;
-		const response = await fetch(`https://pen.dataupload.xyz/felmeresek/${felmeresId}/`, {
+		const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}.dataupload.xyz/felmeresek/${felmeresId}/`, {
 			method: "DELETE",
 			headers: {
 				"Content-Type": "application/json",

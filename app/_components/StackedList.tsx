@@ -611,7 +611,7 @@ export default function StackedList({
 							filters: prev.filters.map((item) => {
 								const colName = (
 									event as unknown as { columns: { getColId: () => string }[] }
-								).columns[0]?.getColId();
+								).columns?.[0]?.getColId();
 								if (item.field === colName) {
 									if (item.type === "text") {
 										return { ...item, value: event.api.getFilterModel()[colName]?.filter };

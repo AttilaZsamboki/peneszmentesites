@@ -102,17 +102,19 @@ interface User extends UserContext {
 }
 interface UserWithRole extends UserProfile {
 	role: Role;
+	system: number;
 }
 
 export function useUserWithRole(): User | UserContext {
 	const [role, setRole] = React.useState<Role | undefined>(undefined);
 	const [roleLoading, setRoleLoading] = React.useState(true);
+	const [system, setSystem] = React.useState<number | undefined>(undefined);
 	const user = useUser();
 	React.useEffect(() => {
 		if (!user.user?.sub) {
 			return;
 		}
-		fetch(`https://pen.dataupload.xyz/user-role/${user.user.sub}`)
+		fetch(`${process.env.NEXT_PUBLIC_BASE_URL}.dataupload.xyz/user/${user.user.sub}`)
 			.then((res) => res.json())
 			.catch((err) => {
 				console.error(err);
@@ -120,13 +122,14 @@ export function useUserWithRole(): User | UserContext {
 				setRoleLoading(false);
 			})
 			.then((data) => {
-				setRole(data.name);
+				setRole(data.role);
 				setRoleLoading(false);
+				setSystem(data.system);
 			});
 	}, [user.user?.sub]);
 
 	if (user.user) {
-		return { ...user, user: { ...user.user, role }, isLoading: user.isLoading || roleLoading };
+		return { ...user, user: { ...user.user, role, system }, isLoading: user.isLoading || roleLoading };
 	}
 	return user;
 }

@@ -4,17 +4,26 @@ import { hufFormatter } from "../[id]/_clientPage";
 import BaseComponentV2 from "../_components/BaseComponentV2";
 import CustomDialog from "../_components/CustomDialog";
 import { Munkadíj, MunkadíjValueType } from "./page";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SelectContent, SelectGroup, SelectItem, Select, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Settings, useSettings } from "@/lib/utils";
+import { Settings, useSettings, useUserWithRole } from "@/lib/utils";
 import React from "react";
 
 export default function ClientPage({ munkadijak }: { munkadijak: Munkadíj[] }) {
 	const [openDialog, setOpenDialog] = useState(false);
-	const nullSelected: Munkadíj = { type: "", value: 0, description: "", id: 0, value_type: "hour", num_people: 1 };
+	const user = useUserWithRole();
+	const nullSelected: Munkadíj = {
+		type: "",
+		value: 0,
+		description: "",
+		id: 0,
+		value_type: "hour",
+		num_people: 1,
+		system: 0,
+	};
 	const [selected, setSelected] = useState<Munkadíj>(nullSelected);
 	const [stateMunkadíjak, setStateMunkadíjak] = useState<Munkadíj[]>(munkadijak);
 
@@ -51,9 +60,9 @@ export default function ClientPage({ munkadijak }: { munkadijak: Munkadíj[] }) 
 		}
 	};
 	const createMunkadíj = async () => {
-		const response = await fetch("https://pen.dataupload.xyz/munkadij/", {
+		const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}.dataupload.xyz/munkadij/`, {
 			method: "POST",
-			body: JSON.stringify(selected),
+			body: JSON.stringify({ ...selected, system: user.user?.system }),
 			headers: {
 				"Content-Type": "application/json",
 			},
@@ -75,7 +84,6 @@ export default function ClientPage({ munkadijak }: { munkadijak: Munkadíj[] }) 
 		idStr: munkadíj.id.toString(),
 		numPeople: munkadíj.value_type === "hour" ? `${munkadíj.value} óra` : "",
 	}));
-	console.log(formattedMunkadíjak);
 	return (
 		<>
 			<BaseComponentV2

@@ -5,6 +5,8 @@ import { ProductAttributes } from "@/app/products/_clientPage";
 import { FelmeresQuestion } from "@/app/page";
 import { FelmeresPictures } from "../_clientPage";
 import { Munkadíj } from "@/app/munkadij/page";
+import { useMemo } from "react";
+import { useUserWithRole } from "@/lib/utils";
 
 export default async function Page({
 	felmeres,
@@ -23,7 +25,9 @@ export default async function Page({
 	felmeresMunkadíjak: FelmeresMunkadíj[];
 	munkadíjak: Munkadíj[];
 }) {
-	const adatlapok = await fetch(`https://pen.dataupload.xyz/minicrm-adatlapok/${felmeres.adatlap_id}`)
+	const adatlapok = await fetch(
+		`${process.env.NEXT_PUBLIC_BASE_URL}.dataupload.xyz/minicrm-adatlapok/${felmeres.adatlap_id}`
+	)
 		.then((response) => response.json())
 		.catch((error) => {
 			console.error("error", error);
@@ -31,15 +35,24 @@ export default async function Page({
 		})
 		.then((data) => [data]);
 
-	const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates", {
-		next: { tags: ["templates"], revalidate: 300 },
-	})
+	const { user } = useUserWithRole();
+
+	const system_id = useMemo(() => user?.system, [user]);
+	const templates: Template[] = await fetch(
+		`${process.env.NEXT_PUBLIC_BASE_URL}.dataupload.xyz/templates?system_id=${system_id}`,
+		{
+			next: { tags: ["templates"], revalidate: 300 },
+		}
+	)
 		.then((response) => response.json())
 		.catch((error) => console.error("error", error));
 
-	const productAttributes: ProductAttributes[] = await fetch("https://pen.dataupload.xyz/product_attributes", {
-		next: { tags: ["product-attributes"] },
-	})
+	const productAttributes: ProductAttributes[] = await fetch(
+		`${process.env.NEXT_PUBLIC_BASE_URL}.dataupload.xyz/product_attributes?system_id=${system_id}`,
+		{
+			next: { tags: ["product-attributes"] },
+		}
+	)
 		.then((response) => response.json())
 		.catch((error) => console.error("error", error));
 

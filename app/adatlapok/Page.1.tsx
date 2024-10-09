@@ -20,7 +20,7 @@ import { FunnelIcon } from "@heroicons/react/24/outline";
 import { SearchIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useContext } from "react";
+import React, { useContext, useMemo } from "react";
 import { toast } from "sonner";
 import AutoComplete from "../_components/AutoComplete";
 import {
@@ -517,7 +517,7 @@ import { ButtonBar } from "@/components/component/kanban-card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTrigger } from "@/components/ui/dialog";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { cn, getTimeDifference } from "@/lib/utils";
+import { cn, getTimeDifference, useUserWithRole } from "@/lib/utils";
 import { Dispatch } from "react";
 import { useQuery } from "react-query";
 import { hufFormatter } from "../[id]/_clientPage";
@@ -545,8 +545,13 @@ export function AdatlapDialog({
 	open?: boolean;
 	onClose?: () => void;
 }) {
+	const { user } = useUserWithRole();
+
+	const system_id = useMemo(() => user?.system, [user]);
 	const { data: salesmenData, error } = useQuery<Salesmen[]>("salesmen", () =>
-		fetch("https://pen.dataupload.xyz/salesmen").then((res) => res.json())
+		fetch(`${process.env.NEXT_PUBLIC_BASE_URL}.dataupload.xyz/salesmen?system_id=${system_id}`).then((res) =>
+			res.json()
+		)
 	);
 	const [contact, setContact] = React.useState<ContactDetails | null>(null);
 	const [felmeresek, setFelmeresek] = React.useState<BaseFelmeresData[]>([]);
@@ -555,7 +560,10 @@ export function AdatlapDialog({
 		if (!open || !adatlap) return;
 		const fetchFelmeresek = async () => {
 			if (!adatlap.Id) return;
-			const resp = await fetch("https://pen.dataupload.xyz/felmeresek?adatlap_id=" + adatlap.Id);
+			const resp = await fetch(
+				`${process.env.NEXT_PUBLIC_BASE_URL}.dataupload.xyz/felmeresek?system_id=${system_id}&adatlap_id=` +
+					adatlap.Id
+			);
 			if (resp.ok) {
 				const data: Pagination<BaseFelmeresData> = await resp.json();
 				setFelmeresek(data.results);

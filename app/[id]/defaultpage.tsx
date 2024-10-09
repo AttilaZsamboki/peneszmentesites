@@ -61,9 +61,14 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 			console.error(err);
 			return [];
 		});
-	const products: Product[] = await fetch("https://pen.dataupload.xyz/products?all=true", {
-		next: { tags: ["products"] },
-	}).then((response) => (response.ok ? response.json() : []));
+
+	const system_id = cookieStore.get("system")?.value;
+	const products: Product[] = await fetch(
+		`${process.env.NEXT_PUBLIC_BASE_URL}.dataupload.xyz/products?system_id=${system_id}&all=true`,
+		{
+			next: { tags: ["products"] },
+		}
+	).then((response) => (response.ok ? response.json() : []));
 	const pictures = await fetch("https://pen.dataupload.xyz/felmeres-pictures?felmeres_id=" + felmeresId, {
 		next: { tags: [encodeURIComponent(felmeresId)] },
 	})
@@ -72,9 +77,12 @@ export default async function DefaultPage({ params, edit }: { params: { id: stri
 			console.error(err);
 			return [];
 		});
-	const munkadíjak = await fetch("https://pen.dataupload.xyz/munkadij", {
-		next: { tags: ["munkadijak"] },
-	})
+	const munkadíjak = await fetch(
+		`${process.env.NEXT_PUBLIC_BASE_URL}.dataupload.xyz/munkadij?system_id=${system_id}`,
+		{
+			next: { tags: ["munkadijak"] },
+		}
+	)
 		.then((response) => response.json())
 		.catch((error) => console.error("error", error));
 

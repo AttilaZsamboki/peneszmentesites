@@ -8,6 +8,7 @@ import { AdatlapData } from "./_utils/types";
 import { statusMap } from "./_utils/utils";
 
 import { Template } from "./templates/page";
+import { cookies } from "next/headers";
 
 export interface GridOptions {
 	rows: string[];
@@ -35,8 +36,11 @@ export interface Pagination<T> {
 }
 
 export default async function Home({ searchParams }: { searchParams: { page?: string; filter?: string } }) {
+	const system_id = cookies().get("system")?.value;
 	const data = await fetch(
-		`https://pen.dataupload.xyz/felmeresek/?ordering=-created_at&page=${searchParams?.page ?? 1}${
+		`${
+			process.env.NEXT_PUBLIC_BASE_URL
+		}.dataupload.xyz/felmeresek/?system_id=${system_id}&ordering=-created_at&page=${searchParams?.page ?? 1}${
 			searchParams.filter ? "&search=" + searchParams.filter : ""
 		}`,
 		{
@@ -52,13 +56,17 @@ export default async function Home({ searchParams }: { searchParams: { page?: st
 			return [];
 		});
 		const adatlapIds = Array.from(new Set(felmeresek.results.map((felmeres) => felmeres.adatlap_id.toString())));
-		const adatlapok = await fetch("https://pen.dataupload.xyz/minicrm-adatlapok/?Id=" + adatlapIds.join(","), {
-			next: { tags: ["adatlapok"], revalidate: 60 },
-			method: "GET",
-			headers: {
-				"Content-Type": "application/json",
-			},
-		})
+		const adatlapok = await fetch(
+			`${process.env.NEXT_PUBLIC_BASE_URL}.dataupload.xyz/minicrm-adatlapok/?system_id=${system_id}&Id=` +
+				adatlapIds.join(","),
+			{
+				next: { tags: ["adatlapok"], revalidate: 60 },
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+				},
+			}
+		)
 			.then((res) => res.json())
 			.catch((err) => {
 				return [];
@@ -67,9 +75,12 @@ export default async function Home({ searchParams }: { searchParams: { page?: st
 				return data.filter((adatlap) => adatlap);
 			});
 
-		const templates: Template[] = await fetch("https://pen.dataupload.xyz/templates/", {
-			next: { tags: ["templates"], revalidate: 300 },
-		})
+		const templates: Template[] = await fetch(
+			`${process.env.NEXT_PUBLIC_BASE_URL}.dataupload.xyz/templates/?system_id=${system_id}`,
+			{
+				next: { tags: ["templates"], revalidate: 300 },
+			}
+		)
 			.then((res) => res.json())
 			.catch((err) => {
 				return [];

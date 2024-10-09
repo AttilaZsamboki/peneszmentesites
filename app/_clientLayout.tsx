@@ -1,9 +1,11 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import CircularProgressBar from "./_components/CircularProgressBar";
 import { Toaster } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { SidebarComponent } from "@/components/sidebar";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { fetchUserCookie } from "./actions";
 
 interface Progress {
 	percent: number;
@@ -18,6 +20,10 @@ export const GlobalContext = React.createContext<{
 });
 
 export default function RootLayoutClient({ children }: { children: React.ReactNode }) {
+	useEffect(() => {
+		fetchUserCookie();
+	}, []);
+
 	const [progress, setProgress] = React.useState<Progress>({ percent: 0 });
 
 	React.useEffect(() => {
